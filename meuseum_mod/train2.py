@@ -49,8 +49,6 @@ def main(argv=None):
     model = nn.create_model()
 
     train_prep = Preprocess(train_file)
-    print('train_prep', type(train_prep))
-    exit()
     # if want mono-nucleotide sequences
     train_data = train_prep.one_hot_encode()
     # if want dinucleotide sequences
