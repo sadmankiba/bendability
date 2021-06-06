@@ -19,14 +19,14 @@ def main(argv = None):
 
     prep = preprocess(file)
     # if want mono-nucleotide sequences
-    if argv[3] == '-f':
+    if direction == '-f':
         fasta = prep.read_fasta_forward()
-    elif argv[3] == '-r':
+    elif direction == '-r':
         fasta = prep.rc_comp2()
 
     np.set_printoptions(threshold=sys.maxsize)
     df = pd.DataFrame({'sequences': fasta,})
-    df.to_csv(argv[2], sep='\t', index=False, header=False)
+    df.to_csv(out, sep='\t', index=False, header=False)
 
         
     # reports time consumed during execution (secs)
