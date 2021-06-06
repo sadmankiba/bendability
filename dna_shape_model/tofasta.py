@@ -26,6 +26,7 @@ def main(argv = None):
 
     np.set_printoptions(threshold=sys.maxsize)
     df = pd.DataFrame({'sequences': fasta,})
+    print(df)
     df.to_csv(out, sep='\t', index=False, header=False)
 
         
