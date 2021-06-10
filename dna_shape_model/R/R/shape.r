@@ -1,5 +1,5 @@
 # Usage:
-# Rscript shape.r /home/sakib/playground/machine_learning/bendability/data/rl.fasta
+# Rscript shape.r /home/sakib/playground/machine_learning/bendability/data/rl_most_1000.txt
 
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
