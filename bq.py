@@ -1,4 +1,4 @@
-from .util import gen_random_sequences, sorted_split, find_occurence, get_possible_seq
+from util import gen_random_sequences, sorted_split, find_occurence, get_possible_seq
 
 import numpy as np
 import pandas as pd
@@ -17,7 +17,7 @@ def find_bq(df, unit_size):
     # get sorted split bins of equal size
     n_seq = len(df) - len(df) % N_BINS
     df = df.iloc[:n_seq, :]
-    sorted_dfs = sorted_split(df, n=len(df), n_bins=N_BINS)
+    sorted_dfs = sorted_split(df, n=len(df), n_bins=N_BINS, ascending=True)
     
     # For each bin, find occurence of bp sequences 
     possib_seq = get_possible_seq(unit_size)
@@ -28,7 +28,7 @@ def find_bq(df, unit_size):
         seq_occur_map[seq] = np.array([]) 
 
     for sdf in sorted_dfs:
-        one_bin_occur_dict = find_occurence(sdf['Sequence'].to_numpy(), unit_size=2)
+        one_bin_occur_dict = find_occurence(sdf['Sequence'].tolist(), unit_size)
         for unit_seq in seq_occur_map:
             seq_occur_map[unit_seq] = np.append(seq_occur_map[unit_seq], one_bin_occur_dict[unit_seq])
 
@@ -48,15 +48,19 @@ def find_bq(df, unit_size):
         seq_occur_map[unit_seq] = \
             seq_occur_map[unit_seq] / random_list_occur_dict[unit_seq]
 
+    print('normalized sequence occur map\n', seq_occur_map)
+
     # Find mean C0 value in each bin 
-    mean_c0 = [ (pd.mean(sdf['C0']).to_numpy().to_list())[0] for sdf in sorted_dfs ]
+    mean_c0 = [ np.mean(sdf['C0']) for sdf in sorted_dfs ]
+    print('mean_c0\n', mean_c0)
     
     # Fit straight line on C0 vs. normalized occurence
     bq_map = dict()
     for unit_seq in seq_occur_map:
-        X = np.reshape(seq_occur_map[unit_seq], (-1, 1))
-        y = np.array(mean_c0)
+        X = np.reshape(np.array(mean_c0), (-1, 1))
+        y = seq_occur_map[unit_seq]
         lr = LinearRegression().fit(X, y)
-        bq_map[unit_seq] = lr.coef_
+        bq_map[unit_seq] = lr.coef_[0]
 
+    print('bq_map\n', bq_map)
     return bq_map
