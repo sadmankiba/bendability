@@ -17,9 +17,13 @@ def sorted_split(df, n=1000, n_bins=1, ascending=False):
     return [ sorted_df.iloc[start_pos : start_pos + math.ceil(n / n_bins)] 
                 for start_pos in range(0, n, math.ceil(n / n_bins)) ]
 
-
 def get_possible_seq(size):
-    """ Generates all possible nucleotide sequences of particular length"""
+    """ 
+    Generates all possible nucleotide sequences of particular length
+    
+    returns:
+        a list of sequences
+    """
     
     possib_seq = ['']
     
@@ -72,3 +76,4 @@ def gen_random_sequences(n):
         seq_list.append(seq)
     
     return seq_list
+

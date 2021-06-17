@@ -38,6 +38,11 @@ def preprocess(df, file_name):
     return df
 
 def get_processed_data():
+    """
+    returns :
+        sequence library as pandas Dataframe with columns ["Sequence #", "Sequence", "C0"]
+        
+    """ 
     (cnl_df_raw, rl_df_raw, tl_df_raw, chrvl_df_raw, libl_df_raw) = get_raw_data()
 
     cnl_df = preprocess(cnl_df_raw, 'cnl')
