@@ -6,10 +6,12 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import datasets, layers, models
+from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
 
 import math
+from pathlib import Path
+import random
 
 # Two types of shape feature processing 
 #   1. Only discrete values
@@ -71,16 +73,17 @@ def classify_arr(arr, range_split):
     return np.array([ np.searchsorted(range_arr, e) for e in arr ]) 
         
 
-def run_shape_cnn(X, y, num_shape_encode):
+def run_shape_cnn(X, y):
     X = X.reshape(list(X.shape) + [1])
 
     model = models.Sequential()
-    model.add(layers.Conv2D(64, (X.shape[1], 4), activation='relu', 
-        input_shape=(X.shape[1], X.shape[2], 1)))
+    model.add(layers.Conv2D(filters=64, kernel_size=(X.shape[1], 4), strides=1,
+        activation='relu', input_shape=(X.shape[1], X.shape[2], 1)))
     model.add(layers.MaxPooling2D((2, 2), padding='same'))
 
     model.add(layers.Flatten())
     model.add(layers.Dense(100, activation='relu'))
+    model.add(layers.Dense(np.unique(y).size))
 
     print(model.summary())
 
@@ -107,20 +110,35 @@ def run_shape_cnn(X, y, num_shape_encode):
 
 if __name__ == '__main__':
     (cnl_df, rl_df, tl_df, chrvl_df, libl_df) = get_processed_data()
+    library_name = 'rl'
     sequences = rl_df['Sequence']
-    shape_arr = run_dna_shape_r_wrapper(rl_df)[3] # Choose ProT
     
-    # Cut off not-nan columns 
+    shape_name = 'ProT'
+    shape_arr = run_dna_shape_r_wrapper(rl_df, False)[shape_name] 
+    
+    # Prune not-nan columns 
     valid_cols = find_valid_cols(shape_arr[0].flatten())
     shape_arr = shape_arr[:, valid_cols]
     print('shape_arr', shape_arr.shape)
 
     num_shape_encode = 12 # CHANGE HERE
-    X = one_hot_encode_shape(shape_arr, 'ProT', num_shape_encode)
+    
+
+    saved_shape_arr_file = Path(f"data/generated_data/saved_arrays/{shape_name}_ohe_{library_name}.npy")
+    if saved_shape_arr_file.is_file():
+        # file exists
+        with open(saved_shape_arr_file, 'rb') as f:
+            X = np.load(f)
+    else: 
+        X = one_hot_encode_shape(shape_arr, 'ProT', num_shape_encode)
+        with open(saved_shape_arr_file, 'wb') as f:
+            np.save(f, X)
+        
     print('X', X.shape)
+    print(X[random.sample(range(X.shape[0]), 5)])
     assert X.shape == (shape_arr.shape[0], num_shape_encode, shape_arr.shape[1])
 
     c0_range_split = np.array([0.2, 0.8, 1.0]) # CHANGE HERE 
     y = classify_arr(rl_df['C0'].to_numpy(), c0_range_split)
     
-    run_shape_cnn(X, y, num_shape_encode)
+    run_shape_cnn(X, y)

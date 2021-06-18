@@ -1,10 +1,19 @@
-from util import get_possible_seq
+from util import get_possible_seq, get_random_string
 
 import numpy as np
 import pandas as pd
 
 import subprocess
 import os
+
+SHAPE_NAMES = ['EP', 'HelT', 'MGW', 'ProT', "Roll"]
+SHAPE_FULL_FORM = {
+    'EP': 'Electrostatic potential',
+    'HelT': 'Helix twist',
+    'MGW': 'Minor groove width', 
+    'ProT': 'Propeller twist',
+    'Roll': 'Roll'
+}
 
 def get_shape(file_path):
     """
@@ -15,51 +24,50 @@ def get_shape(file_path):
     with open(file_path, "r") as file:
         i = 0
         all_seq_shapes = []
+    
         for data in file.readlines():
-            # Better: instead of assuming 3 lines for each sequence, 
-            # we can identify a new sequence with '>'
-             
-            i = i + 1
-            if i % 3 == 1:
+            # Identify a new sequence with '>' and 'NA'
+            if data[0] == '>':
                 continue
-            elif i % 3 == 2:
-                shape_str: str = data 
-            elif i % 3 == 0:
-                shape_str: str = shape_str + ',' + data 
-                shape_str_list = shape_str.strip().split(sep=',')
+            elif data[:2] == 'NA':
+                shape_str_list = data.strip().split(sep=',')
                 shape_float_list = [ None if val == 'NA' else float(val) for val in shape_str_list ]
                 all_seq_shapes.append(shape_float_list)
+            else:
+                shape_str_list = data.strip().split(sep=',')
+                shape_float_list = [ None if val == 'NA' else float(val) for val in shape_str_list ]
+                all_seq_shapes[-1] += shape_float_list
         
         return np.array(all_seq_shapes).astype(float)
 
-def run_dna_shape_r_wrapper(df):
+def run_dna_shape_r_wrapper(df, prune_na):
     """
     Finds DNA Shape values of DNA sequences by running a R script
 
     args:
         df (pandas.DataFrame): contains DNA sequences in 'Sequence' column
+        prune_na (bool): whether to prune NA shape values
     returns:
-        a numpy 3d array consisting of one 2d array for 
-        'EP', 'HelT', 'MGW', 'ProT', "Roll" in this order
+        a dict mapping keys ['EP', 'HelT', 'MGW', 'ProT', "Roll"] to a 2d shape array 
     """ 
     # Write sequences one per line to feed into R script 
-    sequence_file = 'sequences.txt'
+    sequence_file =  get_random_string(10)
 
     df['Sequence'].to_csv(sequence_file, sep=' ', index=False, header=False)
     subprocess.run(["Rscript", "./dna_shape_model/R/R/shape.r", f"/home/sakib/playground/machine_learning/bendability/{sequence_file}"], capture_output = True)
     os.remove(sequence_file)
 
-    shape_arr = []
-    for ext in ['EP', 'HelT', 'MGW', 'ProT', "Roll"]:
+    shape_arr_map = {}
+    for ext in SHAPE_NAMES:
         arr = get_shape(f"{sequence_file}.{ext}")
-        # if ext == 'EP':
-        #     shape_arr = arr
-        # else:
-        #     np.concatenate((shape_arr, arr), axis=0)
-        shape_arr.append(arr)
+        if prune_na:
+            valid_cols = find_valid_cols(arr[0].flatten())
+            arr = arr[:, valid_cols]
+
+        shape_arr_map[ext] = arr
         os.remove(f"{sequence_file}.{ext}")
 
-    return shape_arr
+    return shape_arr_map
 
 
 def find_valid_cols(arr):
@@ -68,7 +76,7 @@ def find_valid_cols(arr):
     return np.where(mask)[0]
 
 
-def find_all_shape_value():
+def find_all_shape_values():
     """
     Generate all 5-bp and 6-bp sequences and write their shape value in a file
     """
@@ -77,12 +85,12 @@ def find_all_shape_value():
     six_bp_seqs = get_possible_seq(6)
     
     five_seq_df = pd.DataFrame({"Sequence" : five_bp_seqs})
-    shape_arr = run_dna_shape_r_wrapper(five_seq_df)
+    shape_arr = run_dna_shape_r_wrapper(five_seq_df, False)
 
-    helt_five_arr = shape_arr[1]
-    mgw_arr = shape_arr[2]
-    prot_arr = shape_arr[3]
-    roll_five_arr = shape_arr[4]
+    helt_five_arr = shape_arr[SHAPE_NAMES[1]]
+    mgw_arr = shape_arr[SHAPE_NAMES[2]]
+    prot_arr = shape_arr[SHAPE_NAMES[3]]
+    roll_five_arr = shape_arr[SHAPE_NAMES[4]]
 
     mgw_df = pd.concat([five_seq_df, pd.DataFrame({"MGW": mgw_arr[:,2].flatten()})], axis=1)
     mgw_df.sort_values("MGW", ignore_index=True, inplace=True)
@@ -93,10 +101,10 @@ def find_all_shape_value():
     prot_df.to_csv(f'{write_dir}/ProT_possib_values.tsv', sep='\t', index=False, header=False)
 
     six_seq_df = pd.DataFrame({"Sequence": six_bp_seqs})
-    six_shape_arr = run_dna_shape_r_wrapper(six_seq_df)
+    six_shape_arr = run_dna_shape_r_wrapper(six_seq_df, False)
 
-    helt_six_arr = six_shape_arr[1]
-    roll_six_arr = six_shape_arr[4]
+    helt_six_arr = six_shape_arr[SHAPE_NAMES[1]]
+    roll_six_arr = six_shape_arr[SHAPE_NAMES[4]]
 
     def get_helt_roll_df(five_arr, six_arr, shape_str: str, ):
         """

@@ -4,14 +4,4 @@ __pycache__/
 *.zip
 *.png
 
-# Processed data
-data/*.csv
-data/*.fasta
-data/*.txt
-
-# DNA Shape files
-data/*.EP
-data/*.HelT
-data/*.MGW
-data/*.ProT
-data/*.Roll
+data/

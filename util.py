@@ -1,5 +1,6 @@
 import math
 import random 
+import string
 
 def sorted_split(df, n=1000, n_bins=1, ascending=False):
     """
@@ -16,6 +17,7 @@ def sorted_split(df, n=1000, n_bins=1, ascending=False):
     
     return [ sorted_df.iloc[start_pos : start_pos + math.ceil(n / n_bins)] 
                 for start_pos in range(0, n, math.ceil(n / n_bins)) ]
+
 
 def get_possible_seq(size):
     """ 
@@ -54,6 +56,7 @@ def find_occurence(seq_list, unit_size):
 
     return seq_occur_map
 
+
 def gen_random_sequences(n):
     """Generates n 50 bp random DNA sequences"""
     seq_list = []
@@ -76,4 +79,12 @@ def gen_random_sequences(n):
         seq_list.append(seq)
     
     return seq_list
+
+
+def get_random_string(length):
+    
+    # choose from all lowercase letter
+    letters = string.ascii_lowercase
+    result_str = ''.join(random.choice(letters) for i in range(length))
+    return result_str
 
