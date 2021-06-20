@@ -1,5 +1,6 @@
 from read_data import get_processed_data
 from shape import find_valid_cols, run_dna_shape_r_wrapper
+from util import cut_sequence
 
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
@@ -18,11 +19,9 @@ import random
 #   2. One-hot encode discrete values
 
 def encode_shape(shape_arr, shape_str, n_split):
-    # possib_shape_df = pd.read_csv(f'data/generated_data/{shape_arr}_possib_values.tsv', sep='\t')
-    # shape_min = min(possib_shape_df[shape_str])
-    # shape_max = max(possib_shape_df[shape_str])
-    shape_min = np.min(shape_arr) 
-    shape_max = np.max(shape_arr)
+    possib_shape_df = pd.read_csv(f'data/generated_data/{shape_str}_possib_values.tsv', sep='\t')
+    shape_min = min(possib_shape_df[shape_str])
+    shape_max = max(possib_shape_df[shape_str])
 
     shape_range = ((shape_max - shape_min) / n_split) + 0.001
     return np.floor((shape_arr - shape_min) / shape_range) 
@@ -77,12 +76,12 @@ def run_shape_cnn(X, y):
     X = X.reshape(list(X.shape) + [1])
 
     model = models.Sequential()
-    model.add(layers.Conv2D(filters=64, kernel_size=(X.shape[1], 4), strides=1,
+    model.add(layers.Conv2D(filters=32, kernel_size=(X.shape[1], 4), strides=1,
         activation='relu', input_shape=(X.shape[1], X.shape[2], 1)))
     model.add(layers.MaxPooling2D((2, 2), padding='same'))
 
     model.add(layers.Flatten())
-    model.add(layers.Dense(100, activation='relu'))
+    model.add(layers.Dense(50, activation='relu'))
     model.add(layers.Dense(np.unique(y).size))
 
     print(model.summary())
@@ -95,7 +94,7 @@ def run_shape_cnn(X, y):
     
     X_train, X_valid, y_train, y_valid = train_test_split(X_train_valid, y_train_valid, test_size=0.1)
 
-    history = model.fit(X_train, y_train, epochs=10, 
+    history = model.fit(X_train, y_train, epochs=5, 
                         validation_data=(X_valid, y_valid))
     
     plt.plot(history.history['accuracy'], label='accuracy')
@@ -111,34 +110,32 @@ def run_shape_cnn(X, y):
 if __name__ == '__main__':
     (cnl_df, rl_df, tl_df, chrvl_df, libl_df) = get_processed_data()
     library_name = 'rl'
-    sequences = rl_df['Sequence']
+    df = rl_df
+    seq_start_pos = 11
+    seq_end_pos = 40
+    df = cut_sequence(df, seq_start_pos, seq_end_pos)
     
-    shape_name = 'ProT'
-    shape_arr = run_dna_shape_r_wrapper(rl_df, False)[shape_name] 
-    
-    # Prune not-nan columns 
-    valid_cols = find_valid_cols(shape_arr[0].flatten())
-    shape_arr = shape_arr[:, valid_cols]
+    shape_name = 'HelT'
+    shape_arr = run_dna_shape_r_wrapper(df, True)[shape_name] 
     print('shape_arr', shape_arr.shape)
+
+    c0_range_split = np.array([0.2, 0.8, 1.0]) # CHANGE HERE 
+    y = classify_arr(df['C0'].to_numpy(), c0_range_split)
 
     num_shape_encode = 12 # CHANGE HERE
     
-
-    saved_shape_arr_file = Path(f"data/generated_data/saved_arrays/{shape_name}_ohe_{library_name}.npy")
+    saved_shape_arr_file = Path(f"data/generated_data/saved_arrays/{library_name}_{seq_start_pos}_{seq_end_pos}_{shape_name}_ohe.npy")
     if saved_shape_arr_file.is_file():
         # file exists
         with open(saved_shape_arr_file, 'rb') as f:
             X = np.load(f)
     else: 
-        X = one_hot_encode_shape(shape_arr, 'ProT', num_shape_encode)
+        X = one_hot_encode_shape(shape_arr, shape_name, num_shape_encode)
         with open(saved_shape_arr_file, 'wb') as f:
             np.save(f, X)
         
-    print('X', X.shape)
+    print('X.shape', X.shape)
     print(X[random.sample(range(X.shape[0]), 5)])
     assert X.shape == (shape_arr.shape[0], num_shape_encode, shape_arr.shape[1])
-
-    c0_range_split = np.array([0.2, 0.8, 1.0]) # CHANGE HERE 
-    y = classify_arr(rl_df['C0'].to_numpy(), c0_range_split)
     
     run_shape_cnn(X, y)

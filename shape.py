@@ -94,11 +94,11 @@ def find_all_shape_values():
 
     mgw_df = pd.concat([five_seq_df, pd.DataFrame({"MGW": mgw_arr[:,2].flatten()})], axis=1)
     mgw_df.sort_values("MGW", ignore_index=True, inplace=True)
-    mgw_df.to_csv(f'{write_dir}/MGW_possib_values.tsv', sep='\t', index=False, header=False)
+    mgw_df.to_csv(f'{write_dir}/MGW_possib_values.tsv', sep='\t', index=False)
 
     prot_df = pd.concat([five_seq_df, pd.DataFrame({"ProT": prot_arr[:,2].flatten()})], axis=1)
     prot_df.sort_values("ProT", ignore_index=True, inplace=True)
-    prot_df.to_csv(f'{write_dir}/ProT_possib_values.tsv', sep='\t', index=False, header=False)
+    prot_df.to_csv(f'{write_dir}/ProT_possib_values.tsv', sep='\t', index=False)
 
     six_seq_df = pd.DataFrame({"Sequence": six_bp_seqs})
     six_shape_arr = run_dna_shape_r_wrapper(six_seq_df, False)
@@ -125,11 +125,11 @@ def find_all_shape_values():
         
     helt_df = get_helt_roll_df(helt_five_arr, helt_six_arr, 'HelT')
     helt_df.sort_values('HelT', ignore_index=True, inplace=True)
-    helt_df.to_csv(f'{write_dir}/HelT_possib_values.tsv', sep='\t', index=False, header=False)
+    helt_df.to_csv(f'{write_dir}/HelT_possib_values.tsv', sep='\t', index=False)
 
     roll_df = get_helt_roll_df(roll_five_arr, roll_six_arr, 'Roll')
     roll_df.sort_values('Roll', ignore_index=True, inplace=True)
-    roll_df.to_csv(f'{write_dir}/Roll_possib_values.tsv', sep='\t', index=False, header=False)
+    roll_df.to_csv(f'{write_dir}/Roll_possib_values.tsv', sep='\t', index=False)
 
 def split_values(val_list, n_split):
     """

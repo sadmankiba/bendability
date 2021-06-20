@@ -1,4 +1,5 @@
-from util import gen_random_sequences, sorted_split, find_occurence, get_possible_seq
+from util import gen_random_sequences, sorted_split, find_occurence, get_possible_seq, \
+    cut_sequence
 from read_data import get_processed_data
 from shape import run_dna_shape_r_wrapper, SHAPE_FULL_FORM
 
@@ -50,7 +51,7 @@ def find_bq(df, unit_size, df_str):
             seq_occur_map[unit_seq] = np.append(seq_occur_map[unit_seq], one_bin_occur_dict[unit_seq])
 
 
-    # Generate a large random list of 50 bp DNA sequences
+    # Generate a large random list of equal length bp DNA sequences
     # and find avg. occurences for a bin
     GENERATE_TIMES = 100
     num_random_sequences = len(sorted_dfs[0]) * GENERATE_TIMES
@@ -132,13 +133,22 @@ def plot_bq():
     plt.show()
     
 def plot_shape_seq_bq():
+    """
+    Find top sequences that are associated with low and high bendability.
+    Plot shape sequences of these sequences.
+    """
     TOP_N = 20      # Number of top or bottom sequences to consider
 
     (cnl_df, rl_df, tl_df, chrvl_df, libl_df) = get_processed_data()
+    
+    seq_start_pos = 11
+    seq_end_pos = 40
+    cnl_df = cut_sequence(cnl_df, seq_start_pos, seq_end_pos)
+    rl_df = cut_sequence(rl_df, seq_start_pos, seq_end_pos)
 
     for df_name, df in [('cnl', cnl_df), ('rl', rl_df)]:
-        for unit_bp_size in [6, 7]: 
-            seq_bq_map = find_bq(df, unit_bp_size, df_name)
+        for unit_bp_size in [8, 9]: 
+            seq_bq_map = find_bq(df, unit_bp_size, f'{df_name}_{seq_start_pos}_{seq_end_pos}')
 
             sorted_unit_seq_bq_pair = sorted(seq_bq_map.items(), key=lambda x: x[1])
             print('sorted_unit_seq_bq_pair - no. of keys', len(sorted_unit_seq_bq_pair))
@@ -176,7 +186,7 @@ def plot_shape_seq_bq():
                 plt.xticks(ticks=np.arange(shape_arr.shape[1]), labels= [str(i+1) for i in range(shape_arr.shape[1])])
                 plt.ylabel(SHAPE_FULL_FORM[shape_name])
                  
-                plt.savefig(f'figures/shape_seq/{df_name}_{shape_name}_{shape_arr.shape[1]}_{TOP_N}_seq_impact.png')
+                plt.savefig(f'figures/shape_seq/{df_name}_{seq_start_pos}_{seq_end_pos}_{shape_name}_{shape_arr.shape[1]}_{TOP_N}_seq_impact.png')
                 
                 
 

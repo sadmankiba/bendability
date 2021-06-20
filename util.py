@@ -19,6 +19,14 @@ def sorted_split(df, n=1000, n_bins=1, ascending=False):
                 for start_pos in range(0, n, math.ceil(n / n_bins)) ]
 
 
+def cut_sequence(df, start, stop):
+    """
+    Cut a sequence from start to stop position.
+    start, stop - 1-indexed, inclusive
+    """
+    df['Sequence'] = df['Sequence'].str[start-1:stop]
+    return df
+
 def get_possible_seq(size):
     """ 
     Generates all possible nucleotide sequences of particular length
@@ -81,8 +89,7 @@ def gen_random_sequences(n):
     return seq_list
 
 
-def get_random_string(length):
-    
+def get_random_string(length):   
     # choose from all lowercase letter
     letters = string.ascii_lowercase
     result_str = ''.join(random.choice(letters) for i in range(length))
