@@ -55,7 +55,7 @@ def one_hot_encode_shape(shape_arr, shape_str, n_split):
     return arr_3d
 
 
-def classify_arr(arr, range_split):
+def classify_arr(arr: np.ndarray, range_split: np.ndarray) -> np.ndarray:
     """
     Encodes a 1D numpy array into discrete values 
 
@@ -66,7 +66,6 @@ def classify_arr(arr, range_split):
     returns:
         arr classified into integer between 0 to range_split.size - 1 
     """
-     
     range_arr = np.array(sorted(arr))[np.floor(arr.size * range_split - 1).astype(int)]     # ranges for array according to range_split
 
     return np.array([ np.searchsorted(range_arr, e) for e in arr ]) 
