@@ -26,13 +26,33 @@ from collections import Counter
 #   1. Only discrete values
 #   2. One-hot encode discrete values
 
-def encode_shape(shape_arr, shape_str, n_split):
+def encode_shape(shape_arr: np.ndarray, shape_str: str, n_split: int) -> np.ndarray:
+    """
+    Encodes a 2D shape array into integers between 0 to (n_split - 1)
+
+    Returns:
+        A numpy 2D array of integers
+    """
     possib_shape_df = pd.read_csv(f'data/generated_data/{shape_str}_possib_values.tsv', sep='\t')
     shape_min = min(possib_shape_df[shape_str])
     shape_max = max(possib_shape_df[shape_str])
 
     shape_range = ((shape_max - shape_min) / n_split) + 0.001
     return np.floor((shape_arr - shape_min) / shape_range) 
+
+
+def encode_shape_alpha(shape_arr: np.ndarray, shape_str: str, n_letters: int) -> np.ndarray:
+    """
+    Encodes a 2D shape array into 1D array of strings. 
+    
+    The string contains letters from first n_letters letters, ['a', ... ]
+
+    Returns: 
+        A numpy 1D array of binary strings
+    """
+    enc_shape_arr = encode_shape(shape_arr, shape_str, n_letters)
+    enc_shape_arr += ord('a')
+    return enc_shape_arr.astype(np.uint8).view(f'S{shape_arr.shape[1]}').squeeze()
 
 
 def one_hot_encode_shape(shape_arr, shape_str, n_split):
@@ -45,7 +65,7 @@ def one_hot_encode_shape(shape_arr, shape_str, n_split):
         n_split: number of discrete values
     
     returns:
-        a numpy Ndarray containing one-hot encoded shape values of sequences 
+        a numpy 3D array containing one-hot encoded shape values of sequences 
     """
     encoded_shape_arr = encode_shape(shape_arr, shape_str, n_split)
     ohe = OneHotEncoder()
@@ -105,7 +125,13 @@ class Model:
         return cut_sequence(all_df[self.library_name], self.seq_start_pos, self.seq_end_pos)
          
         
-    def _prepare_shape(self, df):
+    def _prepare_shape(self, df: pd.DataFrame) -> None:
+        """
+        Get shape array of DNA sequences
+
+        Returns: 
+            A numpy 3D array with one-hot encoded shape values. 
+        """
         shape_name = 'HelT'
         shape_arr = run_dna_shape_r_wrapper(df, True)[shape_name] 
         print('shape_arr', shape_arr.shape)
@@ -125,6 +151,7 @@ class Model:
         print('X.shape', X.shape)
         print(X[random.sample(range(X.shape[0]), 5)])
         assert X.shape == (shape_arr.shape[0], num_shape_encode, shape_arr.shape[1])
+        return X
 
 
     def _train_shape_cnn_classifier(X: np.ndarray, y: np.ndarray) -> tuple:
@@ -213,15 +240,17 @@ class Model:
         return feat_selector.transform(X)
 
 
-    def run_seq_classifier(self) -> None:
+    def run_seq_classifier(self, k_list) -> None:
         """
         Runs Scikit-learn classifier to classify C0 value with k-mer count.
 
         Prepares features and targets from DNA sequences and C0 value. 
+        
+        Args:
+            k_list: list of unit sizes to consider
         """
         # Get count features
         df = self._get_train_df()
-        k_list = [2, 3, 4, 5]
         df = find_occurence_individual(df, k_list) 
 
         # Save for inspection
@@ -264,6 +293,9 @@ class Model:
             forest.fit(X_train, y_train)
 
             print('accuracy:', forest.score(X_test, y_test))
+
+    def run_shape_seq_classifier(self) -> None:
+        pass
 
 
 if __name__ == '__main__':

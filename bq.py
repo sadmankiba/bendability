@@ -133,8 +133,9 @@ def plot_bq():
     plt.savefig('figures/cnl_bq_5.png')
 
     plt.show()
-    
-def plot_shape_seq_bq():
+
+
+def plot_indirect_shape_seq_bq():
     """
     Find top sequences that are associated with low and high bendability.
     Plot shape sequences of these sequences.
@@ -193,5 +194,4 @@ def plot_shape_seq_bq():
                  
                 plt.savefig(f'figures/shape_seq/{df_name}_{seq_start_pos}_{seq_end_pos}_{shape_name}_{shape_arr.shape[1]}_{TOP_N}_seq_impact.png')
                 
-                
-
+            

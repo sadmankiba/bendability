@@ -29,6 +29,7 @@ def cut_sequence(df, start, stop):
     df['Sequence'] = df['Sequence'].str[start-1:stop]
     return df
 
+
 def get_possible_seq(size):
     """ 
     Generates all possible nucleotide sequences of particular length
@@ -44,6 +45,26 @@ def get_possible_seq(size):
     
     return possib_seq
 
+
+def get_possible_shape_seq(size: int, n_letters: int):
+    """ 
+    Generates all possible strings of particular length from an alphabet
+
+    Args:
+        size: Size of string
+        n_letters: Number of letters to use
+    
+    Returns:
+        A list of strings
+    """
+    possib_seq = ['']
+    alphabet = [ chr(ord('a') + i) for i in range(n_letters)]
+
+    for _ in range(size):
+        possib_seq = [ seq + c for seq in possib_seq for c in alphabet ]
+    
+    return possib_seq
+    
 
 def find_occurence(seq_list, unit_size):
     """
@@ -82,6 +103,29 @@ def find_occurence_individual(df: pd.DataFrame , k_list: list):
     possib_seq = []
     for k in k_list:
         possib_seq += get_possible_seq(k)
+    
+    for seq in possib_seq:
+        df = df.assign(new_column = lambda x: x['Sequence'].str.count(seq))
+        df = df.rename(columns = {'new_column': seq})
+    
+    return df
+
+
+def find_shape_occurence_individual(df: pd.DataFrame , k_list: list, n_letters: int):
+    """
+    Find occurences of all possible shape sequences for individual DNA sequences.
+
+    Args:
+        df: column `Sequence` contains DNA shape sequences
+        k_list: list of unit sizes to consider
+        n_letters: number of letters used to encode shape
+
+    Returns:
+        A dataframe with columns added for all considered unit nucleotide sequences.
+    """
+    possib_seq = []
+    for k in k_list:
+        possib_seq += get_possible_shape_seq(k, n_letters)
     
     for seq in possib_seq:
         df = df.assign(new_column = lambda x: x['Sequence'].str.count(seq))
