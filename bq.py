@@ -1,6 +1,6 @@
 from util import gen_random_sequences, sorted_split, find_occurence, get_possible_seq, \
     cut_sequence
-from read_data import get_processed_data
+from reader import DNASequenceReader
 from shape import run_dna_shape_r_wrapper, SHAPE_FULL_FORM
 
 import matplotlib.pyplot as plt
@@ -92,8 +92,10 @@ def find_bq(df, unit_size, df_str):
 
 def plot_bq():
     UNIT_NUCLEOTIDE_SIZE = 5
-
-    (cnl_df, rl_df, tl_df, chrvl_df, libl_df) = get_processed_data()
+    
+    reader = DNASequenceReader()
+    all_df = reader.get_processed_data() 
+    cnl_df = all_df['cnl']
 
     seq_bq_map = find_bq(cnl_df, unit_size=UNIT_NUCLEOTIDE_SIZE)
 
@@ -139,7 +141,10 @@ def plot_shape_seq_bq():
     """
     TOP_N = 20      # Number of top or bottom sequences to consider
 
-    (cnl_df, rl_df, tl_df, chrvl_df, libl_df) = get_processed_data()
+    reader = DNASequenceReader()
+    all_df = reader.get_processed_data() 
+    cnl_df = all_df['cnl'] 
+    rl_df = all_df['rl']
     
     seq_start_pos = 11
     seq_end_pos = 40

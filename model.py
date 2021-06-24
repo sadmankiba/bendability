@@ -1,18 +1,26 @@
+from __future__ import annotations
+
 from reader import DNASequenceReader
 from shape import find_valid_cols, run_dna_shape_r_wrapper
-from util import cut_sequence
+from util import cut_sequence, find_occurence_individual
 
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import StratifiedKFold
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
+import boruta
+from imblearn.over_sampling import RandomOverSampler
 
 import math
 from pathlib import Path
 import random
+import time
+from collections import Counter
 
 # Two types of shape feature processing 
 #   1. Only discrete values
@@ -119,7 +127,7 @@ class Model:
         assert X.shape == (shape_arr.shape[0], num_shape_encode, shape_arr.shape[1])
 
 
-    def _train_shape_cnn(X: np.ndarray, y: np.ndarray) -> tuple:
+    def _train_shape_cnn_classifier(X: np.ndarray, y: np.ndarray) -> tuple:
         """
         Train a CNN model on data
 
@@ -156,7 +164,7 @@ class Model:
         return model, history
 
 
-    def run(self):
+    def run_shape_cnn_classifier(self):
         # Prepare X and y
         df = self._get_train_df()
         X = self._prepare_shape(df)
@@ -178,7 +186,86 @@ class Model:
         plt.legend(loc='lower right')
         plt.show()
 
+    
+    def _select_feat(self, X: np.ndarray, y: np.ndarray) \
+        -> tuple[np.ndarray, list[bool], list[int]]:
+        """
+        Select all relevant features with Boruta algorithm
+        
+        Args:
+            X: feature array 
+            y: target
+        
+        Returns:
+            A tuple containing
+                * A numpy ndarray: X containing selected features
+                * A list of boolean denoting which features were selected
+                * A list of integer denoting ranking of features
+
+        """
+        t = time.time()
+        rf = RandomForestClassifier(n_jobs=-1, class_weight='balanced', max_depth=5)
+        feat_selector = boruta.BorutaPy(rf, n_estimators='auto', verbose=1, random_state=1, perc=90)
+        feat_selector.fit(X, y)
+        
+        print(f'Boruta run time: {(time.time() - t) / 60} min')
+        
+        return feat_selector.transform(X)
+
+
+    def run_seq_classifier(self) -> None:
+        """
+        Runs Scikit-learn classifier to classify C0 value with k-mer count.
+
+        Prepares features and targets from DNA sequences and C0 value. 
+        """
+        # Get count features
+        df = self._get_train_df()
+        k_list = [2, 3, 4, 5]
+        df = find_occurence_individual(df, k_list) 
+
+        # Save for inspection
+        k_list_str = ''.join([ str(k) for k in k_list ])
+        file_name = f'{self.library_name}_{self.seq_start_pos}_{self.seq_end_pos}_kmercount_{k_list_str}.tsv'
+        df.sort_values('C0').to_csv(f'data/generated_data/kmer_count/{file_name}', sep='\t', index=False)
+
+        # Classify
+        c0_range_split = np.array([0.2, 0.8, 1.0])  
+        df['C0'] = classify_arr(df['C0'].to_numpy(), c0_range_split)
+
+        # Balance classes
+        print('Before oversampling:', sorted(Counter(df['C0']).items()))
+        ros = RandomOverSampler(random_state=0)
+        df_resampled, _ = ros.fit_resample(df, df['C0'])
+        df_resampled = df_resampled.sample(frac=1).reset_index(drop=True)       # shuffle
+        print('After oversampling:', sorted(Counter(df_resampled['C0']).items()))
+        y = df['C0'].to_numpy()
+
+        # Select feature with Boruta algorithm
+        df = df.drop(columns=['Sequence #', 'Sequence', 'C0'])
+        cols = df.columns.to_numpy()
+        X = df.to_numpy()
+        print('X', X.shape)
+        X_sel, sel_cols, sel_rank = self._select_feat(X, y)
+        print(f'Selected features\n', cols[sel_cols])
+        print('X_sel', X_sel.shape)
+
+        # Train - 3 fold cross validation
+        skf = StratifiedKFold(n_splits = 3)
+        for idx, (train_idx, test_idx) in enumerate(skf.split(X_sel, y)):
+            print('In fold:', idx + 1)
+            
+            X_train = X_sel.iloc[train_idx]
+            y_train = y[train_idx]
+            
+            X_test = X_sel.iloc[test_idx]
+            y_test = y[test_idx]  
+            forest = RandomForestClassifier(n_estimators=5, random_state=2)
+            forest.fit(X_train, y_train)
+
+            print('accuracy:', forest.score(X_test, y_test))
+
 
 if __name__ == '__main__':
-    model = Model('tl', 11, 50)
-    model.run()
+    model = Model('rl', 1, 50)
+    model.run_seq_classifier()

@@ -1,3 +1,5 @@
+import pandas as pd
+
 import math
 import random 
 import string
@@ -31,8 +33,8 @@ def get_possible_seq(size):
     """ 
     Generates all possible nucleotide sequences of particular length
     
-    returns:
-        a list of sequences
+    Returns:
+        A list of sequences
     """
     
     possib_seq = ['']
@@ -52,6 +54,7 @@ def find_occurence(seq_list, unit_size):
     returns:
         a dictionary mapping unit nucleotide sequence to number of occurences
     """
+    ## TODO: Use dataframe, assign, lambda function, str.count on each row, then sum.
     possib_seq = get_possible_seq(unit_size)
     seq_occur_map = dict()
     
@@ -63,6 +66,28 @@ def find_occurence(seq_list, unit_size):
             seq_occur_map[whole_seq[i:i+unit_size]] += 1
 
     return seq_occur_map
+
+
+def find_occurence_individual(df: pd.DataFrame , k_list: list):
+    """
+    Find occurences of all possible nucleotide sequences for individual DNA sequences.
+
+    Args:
+        df: column `Sequence` contains DNA sequences
+        k_list: list of unit sizes to consider
+
+    Returns:
+        A dataframe with columns added for all considered unit nucleotide sequences.
+    """
+    possib_seq = []
+    for k in k_list:
+        possib_seq += get_possible_seq(k)
+    
+    for seq in possib_seq:
+        df = df.assign(new_column = lambda x: x['Sequence'].str.count(seq))
+        df = df.rename(columns = {'new_column': seq})
+    
+    return df
 
 
 def gen_random_sequences(n):
