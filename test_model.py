@@ -29,7 +29,7 @@ class TestModel(unittest.TestCase):
 
     def test_get_balanced_classes(self):
         df = pd.DataFrame({'C0': [1, 2, 0, 1, 1, 2]})
-        df = get_balanced_classes(df)
+        df, _ = get_balanced_classes(df, df['C0'].to_numpy())
         self.assertCountEqual(df['C0'].tolist(), [0,0,0,1,1,1,2,2,2])
 
     def test_select_feat(self):
