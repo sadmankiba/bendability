@@ -22,6 +22,8 @@ import random
 import time
 from collections import Counter
 from typing import Union
+import operator
+import itertools as it
 
 def encode_shape(shape_arr: np.ndarray, shape_str: str, n_split: int) -> np.ndarray:
     """
@@ -90,14 +92,18 @@ def classify_arr(arr: np.ndarray, range_split: np.ndarray) -> np.ndarray:
     """
     Encodes a 1D numpy array into discrete values
 
-    args:
+    Args:
         arr: numpy array
-        range_split: a numpy array of elements from 0 to 1 that sums to 1. eg. [0.3, 0.8, 1.0]
+        range_split: a numpy array of float values from 0 to 1 that sums to 1. eg. [0.3, 0.5, 0.2]
 
-    returns:
+    Returns:
         1D arr classified into integer between 0 to range_split.size - 1
     """
-    range_arr = np.array(sorted(arr))[np.floor(arr.size * range_split - 1).astype(int)]     # ranges for array according to range_split
+    accumulated_range = np.cumsum(range_split)
+    assert math.isclose(accumulated_range[-1], 1.0, rel_tol=1e-4)
+
+    # Find border values for ranges
+    range_arr = np.array(sorted(arr))[np.floor(arr.size * accumulated_range - 1).astype(int)]    
 
     return np.array([ np.searchsorted(range_arr, e) for e in arr ])
 
@@ -109,8 +115,11 @@ def get_binary_classification(df: pd.DataFrame) -> pd.DataFrame:
     Args:
         df: A DataFrame in which `C0` column contains classes as denoted by integer from 0 to n-1
     """
+    # Select rows that contain only first and last class
     n = df['C0'].unique().size
     df = df.loc[((df['C0'] == 0) | (df['C0'] == n - 1))]
+
+    # Change last class's value to 1
     df['C0'] = df['C0'] // (n - 1)
 
     return df
@@ -328,8 +337,15 @@ class Model:
             c0_range_split: A numpy 1D array denoting the point of split for classification
             binary: whether to perform binary classification
         """
-        # Get count features
         df = self._get_train_df()
+
+        # Classify
+        df['C0'] = classify_arr(df['C0'].to_numpy(), c0_range_split)
+
+        if binary:
+            df = get_binary_classification(df)
+
+        # Get count features
         t = time.time()
         df = find_occurence_individual(df, k_list)
         print(f'Substring count time: {(time.time() - t) / 60} min')
@@ -339,12 +355,7 @@ class Model:
         file_name = f'{self.library_name}_{self.seq_start_pos}_{self.seq_end_pos}_kmercount_{k_list_str}.tsv'
         df.sort_values('C0').to_csv(f'data/generated_data/kmer_count/{file_name}', sep='\t', index=False)
 
-        # Classify
-        df['C0'] = classify_arr(df['C0'].to_numpy(), c0_range_split)
-
-        if binary:
-            df = get_binary_classification(df)
-
+        
         # Balance classes
         df, _ = get_balanced_classes(df, df['C0'].to_numpy())
 
@@ -391,6 +402,6 @@ if __name__ == '__main__':
     model = Model('cnl', 1, 50)
     shape_name = 'ProT'
     k_list = [2, 3, 4, 5]
-    c0_range_split = np.array([0.25, 0.75, 1.0])
+    c0_range_split = np.array([0.25, 0.5, 0.25])
     model.run_seq_classifier(k_list, c0_range_split, binary=True)
     # model.run_shape_cnn_classifier(shape_name, c0_range_split, encode=False, binary=True)

@@ -19,7 +19,7 @@ class TestModel(unittest.TestCase):
 
     def test_classify_arr(self):
         arr = np.array([3,9,13,2,8,4,11])
-        cls = classify_arr(arr, np.array([0.2, 0.8, 1.0]))
+        cls = classify_arr(arr, np.array([0.2, 0.6, 0.2]))
         self.assertListEqual(cls.tolist(), [1, 1, 2, 0, 1, 1, 2])
 
     def test_get_binary_classification(self):
