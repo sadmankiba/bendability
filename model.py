@@ -3,9 +3,9 @@ from __future__ import annotations
 from reader import DNASequenceReader
 from shape import find_valid_cols, run_dna_shape_r_wrapper
 from util import cut_sequence, find_occurence_individual
+from data_organizer import DataOrganizer, ShapeEncoderFactory
 
 import pandas as pd
-from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import StratifiedKFold
@@ -14,146 +14,33 @@ import tensorflow as tf
 from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
 import boruta
-from imblearn.over_sampling import RandomOverSampler
 
-import math
 from pathlib import Path
 import random
 import time
-from collections import Counter
-from typing import Union
-import operator
-import itertools as it
-
-def encode_shape(shape_arr: np.ndarray, shape_str: str, n_split: int) -> np.ndarray:
-    """
-    Encodes a 2D shape array into integers between 0 to (n_split - 1)
-
-    Returns:
-        A numpy 2D array of integers
-    """
-    saved_shape_values_file = Path(f'data/generated_data/{shape_str}_possib_values.tsv')
-    if saved_shape_values_file.is_file():
-        with open(saved_shape_values_file, 'r') as f:
-            possib_shape_df = pd.read_csv(f, sep='\t')
-            shape_min = min(possib_shape_df[shape_str])
-            shape_max = max(possib_shape_df[shape_str])
-    else:
-        shape_min = shape_arr.min()
-        shape_max = shape_arr.max()
-
-    shape_range = ((shape_max - shape_min) / n_split) + 0.001
-    return np.floor((shape_arr - shape_min) / shape_range)
-
-
-def encode_shape_alpha(shape_arr: np.ndarray, shape_str: str, n_letters: int) -> np.ndarray:
-    """
-    Encodes a 2D shape array into 1D array of strings.
-
-    The string contains letters from first n_letters letters, ['a', ... ]
-
-    Returns:
-        A numpy 1D array of binary strings
-    """
-    enc_shape_arr = encode_shape(shape_arr, shape_str, n_letters)
-    enc_shape_arr += ord('a')
-    return enc_shape_arr.astype(np.uint8).view(f'S{shape_arr.shape[1]}').squeeze()
-
-
-def one_hot_encode_shape(shape_arr, shape_str, n_split):
-    """
-    Transform shape values to discrete numbers and perform One-hot encoding
-
-    args:
-        shape_arr (numpy.Ndarray): shape values of DNA sequences
-        shape_str: a str from ['EP', 'HelT', 'MGW', 'ProT', 'Roll']
-        n_split: number of discrete values
-
-    returns:
-        a numpy 3D array containing one-hot encoded shape values of sequences
-    """
-    encoded_shape_arr = encode_shape(shape_arr, shape_str, n_split)
-    ohe = OneHotEncoder()
-    ohe.fit(np.array(list(range(n_split))).reshape(-1,1))
-
-    arr_3d = None
-    for i in range(encoded_shape_arr.shape[0]):
-        seq_enc_shape_arr = ohe.transform(encoded_shape_arr[i].reshape(-1,1)).toarray().transpose()
-        seq_enc_shape_arr = seq_enc_shape_arr.reshape(1, seq_enc_shape_arr.shape[0], seq_enc_shape_arr.shape[1])
-        if i == 0:
-            arr_3d = seq_enc_shape_arr
-        else:
-            arr_3d = np.concatenate((arr_3d, seq_enc_shape_arr), axis=0)
-
-    return arr_3d
-
-
-def classify_arr(arr: np.ndarray, range_split: np.ndarray) -> np.ndarray:
-    """
-    Encodes a 1D numpy array into discrete values
-
-    Args:
-        arr: numpy array
-        range_split: a numpy array of float values from 0 to 1 that sums to 1. eg. [0.3, 0.5, 0.2]
-
-    Returns:
-        1D arr classified into integer between 0 to range_split.size - 1
-    """
-    accumulated_range = np.cumsum(range_split)
-    assert math.isclose(accumulated_range[-1], 1.0, rel_tol=1e-4)
-
-    # Find border values for ranges
-    range_arr = np.array(sorted(arr))[np.floor(arr.size * accumulated_range - 1).astype(int)]    
-
-    return np.array([ np.searchsorted(range_arr, e) for e in arr ])
-
-
-def get_binary_classification(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Select rows with first and last class
-
-    Args:
-        df: A DataFrame in which `C0` column contains classes as denoted by integer from 0 to n-1
-    """
-    # Select rows that contain only first and last class
-    n = df['C0'].unique().size
-    df = df.loc[((df['C0'] == 0) | (df['C0'] == n - 1))]
-
-    # Change last class's value to 1
-    df['C0'] = df['C0'] // (n - 1)
-
-    return df
-
-
-def get_balanced_classes(X: Union[pd.DataFrame, np.ndarray], y: np.ndarray) \
-    -> tuple[Union[pd.DataFrame, np.ndarray], np.ndarray]:
-    """
-    Balance data according to classes
-    """
-    print('Before oversampling:', sorted(Counter(y).items()))
-    ros = RandomOverSampler(random_state=0)
-    X_resampled, y_resampled = ros.fit_resample(X, y)
-    print('After oversampling:', sorted(Counter(y_resampled).items()))
-    return X_resampled, y_resampled
-
 
 class Model:
     """
     A class to train model on DNA mechanics libraries.
     """
 
-    def __init__(self, library_name: str, seq_start_pos: int, seq_end_pos: int):
+    def __init__(self, organizer: DataOrganizer, library_name: str, seq_start_pos: int, 
+        seq_end_pos: int, k_list: list[int]):
         """
         Constructor
 
         Args:
+            organizer: Data organizer object
             library_name: Name of the library to use for training / testing
             seq_start_pos: Start position to consider (between 1-50)
             seq_end_pos: End position to consider (between 1-50)
+            k_list: list of unit sizes to consider when using k-mers
         """
+        self.organizer = organizer
         self.library_name = library_name
         self.seq_start_pos = seq_start_pos
         self.seq_end_pos = seq_end_pos
+        self.k_list = k_list
 
 
     def _get_train_df(self):
@@ -161,6 +48,7 @@ class Model:
         all_df = reader.get_processed_data()
 
         return cut_sequence(all_df[self.library_name], self.seq_start_pos, self.seq_end_pos)
+
 
     def _prepare_shape_normalized(self, df: pd.DataFrame, shape_name: str) -> np.ndarray:
         """
@@ -204,7 +92,7 @@ class Model:
             with open(saved_shape_arr_file, 'rb') as f:
                 X = np.load(f)
         else:
-            X = one_hot_encode_shape(shape_arr, shape_name, num_shape_encode)
+            X = self.organizer.get_encoded_shape(shape_arr, shape_name, num_shape_encode)
             with open(saved_shape_arr_file, 'wb') as f:
                 np.save(f, X)
 
@@ -266,9 +154,7 @@ class Model:
         df = self._get_train_df()
 
         # Classify
-        df['C0'] = classify_arr(df['C0'].to_numpy(), c0_range_split)
-        if binary:
-            df = get_binary_classification(df)
+        df = self.organizer.classify(df)
         y = df['C0'].to_numpy()
 
         # Prepare X
@@ -326,48 +212,52 @@ class Model:
         return feat_selector.transform(X), feat_selector.support_, feat_selector.ranking_
 
 
-    def run_seq_classifier(self, k_list: list[int], c0_range_split: np.ndarray, binary: bool) -> None:
+    def _save_kmer(self, df: pd.DataFrame) -> None:
+        """Save k-mer count in a tsv file"""
+        k_list_str = ''.join([ str(k) for k in self.k_list ])
+        classify_str = '_'.join([str(int(val * 100)) for val in self.organizer.range_split])
+        file_name = f'{self.library_name}_{self.seq_start_pos}_{self.seq_end_pos}_kmercount_{k_list_str}_{classify_str}.tsv'
+        
+        df.sort_values('C0').to_csv(f'data/generated_data/kmer_count/{file_name}', sep='\t', index=False)
+
+
+    def run_seq_classifier(self) -> None:
         """
         Runs Scikit-learn classifier to classify C0 value with k-mer count.
 
         Prepares features and targets from DNA sequences and C0 value.
 
         Args:
-            k_list: list of unit sizes to consider
-            c0_range_split: A numpy 1D array denoting the point of split for classification
-            binary: whether to perform binary classification
+            
         """
         df = self._get_train_df()
 
         # Classify
-        df['C0'] = classify_arr(df['C0'].to_numpy(), c0_range_split)
-
-        if binary:
-            df = get_binary_classification(df)
+        df = self.organizer.classify(df)        
 
         # Get count features
         t = time.time()
-        df = find_occurence_individual(df, k_list)
+        df = find_occurence_individual(df, self.k_list)
         print(f'Substring count time: {(time.time() - t) / 60} min')
 
         # Save for inspection
-        k_list_str = ''.join([ str(k) for k in k_list ])
-        file_name = f'{self.library_name}_{self.seq_start_pos}_{self.seq_end_pos}_kmercount_{k_list_str}.tsv'
-        df.sort_values('C0').to_csv(f'data/generated_data/kmer_count/{file_name}', sep='\t', index=False)
-
+        self._save_kmer()
         
-        # Balance classes
-        df, _ = get_balanced_classes(df, df['C0'].to_numpy())
-
-        # Shuffle
-        df = df.sample(frac=1).reset_index(drop=True)
-        y = df['C0'].to_numpy()
-
         # Normalize features
+        y = df['C0'].to_numpy()
         df = df.drop(columns=['Sequence #', 'Sequence', 'C0'])
         df = (df - df.mean()) / df.std()
+        
+        # Get test data
+        df_train, df_test, y_train, y_test = train_test_split(df, y, test_size=0.1)
 
-        # Select features with Boruta algorithm
+        # Balance classes
+        df_train, y_train = self.organizer.get_balanced_classes(df_train, y_train)
+
+        # Shuffle
+        df_train = df_train.sample(frac=1).reset_index(drop=True)
+
+        # Print sample values
         cols = df.columns.to_numpy()
         X = df.to_numpy()
         print('X', X.shape)
@@ -375,6 +265,8 @@ class Model:
         print(X[random.sample(range(X.shape[0]), 5)])
         print('5 random targets')
         print(y[random.sample(range(X.shape[0]), 5)])
+        
+        # Select features with Boruta algorithm
         X_sel, sel_cols, sel_rank = self._select_feat(X, y)
         print('After feature selection, X_sel', X_sel.shape)
 
@@ -386,12 +278,12 @@ class Model:
             X_train = X_sel[train_idx]
             y_train = y[train_idx]
 
-            X_test = X_sel[test_idx]
-            y_test = y[test_idx]
+            X_valid = X_sel[test_idx]
+            y_valid = y[test_idx]
             forest = RandomForestClassifier(n_estimators=5, random_state=2)
             forest.fit(X_train, y_train)
 
-            print('accuracy:', forest.score(X_test, y_test))
+            print('accuracy:', forest.score(X_valid, y_valid))
 
 
     def run_shape_seq_classifier(self) -> None:
@@ -399,9 +291,12 @@ class Model:
 
 
 if __name__ == '__main__':
-    model = Model('cnl', 1, 50)
-    shape_name = 'ProT'
-    k_list = [2, 3, 4, 5]
-    c0_range_split = np.array([0.25, 0.5, 0.25])
-    model.run_seq_classifier(k_list, c0_range_split, binary=True)
-    # model.run_shape_cnn_classifier(shape_name, c0_range_split, encode=False, binary=True)
+    factory = ShapeEncoderFactory()
+    
+    organizer = DataOrganizer(np.array([0.25, 0.5, 0.25]), 
+        factory.make_shape_encoder('ohe', 'ProT'), False)
+    
+    model = Model(organizer, 'cnl', 1, 50, [2, 3, 4])
+    
+    model.run_seq_classifier()
+    model.run_shape_cnn_classifier()
