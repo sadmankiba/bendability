@@ -95,7 +95,7 @@ class Model:
         """
         X_train, X_test, y_train, y_test = self.organizer.get_kmer_train_test()
         
-        forest = RandomForestClassifier(n_estimators=5)
+        forest = RandomForestClassifier(n_estimators=5, max_depth=32)
         forest.fit(X_train, y_train)
 
         print('train accuracy:', forest.score(X_train, y_train))

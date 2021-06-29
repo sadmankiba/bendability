@@ -34,7 +34,8 @@ Hidden Layer    | Dataset |  Shape Feature |   Base Pair   |  Training acc.   | 
 
 |Library|C0 Class range  |K-mers+dist| Bal.|Sel. feat.|  BP  |Ts a.|Tr a.| Comment   | 
 |-------|----------------|-----------|-----| -------- |------|-----|-----|-----------|
-|  CNL  |(0.2, 0.6, 0.2) |2,3,4 + _  | Yes |  106     | 1-50 |0.49 |0.98 |RF (md=inf)|
+|  CNL  |(0.2, _, 0.2)   |2,3,4 + 2  | Yes |  944     | 1-50 |0.57 |0.97 |RF (md=32) |
+|  CNL  |(0.2, 0.6, 0.2) |2,3,4 + 2  | Yes |  572     | 1-50 |0.51 |0.98 |RF (md=inf)|
 |  CNL  |(0.2, 0.6, 0.2) |2,3,4 + _  | Yes |  106     | 1-50 |0.49 |0.98 |RF (md=inf)|
 
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from util import cut_sequence, find_occurence_individual
+from util import cut_sequence, find_occurence_individual, find_helical_separation
 from shape import run_dna_shape_r_wrapper
 from reader import DNASequenceReader
 
@@ -432,10 +432,19 @@ class DataOrganizer:
         df = self._get_train_df()
         df = self._classify(df)        
 
-        # Get count features
+        # Get k-mer count features
         t = time.time()
-        df = find_occurence_individual(df, self.k_list)
-        print(f'Substring count time: {(time.time() - t) / 60} min')
+        df_kmer = find_occurence_individual(df, self.k_list)
+        print(f'K-mer count time: {(time.time() - t) / 60} min')
+        
+        # Get helical separation 
+        t = time.time()
+        df_hel = find_helical_separation(df)
+        print(f'Helical separation count time: {(time.time() - t) / 60} min')
+        df_merged = df_kmer.merge(df_hel, on=['Sequence #', 'Sequence', 'C0'])
+        assert len(df_merged) == len(df)
+        df = df_merged
+        print(df)
         self._save_kmer(df)
 
         # Split train-test data

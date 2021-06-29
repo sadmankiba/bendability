@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 import pandas as pd
+import numpy as np
 
 import math
 import random
 import string
 import regex as re
+import itertools as it
 
 def sorted_split(df, n=1000, n_bins=1, ascending=False):
     """
@@ -42,7 +46,7 @@ def get_possible_seq(size):
     possib_seq = ['']
 
     for _ in range(size):
-        possib_seq = [ seq + nc for seq in possib_seq for nc in ['A', 'T', 'G', 'C'] ]
+        possib_seq = [ seq + nc for seq in possib_seq for nc in ['A', 'C', 'G', 'T'] ]
 
     return possib_seq
 
@@ -90,7 +94,7 @@ def find_occurence(seq_list, unit_size):
     return seq_occur_map
 
 
-def find_occurence_individual(df: pd.DataFrame , k_list: list):
+def find_occurence_individual(df: pd.DataFrame , k_list: list) -> pd.DataFrame:
     """
     Find occurences of all possible nucleotide sequences for individual DNA sequences.
 
@@ -110,6 +114,51 @@ def find_occurence_individual(df: pd.DataFrame , k_list: list):
 
     return df
 
+def count_helical_separation(seq: str, nc_pair: tuple[str, str]) -> int:
+    """
+    Count helical separation for an nc-pair in a single sequence
+    """
+    return 0
+
+    pos_one = [ m.start() for m in re.finditer(nc_pair[0], seq, overlapped=True)]
+    pos_two = [ m.start() for m in re.finditer(nc_pair[1], seq, overlapped=True)]
+    pos_pair = [ abs(pos_pair[0] - pos_pair[1]) for pos_pair in it.product(pos_one, pos_two) ]
+    
+    # helical
+    at_helical_dist = 0
+    for i in [10, 20, 30]:
+        occur = np.bincount(pos_pair)[i-1:i+2]
+        if occur.size > 0:
+            at_helical_dist += occur.max()
+    
+
+    at_half_helical_dist = 0 
+    for i in [5, 15, 25]:
+        occur = np.bincount(pos_pair)[i-1:i+2]
+        if occur.size > 0:
+            at_half_helical_dist += occur.max()
+
+    return at_helical_dist - at_half_helical_dist
+
+
+def find_helical_separation(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Find helical separation extent of all possible dinucleotide pairs for individual DNA sequences.
+
+    Args:
+        df: column `Sequence` contains DNA sequences
+
+    Returns:
+        A dataframe with columns added for all possible dinucleotide pairs.
+    """
+    all_dinc = get_possible_seq(2)
+    possib_pair = [ pair for pair in it.combinations(all_dinc, 2)] + [(dinc, dinc) for dinc in all_dinc]
+    assert len(possib_pair) == 136
+
+    for pair in possib_pair:
+        df[f'{pair[0]}-{pair[1]}'] = df['Sequence'].apply(lambda x: count_helical_separation(x, pair))
+
+    return df
 
 def find_shape_occurence_individual(df: pd.DataFrame , k_list: list, n_letters: int):
     """
