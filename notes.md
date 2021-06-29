@@ -20,7 +20,8 @@ Hidden Layer    | Dataset |  Shape Feature |   Base Pair   |  Training acc.   | 
 |  CNL  |  (0.2, 0.6, 0.2) | HelT | OHE        | (f=32,k=3), mx 2x2, 50, 3  |11 - 40 |    0.59   |
 |  CNL  |  (0.2, 0.6, 0.2) | ProT | OHE        | (f=32,k=4), mx 2x2, 50, 3  |11 - 40 |    0.6    |
 
-Classification of C0 with classifier on k-mer counts with feature selection by Boruta
+
+**Classification of C0 with classifier on k-mer counts with feature selection by Boruta**
 
 |Library|   C0 Class range |  K-mers | Overlap count|Perc/Iter | Sel. feat. |   BP   |  Accuracy |   
 |-------| -----------------|---------|--------------|----------|------------|--------|-----------|
@@ -28,6 +29,14 @@ Classification of C0 with classifier on k-mer counts with feature selection by B
 |  CNL  |  (0.25, _ , 0.25)| 2,3,4   | True         |  90/30   |  144       | 1 - 50 |  0.6      |  
 |  RL   |  (0.2, 0.6, 0.2) | 2       | False        |  90/40   |  16        | 1 - 50 |  0.77     |
 |  RL   |  (0.2, 0.6, 0.2) | 2,3,4,5 | False        |  90/40   |  1360      | 1 - 50 |  0.76     |
+
+**Classification of C0 with classifier on k-mer counts and distance with manual feature selection**
+
+|Library|C0 Class range  |K-mers+dist| Bal.|Sel. feat.|  BP  |Ts a.|Tr a.| Comment   | 
+|-------|----------------|-----------|-----| -------- |------|-----|-----|-----------|
+|  CNL  |(0.2, 0.6, 0.2) |2,3,4 + _  | Yes |  106     | 1-50 |0.49 |0.98 |RF (md=inf)|
+|  CNL  |(0.2, 0.6, 0.2) |2,3,4 + _  | Yes |  106     | 1-50 |0.49 |0.98 |RF (md=inf)|
+
 
 ## Model archi
 
