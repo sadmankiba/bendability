@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from data_organizer import DataOrganizer, ShapeOrganizerFactory, \
-        SequenceLibrary, FeatureSelectorFactory
+        SequenceLibrary, FeatureSelectorFactory, DataOrganizeOptions
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -93,7 +93,7 @@ class Model:
         """
         Runs Scikit-learn classifier to classify C0 value with k-mer count.
         """
-        X_train, X_test, y_train, y_test = self.organizer.get_kmer_train_test()
+        X_train, X_test, y_train, y_test = self.organizer.get_classify_train_test()
         
         forest = RandomForestClassifier(n_estimators=5, max_depth=32)
         forest.fit(X_train, y_train)
@@ -117,9 +117,15 @@ if __name__ == '__main__':
     shape_organizer = shape_factory.make_shape_organizer(library)
     feature_factory = FeatureSelectorFactory('manual')
     selector = feature_factory.make_feature_selector()
-    
-    organizer = DataOrganizer(library, shape_organizer, selector, k_list=[2, 3, 4], 
-        range_split=np.array([0.2, 0.6, 0.2]),  binary_class=False)
+
+    options: DataOrganizeOptions = {
+        'k_list': [2, 3, 4], 
+        'range_split': np.array([0.2, 0.6, 0.2]),  
+        'binary_class': False,
+        'balance': True
+    }   
+
+    organizer = DataOrganizer(library, shape_organizer, selector, options)
     
     model = Model(organizer)
     

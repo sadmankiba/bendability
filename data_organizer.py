@@ -31,6 +31,21 @@ class SequenceLibrary(TypedDict):
     seq_end_pos: int
 
 
+class DataOrganizeOptions(TypedDict):
+    """
+    Attributes:
+        k_list: list of unit sizes to consider when using k-mers
+        range_split: Range list for classification of targets. A numpy
+            array of float values between 0 and 1 that sums to 1. eg. [0.3, 0.5, 0.2]
+        binary_class: Whether to perform binary classification
+        balance: Whether to balance classes
+    """
+    k_list: list[int]
+    range_split: np.ndarray 
+    binary_class: bool
+    balance: bool
+
+
 class ShapeOrganizer:
     """
     Encodes DNA shape values
@@ -40,7 +55,7 @@ class ShapeOrganizer:
     """
     def __init__(self, shape_str: str, library: SequenceLibrary):
         self.shape_str = shape_str
-        self.library = library
+        self._library = library
 
 
     def _encode_shape_n(self, shape_arr: np.ndarray, n_split: int) -> np.ndarray:
@@ -146,7 +161,7 @@ class OheShapeEncoder(ShapeOrganizer):
 
         num_shape_encode = 12 # CHANGE HERE
 
-        saved_shape_arr_file = Path(f"data/generated_data/saved_arrays/{self.library['name']}_{self.library['seq_start_pos']}_{self.library['seq_end_pos']}_{self.shape_str}_ohe.npy")
+        saved_shape_arr_file = Path(f"data/generated_data/saved_arrays/{self._library['name']}_{self._library['seq_start_pos']}_{self._library['seq_end_pos']}_{self.shape_str}_ohe.npy")
         if saved_shape_arr_file.is_file():
             # file exists
             with open(saved_shape_arr_file, 'rb') as f:
@@ -327,43 +342,53 @@ class FeatureSelectorFactory:
 class DataOrganizer:
     """
     Prepares features and targets.
-
-    Attributes: 
-        library: SequenceLibrary object
-        shape_organizer: Shape organizer object
-        k_list: list of unit sizes to consider when using k-mers
-        range_split: Range list for classification of targets. A numpy
-            array of float values between 0 and 1 that sums to 1. eg. [0.3, 0.5, 0.2]
-        binary_class: Whether to perform binary classification
     """
     def __init__(self, library: SequenceLibrary, shape_organizer: ShapeOrganizer, 
-            selector: FeatureSelector, k_list: list[int], range_split: np.ndarray, 
-            binary_class: bool):
-        self.library = library
-        self.shape_organizer = shape_organizer
-        self.feat_selector = selector
-        self.k_list = k_list
-        self.range_split = range_split
-        self.binary_class = binary_class
+            selector: FeatureSelector, options: DataOrganizeOptions):
+        """
+        Creates a DataOrganizer object.
+
+        Args:
+            library: SequenceLibrary object
+            shape_organizer: Shape organizer object
+            selector: Feature selector
+            options: Options to prepare feature and target
+        """
+        self._library = library
+        self._shape_organizer = shape_organizer
+        self._feat_selector = selector
+        self._options = options
+        self._df = None        
 
 
-    def _get_train_df(self):
+    def _prepare_data(self):
         reader = DNASequenceReader()
         all_df = reader.get_processed_data()
 
-        return cut_sequence(all_df[self.library['name']], self.library['seq_start_pos'], self.library['seq_end_pos'])
+        return cut_sequence(all_df[self._library['name']], self._library['seq_start_pos'], self._library['seq_end_pos'])
 
 
-    def _save_kmer(self, df: pd.DataFrame) -> None:
-        '''Save k-mer count in a tsv file for inspection'''
+    def _get_data(self):
+        """
+        If data not read, reads data and returns it.
         
+        Data is not read in constructor to speed up tests which create DataOrganizer objects.
+        """
+        if self._df is not None:
+            return self._df
+        
+        self._df = self._prepare_data()
+        return self._df
+
+
+    def _save_classification_data(self, df: pd.DataFrame) -> None:
+        '''Save classification data in a tsv file for inspection'''
+        k_list_str = ''.join([ str(k) for k in self._options['k_list'] ])
+        classify_str = '_'.join([str(int(val * 100)) for val in self._options['range_split']])
+        file_name = f'{self._library["name"]}_{self._library["seq_start_pos"]}_{self._library["seq_end_pos"]}_kmercount_{k_list_str}_{classify_str}'
+        
+        df.sort_values('C0').to_csv(f'data/generated_data/classification/{file_name}.tsv', sep='\t', index=False)
         df = df.drop(columns=['Sequence #', 'Sequence'])
-        
-        k_list_str = ''.join([ str(k) for k in self.k_list ])
-        classify_str = '_'.join([str(int(val * 100)) for val in self.range_split])
-        file_name = f'{self.library["name"]}_{self.library["seq_start_pos"]}_{self.library["seq_end_pos"]}_kmercount_{k_list_str}_{classify_str}'
-        
-        df.sort_values('C0').to_csv(f'data/generated_data/kmer_count/{file_name}.tsv', sep='\t', index=False)
         df.groupby('C0').mean().sort_values('C0')\
             .to_csv(f'data/generated_data/kmer_count/{file_name}_mean.tsv', sep='\t', index=False)
 
@@ -373,12 +398,12 @@ class DataOrganizer:
         Encodes a 1D numpy array into discrete values
 
         Args:
-            arr: numpy array
+            arr: 1D numpy array
 
         Returns:
-            1D arr classified into integer between 0 to self.range_split.size - 1
+            1D arr classified into integer between 0 to self._options['range_split'].size - 1
         """
-        accumulated_range = np.cumsum(self.range_split)
+        accumulated_range = np.cumsum(self._options['range_split'])
         assert math.isclose(accumulated_range[-1], 1.0, rel_tol=1e-4)
 
         # Find border values for ranges
@@ -393,6 +418,9 @@ class DataOrganizer:
 
         Args:
             df: A DataFrame in which `C0` column contains classes as denoted by integer from 0 to n-1
+        
+        Returns:
+            A dataframe with selected rows
         """
         # Select rows that contain only first and last class
         n = df['C0'].unique().size
@@ -407,7 +435,7 @@ class DataOrganizer:
     def _classify(self, df: pd.DataFrame) -> pd.DataFrame:
         df['C0'] = self._classify_arr(df['C0'].to_numpy())
 
-        if self.binary_class:
+        if self._options['binary_class']:
             df = self._get_binary_classification(df)
 
         return df 
@@ -418,34 +446,71 @@ class DataOrganizer:
         """
         Balance data according to classes
         """
-        print('Before oversampling:', sorted(Counter(y).items()))
+        
         ros = RandomOverSampler(random_state=0)
         X_resampled, y_resampled = ros.fit_resample(X, y)
-        print('After oversampling:', sorted(Counter(y_resampled).items()))
+        
         return X_resampled, y_resampled
 
 
-    def get_kmer_train_test(self) -> tuple[np.ndarray, np.ndarray]:
+    def _get_helical_sep(self) -> pd.DataFrame:
+        """Count helical separation. Load if already saved."""
+        
+        saved_helical_sep_file = Path(f"data/generated_data/helical_separation"
+            f"/{self._library['name']}_{self._library['seq_start_pos']}_{self._library['seq_end_pos']}_hs.tsv")
+        
+        if saved_helical_sep_file.is_file():
+            # file exists
+            with open(saved_helical_sep_file, 'r') as f:
+                df_hel = pd.read_csv(f, sep='\t')
+                return df_hel
+        
+        t = time.time()
+        df_hel = find_helical_separation(self._get_data())
+        print(f'Helical separation count time: {(time.time() - t) / 60} min')
+        
+        df_hel.to_csv(saved_helical_sep_file, sep='\t', index=False)
+        
+        return df_hel
+
+
+    def _get_kmer_count(self) -> pd.DataFrame:
+        '''Get k-mer count features. Load if already saved.'''
+        df = self._get_data()
+        df_kmer = df
+
+        for k in self._options['k_list']: 
+            saved_kmer_count_file = Path(f"data/generated_data/kmer_count"
+                f"/{self._library['name']}_{self._library['seq_start_pos']}"
+                f"_{self._library['seq_end_pos']}_kmercount_{k}.tsv")
+            
+            if saved_kmer_count_file.is_file():
+                # file exists
+                with open(saved_kmer_count_file, 'r') as f:
+                    df_one_kmer = pd.read_csv(f, sep='\t')
+            else:            
+                t = time.time()
+                df_one_kmer = find_occurence_individual(df, [k])
+                print(f'{k}-mer count time: {(time.time() - t) / 60} min')
+                df_one_kmer.to_csv(saved_kmer_count_file, sep='\t', index=False)
+                
+            df_kmer = df_kmer.merge(df_one_kmer, on=['Sequence #', 'Sequence', 'C0'])
+            
+        return df_kmer
+
+
+    def get_classify_train_test(self) -> tuple[np.ndarray, np.ndarray]:
         """
         Prepares features and targets from DNA sequences and C0 value.
-        """
-        df = self._get_train_df()
-        df = self._classify(df)        
-
-        # Get k-mer count features
-        t = time.time()
-        df_kmer = find_occurence_individual(df, self.k_list)
-        print(f'K-mer count time: {(time.time() - t) / 60} min')
+        """       
+        df_kmer = self._get_kmer_count()
+        df_hel = self._get_helical_sep()
         
-        # Get helical separation 
-        t = time.time()
-        df_hel = find_helical_separation(df)
-        print(f'Helical separation count time: {(time.time() - t) / 60} min')
-        df_merged = df_kmer.merge(df_hel, on=['Sequence #', 'Sequence', 'C0'])
-        assert len(df_merged) == len(df)
-        df = df_merged
+        df = df_kmer.merge(df_hel, on=['Sequence #', 'Sequence', 'C0'])
         print(df)
-        self._save_kmer(df)
+
+        df = self._classify(df) 
+        self._save_classification_data(df)
 
         # Split train-test data
         y = df['C0'].to_numpy()
@@ -462,14 +527,18 @@ class DataOrganizer:
         print(y_train[random.sample(range(X_train.shape[0]), 5)])
         
         # Select features
-        self.feat_selector.fit(X_train, y_train)
-        X_train = self.feat_selector.transform(X_train)
-        X_test = self.feat_selector.transform(X_test)
+        self._feat_selector.fit(X_train, y_train)
+        X_train = self._feat_selector.transform(X_train)
+        X_test = self._feat_selector.transform(X_test)
         print('After feature selection, X_sel', X_train.shape)
-        print('Selected features:', df_train.columns[self.feat_selector.support_])
+        print('Selected features:', df_train.columns[self._feat_selector.support_])
 
         # Balance classes
-        X_train, y_train = self._get_balanced_classes(X_train, y_train)
+        if self._options['balance']:
+            print('Before oversampling:', sorted(Counter(y).items()))
+            X_train, y_train = self._get_balanced_classes(X_train, y_train)
+            print('After oversampling:', sorted(Counter(y_resampled).items()))
+
 
         # Normalize features
         X_train = (X_train - X_train.mean(axis=0)) / X_train.std(axis=0)
@@ -482,13 +551,13 @@ class DataOrganizer:
         """
         Prepares features and targets from DNA shape values and C0 value.
         """
-        df = self._get_train_df()
+        df = self._get_data()()
 
         # Classify
-        df = self.organizer.classify(df)
+        df = self._classify(df)
         y = df['C0'].to_numpy()
 
-        X = self.shape_organizer.prepare_shape(df)
+        X = self._shape_organizer.prepare_shape(df)
         X = X.reshape(list(X.shape) + [1])
 
         # Balance classes

@@ -1,6 +1,5 @@
 from util import get_possible_seq, find_occurence, cut_sequence, \
-    find_occurence_individual, count_helical_separation, find_helical_separation, \
-        find_helical_separation_apply
+    find_occurence_individual, count_helical_separation, find_helical_separation
 
 import pandas as pd
 
@@ -13,6 +12,7 @@ class TestUtil(unittest.TestCase):
     def setUp(self):
         pass
 
+
     def test_get_possible_seq_two(self):
         possib_seq = get_possible_seq(size=2)
         expected = ['AA', 'AT', 'AG', 'AC', 'TA', 'TT', 'TG', 'TC', \
@@ -21,6 +21,7 @@ class TestUtil(unittest.TestCase):
         # Test two list have same content without regard to their order
         self.assertCountEqual(possib_seq, expected)
     
+
     def test_find_occurence(self):
         seq_list = ['AGTTC', 'GATCC']
         occur_dict = find_occurence(seq_list, unit_size=2)
@@ -32,9 +33,11 @@ class TestUtil(unittest.TestCase):
     
     def test_find_occurence_individual(self):
         df = pd.DataFrame({'Sequence': ['ACGT', 'AAGT', 'CTAG']})
-        df = find_occurence_individual(df, [2])
-        self.assertListEqual(df['AA'].tolist(), [0, 1, 0])
-        self.assertListEqual(df['AG'].tolist(), [0, 1, 1])
+        df_occur = find_occurence_individual(df, [2])
+
+        self.assertGreater(len(df_occur.columns), len(df.columns))
+        self.assertListEqual(df_occur['AA'].tolist(), [0, 1, 0])
+        self.assertListEqual(df_occur['AG'].tolist(), [0, 1, 1])
 
 
     def test_count_helical_separation(self):
@@ -65,8 +68,9 @@ class TestUtil(unittest.TestCase):
         # half-helical = 1 + 1 + 1 = 3
         # hs = 1 - 3 = -2
         # Second - same as last
-        df_hel = find_helical_separation_apply(df)
-        self.assertEqual(len(df_hel.columns.tolist()), 137)
+        df_hel = find_helical_separation(df)
+        self.assertGreater(len(df_hel.columns), len(df.columns))
+        self.assertEqual(len(df_hel.columns.tolist()), 1 + 120 + 16)
         self.assertListEqual(df_hel['GC-TT'].tolist(), [-2, -1])
         
 

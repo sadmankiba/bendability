@@ -8,6 +8,8 @@ import random
 import string
 import regex as re
 import itertools as it
+from pathlib import Path
+
 
 def sorted_split(df, n=1000, n_bins=1, ascending=False):
     """
@@ -104,7 +106,8 @@ def find_occurence_individual(df: pd.DataFrame , k_list: list) -> pd.DataFrame:
 
     Returns:
         A dataframe with columns added for all considered unit nucleotide sequences.
-    """
+        """
+    df = df.copy()
     possib_seq = []
     for k in k_list:
         possib_seq += get_possible_seq(k)
@@ -114,12 +117,11 @@ def find_occurence_individual(df: pd.DataFrame , k_list: list) -> pd.DataFrame:
 
     return df
 
+
 def count_helical_separation(seq: str, nc_pair: tuple[str, str]) -> int:
     """
     Count helical separation for an nc-pair in a single sequence
     """
-    return 0
-
     pos_one = [ m.start() for m in re.finditer(nc_pair[0], seq, overlapped=True)]
     pos_two = [ m.start() for m in re.finditer(nc_pair[1], seq, overlapped=True)]
     pos_pair = [ abs(pos_pair[0] - pos_pair[1]) for pos_pair in it.product(pos_one, pos_two) ]
@@ -151,6 +153,7 @@ def find_helical_separation(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         A dataframe with columns added for all possible dinucleotide pairs.
     """
+    df = df.copy()
     all_dinc = get_possible_seq(2)
     possib_pair = [ pair for pair in it.combinations(all_dinc, 2)] + [(dinc, dinc) for dinc in all_dinc]
     assert len(possib_pair) == 136
@@ -159,6 +162,7 @@ def find_helical_separation(df: pd.DataFrame) -> pd.DataFrame:
         df[f'{pair[0]}-{pair[1]}'] = df['Sequence'].apply(lambda x: count_helical_separation(x, pair))
 
     return df
+
 
 def find_shape_occurence_individual(df: pd.DataFrame , k_list: list, n_letters: int):
     """
