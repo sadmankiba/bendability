@@ -1,6 +1,35 @@
 # Notes
 Changed headers in each dataset to separate `Sequence #` from `Sequence` by tab.
 
+## Models 
+
+**Classification**
+- Logistic Regression
+- Support Vector Machine: Kernelized
+- Gradient boost
+- Neural network / MLPClassifier
+- K-nearest neighbour (not good choice)
+
+- Random forest
+- Naive Bayes
+  - GaussianNB (k-mer + distance)
+  - MultinomialNB (distance)
+- Support Vector Machine: Linear 
+
+**Regression**
+- Linear regression
+- Ridge regression
+- Lasso 
+- Kernelized SVM (SVR)
+- Neural network / MLPRegressor
+
+- K-neighbours (not good choice)
+- Random forest
+- Gradient boost
+
+
+
+
 ## Results
 **NN with DNA Shape**
 Hidden Layer    | Dataset |  Shape Feature |   Base Pair   |  Training acc.   |     Test Acc.
