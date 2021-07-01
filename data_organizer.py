@@ -298,7 +298,7 @@ class BorutaFeatureSelector(FeatureSelector):
     def __init__(self):
         rf = RandomForestClassifier(n_jobs=-1, class_weight='balanced', max_depth=5)
         
-        self._feat_selector = boruta.BorutaPy(rf, n_estimators='auto', verbose=1, \
+        self._feat_selector = boruta.BorutaPy(rf, n_estimators='auto', verbose=0, \
             random_state=1, perc=90, max_iter=50)
 
 
@@ -313,9 +313,7 @@ class BorutaFeatureSelector(FeatureSelector):
         Returns:
             None
         """
-        t = time.time()
         self._feat_selector.fit(X, y)
-        print(f'Boruta run time: {(time.time() - t) / 60} min')
         
         self.support_ = self._feat_selector.support_
         self.ranking_ = self._feat_selector.ranking_
@@ -339,6 +337,76 @@ class FeatureSelectorFactory:
             raise Exception('Selector type not recognized')
 
 
+class ClassificationMaker:
+    '''Helper functions for classification'''
+    def __init__(self, range_split: np.ndarray, binary_class: bool):
+        """
+        Creates a ClassificationMaker object. 
+        """
+        self._range_split = range_split
+        self._binary_class = binary_class
+
+
+    def _classify_arr(self, arr: np.ndarray) -> np.ndarray:
+        """
+        Encodes a 1D numpy array into discrete values
+
+        Args:
+            arr: 1D numpy array
+
+        Returns:
+            1D arr classified into integer between 0 to self._options['range_split'].size - 1
+        """
+        accumulated_range = np.cumsum(self._range_split)
+        assert math.isclose(accumulated_range[-1], 1.0, rel_tol=1e-4)
+
+        # Find border values for ranges
+        range_arr = np.array(sorted(arr))[np.floor(arr.size * accumulated_range - 1).astype(int)]    
+
+        return np.array([ np.searchsorted(range_arr, e) for e in arr ])
+
+
+    def _get_binary_classification(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Select rows with first and last class
+
+        Args:
+            df: A DataFrame in which `C0` column contains classes as denoted by integer from 0 to n-1
+        
+        Returns:
+            A dataframe with selected rows
+        """
+        df = df.copy()
+        # Select rows that contain only first and last class
+        n = df['C0'].unique().size
+        df = df.loc[((df['C0'] == 0) | (df['C0'] == n - 1))]
+
+        # Change last class's value to 1
+        df['C0'] = df['C0'].apply(lambda val: val // (n - 1))
+
+        return df
+    
+
+    def classify(self, df: pd.DataFrame) -> pd.DataFrame:
+        df['C0'] = self._classify_arr(df['C0'].to_numpy())
+
+        if self._binary_class:
+            df = self._get_binary_classification(df)
+
+        return df 
+
+
+    def get_balanced_classes(self, X: Union[pd.DataFrame, np.ndarray], y: np.ndarray) \
+        -> tuple[Union[pd.DataFrame, np.ndarray], np.ndarray]:
+        """
+        Balance data according to classes
+        """
+        ros = RandomOverSampler()
+        X_resampled, y_resampled = ros.fit_resample(X, y)
+        
+        return X_resampled, y_resampled
+
+
 class DataOrganizer:
     """
     Prepares features and targets.
@@ -358,7 +426,9 @@ class DataOrganizer:
         self._shape_organizer = shape_organizer
         self._feat_selector = selector
         self._options = options
-        self._df = None        
+        self._df = None
+        self._class_maker = ClassificationMaker(
+            self._options['range_split'], self._options['binary_class'])        
 
 
     def _prepare_data(self):
@@ -391,66 +461,6 @@ class DataOrganizer:
         df = df.drop(columns=['Sequence #', 'Sequence'])
         df.groupby('C0').mean().sort_values('C0')\
             .to_csv(f'data/generated_data/kmer_count/{file_name}_mean.tsv', sep='\t', index=False)
-
-
-    def _classify_arr(self, arr: np.ndarray) -> np.ndarray:
-        """
-        Encodes a 1D numpy array into discrete values
-
-        Args:
-            arr: 1D numpy array
-
-        Returns:
-            1D arr classified into integer between 0 to self._options['range_split'].size - 1
-        """
-        accumulated_range = np.cumsum(self._options['range_split'])
-        assert math.isclose(accumulated_range[-1], 1.0, rel_tol=1e-4)
-
-        # Find border values for ranges
-        range_arr = np.array(sorted(arr))[np.floor(arr.size * accumulated_range - 1).astype(int)]    
-
-        return np.array([ np.searchsorted(range_arr, e) for e in arr ])
-
-
-    def _get_binary_classification(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Select rows with first and last class
-
-        Args:
-            df: A DataFrame in which `C0` column contains classes as denoted by integer from 0 to n-1
-        
-        Returns:
-            A dataframe with selected rows
-        """
-        # Select rows that contain only first and last class
-        n = df['C0'].unique().size
-        df = df.loc[((df['C0'] == 0) | (df['C0'] == n - 1))]
-
-        # Change last class's value to 1
-        df['C0'] = df['C0'] // (n - 1)
-
-        return df
-    
-
-    def _classify(self, df: pd.DataFrame) -> pd.DataFrame:
-        df['C0'] = self._classify_arr(df['C0'].to_numpy())
-
-        if self._options['binary_class']:
-            df = self._get_binary_classification(df)
-
-        return df 
-
-
-    def _get_balanced_classes(self, X: Union[pd.DataFrame, np.ndarray], y: np.ndarray) \
-        -> tuple[Union[pd.DataFrame, np.ndarray], np.ndarray]:
-        """
-        Balance data according to classes
-        """
-        
-        ros = RandomOverSampler(random_state=0)
-        X_resampled, y_resampled = ros.fit_resample(X, y)
-        
-        return X_resampled, y_resampled
 
 
     def _get_helical_sep(self) -> pd.DataFrame:
@@ -509,7 +519,7 @@ class DataOrganizer:
         df = df_kmer.merge(df_hel, on=['Sequence #', 'Sequence', 'C0'])
         print(df)
 
-        df = self._classify(df) 
+        df = self._class_maker.classify(df) 
         self._save_classification_data(df)
 
         # Split train-test data
@@ -535,9 +545,9 @@ class DataOrganizer:
 
         # Balance classes
         if self._options['balance']:
-            print('Before oversampling:', sorted(Counter(y).items()))
+            print('Before oversampling:', sorted(Counter(y_train).items()))
             X_train, y_train = self._get_balanced_classes(X_train, y_train)
-            print('After oversampling:', sorted(Counter(y_resampled).items()))
+            print('After oversampling:', sorted(Counter(y_train).items()))
 
 
         # Normalize features
@@ -554,7 +564,7 @@ class DataOrganizer:
         df = self._get_data()()
 
         # Classify
-        df = self._classify(df)
+        df = self._class_maker.classify(df)
         y = df['C0'].to_numpy()
 
         X = self._shape_organizer.prepare_shape(df)

@@ -1,5 +1,5 @@
 from data_organizer import DataOrganizeOptions, ShapeOrganizerFactory, DataOrganizer, \
-        BorutaFeatureSelector, ManualFeatureSelector, SequenceLibrary
+        BorutaFeatureSelector, ManualFeatureSelector, SequenceLibrary, ClassificationMaker
 from constants import CNL
 
 import numpy as np
@@ -18,8 +18,14 @@ class TestDataOrganizer(unittest.TestCase):
             'seq_start_pos': 1,
             'seq_end_pos': 50
         }
+        options: DataOrganizeOptions = {
+            'k_list': None,
+            'range_split': None,
+            'binary_class': None, 
+            'balance': None
+        }
 
-        organizer = DataOrganizer(library, None, None, None)
+        organizer = DataOrganizer(library, None, None, options)
         df = organizer._get_helical_sep()
         self.assertEqual(len(df.columns), 3 + 120 + 16)
 
@@ -74,29 +80,23 @@ class TestDataOrganizer(unittest.TestCase):
 
 
     def test_classify(self):
-        options: DataOrganizeOptions = {
-            'k_list': None,
-            'range_split': np.array([0.2, 0.6, 0.2]),
-            'binary_class': None,
-            'balance': None
-        }
-        organizer = DataOrganizer(None, None, None, options)
+        class_maker = ClassificationMaker(np.array([0.2, 0.6, 0.2]), False)
         df = pd.DataFrame({'C0': np.array([3,9,13,2,8,4,11])})
-        cls = organizer._classify(df)
+        cls = class_maker.classify(df)
         self.assertListEqual(cls['C0'].tolist(), [1, 1, 2, 0, 1, 1, 2])
 
 
     def test_get_binary_classification(self):
-        organizer = DataOrganizer(None, None, None, None) 
+        class_maker = ClassificationMaker(None, None) 
         df = pd.DataFrame({'C0': [1, 2, 0, 1, 1, 2]})
-        df = organizer._get_binary_classification(df)
+        df = class_maker._get_binary_classification(df)
         self.assertListEqual(df['C0'].tolist(), [1, 0, 1])
 
 
     def test_get_balanced_classes(self):
-        organizer = DataOrganizer(None, None, None, None) 
+        class_maker = ClassificationMaker(None, None)
         df = pd.DataFrame({'C0': [1, 2, 0, 1, 1, 2]})
-        df, _ = organizer._get_balanced_classes(df, df['C0'].to_numpy())
+        df, _ = class_maker.get_balanced_classes(df, df['C0'].to_numpy())
         self.assertCountEqual(df['C0'].tolist(), [0,0,0,1,1,1,2,2,2])
     
 
