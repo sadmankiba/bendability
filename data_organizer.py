@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from matplotlib.pyplot import fill
+
 from util import cut_sequence, find_occurence_individual, find_helical_separation
 from shape import run_dna_shape_r_wrapper
 from reader import DNASequenceReader
@@ -323,6 +325,19 @@ class BorutaFeatureSelector(FeatureSelector):
         return self._feat_selector.transform(X)
 
 
+class AllFeatureSelector(FeatureSelector):
+    """
+    Selects all features
+    """
+    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
+        self.support_ = np.full(shape=(X.shape[1],), fill_value=True)
+        self.ranking_ = np.full(shape=(X.shape[1],), fill_value=1)
+        
+
+    def transform(self, X: np.ndarray) -> np.ndarray:
+        return X[:, self.support_]
+
+
 class FeatureSelectorFactory:
     def __init__(self, selector_type):
         self.selector_type = selector_type
@@ -333,6 +348,8 @@ class FeatureSelectorFactory:
             return ManualFeatureSelector()
         elif self.selector_type == 'boruta':
             return BorutaFeatureSelector()
+        elif self.selector_type == 'all':
+            return AllFeatureSelector()
         else:
             raise Exception('Selector type not recognized')
 
@@ -509,7 +526,7 @@ class DataOrganizer:
         return df_kmer
 
 
-    def get_classify_train_test(self) -> tuple[np.ndarray, np.ndarray]:
+    def get_seq_train_test(self, classify: bool) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Prepares features and targets from DNA sequences and C0 value.
         """       
@@ -519,8 +536,9 @@ class DataOrganizer:
         df = df_kmer.merge(df_hel, on=['Sequence #', 'Sequence', 'C0'])
         print(df)
 
-        df = self._class_maker.classify(df) 
-        self._save_classification_data(df)
+        if classify:
+            df = self._class_maker.classify(df) 
+            self._save_classification_data(df)
 
         # Split train-test data
         y = df['C0'].to_numpy()
@@ -541,14 +559,13 @@ class DataOrganizer:
         X_train = self._feat_selector.transform(X_train)
         X_test = self._feat_selector.transform(X_test)
         print('After feature selection, X_sel', X_train.shape)
-        print('Selected features:', df_train.columns[self._feat_selector.support_])
+        # print('Selected features:', df_train.columns[self._feat_selector.support_])
 
         # Balance classes
-        if self._options['balance']:
+        if classify and self._options['balance']:
             print('Before oversampling:', sorted(Counter(y_train).items()))
             X_train, y_train = self._get_balanced_classes(X_train, y_train)
             print('After oversampling:', sorted(Counter(y_train).items()))
-
 
         # Normalize features
         X_train = (X_train - X_train.mean(axis=0)) / X_train.std(axis=0)
