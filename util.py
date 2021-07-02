@@ -2,13 +2,32 @@ from __future__ import annotations
 
 import pandas as pd
 import numpy as np
+import regex as re
 
 import math
 import random
 import string
-import regex as re
+import re as bre    # built-in re
 import itertools as it
 from pathlib import Path
+
+def reverse_compliment_of(seq: str):
+    rep = {"A": "T", "T": "A", 'G': 'C', 'C': 'G'} # define desired replacements here
+
+    # use these three lines to do the replacement
+    rep = dict((bre.escape(k), v) for k, v in rep.items())
+    pattern = bre.compile("|".join(rep.keys()))
+    return pattern.sub(lambda m: rep[bre.escape(m.group(0))], seq)
+
+
+
+def append_reverse_compliment(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Appends reverse compliment sequences to a dataframe
+    """
+    rdf = df.copy()
+    rdf['Sequence'] = df['Sequence'].apply(lambda seq: reverse_compliment_of(seq))
+    return pd.concat([df, rdf], ignore_index=True)
 
 
 def sorted_split(df, n=1000, n_bins=1, ascending=False):
@@ -125,16 +144,16 @@ def count_helical_separation(seq: str, nc_pair: tuple[str, str]) -> int:
     pos_one = [ m.start() for m in re.finditer(nc_pair[0], seq, overlapped=True)]
     pos_two = [ m.start() for m in re.finditer(nc_pair[1], seq, overlapped=True)]
     pos_pair = [ abs(pos_pair[0] - pos_pair[1]) for pos_pair in it.product(pos_one, pos_two) ]
-    
+
     # helical
     at_helical_dist = 0
     for i in [10, 20, 30]:
         occur = np.bincount(pos_pair)[i-1:i+2]
         if occur.size > 0:
             at_helical_dist += occur.max()
-    
 
-    at_half_helical_dist = 0 
+
+    at_half_helical_dist = 0
     for i in [5, 15, 25]:
         occur = np.bincount(pos_pair)[i-1:i+2]
         if occur.size > 0:

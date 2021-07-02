@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from data_organizer import DataOrganizer, ShapeOrganizerFactory, \
         SequenceLibrary, FeatureSelectorFactory, DataOrganizeOptions
-from constants import CNL
+from constants import CNL, RL
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -28,7 +28,7 @@ class Model:
             organizer: Data organizer object
         """
         self.organizer = organizer
-        
+
 
     def _train_shape_cnn_classifier(self, X: np.ndarray, y: np.ndarray) \
         -> tuple[models.Sequential, tf.keras.callbacks.History]:
@@ -76,10 +76,10 @@ class Model:
         Args:
             shape_name: Name of structural feature
             c0_range_split: A numpy 1D array denoting the point of split for classification
-            
+
         """
         # Train
-        X_train_valid, X_test, y_train_valid, y_test = self.organizer.get_shape_train_test() 
+        X_train_valid, X_test, y_train_valid, y_test = self.organizer.get_shape_train_test()
         model, history = self._train_shape_cnn_classifier(X_train_valid, y_train_valid)
         test_loss, test_acc = model.evaluate(X_test,  y_test, verbose=2)
         print('test_acc', test_acc)
@@ -98,56 +98,57 @@ class Model:
         Runs Scikit-learn classifier to classify C0 value with k-mer count & helical separation.
         """
         X_train, X_test, y_train, y_test = self.organizer.get_seq_train_test(classify=True)
-        
+
         classifiers = []
-        classifiers.append(('LogisticRegression_C_1', LogisticRegression(C=1)))
+        # classifiers.append(('LogisticRegression_C_1', LogisticRegression(C=1)))
         classifiers.append(('LogisticRegression_C_0.1', LogisticRegression(C=0.1)))
         classifiers.append(('SVC', SVC()))
         classifiers.append(('GradientBoost', GradientBoostingClassifier()))
         classifiers.append(('NN', MLPRegressor()))
-        classifiers.append(('KNN', KNeighborsClassifier()))        
-        
+        # classifiers.append(('KNN', KNeighborsClassifier()))
+
         # classifiers.append(('rf', RandomForestClassifier(n_estimators=5, max_depth=32))
-        
+
         result_cols = ['Classifier', 'Test Accuracy', 'Train Accuracy']
         clf_result = pd.DataFrame(columns=result_cols)
         for name, clf in classifiers:
             clf.fit(X_train, y_train)
             clf_result = pd.concat([clf_result, pd.DataFrame([[name, clf.score(X_train, y_train), clf.score(X_test, y_test)]], columns=result_cols)], ignore_index=True)
 
-        clf_result.to_csv(f'data/generated_data/results/classification.tsv', sep='\t', index=False)    
+        clf_result.to_csv(f'data/generated_data/results/classification.tsv', sep='\t', index=False)
 
-    def run_seq_regression(self) -> None: 
+
+    def run_seq_regression(self) -> None:
         """
         Runs Scikit-learn regression models to classify C0 value with k-mer count & helical separation.
         """
         X_train, X_test, y_train, y_test = self.organizer.get_seq_train_test(classify=False)
-        
+
         regressors = []
         regressors.append(('LinearRegression', LinearRegression()))
         regressors.append(('Ridge_alpha_1', Ridge(alpha=1)))
-        regressors.append(('Ridge_alpha_5', Ridge(alpha=5)))
-        regressors.append(('Lasso', LassoCV()))
+        # regressors.append(('Ridge_alpha_5', Ridge(alpha=5)))
+        # regressors.append(('Lasso', LassoCV()))
         regressors.append(('SVR_C_1', SVR(C=1)))
         regressors.append(('SVR_C_0.1', SVR(C=0.1)))
-        regressors.append(('NN', MLPRegressor()))        
-        
+        regressors.append(('NN', MLPRegressor()))
+
         result_cols = ['Regression Model', 'Test Accuracy', 'Train Accuracy']
         reg_result = pd.DataFrame(columns=result_cols)
         for name, reg in regressors:
             reg.fit(X_train, y_train)
             reg_result = pd.concat([reg_result, pd.DataFrame([[name, reg.score(X_train, y_train), reg.score(X_test, y_test)]], columns=result_cols)], ignore_index=True)
 
-        reg_result.to_csv(f'data/generated_data/results/regression.tsv', sep='\t', index=False)    
-        
-            
+        reg_result.to_csv(f'data/generated_data/results/regression.tsv', sep='\t', index=False)
+
+
     def run_shape_seq_classifier(self) -> None:
         pass
 
 
 if __name__ == '__main__':
     library: SequenceLibrary = {
-        'name': CNL, 
+        'name': RL,
         'seq_start_pos': 1,
         'seq_end_pos': 50
     }
@@ -158,16 +159,16 @@ if __name__ == '__main__':
     selector = feature_factory.make_feature_selector()
 
     options: DataOrganizeOptions = {
-        'k_list': [2, 3, 4, 5], 
-        'range_split': np.array([0.2, 0.6, 0.2]),  
+        'k_list': [2],
+        'range_split': np.array([0.2, 0.6, 0.2]),
         'binary_class': False,
         'balance': False
-    }   
+    }
 
     organizer = DataOrganizer(library, shape_organizer, selector, options)
-    
+
     model = Model(organizer)
-    
+
     model.run_seq_classifier()
     model.run_seq_regression()
     # model.run_shape_cnn_classifier()

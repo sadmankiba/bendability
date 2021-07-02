@@ -1,6 +1,11 @@
-from bq import plot_shape_seq_bq, find_bq
+from bq import plot_dinucleotide_heatmap
+from util import append_reverse_compliment
 from shape import find_all_shape_values
-from read_data import get_processed_data
+from reader import DNASequenceReader
+from constants import RL
 
 if __name__ == '__main__':
-    find_all_shape_values()
+    reader = DNASequenceReader()
+    rl_df = reader.get_processed_data()[RL]
+    rl_df = append_reverse_compliment(rl_df)
+    plot_dinucleotide_heatmap(rl_df, 'rl')

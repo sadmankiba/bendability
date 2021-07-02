@@ -1,5 +1,6 @@
 from util import get_possible_seq, find_occurence, cut_sequence, \
-    find_occurence_individual, count_helical_separation, find_helical_separation
+    find_occurence_individual, count_helical_separation, find_helical_separation, \
+        reverse_compliment_of, append_reverse_compliment
 
 import pandas as pd
 
@@ -12,6 +13,17 @@ class TestUtil(unittest.TestCase):
     def setUp(self):
         pass
 
+    def test_reverse_compliment_of(self):
+        res = reverse_compliment_of('ATGCTAAC')
+        self.assertEqual(res, 'TACGATTG')
+    
+    def test_append_reverse_compliment(self):
+        df = pd.DataFrame({'Sequence': ['ATGCCGT', 'GCGATGC'], 'K': [5, 6]})
+        rdf = append_reverse_compliment(df)
+
+        self.assertGreater(len(rdf), len(df))
+        self.assertCountEqual(rdf['Sequence'].tolist(), ['ATGCCGT', 'GCGATGC', 'TACGGCA', 'CGCTACG'])
+        self.assertCountEqual(rdf['K'].tolist(), [5, 6, 5, 6])
 
     def test_get_possible_seq_two(self):
         possib_seq = get_possible_seq(size=2)
