@@ -58,7 +58,7 @@ def main(argv=None):
     train_fw_fasta = train_data["forward"]
     train_rc_fasta = train_data["reverse"]
 
-    val_prep = preprocess(val_file)
+    val_prep = Preprocess(val_file)
     # if want mono-nucleotide sequences
     val_data = val_prep.one_hot_encode()
     # if want dinucleotide sequences

@@ -4,6 +4,8 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from dinucleotide import mono_to_dinucleotide, dinucleotide_one_hot_encode
 import pandas
 
+import re
+
 
 class Preprocess:
     def __init__(self, file):
@@ -16,50 +18,38 @@ class Preprocess:
         # self.without_augment()
         # self.augment()
         # self.one_hot_encode()
+    
+    def rc_comp2(self, seqn):
+        '''
+        Find reverse complement
+        '''
+        def reverse_compliment_of(seq: str):
+            # Define replacements
+            rep = {"A": "T", "T": "A", 'G': 'C', 'C': 'G'} 
+            
+            # Create regex pattern
+            rep = dict((re.escape(k), v) for k, v in rep.items())
+            pattern = re.compile("|".join(rep.keys()))
+            
+            # Replace and return reverse sequence 
+            return (pattern.sub(lambda m: rep[re.escape(m.group(0))], seq))[::-1]
 
-    def read_fasta_into_list(self):
-        all_seqs = []
-        for s in self.df['Sequence']:
-            all_seqs.append(s[25:-25])
-        return all_seqs
-
-    def read_fasta_forward(self):
-        return self.read_fasta_into_list()
-
-    # augment the samples with reverse complement
-    def rc_comp2(self):
-
-        def rc_comp(seq):
-            rc_dict = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
-            rc_seq = ''.join([rc_dict[c] for c in seq[::-1]])
-            return rc_seq
-
-        seqn = self.read_fasta_into_list()
         all_sequences = []
         for seq in range(len(seqn)):
-            all_sequences.append(rc_comp(seqn[seq]))
-
-        # return all_sequences
+            all_sequences.append(reverse_compliment_of(seqn[seq]))
 
         return all_sequences
 
-    # to augment on readout data
-    def read_readout(self):
-        all_readouts = []
-        for r in self.df[' C0']:
-            all_readouts.append(r)
-        return all_readouts
+    def get_sequences_target(self):
+        all_seqs = self.df['Sequence'].str[25:-25].tolist()
+        rc_seqs = self.rc_comp2(all_seqs)
+        target = self.df[' C0'].tolist()
 
-    def augment(self):
-        new_fasta = self.read_fasta_into_list()
-        rc_fasta = self.rc_comp2()
-        readout = self.read_readout()
-
-        dict = {
-            "new_fasta": new_fasta,
-            "readout": readout,
-            "rc_fasta": rc_fasta}
-        return dict
+        return {
+            "all_seqs": all_seqs,
+            "target": target,
+            "rc_seqs": rc_seqs
+        }
 
     def without_augment(self):
         new_fasta = self.read_fasta_into_list()
@@ -68,7 +58,16 @@ class Preprocess:
         dict = {"new_fasta": new_fasta, "readout": readout}
         return dict
 
+
     def one_hot_encode(self):
+        """
+        Encodes DNA sequences with one hot encoding
+
+        Each sequence is transformed into a 2D-array of shape (50, 4)
+
+        Returns:
+            A dictionary containing three keys: ['forward', 'reverse', 'target']
+        """
         # The LabelEncoder encodes a sequence of bases as a sequence of
         # integers.
         integer_encoder = LabelEncoder()
@@ -77,14 +76,16 @@ class Preprocess:
         one_hot_encoder = OneHotEncoder(categories='auto')
 
         #dict = self.without_augment()
-        dict = self.augment()
+        seq_and_target = self.get_sequences_target()
+        result = dict()
+        result["target"] = seq_and_target['target']
 
         forward = []
         reverse = []
 
         # some sequences do not have entire 'ACGT'
         temp_seqs = []
-        for sequence in dict["new_fasta"]:
+        for sequence in seq_and_target["all_seqs"]:
             new_seq = 'ACGT' + sequence
             temp_seqs.append(new_seq)
 
@@ -112,11 +113,11 @@ class Preprocess:
             features.append(new)
 
         features = np.stack(features)
-        dict["forward"] = features
+        result["forward"] = features
 
         # some sequences do not have entire 'ACGT'
         temp_seqs = []
-        for sequence in dict["rc_fasta"]:
+        for sequence in seq_and_target["rc_seqs"]:
             new_seq = 'ACGT' + sequence
             temp_seqs.append(new_seq)
 
@@ -144,9 +145,10 @@ class Preprocess:
             features.append(new)
 
         features = np.stack(features)
-        dict["reverse"] = features
+        result["reverse"] = features
 
-        return dict
+        return result
+
 
     def dinucleotide_encode(self):
         new_fasta = self.read_fasta_into_list()
