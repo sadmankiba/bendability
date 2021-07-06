@@ -3,7 +3,7 @@ from __future__ import annotations
 from matplotlib.pyplot import fill
 from pandas.core.frame import DataFrame
 
-from util import cut_sequence, find_occurence_individual, find_helical_separation
+from util import cut_sequence, find_occurence_individual, HelicalSeparationCounter
 from shape import run_dna_shape_r_wrapper
 from reader import DNASequenceReader
 from constants import library_names
@@ -452,7 +452,7 @@ class DataOrganizer:
         Creates a DataOrganizer object.
 
         Args:
-            library: SequenceLibrary object
+            libraries: TrainTestSequenceLibraries object
             shape_organizer: Shape organizer object
             selector: Feature selector
             options: Options to prepare feature and target
@@ -482,11 +482,11 @@ class DataOrganizer:
 
         # Cut sequences in each library  
         self._cut_dfs = dict(map(
-            lambda name, df: (
-                name, 
-                cut_sequence(df, self._libraries['seq_start_pos'], self._libraries['seq_end_pos'])
+            lambda p: (
+                p[0], 
+                cut_sequence(p[1], self._libraries['seq_start_pos'], self._libraries['seq_end_pos'])
             ), 
-            library_dfs.values()
+            list(library_dfs.items())
         ))
         return self._cut_dfs
 
@@ -503,11 +503,11 @@ class DataOrganizer:
         # return train_df, test_df
 
 
-    def _save_classification_data(self, df: pd.DataFrame) -> None:
+    def _save_classification_data(self, df: pd.DataFrame, name: str) -> None:
         '''Save classification data in a tsv file for inspection'''
         k_list_str = ''.join([ str(k) for k in self._options['k_list'] ])
         classify_str = '_'.join([str(int(val * 100)) for val in self._options['range_split']])
-        file_name = f'{self._train_library["name"]}_{self._train_library["seq_start_pos"]}_{self._train_library["seq_end_pos"]}_kmercount_{k_list_str}_{classify_str}'
+        file_name = f'{name}_{self._libraries["seq_start_pos"]}_{self._libraries["seq_end_pos"]}_kmercount_{k_list_str}_{classify_str}'
         
         df.sort_values('C0').to_csv(f'data/generated_data/classification/{file_name}.tsv', sep='\t', index=False)
         df = df.drop(columns=['Sequence #', 'Sequence'])
@@ -535,7 +535,7 @@ class DataOrganizer:
                 return pd.read_csv(saved_helical_sep_file, sep='\t')
             
             t = time.time()
-            df_hel = find_helical_separation(cut_dfs[library_name])
+            df_hel = HelicalSeparationCounter().find_helical_separation(cut_dfs[library_name])
             print(f'Helical separation count time: {(time.time() - t) / 60} min')
             
             df_hel.to_csv(saved_helical_sep_file, sep='\t', index=False)
