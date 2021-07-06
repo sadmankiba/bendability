@@ -3,34 +3,13 @@ Changed headers in each dataset to separate `Sequence #` from `Sequence` by tab.
 
 ## Models 
 
-**Classification**
-- Logistic Regression
-- Support Vector Machine: Kernelized
-- Gradient boost
-- Neural network / MLPClassifier
-- K-nearest neighbour (not good choice)
-
-- Random forest
-- Naive Bayes
-  - GaussianNB (k-mer + distance)
-  - MultinomialNB (distance)
-- Support Vector Machine: Linear 
-
-**Regression**
-- Linear regression
-- Ridge regression
-- Lasso 
-- Kernelized SVM (SVR)
-- Neural network / MLPRegressor
-
-- K-neighbours (not good choice)
-- Random forest
-- Gradient boost
-
-
-
-
 ## Results
+**Samin's CNN Model**
+| Test Library | R2 Score |
+|  TL (trained)| 0.92     |
+|  CNL         | 0.77     | 
+|  RL          | 0.81     |
+
 **NN with DNA Shape**
 Hidden Layer    | Dataset |  Shape Feature |   Base Pair   |  Training acc.   |     Test Acc.
  100 (d)             CNL        ProT             all (46)          0.577              0.0
@@ -66,6 +45,35 @@ Hidden Layer    | Dataset |  Shape Feature |   Base Pair   |  Training acc.   | 
 |  CNL  |(0.2, _, 0.2)   |2,3,4 + 2  | Yes |  944     | 1-50 |0.57 |0.97 |RF (md=32) |
 |  CNL  |(0.2, 0.6, 0.2) |2,3,4 + 2  | Yes |  572     | 1-50 |0.51 |0.98 |RF (md=inf)|
 |  CNL  |(0.2, 0.6, 0.2) |2,3,4 + _  | Yes |  106     | 1-50 |0.49 |0.98 |RF (md=inf)|
+
+
+
+**Classification**
+- Logistic Regression
+- Support Vector Machine: Kernelized
+- Gradient boost
+- Neural network / MLPClassifier
+- K-nearest neighbour (not good choice)
+
+- Random forest
+- Naive Bayes
+  - GaussianNB (k-mer + distance)
+  - MultinomialNB (distance)
+- Support Vector Machine: Linear 
+
+**Regression**
+- Linear regression
+- Ridge regression
+- Lasso 
+- Kernelized SVM (SVR)
+- Neural network / MLPRegressor
+
+- K-neighbours (not good choice)
+- Random forest
+- Gradient boost
+
+
+
 
 
 ## Model archi

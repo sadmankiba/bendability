@@ -15,15 +15,17 @@ class TestUtil(unittest.TestCase):
 
     def test_reverse_compliment_of(self):
         res = reverse_compliment_of('ATGCTAAC')
-        self.assertEqual(res, 'TACGATTG')
+        # self.assertEqual(res, 'TACGATTG')
+        self.assertEqual(res, 'GTTAGCAT')
     
     def test_append_reverse_compliment(self):
-        df = pd.DataFrame({'Sequence': ['ATGCCGT', 'GCGATGC'], 'K': [5, 6]})
+        df = pd.DataFrame({'Sequence': ['ATGCCGT', 'GCGATGC'], 'Col2': [5, 6]})
         rdf = append_reverse_compliment(df)
 
         self.assertGreater(len(rdf), len(df))
-        self.assertCountEqual(rdf['Sequence'].tolist(), ['ATGCCGT', 'GCGATGC', 'TACGGCA', 'CGCTACG'])
-        self.assertCountEqual(rdf['K'].tolist(), [5, 6, 5, 6])
+        self.assertCountEqual(rdf['Sequence'].tolist(), 
+            ['ATGCCGT', 'GCGATGC', 'ACGGCAT', 'GCATCGC'])
+        self.assertCountEqual(rdf['Col2'].tolist(), [5, 6, 5, 6])
 
     def test_get_possible_seq_two(self):
         possib_seq = get_possible_seq(size=2)

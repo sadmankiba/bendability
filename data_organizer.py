@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from matplotlib.pyplot import fill
+from pandas.core.frame import DataFrame
 
 from util import cut_sequence, find_occurence_individual, find_helical_separation
 from shape import run_dna_shape_r_wrapper
 from reader import DNASequenceReader
+from constants import library_names
 
 import numpy as np
 import pandas as pd 
@@ -29,6 +31,22 @@ class SequenceLibrary(TypedDict):
         seq_end_pos: End position to consider (between 1-50)
     """
     name: str
+    seq_start_pos: int
+    seq_end_pos: int
+
+
+class TrainTestSequenceLibraries(TypedDict):
+    """
+    Attributes:
+        train: Name of the libraries to use for training 
+        test: Name of the libraries to use for test
+        train_test: Name of the libraries to use for both training and test
+        seq_start_pos: Start position to consider (between 1-50)
+        seq_end_pos: End position to consider (between 1-50)
+    """
+    train: list[str]
+    test: list[str]
+    train_test: list[str]
     seq_start_pos: int
     seq_end_pos: int
 
@@ -428,7 +446,7 @@ class DataOrganizer:
     """
     Prepares features and targets.
     """
-    def __init__(self, library: SequenceLibrary, shape_organizer: ShapeOrganizer, 
+    def __init__(self, libraries: TrainTestSequenceLibraries, shape_organizer: ShapeOrganizer, 
             selector: FeatureSelector, options: DataOrganizeOptions):
         """
         Creates a DataOrganizer object.
@@ -439,40 +457,57 @@ class DataOrganizer:
             selector: Feature selector
             options: Options to prepare feature and target
         """
-        self._library = library
+        self._libraries = libraries
         self._shape_organizer = shape_organizer
         self._feat_selector = selector
         self._options = options
-        self._df = None
+        self._cut_dfs = None
         self._class_maker = ClassificationMaker(
-            self._options['range_split'], self._options['binary_class'])        
+            options['range_split'], options['binary_class']
+            ) if options is not None else None        
 
 
-    def _prepare_data(self):
+    def _get_cut_dfs(self) -> dict[Union[library_names], DataFrame]:
+        """
+        Reads all sequence libraries and cut sequences accordingly. 
+
+        If data not read, reads data and returns it. Data is not read in
+        constructor to speed up tests which create DataOrganizer objects.
+        """
+        if self._cut_dfs is not None:
+            return self._cut_dfs
+
         reader = DNASequenceReader()
-        all_df = reader.get_processed_data()
+        library_dfs = reader.get_processed_data()
 
-        return cut_sequence(all_df[self._library['name']], self._library['seq_start_pos'], self._library['seq_end_pos'])
+        # Cut sequences in each library  
+        self._cut_dfs = dict(map(
+            lambda name, df: (
+                name, 
+                cut_sequence(df, self._libraries['seq_start_pos'], self._libraries['seq_end_pos'])
+            ), 
+            library_dfs.values()
+        ))
+        return self._cut_dfs
 
 
-    def _get_data(self):
-        """
-        If data not read, reads data and returns it.
+        # train_df = pd.concat(map(
+        #     lambda name: cut_sequence(all_df[name], self._libraries['seq_start_pos'], self._libraries['seq_end_pos']), 
+        #     self._libraries['train']
+        # ))
         
-        Data is not read in constructor to speed up tests which create DataOrganizer objects.
-        """
-        if self._df is not None:
-            return self._df
-        
-        self._df = self._prepare_data()
-        return self._df
+        # test_df = pd.concat(map(
+        #     lambda name: cut_sequence(all_df[name], self._libraries['seq_start_pos'], self._libraries['seq_end_pos']), 
+        #     self._libraries['test']
+        # ))
+        # return train_df, test_df
 
 
     def _save_classification_data(self, df: pd.DataFrame) -> None:
         '''Save classification data in a tsv file for inspection'''
         k_list_str = ''.join([ str(k) for k in self._options['k_list'] ])
         classify_str = '_'.join([str(int(val * 100)) for val in self._options['range_split']])
-        file_name = f'{self._library["name"]}_{self._library["seq_start_pos"]}_{self._library["seq_end_pos"]}_kmercount_{k_list_str}_{classify_str}'
+        file_name = f'{self._train_library["name"]}_{self._train_library["seq_start_pos"]}_{self._train_library["seq_end_pos"]}_kmercount_{k_list_str}_{classify_str}'
         
         df.sort_values('C0').to_csv(f'data/generated_data/classification/{file_name}.tsv', sep='\t', index=False)
         df = df.drop(columns=['Sequence #', 'Sequence'])
@@ -480,70 +515,137 @@ class DataOrganizer:
             .to_csv(f'data/generated_data/kmer_count/{file_name}_mean.tsv', sep='\t', index=False)
 
 
-    def _get_helical_sep(self) -> pd.DataFrame:
-        """Count helical separation. Load if already saved."""
+    def _get_helical_sep(self) -> dict[str, list[pd.DataFrame]]:
+        """
+        Counts helical separation for training and test data. 
         
-        saved_helical_sep_file = Path(f"data/generated_data/helical_separation"
-            f"/{self._library['name']}_{self._library['seq_start_pos']}_{self._library['seq_end_pos']}_hs.tsv")
-        
-        if saved_helical_sep_file.is_file():
-            # file exists
-            with open(saved_helical_sep_file, 'r') as f:
-                df_hel = pd.read_csv(f, sep='\t')
-                return df_hel
-        
-        t = time.time()
-        df_hel = find_helical_separation(self._get_data())
-        print(f'Helical separation count time: {(time.time() - t) / 60} min')
-        
-        df_hel.to_csv(saved_helical_sep_file, sep='\t', index=False)
-        
-        return df_hel
+        Loads if already saved.
 
+        Returns: 
+            A dictionary containing train and test libraries. Has keys
+            ['train', 'test', 'train_test']
+        """
+        cut_dfs = self._get_cut_dfs()
 
-    def _get_kmer_count(self) -> pd.DataFrame:
-        '''Get k-mer count features. Load if already saved.'''
-        df = self._get_data()
-        df_kmer = df
-
-        for k in self._options['k_list']: 
-            saved_kmer_count_file = Path(f"data/generated_data/kmer_count"
-                f"/{self._library['name']}_{self._library['seq_start_pos']}"
-                f"_{self._library['seq_end_pos']}_kmercount_{k}.tsv")
+        def _get_helical_sep_of(library_name: str):       
+            saved_helical_sep_file = Path(f"data/generated_data/helical_separation"
+                f"/{library_name}_{self._libraries['seq_start_pos']}_{self._libraries['seq_end_pos']}_hs.tsv")
             
-            if saved_kmer_count_file.is_file():
-                # file exists
-                with open(saved_kmer_count_file, 'r') as f:
-                    df_one_kmer = pd.read_csv(f, sep='\t')
-            else:            
-                t = time.time()
-                df_one_kmer = find_occurence_individual(df, [k])
-                print(f'{k}-mer count time: {(time.time() - t) / 60} min')
-                df_one_kmer.to_csv(saved_kmer_count_file, sep='\t', index=False)
+            if saved_helical_sep_file.is_file():
+                return pd.read_csv(saved_helical_sep_file, sep='\t')
+            
+            t = time.time()
+            df_hel = find_helical_separation(cut_dfs[library_name])
+            print(f'Helical separation count time: {(time.time() - t) / 60} min')
+            
+            df_hel.to_csv(saved_helical_sep_file, sep='\t', index=False)
+            
+            return df_hel
+
+        keys = ['train', 'test', 'train_test']      
+        return dict(
+            map(
+                lambda key: (key, list(map(_get_helical_sep_of, self._libraries[key]))), 
+                keys
+            )
+        )
+
+
+    def _get_kmer_count(self) -> dict[str, list[pd.DataFrame]]:
+        """
+        Get k-mer count features for training and test data. 
+        
+        Loads if already saved.
+
+        Returns: 
+            A dictionary containing train and test libraries. Has keys
+            ['train', 'test', 'train_test']
+        """
+        cut_dfs = self._get_cut_dfs()
+        
+        def _get_kmer_of(library_name: str):
+            df = cut_dfs[library_name]
+            df_kmer = df
+
+            for k in self._options['k_list']: 
+                # Check if k-mer count already saved
+                saved_kmer_count_file = Path(f"data/generated_data/kmer_count"
+                    f"/{library_name}_{self._libraries['seq_start_pos']}"
+                    f"_{self._libraries['seq_end_pos']}_kmercount_{k}.tsv")
                 
-            df_kmer = df_kmer.merge(df_one_kmer, on=['Sequence #', 'Sequence', 'C0'])
+                if saved_kmer_count_file.is_file():
+                    df_one_kmer = pd.read_csv(saved_kmer_count_file, sep='\t')
+                else:
+                    # Count k-mer if not saved            
+                    t = time.time()
+                    df_one_kmer = find_occurence_individual(df, [k])
+                    print(f'{k}-mer count time: {(time.time() - t) / 60} min')
+                    df_one_kmer.to_csv(saved_kmer_count_file, sep='\t', index=False)
+                    
+                df_kmer = df_kmer.merge(df_one_kmer, on=['Sequence #', 'Sequence', 'C0'])
             
-        return df_kmer
+            return df_kmer
 
+        keys = ['train', 'test', 'train_test']      
+        return dict(
+            map(
+                lambda key: (key, list(map(_get_kmer_of, self._libraries[key]))), 
+                keys
+            )
+        )
+        
 
     def get_seq_train_test(self, classify: bool) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Prepares features and targets from DNA sequences and C0 value.
         """       
-        df_kmer = self._get_kmer_count()
-        df_hel = self._get_helical_sep()
+        train_test_kmer_dfs = self._get_kmer_count()
+        train_test_hel_dfs = self._get_helical_sep()
         
-        df = df_kmer.merge(df_hel, on=['Sequence #', 'Sequence', 'C0'])
-        print(df)
+        # Merge columns of kmer_df with corresponding hel_df 
+        train_test_dfs: dict[str, list[pd.DataFrame]] \
+            = dict(
+                map(
+                    lambda key: (
+                        key, 
+                        list(
+                            map(
+                                lambda df_kmer, df_hel: df_kmer.merge(df_hel, on=['Sequence #', 'Sequence', 'C0']), 
+                                zip(train_test_kmer_dfs[key], train_test_hel_dfs[key])
+                            )
+                        )
+                    ),
+                    train_test_kmer_dfs.keys()
+                )
+            )
 
+        
         if classify:
-            df = self._class_maker.classify(df) 
-            self._save_classification_data(df)
+            train_test_dfs: dict[str, list[pd.DataFrame]] \
+                = dict(map(
+                    lambda k, v: (
+                        k, 
+                        list(map(self._class_maker.classify, v))
+                    ),
+                    train_test_dfs.items()
+                ))
+            
+            # self._save_classification_data(df)
+
+        print(train_test_dfs)
 
         # Split train-test data
-        y = df['C0'].to_numpy()
-        df = df.drop(columns=['Sequence #', 'Sequence', 'C0'])
-        df_train, df_test, y_train, y_test = train_test_split(df, y, test_size=0.1)
+        # For now ignoring train_test
+
+        # Concat to get one training and one test df
+        df_train = pd.concat(train_test_dfs['train'])
+        y_train = df_train['C0'].to_numpy()
+        df_train = df_train.drop(columns=['Sequence #', 'Sequence', 'C0'])
+        
+        df_test = pd.concat(train_test_dfs['test'])
+        y_test = df_test['C0'].to_numpy()
+        df_test = df_test.drop(columns=['Sequence #', 'Sequence', 'C0'])
+        # df_train, df_test, y_train, y_test = train_test_split(df, y, test_size=0.1)
         
         # Print sample train values
         X_train = df_train.to_numpy()
@@ -578,7 +680,8 @@ class DataOrganizer:
         """
         Prepares features and targets from DNA shape values and C0 value.
         """
-        df = self._get_data()()
+        # df = self._get_data()()
+        df = None 
 
         # Classify
         df = self._class_maker.classify(df)

@@ -12,13 +12,15 @@ import itertools as it
 from pathlib import Path
 
 def reverse_compliment_of(seq: str):
-    rep = {"A": "T", "T": "A", 'G': 'C', 'C': 'G'} # define desired replacements here
-
-    # use these three lines to do the replacement
+    # Define replacements
+    rep = {"A": "T", "T": "A", 'G': 'C', 'C': 'G'} 
+    
+    # Create regex pattern
     rep = dict((bre.escape(k), v) for k, v in rep.items())
     pattern = bre.compile("|".join(rep.keys()))
-    return pattern.sub(lambda m: rep[bre.escape(m.group(0))], seq)
-
+    
+    # Replace and return reverse sequence 
+    return (pattern.sub(lambda m: rep[bre.escape(m.group(0))], seq))[::-1]
 
 
 def append_reverse_compliment(df: pd.DataFrame) -> pd.DataFrame:

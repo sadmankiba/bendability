@@ -1,6 +1,8 @@
 from data_organizer import DataOrganizeOptions, ShapeOrganizerFactory, DataOrganizer, \
-        BorutaFeatureSelector, ManualFeatureSelector, SequenceLibrary, ClassificationMaker
-from constants import CNL
+        BorutaFeatureSelector, ManualFeatureSelector, SequenceLibrary, ClassificationMaker, \
+            TrainTestSequenceLibraries
+from reader import DNASequenceReader
+from constants import CNL, RL, TL
 
 import numpy as np
 import pandas as pd
@@ -11,6 +13,29 @@ from pathlib import Path
 class TestDataOrganizer(unittest.TestCase):
     def setUp(self): 
         pass
+
+    def test_prepare_data(self):
+        libraries: TrainTestSequenceLibraries = {
+            'train': [TL, CNL],
+            'test': [RL], 
+            'train_test': [], 
+            'seq_start_pos': 1,
+            'seq_end_pos': 50
+        }
+        options: DataOrganizeOptions = {
+            'k_list': None,
+            'range_split': None,
+            'binary_class': None, 
+            'balance': None
+        }
+        data_organizer = DataOrganizer(libraries, None, None, options)
+        train_df, test_df = data_organizer._prepare_data()
+
+        reader = DNASequenceReader()
+        all_df = reader.get_processed_data()
+        assert len(train_df) == sum(map(len, map(lambda name: all_df[name], libraries['train'])))
+        assert len(test_df) == sum(map(len, map(lambda name: all_df[name], libraries['test']))) 
+
 
     def test_get_helical_sep(self):
         library: SequenceLibrary = {

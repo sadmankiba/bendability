@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from data_organizer import DataOrganizer, ShapeOrganizerFactory, \
-        SequenceLibrary, FeatureSelectorFactory, DataOrganizeOptions
-from constants import CNL, RL
+        SequenceLibrary, FeatureSelectorFactory, DataOrganizeOptions, \
+            TrainTestSequenceLibraries
+from constants import CNL, RL, TL
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -147,14 +148,16 @@ class Model:
 
 
 if __name__ == '__main__':
-    library: SequenceLibrary = {
-        'name': RL,
+    libraries: TrainTestSequenceLibraries = {
+        'train': [TL],
+        'test': [RL], 
+        'train_test': [],
         'seq_start_pos': 1,
         'seq_end_pos': 50
     }
 
-    shape_factory = ShapeOrganizerFactory('normal', 'ProT')
-    shape_organizer = shape_factory.make_shape_organizer(library)
+    # shape_factory = ShapeOrganizerFactory('normal', 'ProT')
+    # shape_organizer = shape_factory.make_shape_organizer(library)
     feature_factory = FeatureSelectorFactory('all')
     selector = feature_factory.make_feature_selector()
 
@@ -165,7 +168,7 @@ if __name__ == '__main__':
         'balance': False
     }
 
-    organizer = DataOrganizer(library, shape_organizer, selector, options)
+    organizer = DataOrganizer(libraries, None, selector, options)
 
     model = Model(organizer)
 
