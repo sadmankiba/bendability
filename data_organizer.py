@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from matplotlib.pyplot import fill
-from pandas.core.frame import DataFrame
-
-from util import cut_sequence, find_occurence_individual, HelicalSeparationCounter
+from util import cut_sequence, HelicalSeparationCounter
+from occurence import Occurence
 from shape import run_dna_shape_r_wrapper
 from reader import DNASequenceReader
 from constants import library_names
@@ -467,7 +465,7 @@ class DataOrganizer:
             ) if options is not None else None        
 
 
-    def _get_cut_dfs(self) -> dict[Union[library_names], DataFrame]:
+    def _get_cut_dfs(self) -> dict[Union[library_names], pd.DataFrame]:
         """
         Reads all sequence libraries and cut sequences accordingly. 
 
@@ -578,7 +576,7 @@ class DataOrganizer:
                 else:
                     # Count k-mer if not saved            
                     t = time.time()
-                    df_one_kmer = find_occurence_individual(df, [k])
+                    df_one_kmer = Occurence().find_occurence_individual(df, [k])
                     print(f'{k}-mer count time: {(time.time() - t) / 60} min')
                     df_one_kmer.to_csv(saved_kmer_count_file, sep='\t', index=False)
                     

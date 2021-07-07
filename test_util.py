@@ -1,5 +1,4 @@
-from util import get_possible_seq, find_occurence, cut_sequence, \
-    find_occurence_individual, HelicalSeparationCounter, \
+from util import get_possible_seq, cut_sequence, HelicalSeparationCounter, \
         reverse_compliment_of, append_reverse_compliment
 
 import pandas as pd
@@ -39,24 +38,6 @@ class TestUtil(unittest.TestCase):
         # Test two list have same content without regard to their order
         self.assertCountEqual(possib_seq, expected)
     
-
-    def test_find_occurence(self):
-        seq_list = ['AGTTC', 'GATCC']
-        occur_dict = find_occurence(seq_list, unit_size=2)
-        expected = {'AA': 0, 'AT': 1, 'AG': 1, 'AC': 0, 'TA': 0, 'TT': 1, 'TG': 0, 'TC': 2, \
-            'GA': 1, 'GT': 1, 'GG': 0, 'GC': 0, 'CA': 0, 'CT': 0, 'CG': 0, 'CC': 1}
-        
-        self.assertDictEqual(occur_dict, expected)
-
-    
-    def test_find_occurence_individual(self):
-        df = pd.DataFrame({'Sequence': ['ACGT', 'AAGT', 'CTAG']})
-        df_occur = find_occurence_individual(df, [2])
-
-        self.assertGreater(len(df_occur.columns), len(df.columns))
-        self.assertListEqual(df_occur['AA'].tolist(), [0, 1, 0])
-        self.assertListEqual(df_occur['AG'].tolist(), [0, 1, 1])
-
 
     def test_count_dist_random_seq(self):
         df = HelicalSeparationCounter().count_dist_random_seq()

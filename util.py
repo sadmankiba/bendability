@@ -95,51 +95,6 @@ def get_possible_shape_seq(size: int, n_letters: int):
     return possib_seq
 
 
-def find_occurence(seq_list, unit_size):
-    """
-    Find number of occurences of all possible nucleotide sequences of particular size in a list of sequences.
-    param:
-        seq_list: List of DNA sequences
-        unit_size: unit bp sequence size
-    returns:
-        a dictionary mapping unit nucleotide sequence to number of occurences
-    """
-    ## TODO: Use dataframe, assign, lambda function, str.count on each row, then sum.
-    possib_seq = get_possible_seq(unit_size)
-    seq_occur_map = dict()
-
-    for seq in possib_seq:
-        seq_occur_map[seq] = 0
-
-    for whole_seq in seq_list:
-        for i in range(len(whole_seq) - unit_size + 1):
-            seq_occur_map[whole_seq[i:i+unit_size]] += 1
-
-    return seq_occur_map
-
-
-def find_occurence_individual(df: pd.DataFrame , k_list: list) -> pd.DataFrame:
-    """
-    Find occurences of all possible nucleotide sequences for individual DNA sequences.
-
-    Args:
-        df: column `Sequence` contains DNA sequences
-        k_list: list of unit sizes to consider
-
-    Returns:
-        A dataframe with columns added for all considered unit nucleotide sequences.
-        """
-    df = df.copy()
-    possib_seq = []
-    for k in k_list:
-        possib_seq += get_possible_seq(k)
-
-    for seq in possib_seq:
-        df[seq] = df['Sequence'].apply(lambda x: len(re.findall(seq, x, overlapped=True)))
-
-    return df
-
-
 class HelicalSeparationCounter:
     """
     Functions for counting helical separation
