@@ -1,8 +1,9 @@
 from util import get_possible_seq, find_occurence, cut_sequence, \
-    find_occurence_individual, count_helical_separation, find_helical_separation, \
+    find_occurence_individual, HelicalSeparationCounter, \
         reverse_compliment_of, append_reverse_compliment
 
 import pandas as pd
+import numpy as np
 
 import unittest
 
@@ -13,11 +14,13 @@ class TestUtil(unittest.TestCase):
     def setUp(self):
         pass
 
+
     def test_reverse_compliment_of(self):
         res = reverse_compliment_of('ATGCTAAC')
         # self.assertEqual(res, 'TACGATTG')
         self.assertEqual(res, 'GTTAGCAT')
     
+
     def test_append_reverse_compliment(self):
         df = pd.DataFrame({'Sequence': ['ATGCCGT', 'GCGATGC'], 'Col2': [5, 6]})
         rdf = append_reverse_compliment(df)
@@ -26,6 +29,7 @@ class TestUtil(unittest.TestCase):
         self.assertCountEqual(rdf['Sequence'].tolist(), 
             ['ATGCCGT', 'GCGATGC', 'ACGGCAT', 'GCATCGC'])
         self.assertCountEqual(rdf['Col2'].tolist(), [5, 6, 5, 6])
+
 
     def test_get_possible_seq_two(self):
         possib_seq = get_possible_seq(size=2)
@@ -54,6 +58,11 @@ class TestUtil(unittest.TestCase):
         self.assertListEqual(df_occur['AG'].tolist(), [0, 1, 1])
 
 
+    def test_count_dist_random_seq(self):
+        df = HelicalSeparationCounter().count_dist_random_seq()
+        self.assertEqual(df.shape, (136, 49))
+
+
     def test_count_helical_separation(self):
         seq = 'AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACGCCCGGGCGCTCTC'
 
@@ -64,7 +73,29 @@ class TestUtil(unittest.TestCase):
         # helical = 0 + 0 + 1 = 1
         # half-helical = 1 + 1 + 0 = 2
         # hs = 1 - 2 = -1
-        self.assertEqual(count_helical_separation(seq, ('TT', 'GC')), -1)
+        self.assertEqual(HelicalSeparationCounter()._count_helical_separation(seq, ('TT', 'GC')), -1)
+    
+
+    def test_count_normalized_helical_separation(self):
+        seq = 'AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACGCCCGGGCGCTCTC'
+        
+        
+        helc = HelicalSeparationCounter()
+        # expected_dist_df =  pd.read_csv(self._expected_dist_file, sep='\t')
+        expected_dist_df = helc.count_dist_random_seq()
+        pair_expected_dist = expected_dist_df.loc[
+            expected_dist_df['Pair'] == 'GC-TT'
+        ].to_numpy().ravel()
+
+        # Normalize dist
+        helical = (np.array([1,0,1]) / pair_expected_dist[28:31]).max()
+        half_helical = (np.array([1,1,1]) / pair_expected_dist[3:6]).max() \
+            + (np.array([0, 1, 0]) / pair_expected_dist[13:16]).max()
+
+        self.assertAlmostEqual(
+            helc._count_normalized_helical_separation(seq, ('GC', 'TT')), 
+            helical - half_helical
+        )
         
 
     def test_find_helical_separation(self):
@@ -82,10 +113,12 @@ class TestUtil(unittest.TestCase):
         # half-helical = 1 + 1 + 1 = 3
         # hs = 1 - 3 = -2
         # Second - same as last
-        df_hel = find_helical_separation(df)
+        
+        df_hel = HelicalSeparationCounter().find_helical_separation(df)
         self.assertGreater(len(df_hel.columns), len(df.columns))
         self.assertEqual(len(df_hel.columns.tolist()), 1 + 120 + 16)
-        self.assertListEqual(df_hel['GC-TT'].tolist(), [-2, -1])
+        # Needs to be normalized
+        # self.assertListEqual(df_hel['GC-TT'].tolist(), [-2, -1])
         
 
     def test_cut_sequence(self):
