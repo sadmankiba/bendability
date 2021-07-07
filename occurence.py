@@ -4,6 +4,7 @@ from util import get_possible_seq, gen_random_sequences, sorted_split
 
 import pandas as pd
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import regex as re 
 
@@ -161,11 +162,39 @@ class Occurence:
         # Get sorted split bins of equal size
         n_seq = len(df) - len(df) % N_BINS
         df = df.iloc[:n_seq, :]
-        sorted_dfs = sorted_split(df, n=len(df), n_bins=N_BINS, ascending=True)
+        sorted_dfs: list[pd.DataFrame] = sorted_split(df, n=len(df), n_bins=N_BINS, ascending=True)
+        assert len(sorted_dfs) == N_BINS
 
-        seq_occur_map = self.find_seq_occur_map(sorted_dfs, 2)
+        # Gathered by bins
+        all_dnc_bin_occur: list[pd.DataFrame] = list(map(self.find_occurence_individual, sorted_dfs, [[2]] * len(sorted_dfs)))
+        assert len(all_dnc_bin_occur) == N_BINS, \
+            f'{len(all_dnc_bin_occur)} is not equal to {N_BINS}'
+        assert len(all_dnc_bin_occur[0]) == len(df) // N_BINS
+        all_dnc = get_possible_seq(2)
+
+        # Have a list (of 1D numpy arrays for each bin) for each dinucleotide
+        # Gathered by dnc
+        dnc_occur_map: dict[str, list[np.ndarray]] = dict(
+            map(
+                lambda dnc: (dnc, list(map(lambda df: df[dnc].to_numpy(), all_dnc_bin_occur))), 
+                all_dnc
+            )
+        )
+        assert len(list(dnc_occur_map.values())[0]) == N_BINS
+        assert list(dnc_occur_map.values())[0][0].shape == (len(df) // N_BINS, )
+        
+        # Plot
+        # mpl.rcParams['figure.figsize'] = 60, 60
+        fig, axs = plt.subplots(4, 4, sharex=True, sharey=True)
+        for i, dnc in enumerate(all_dnc):
+            axs[i // 4, i % 4].set_title(dnc)
+            axs[i // 4, i % 4].boxplot(dnc_occur_map[dnc], showfliers=False)
+        
+        fig.tight_layout()
+        plt.savefig(f'figures/seq_occur/{library_name}_boxplot_serial.png')
+        plt.show()
 
         # Sort by occurence in first bin in descending order
-        sorted_occur = sorted(seq_occur_map.items(), key=lambda x: x[1][0], reverse=True)
-        arr = np.array([ pair[1] for pair in sorted_occur ])
-        assert arr.shape == (4**2, N_BINS)
+        # sorted_occur = sorted(seq_occur_map.items(), key=lambda x: x[1][0], reverse=True)
+        # arr = np.array([ pair[1] for pair in sorted_occur ])
+        # assert arr.shape == (4**2, N_BINS)

@@ -33,7 +33,7 @@ def append_reverse_compliment(df: pd.DataFrame) -> pd.DataFrame:
     return pd.concat([df, rdf], ignore_index=True)
 
 
-def sorted_split(df, n=1000, n_bins=1, ascending=False):
+def sorted_split(df: pd.DataFrame, n=1000, n_bins=1, ascending=False) -> list[pd.DataFrame]:
     """
     Sort data according to C0 value
     params:
