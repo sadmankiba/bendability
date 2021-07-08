@@ -6,39 +6,42 @@ import numpy as np
 import unittest
 
 class TestHelicalSeparationCounter(unittest.TestCase):
-    def test_count_helical_separation(self):
+    def test_get_all_dist(self):
         seq = 'AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACGCCCGGGCGCTCTC'
-
         # Explanation 
         # TT -> [3, 13]
         # GC -> [5, 9, 18, 36, 42, 44]
         # Absolute diff -> [2, 6, 15, 33, 39, 41, 8, 4, 5, 23, 29, 31]
-        # helical = 0 + 0 + 1 = 1
-        # half-helical = 1 + 1 + 0 = 2
-        # hs = 1 - 2 = -1
-        self.assertEqual(HelicalSeparationCounter()._count_helical_separation(seq, ('TT', 'GC')), -1)
+        helsep = HelicalSeparationCounter()
+        all_dist = helsep._get_all_dist(seq)
+        pair_idx = helsep._dinc_pairs.index(('GC', 'TT'))
+        p_expected = np.bincount([2, 6, 15, 33, 39, 41, 8, 4, 5, 23, 29, 31], minlength=49)[1:]
+        
+        self.assertListEqual(all_dist[pair_idx].tolist(), p_expected.tolist())
     
 
-    def test_count_normalized_helical_separation(self):
+    def test_normalized_helical_sep_of(self):
         seq = 'AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACGCCCGGGCGCTCTC'
+        # Explanation 
+        # TT -> [3, 13]
+        # GC -> [5, 9, 18, 36, 42, 44]
+        # Absolute diff -> [2, 6, 15, 33, 39, 41, 8, 4, 5, 23, 29, 31]
+        # helical = max((0/n,0/n,0/n)) + max((0/n,0/n,0/n)) + max(1/n,0/n,1/n)
+        # half-helical = max((1/n,1/n,1/n)) + max((0/n,1/n,0/n)) + max(0/n,0/n,0/n) 
+        # hs = h -hh
         
-        
-        helc = HelicalSeparationCounter()
-        # expected_dist_df =  pd.read_csv(self._expected_dist_file, sep='\t')
-        expected_dist_df = helc.count_dist_random_seq()
-        pair_expected_dist = expected_dist_df.loc[
-            expected_dist_df['Pair'] == 'GC-TT'
-        ].to_numpy().ravel()
+        helsep = HelicalSeparationCounter()
+        expected_dist = helsep.calculate_expected_p().values
+        pair_idx = helsep._dinc_pairs.index(('GC', 'TT'))
 
         # Normalize dist
-        helical = (np.array([1,0,1]) / pair_expected_dist[28:31]).max()
-        half_helical = (np.array([1,1,1]) / pair_expected_dist[3:6]).max() \
-            + (np.array([0, 1, 0]) / pair_expected_dist[13:16]).max()
+        helical = (np.array([1,0,1]) / expected_dist[pair_idx, 28:31]).max()
+        half_helical = (np.array([1,1,1]) / expected_dist[pair_idx, 3:6]).max() \
+            + (np.array([0, 1, 0]) / expected_dist[pair_idx, 13:16]).max()
 
-        self.assertAlmostEqual(
-            helc._count_normalized_helical_separation(seq, ('GC', 'TT')), 
-            helical - half_helical
-        )
+        hs = helsep._normalized_helical_sep_of([seq])
+        self.assertTupleEqual(hs.shape, (1,136))
+        self.assertAlmostEqual(hs[0, pair_idx], helical - half_helical)
         
 
     def test_find_helical_separation(self):
@@ -52,9 +55,6 @@ class TestHelicalSeparationCounter(unittest.TestCase):
         # TT -> [3, 13]
         # GC -> [5, 9, 18, 36, 42, 44]
         # Absolute diff -> [2, 6, 15, 34, 39, 41, 8, 4, 5, 24, 29, 31]
-        # helical = 0 + 0 + 1 = 1
-        # half-helical = 1 + 1 + 1 = 3
-        # hs = 1 - 3 = -2
         # Second - same as last
         
         df_hel = HelicalSeparationCounter().find_helical_separation(df)
