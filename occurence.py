@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import regex as re 
+import swifter
 
 
 class Occurence:
@@ -53,7 +54,7 @@ class Occurence:
             possib_seq += get_possible_seq(k)
 
         for seq in possib_seq:
-            df[seq] = df['Sequence'].apply(lambda x: len(re.findall(seq, x, overlapped=True)))
+            df[seq] = df['Sequence'].swifter.apply(lambda x: len(re.findall(seq, x, overlapped=True)))
 
         return df
 

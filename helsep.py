@@ -5,7 +5,6 @@ from util import get_possible_seq, gen_random_sequences
 import pandas as pd
 import numpy as np
 import regex as re
-import swifter
 
 import math
 import random
