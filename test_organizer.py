@@ -1,6 +1,6 @@
 from data_organizer import DataOrganizeOptions, ShapeOrganizerFactory, DataOrganizer, \
         BorutaFeatureSelector, ManualFeatureSelector, ClassificationMaker, \
-            TrainTestSequenceLibraries
+            TrainTestSequenceLibraries, FeatureSelectorFactory
 from reader import DNASequenceReader
 from constants import CNL, RL, TL
 
@@ -16,56 +16,59 @@ class TestDataOrganizer(unittest.TestCase):
         pass
 
     
-    # def test_get_seq_train_test(self):
-    #     libraries: TrainTestSequenceLibraries = {
-    #         'train': [TL, CNL],
-    #         'test': [RL], 
-    #         'train_test': [], 
-    #         'seq_start_pos': 1,
-    #         'seq_end_pos': 50
-    #     }
-    #     options: DataOrganizeOptions = {
-    #         'k_list': [2,3],
-    #         'range_split': None,
-    #         'binary_class': None, 
-    #         'balance': None
-    #     }
-    #     data_organizer = DataOrganizer(libraries, None, None, options)
-    #     X_train, X_test, y_train, y_test = data_organizer.get_seq_train_test(classify=False)
+    def test_get_seq_train_test(self):
+        libraries: TrainTestSequenceLibraries = {
+            'train': [TL, CNL],
+            'test': [RL], 
+            'train_test': [], 
+            'seq_start_pos': 1,
+            'seq_end_pos': 50
+        }
+        options: DataOrganizeOptions = {
+            'k_list': [2,3],
+            'range_split': None,
+            'binary_class': None, 
+            'balance': None
+        }
+        feature_factory = FeatureSelectorFactory('all')
+        selector = feature_factory.make_feature_selector()
+        data_organizer = DataOrganizer(libraries, None, selector, options)
+        X_train, X_test, y_train, y_test = data_organizer.get_seq_train_test(classify=False)
 
-    #     reader = DNASequenceReader()
-    #     all_df = reader.get_processed_data()
+        reader = DNASequenceReader()
+        all_df = reader.get_processed_data()
         
-    #     train_total_len = sum(map(len, map(lambda name: all_df[name], libraries['train'])))
-    #     test_total_len = sum(map(len, map(lambda name: all_df[name], libraries['test'])))
+        train_total_len = sum(map(len, map(lambda name: all_df[name], libraries['train'])))
+        test_total_len = sum(map(len, map(lambda name: all_df[name], libraries['test'])))
 
-    #     assert X_train.shape[0] == train_total_len
-    #     assert y_train.shape[0] == train_total_len
-    #     assert X_test.shape[0] == test_total_len
-    #     assert y_test.shape[0] == test_total_len
+        assert X_train.shape[0] == train_total_len
+        assert y_train.shape[0] == train_total_len
+        assert X_test.shape[0] == test_total_len
+        assert y_test.shape[0] == test_total_len
 
 
-    # def test_get_helical_sep(self):
-    #     libraries: TrainTestSequenceLibraries = {
-    #         'train': [CNL],
-    #         'test': [TL], 
-    #         'seq_start_pos': 1,
-    #         'seq_end_pos': 50
-    #     }
+    def test_get_helical_sep(self):
+        libraries: TrainTestSequenceLibraries = {
+            'train': [CNL],
+            'test': [TL], 
+            'train_test': [],
+            'seq_start_pos': 1,
+            'seq_end_pos': 50
+        }
 
-    #     organizer = DataOrganizer(libraries, None, None, None)
-    #     hel_dfs = organizer._get_helical_sep()
-    #     self.assertEqual(len(hel_dfs['train'][0].columns), 3 + 120 + 16)
-    #     self.assertEqual(len(hel_dfs['test'][0].columns), 3 + 120 + 16)
+        organizer = DataOrganizer(libraries, None, None, None)
+        hel_dfs = organizer._get_helical_sep()
+        self.assertEqual(len(hel_dfs['train'][0].columns), 3 + 120 + 16)
+        self.assertEqual(len(hel_dfs['test'][0].columns), 3 + 120 + 16)
 
-    #     saved_train_file = Path(f"data/generated_data/helical_separation"
-    #         f"/{libraries['train'][0]}_{libraries['seq_start_pos']}_{libraries['seq_end_pos']}_hs.tsv")
+        saved_train_file = Path(f"data/generated_data/helical_separation"
+            f"/{libraries['train'][0]}_{libraries['seq_start_pos']}_{libraries['seq_end_pos']}_hs.tsv")
         
-    #     saved_test_file = Path(f"data/generated_data/helical_separation"
-    #         f"/{libraries['test'][0]}_{libraries['seq_start_pos']}_{libraries['seq_end_pos']}_hs.tsv")
+        saved_test_file = Path(f"data/generated_data/helical_separation"
+            f"/{libraries['test'][0]}_{libraries['seq_start_pos']}_{libraries['seq_end_pos']}_hs.tsv")
         
-    #     self.assertEqual(saved_train_file.is_file(), True)
-    #     self.assertEqual(saved_test_file.is_file(), True)
+        self.assertEqual(saved_train_file.is_file(), True)
+        self.assertEqual(saved_test_file.is_file(), True)
 
 
     def test_get_kmer_count(self):

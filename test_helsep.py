@@ -19,6 +19,9 @@ class TestHelicalSeparationCounter(unittest.TestCase):
         
         self.assertListEqual(all_dist[pair_idx].tolist(), p_expected.tolist())
     
+    def test_calculate_expected_p(self):
+        df = HelicalSeparationCounter().calculate_expected_p()
+        self.assertEqual(df.shape, (136, 49))
 
     def test_normalized_helical_sep_of(self):
         seq = 'AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACGCCCGGGCGCTCTC'

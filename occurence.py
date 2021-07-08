@@ -54,7 +54,7 @@ class Occurence:
             possib_seq += get_possible_seq(k)
 
         for seq in possib_seq:
-            df[seq] = df['Sequence'].swifter.apply(lambda x: len(re.findall(seq, x, overlapped=True)))
+            df[seq] = df['Sequence'].swifter.progress_bar(False).apply(lambda x: len(re.findall(seq, x, overlapped=True)))
 
         return df
 

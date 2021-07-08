@@ -610,7 +610,8 @@ class DataOrganizer:
                         list(
                             map(
                                 lambda df_kmer, df_hel: df_kmer.merge(df_hel, on=['Sequence #', 'Sequence', 'C0']), 
-                                zip(train_test_kmer_dfs[key], train_test_hel_dfs[key])
+                                train_test_kmer_dfs[key], 
+                                train_test_hel_dfs[key]
                             )
                         )
                     ),

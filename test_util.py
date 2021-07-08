@@ -1,4 +1,4 @@
-from util import get_possible_seq, cut_sequence, HelicalSeparationCounter, \
+from util import get_possible_seq, cut_sequence, \
         reverse_compliment_of, append_reverse_compliment
 
 import pandas as pd
@@ -37,11 +37,6 @@ class TestUtil(unittest.TestCase):
 
         # Test two list have same content without regard to their order
         self.assertCountEqual(possib_seq, expected)
-    
-
-    def test_count_dist_random_seq(self):
-        df = HelicalSeparationCounter().count_dist_random_seq()
-        self.assertEqual(df.shape, (136, 49))
 
 
     def test_cut_sequence(self):
