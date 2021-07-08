@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from util import cut_sequence, HelicalSeparationCounter
+from util import cut_sequence
+from helsep import HelicalSeparationCounter
 from occurence import Occurence
 from shape import run_dna_shape_r_wrapper
 from reader import DNASequenceReader
