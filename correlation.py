@@ -24,7 +24,8 @@ class Correlation:
             kmer_df = kmer_df.drop(columns=['Sequence #', 'Sequence'])
             C0_corr = kmer_df.corr()['C0']
             C0_corr.sort_values(ascending=False).to_csv(
-                f'data/generated_data/correlation/{library_name}_{k}_corr.tsv', sep='\t', index=True)
+                f'data/generated_data/correlation/{library_name}_{k}_corr.tsv', sep='\t', \
+                    index=True, float_format='%.2f')
 
     def hel_corr(self, library_name: str):
         libraries = {
@@ -40,5 +41,6 @@ class Correlation:
         hel_df = hel_df.drop(columns=['Sequence #', 'Sequence'])
         hel_corr = hel_df.corr()['C0']
         hel_corr.sort_values(ascending=False).to_csv(
-            f'data/generated_data/correlation/{library_name}_hel_corr.tsv', sep='\t', index=True
+            f'data/generated_data/correlation/{library_name}_hel_corr.tsv', sep='\t', \
+                index=True, float_format='%.2f'
         )

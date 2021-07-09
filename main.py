@@ -16,5 +16,12 @@ def plotting_boxplot():
 
 if __name__ == '__main__':
     corr = Correlation()
+    corr.kmer_corr(RL)
+    corr.kmer_corr(CNL)
+    corr.kmer_corr(TL)
     corr.kmer_corr(CHRVL)
+    corr.hel_corr(RL)
+    corr.hel_corr(CNL)
+    corr.hel_corr(TL)
+    corr.hel_corr(CHRVL)
     

@@ -464,8 +464,9 @@ class DataOrganizer:
         self._cut_dfs = None
         self._class_maker = ClassificationMaker(
             options['range_split'], options['binary_class']
-            ) if options is not None else None   
-        self._c0_scale = options['c0_scale'] if options['c0_scale'] is not None else 1    
+            ) if options is not None else None
+        
+        self._c0_scale = options.get('c0_scale') if options and options.get('c0_scale') else 1    
 
 
     def _get_cut_dfs(self) -> dict[Union[library_names], pd.DataFrame]:
@@ -622,7 +623,7 @@ class DataOrganizer:
             )
 
         # Scale C0
-        def _scale(self, df: pd.DataFrame) -> pd.DataFrame: 
+        def _scale(df: pd.DataFrame) -> pd.DataFrame: 
             df = df.copy()
             df['C0'] = df['C0'] * self._options['c0_scale']
             return df
