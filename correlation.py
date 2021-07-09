@@ -26,15 +26,19 @@ class Correlation:
             C0_corr.sort_values(ascending=False).to_csv(
                 f'data/generated_data/correlation/{library_name}_{k}_corr.tsv', sep='\t', index=True)
 
-    def hel_corr():
+    def hel_corr(self, library_name: str):
         libraries = {
-            'train': [CNL],
-            'test': [TL], 
+            'train': [library_name],
+            'test': [], 
             'train_test': [],
             'seq_start_pos': 1,
             'seq_end_pos': 50
         }
 
         organizer = DataOrganizer(libraries, None, None, None)
-        hel_dfs = organizer._get_helical_sep()
-        pass
+        hel_df = organizer._get_helical_sep()['train'][0]
+        hel_df = hel_df.drop(columns=['Sequence #', 'Sequence'])
+        hel_corr = hel_df.corr()['C0']
+        hel_corr.sort_values(ascending=False).to_csv(
+            f'data/generated_data/correlation/{library_name}_hel_corr.tsv', sep='\t', index=True
+        )

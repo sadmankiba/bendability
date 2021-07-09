@@ -63,6 +63,7 @@ class DataOrganizeOptions(TypedDict):
     range_split: np.ndarray 
     binary_class: bool
     balance: bool
+    c0_scale: int
 
 
 class ShapeOrganizer:
@@ -463,7 +464,8 @@ class DataOrganizer:
         self._cut_dfs = None
         self._class_maker = ClassificationMaker(
             options['range_split'], options['binary_class']
-            ) if options is not None else None        
+            ) if options is not None else None   
+        self._c0_scale = options['c0_scale'] if options['c0_scale'] is not None else 1    
 
 
     def _get_cut_dfs(self) -> dict[Union[library_names], pd.DataFrame]:
@@ -619,13 +621,28 @@ class DataOrganizer:
                 )
             )
 
+        # Scale C0
+        def _scale(self, df: pd.DataFrame) -> pd.DataFrame: 
+            df = df.copy()
+            df['C0'] = df['C0'] * self._options['c0_scale']
+            return df
+
+        train_test_dfs: dict[str, list[pd.DataFrame]] \
+            = dict(map(
+                lambda k_v: (
+                    k_v[0], 
+                    list(map(_scale, k_v[1]))
+                ),
+                train_test_dfs.items()
+            ))
+
         
         if classify:
             train_test_dfs: dict[str, list[pd.DataFrame]] \
                 = dict(map(
-                    lambda k, v: (
-                        k, 
-                        list(map(self._class_maker.classify, v))
+                    lambda k_v: (
+                        k_v[0], 
+                        list(map(self._class_maker.classify, k_v[1]))
                     ),
                     train_test_dfs.items()
                 ))
@@ -646,6 +663,7 @@ class DataOrganizer:
         y_test = df_test['C0'].to_numpy()
         df_test = df_test.drop(columns=['Sequence #', 'Sequence', 'C0'])
         # df_train, df_test, y_train, y_test = train_test_split(df, y, test_size=0.1)
+
         
         # Print sample train values
         X_train = df_train.to_numpy()

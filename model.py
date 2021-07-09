@@ -126,13 +126,13 @@ class Model:
         X_train, X_test, y_train, y_test = self.organizer.get_seq_train_test(classify=False)
 
         regressors = []
+        regressors.append(('SVR_C_0.1', SVR(C=0.1)))
+        regressors.append(('SVR_C_1', SVR(C=1)))
         #regressors.append(('LinearRegression', LinearRegression()))
         # regressors.append(('Ridge_alpha_1', Ridge(alpha=1)))
         # regressors.append(('Ridge_alpha_5', Ridge(alpha=5)))
         # regressors.append(('Lasso', LassoCV()))
-        # regressors.append(('SVR_C_1', SVR(C=1)))
-        regressors.append(('SVR_C_0.1', SVR(C=0.1)))
-        regressors.append(('NN', MLPRegressor()))
+        # regressors.append(('NN', MLPRegressor()))
 
         result_cols = ['Regression Model', 'Test Accuracy', 'Train Accuracy']
         reg_result = pd.DataFrame(columns=result_cols)
@@ -165,7 +165,8 @@ if __name__ == '__main__':
         'k_list': [2,3,4],
         'range_split': np.array([0.2, 0.6, 0.2]),
         'binary_class': False,
-        'balance': False
+        'balance': False,
+        'c0_scale': 20
     }
 
     organizer = DataOrganizer(libraries, None, selector, options)

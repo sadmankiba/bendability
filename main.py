@@ -2,7 +2,7 @@ from occurence import Occurence
 from util import append_reverse_compliment
 from shape import find_all_shape_values
 from reader import DNASequenceReader
-from constants import RL, CNL, TL
+from constants import RL, CNL, TL, CHRVL, LIBL
 from correlation import Correlation
 
 
@@ -16,6 +16,5 @@ def plotting_boxplot():
 
 if __name__ == '__main__':
     corr = Correlation()
-    corr.kmer_corr(RL)
-    corr.kmer_corr(CNL)
-    corr.kmer_corr(TL)
+    corr.kmer_corr(CHRVL)
+    
