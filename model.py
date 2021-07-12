@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from data_organizer import DataOrganizer, ShapeOrganizerFactory, \
-        SequenceLibrary, FeatureSelectorFactory, DataOrganizeOptions, \
-            TrainTestSequenceLibraries
+        SequenceLibrary, DataOrganizeOptions, TrainTestSequenceLibraries
+from feat_selector import FeatureSelectorFactory
 from constants import CNL, RL, TL
 
 import pandas as pd

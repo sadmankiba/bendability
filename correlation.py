@@ -1,4 +1,4 @@
-from data_organizer import DataOrganizer
+from data_organizer import DataOrganizeOptions, DataOrganizer
 from constants import CNL, TL, RL 
 
 class Correlation:
@@ -12,12 +12,7 @@ class Correlation:
         }
         
         for k in [2, 3, 4]:
-            options = {
-                'k_list': [k],
-                'range_split': None,
-                'binary_class': None, 
-                'balance': None
-            }
+            options = DataOrganizeOptions(k_list=[k])
 
             organizer = DataOrganizer(libraries, None, None, options)
             kmer_df = organizer._get_kmer_count()['train'][0]
@@ -36,7 +31,7 @@ class Correlation:
             'seq_end_pos': 50
         }
 
-        organizer = DataOrganizer(libraries, None, None, None)
+        organizer = DataOrganizer(libraries, None, None)
         hel_df = organizer._get_helical_sep()['train'][0]
         hel_df = hel_df.drop(columns=['Sequence #', 'Sequence'])
         hel_corr = hel_df.corr()['C0']

@@ -18,7 +18,6 @@ import boruta
 import math 
 from collections import Counter
 from typing import Union, TypedDict
-from dataclasses import dataclass
 from pathlib import Path
 import time
 import random
@@ -51,7 +50,10 @@ class TrainTestSequenceLibraries(TypedDict):
     seq_end_pos: int
 
 
-class DataOrganizeOptions(TypedDict):
+# The reason for using TypedDict for DataOrganizeOptions over dataclass is that 
+# all attributes need not be set everytime. get() function will then return None
+# for options that are not set.
+class DataOrganizeOptions(TypedDict, total=False):
     """
     Attributes:
         k_list: list of unit sizes to consider when using k-mers
@@ -59,6 +61,7 @@ class DataOrganizeOptions(TypedDict):
             array of float values between 0 and 1 that sums to 1. eg. [0.3, 0.5, 0.2]
         binary_class: Whether to perform binary classification
         balance: Whether to balance classes
+        c0_scale: Scalar multiplication factor of c0
     """
     k_list: list[int]
     range_split: np.ndarray 
@@ -334,7 +337,7 @@ class DataOrganizer:
     Prepares features and targets.
     """
     def __init__(self, libraries: TrainTestSequenceLibraries, shape_organizer: ShapeOrganizer, 
-            selector: FeatureSelector, options: DataOrganizeOptions):
+            selector: FeatureSelector, options: DataOrganizeOptions = {}):
         """
         Creates a DataOrganizer object.
 
@@ -351,9 +354,10 @@ class DataOrganizer:
         self._cut_dfs = None
         self._class_maker = ClassificationMaker(
             options['range_split'], options['binary_class']
-            ) if options is not None else None
+            ) if options.get('range_split') and options.get('binary_class') else None
         
-        self._c0_scale = options.get('c0_scale') if options and options.get('c0_scale') else 1    
+        if not self._options.get('c0_scale'):
+            self._options['c0_scale'] = 1     
 
 
     def _get_cut_dfs(self) -> dict[Union[library_names], pd.DataFrame]:

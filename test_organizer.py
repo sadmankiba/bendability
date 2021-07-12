@@ -24,12 +24,7 @@ class TestDataOrganizer(unittest.TestCase):
             'seq_start_pos': 1,
             'seq_end_pos': 50
         }
-        options: DataOrganizeOptions = {
-            'k_list': [2,3],
-            'range_split': None,
-            'binary_class': None, 
-            'balance': None
-        }
+        options = DataOrganizeOptions(k_list=[2,3])
         feature_factory = FeatureSelectorFactory('all')
         selector = feature_factory.make_feature_selector()
         data_organizer = DataOrganizer(libraries, None, selector, options)
@@ -56,7 +51,7 @@ class TestDataOrganizer(unittest.TestCase):
             'seq_end_pos': 50
         }
 
-        organizer = DataOrganizer(libraries, None, None, None)
+        organizer = DataOrganizer(libraries, None, None)
         hel_dfs = organizer._get_helical_sep()
         self.assertEqual(len(hel_dfs['train'][0].columns), 3 + 120 + 16)
         self.assertEqual(len(hel_dfs['test'][0].columns), 3 + 120 + 16)
@@ -81,12 +76,7 @@ class TestDataOrganizer(unittest.TestCase):
         }
 
         k_list = [2, 3] 
-        options: DataOrganizeOptions = {
-            'k_list': k_list,
-            'range_split': None,
-            'binary_class': None, 
-            'balance': None
-        }
+        options = DataOrganizeOptions(k_list=k_list)
 
         organizer = DataOrganizer(libraries, None, None, options)
         kmer_dfs = organizer._get_kmer_count()
