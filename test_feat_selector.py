@@ -1,9 +1,23 @@
-from feat_selector import BorutaFeatureSelector, ManualFeatureSelector, FeatureSelectorFactory
+from feat_selector import BorutaFeatureSelector, ManualFeatureSelector, \
+    CorrelationFeatureSelector
 
 import unittest
 import numpy as np
 
 class TestFeatSelector(unittest.TestCase):
+    def test_corr_feat_selector(self):
+        selector = CorrelationFeatureSelector(threshold=0.4)
+        X = np.array([[1, 4, 10, 5], 
+                      [5, 3, -2, 2],
+                      [9, 1, 15, 8]])
+        y = np.array([2, 7, 8])
+        selector.fit(X, y)
+        self.assertListEqual(selector.support_.tolist(), [True, True, False, False])
+        self.assertListEqual(selector.ranking_.tolist(), [1, 1, 2, 2])
+
+        X_sel = selector.transform(X)
+        self.assertTupleEqual(X_sel.shape, (3, 2))
+
     def test_select_feat_boruta(self):
         X = np.array([  [0, 1, 0],
                         [1, 1, 0],

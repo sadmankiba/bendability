@@ -103,6 +103,26 @@ class AllFeatureSelector(FeatureSelector):
         return X[:, self.support_]
 
 
+class CorrelationFeatureSelector(FeatureSelector):
+    """
+    Selects features whose correlation value with target are greater than
+    threshold.  
+    """
+    def __init__(self, threshold=0.05):
+        self._threshold = threshold
+
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
+        feat_corr = abs(np.corrcoef(X.transpose(), y)[-1, :-1])
+        assert feat_corr.shape == (X.shape[1], )
+
+        self.support_ = feat_corr > self._threshold
+        self.ranking_ = (~self.support_).astype(int) + 1
+
+    def transform(self, X: np.ndarray) -> np.ndarray:
+        return X[:, self.support_]
+
+
 class FeatureSelectorFactory:
     def __init__(self, selector_type):
         self.selector_type = selector_type
