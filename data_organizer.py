@@ -6,11 +6,11 @@ from occurence import Occurence
 from shape import run_dna_shape_r_wrapper
 from reader import DNASequenceReader
 from constants import library_names
+from feat_selector import FeatureSelector
 
 import numpy as np
 import pandas as pd 
 from sklearn.preprocessing import OneHotEncoder
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import RandomOverSampler
 import boruta
@@ -18,6 +18,7 @@ import boruta
 import math 
 from collections import Counter
 from typing import Union, TypedDict
+from dataclasses import dataclass
 from pathlib import Path
 import time
 import random
@@ -63,7 +64,7 @@ class DataOrganizeOptions(TypedDict):
     range_split: np.ndarray 
     binary_class: bool
     balance: bool
-    c0_scale: int
+    c0_scale: float
 
 
 class ShapeOrganizer:
@@ -256,120 +257,6 @@ class ShapeOrganizerFactory:
             return ShapeNormalizer(self._shape_str, library)
         else:
             raise ValueError('Organizer type not recognized')
-
-
-class FeatureSelector:
-    """
-    Selects Features for classification
-
-    Attributes
-        support_: A numpy 1D array of boolean denoting which features were selected
-        ranking: A numpy 1D array of integer denoting ranking of features
-    """
-    def __init__(self):
-        """
-        Selects features
-        """
-        self.support_ = None 
-        self.ranking_ = None
-    
-    def fit(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
-        raise Exception('Subclass responsibility')
-    
-    def transform(self, X: np.ndarray) -> np.ndarray:
-        raise Exception('Subclass responsibility')
-
-
-class ManualFeatureSelector(FeatureSelector):
-    """
-    Select features that are strictly increasing/decreasing for classes 0 to
-    n-1.
-    """
-    def _check_increasing(self, arr: np.ndarray[float]) -> np.ndarray[bool]:
-        return np.all(arr[1:, :] > arr[:-1, :], axis=0)
-
-
-    def _check_decreasing(self, arr: np.ndarray[float]) -> np.ndarray[bool]:
-        return np.all(arr[1:, :] < arr[:-1, :], axis=0)
-
-
-    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
-        mean_list = []
-        for i in np.unique(y):
-            mean_list.append(X[np.where(y == i)].mean(axis=0))
-
-        mean_arr = np.array(mean_list)
-        assert mean_arr.shape == (np.unique(y).size, X.shape[1])
-
-        # Check which columns are either increasing or decreasing 
-        self.support_ = self._check_increasing(mean_arr) | self._check_decreasing(mean_arr)
-        self.ranking_ = (~self.support_).astype(int) + 1
-    
-            
-    def transform(self, X: np.ndarray) -> np.ndarray:
-        return X[:, self.support_]
-
-
-class BorutaFeatureSelector(FeatureSelector):
-    """
-    A wrapper class for Boruta feature selection algorithm
-    """
-
-    def __init__(self):
-        rf = RandomForestClassifier(n_jobs=-1, class_weight='balanced', max_depth=5)
-        
-        self._feat_selector = boruta.BorutaPy(rf, n_estimators='auto', verbose=0, \
-            random_state=1, perc=90, max_iter=50)
-
-
-    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
-        """
-        Select all relevant features with Boruta algorithm
-
-        Args:
-            X: feature array
-            y: target
-
-        Returns:
-            None
-        """
-        self._feat_selector.fit(X, y)
-        
-        self.support_ = self._feat_selector.support_
-        self.ranking_ = self._feat_selector.ranking_
-
-
-    def transform(self, X: np.ndarray) -> np.ndarray:
-        return self._feat_selector.transform(X)
-
-
-class AllFeatureSelector(FeatureSelector):
-    """
-    Selects all features
-    """
-    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
-        self.support_ = np.full(shape=(X.shape[1],), fill_value=True)
-        self.ranking_ = np.full(shape=(X.shape[1],), fill_value=1)
-        
-
-    def transform(self, X: np.ndarray) -> np.ndarray:
-        return X[:, self.support_]
-
-
-class FeatureSelectorFactory:
-    def __init__(self, selector_type):
-        self.selector_type = selector_type
-
-    def make_feature_selector(self):
-        '''Creates feature selector instance'''
-        if self.selector_type == 'manual':
-            return ManualFeatureSelector()
-        elif self.selector_type == 'boruta':
-            return BorutaFeatureSelector()
-        elif self.selector_type == 'all':
-            return AllFeatureSelector()
-        else:
-            raise Exception('Selector type not recognized')
 
 
 class ClassificationMaker:
