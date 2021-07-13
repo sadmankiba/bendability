@@ -133,6 +133,8 @@ class FeatureSelectorFactory:
             return ManualFeatureSelector()
         elif self.selector_type == 'boruta':
             return BorutaFeatureSelector()
+        elif self.selector_type == 'corr':
+            return CorrelationFeatureSelector()
         elif self.selector_type == 'all':
             return AllFeatureSelector()
         else:

@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from data_organizer import DataOrganizer, ShapeOrganizerFactory, \
-        SequenceLibrary, DataOrganizeOptions, TrainTestSequenceLibraries
-from feat_selector import FeatureSelectorFactory
-from constants import CNL, RL, TL
+from data_organizer import DataOrganizer
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -16,6 +13,9 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
+
+from datetime import datetime
+from pathlib import Path 
 
 class Model:
     """
@@ -30,6 +30,18 @@ class Model:
         """
         self.organizer = organizer
 
+
+    def _get_result_path(self, dir_name: str):
+        """
+        Makes result path. Creates if needed.
+        """
+        cur_date = datetime.now().strftime("%Y_%m_%d")
+        cur_time = datetime.now().strftime("%H_%M")
+        
+        return Path(f'data/generated_data/results/{dir_name}/{cur_date}/{cur_time}.tsv')\
+            .mkdir(parents=True, exist_ok=True)
+         
+        
 
     def _train_shape_cnn_classifier(self, X: np.ndarray, y: np.ndarray) \
         -> tuple[models.Sequential, tf.keras.callbacks.History]:
@@ -114,10 +126,16 @@ class Model:
         clf_result = pd.DataFrame(columns=result_cols)
         for name, clf in classifiers:
             clf.fit(X_train, y_train)
-            clf_result = pd.concat([clf_result, pd.DataFrame([[name, clf.score(X_train, y_train), clf.score(X_test, y_test)]], columns=result_cols)], ignore_index=True)
-
-        clf_result.to_csv(f'data/generated_data/results/classification.tsv', sep='\t', index=False)
-
+            test_acc = clf.score(X_test, y_test)
+            train_acc = clf.score(X_train, y_train)
+            print('Model:', name, 'Train acc:', train_acc, ', Test acc:', test_acc)
+            clf_result = pd.concat([
+                    clf_result, 
+                    pd.DataFrame([[name, test_acc, train_acc]], columns=result_cols)
+                ], 
+                ignore_index=True)
+            clf_result.to_csv(self._get_result_path(dir_name='classification'), sep='\t', index=False)
+            
 
     def run_seq_regression(self) -> None:
         """
@@ -138,41 +156,16 @@ class Model:
         reg_result = pd.DataFrame(columns=result_cols)
         for name, reg in regressors:
             reg.fit(X_train, y_train)
-            reg_result = pd.concat([reg_result, pd.DataFrame([[name, reg.score(X_train, y_train), reg.score(X_test, y_test)]], columns=result_cols)], ignore_index=True)
-
-        reg_result.to_csv(f'data/generated_data/results/regression.tsv', sep='\t', index=False)
-
+            test_acc = reg.score(X_test, y_test)
+            train_acc = reg.score(X_train, y_train)
+            print('Model:', name, ' Train acc:', train_acc, ', Test acc:', test_acc)
+            reg_result = pd.concat([
+                    reg_result, 
+                    pd.DataFrame([[name, test_acc, train_acc]], columns=result_cols)
+                ], 
+                ignore_index=True)
+            reg_result.to_csv(self._get_result_path(dir_name='regression'), sep='\t', index=False)
+        
 
     def run_shape_seq_classifier(self) -> None:
         pass
-
-
-if __name__ == '__main__':
-    libraries: TrainTestSequenceLibraries = {
-        'train': [ SequenceLibrary(name=TL, quantity=50000) ],
-        'test': [ SequenceLibrary(name=RL, quantity=10000) ], 
-        'train_test': [],
-        'seq_start_pos': 1,
-        'seq_end_pos': 50
-    }
-
-    # shape_factory = ShapeOrganizerFactory('normal', 'ProT')
-    # shape_organizer = shape_factory.make_shape_organizer(library)
-    feature_factory = FeatureSelectorFactory('all')
-    selector = feature_factory.make_feature_selector()
-
-    options: DataOrganizeOptions = {
-        'k_list': [2,3,4],
-        'range_split': np.array([0.2, 0.6, 0.2]),
-        'binary_class': False,
-        'balance': False,
-        'c0_scale': 20
-    }
-
-    organizer = DataOrganizer(libraries, None, selector, options)
-
-    model = Model(organizer)
-
-    # model.run_seq_classifier()
-    model.run_seq_regression()
-    # model.run_shape_cnn_classifier()

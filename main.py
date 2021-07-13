@@ -1,9 +1,15 @@
+from data_organizer import DataOrganizer, ShapeOrganizerFactory, \
+        SequenceLibrary, DataOrganizeOptions, TrainTestSequenceLibraries
+from feat_selector import FeatureSelectorFactory
 from occurence import Occurence
 from util import append_reverse_compliment
 from shape import find_all_shape_values
 from reader import DNASequenceReader
 from constants import RL, CNL, TL, CHRVL, LIBL
 from correlation import Correlation
+from model import Model
+
+import numpy as np
 
 
 def plotting_boxplot():
@@ -14,14 +20,38 @@ def plotting_boxplot():
     Occurence().plot_boxplot(df, lib)
 
 
+def run_model():
+    libraries: TrainTestSequenceLibraries = {
+        'train': [ SequenceLibrary(name=TL, quantity=50000) ],
+        'test': [ SequenceLibrary(name=RL, quantity=10000) ], 
+        'train_test': [],
+        'seq_start_pos': 1,
+        'seq_end_pos': 50
+    }
+
+    # shape_factory = ShapeOrganizerFactory('normal', 'ProT')
+    # shape_organizer = shape_factory.make_shape_organizer(library)
+    feature_factory = FeatureSelectorFactory('corr')
+    selector = feature_factory.make_feature_selector()
+
+    options: DataOrganizeOptions = {
+        'k_list': [2,3,4],
+        'range_split': np.array([0.2, 0.6, 0.2]),
+        'binary_class': False,
+        'balance': False,
+        'c0_scale': 20
+    }
+
+    organizer = DataOrganizer(libraries, None, selector, options)
+
+    model = Model(organizer)
+
+    # model.run_seq_classifier()
+    model.run_seq_regression()
+    # model.run_shape_cnn_classifier()
+
+
+
 if __name__ == '__main__':
-    corr = Correlation()
-    corr.kmer_corr(RL)
-    corr.kmer_corr(CNL)
-    corr.kmer_corr(TL)
-    corr.kmer_corr(CHRVL)
-    corr.hel_corr(RL)
-    corr.hel_corr(CNL)
-    corr.hel_corr(TL)
-    corr.hel_corr(CHRVL)
+    run_model()
     
