@@ -149,8 +149,8 @@ class Model:
 
 if __name__ == '__main__':
     libraries: TrainTestSequenceLibraries = {
-        'train': [TL],
-        'test': [RL], 
+        'train': [ SequenceLibrary(name=TL, quantity=50000) ],
+        'test': [ SequenceLibrary(name=RL, quantity=10000) ], 
         'train_test': [],
         'seq_start_pos': 1,
         'seq_end_pos': 50

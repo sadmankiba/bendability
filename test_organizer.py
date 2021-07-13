@@ -1,8 +1,8 @@
 from data_organizer import DataOrganizeOptions, ShapeOrganizerFactory, DataOrganizer, \
-        ClassificationMaker, TrainTestSequenceLibraries
+        ClassificationMaker, TrainTestSequenceLibraries, SequenceLibrary
 from feat_selector import FeatureSelectorFactory
 from reader import DNASequenceReader
-from constants import CNL, RL, TL
+from constants import CNL, CNL_LEN, RL, TL, TL_LEN, RL_LEN
 
 import numpy as np
 import pandas as pd
@@ -18,8 +18,9 @@ class TestDataOrganizer(unittest.TestCase):
     
     def test_get_seq_train_test(self):
         libraries: TrainTestSequenceLibraries = {
-            'train': [TL, CNL],
-            'test': [RL], 
+            'train': [SequenceLibrary(name=TL, quantity=50000), 
+                        SequenceLibrary(name=CNL, quantity=15000)],
+            'test': [SequenceLibrary(name=RL, quantity=10000)], 
             'train_test': [], 
             'seq_start_pos': 1,
             'seq_end_pos': 50
@@ -33,19 +34,16 @@ class TestDataOrganizer(unittest.TestCase):
         reader = DNASequenceReader()
         all_df = reader.get_processed_data()
         
-        train_total_len = sum(map(len, map(lambda name: all_df[name], libraries['train'])))
-        test_total_len = sum(map(len, map(lambda name: all_df[name], libraries['test'])))
-
-        assert X_train.shape[0] == train_total_len
-        assert y_train.shape[0] == train_total_len
-        assert X_test.shape[0] == test_total_len
-        assert y_test.shape[0] == test_total_len
+        assert X_train.shape[0] == 65000
+        assert y_train.shape[0] == 65000
+        assert X_test.shape[0] == 10000
+        assert y_test.shape[0] == 10000
 
 
     def test_get_helical_sep(self):
         libraries: TrainTestSequenceLibraries = {
-            'train': [CNL],
-            'test': [TL], 
+            'train': [SequenceLibrary(name=CNL, quantity=CNL_LEN)],
+            'test': [SequenceLibrary(name=TL, quantity=TL_LEN)], 
             'train_test': [],
             'seq_start_pos': 1,
             'seq_end_pos': 50
@@ -57,10 +55,10 @@ class TestDataOrganizer(unittest.TestCase):
         self.assertEqual(len(hel_dfs['test'][0].columns), 3 + 120 + 16)
 
         saved_train_file = Path(f"data/generated_data/helical_separation"
-            f"/{libraries['train'][0]}_{libraries['seq_start_pos']}_{libraries['seq_end_pos']}_hs.tsv")
+            f"/{libraries['train'][0]['name']}_{libraries['seq_start_pos']}_{libraries['seq_end_pos']}_hs.tsv")
         
         saved_test_file = Path(f"data/generated_data/helical_separation"
-            f"/{libraries['test'][0]}_{libraries['seq_start_pos']}_{libraries['seq_end_pos']}_hs.tsv")
+            f"/{libraries['test'][0]['name']}_{libraries['seq_start_pos']}_{libraries['seq_end_pos']}_hs.tsv")
         
         self.assertEqual(saved_train_file.is_file(), True)
         self.assertEqual(saved_test_file.is_file(), True)
@@ -68,8 +66,8 @@ class TestDataOrganizer(unittest.TestCase):
 
     def test_get_kmer_count(self):
         libraries: TrainTestSequenceLibraries = {
-            'train': [TL],
-            'test': [RL], 
+            'train': [SequenceLibrary(name=TL, quantity=TL_LEN)],
+            'test': [SequenceLibrary(name=RL, quantity=RL_LEN)], 
             'train_test': [],
             'seq_start_pos': 1,
             'seq_end_pos': 50
@@ -85,7 +83,7 @@ class TestDataOrganizer(unittest.TestCase):
 
         for lib_type, k in it.product(['train', 'test'], k_list):
             saved_file = Path(f"data/generated_data/kmer_count"
-                f"/{libraries[lib_type][0]}_{libraries['seq_start_pos']}"
+                f"/{libraries[lib_type][0]['name']}_{libraries['seq_start_pos']}"
                 f"_{libraries['seq_end_pos']}_kmercount_{k}.tsv")
             
             self.assertEqual(saved_file.is_file(), True)

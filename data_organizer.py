@@ -26,12 +26,10 @@ class SequenceLibrary(TypedDict):
     """
     Attributes:
         name: Name of the library to use for training / testing
-        seq_start_pos: Start position to consider (between 1-50)
-        seq_end_pos: End position to consider (between 1-50)
+        quantity: Number of randomly chosen sequences to consider
     """
     name: str
-    seq_start_pos: int
-    seq_end_pos: int
+    quantity: int
 
 
 class TrainTestSequenceLibraries(TypedDict):
@@ -43,9 +41,9 @@ class TrainTestSequenceLibraries(TypedDict):
         seq_start_pos: Start position to consider (between 1-50)
         seq_end_pos: End position to consider (between 1-50)
     """
-    train: list[str]
-    test: list[str]
-    train_test: list[str]
+    train: list[SequenceLibrary]
+    test: list[SequenceLibrary]
+    train_test: list[SequenceLibrary]
     seq_start_pos: int
     seq_end_pos: int
 
@@ -384,18 +382,6 @@ class DataOrganizer:
         return self._cut_dfs
 
 
-        # train_df = pd.concat(map(
-        #     lambda name: cut_sequence(all_df[name], self._libraries['seq_start_pos'], self._libraries['seq_end_pos']), 
-        #     self._libraries['train']
-        # ))
-        
-        # test_df = pd.concat(map(
-        #     lambda name: cut_sequence(all_df[name], self._libraries['seq_start_pos'], self._libraries['seq_end_pos']), 
-        #     self._libraries['test']
-        # ))
-        # return train_df, test_df
-
-
     def _save_classification_data(self, df: pd.DataFrame, name: str) -> None:
         '''Save classification data in a tsv file for inspection'''
         k_list_str = ''.join([ str(k) for k in self._options['k_list'] ])
@@ -420,22 +406,23 @@ class DataOrganizer:
         """
         cut_dfs = self._get_cut_dfs()
 
-        def _get_helical_sep_of(library_name: str):       
+        def _get_helical_sep_of(library: SequenceLibrary):       
             saved_helical_sep_file = Path(f"data/generated_data/helical_separation"
-                f"/{library_name}_{self._libraries['seq_start_pos']}_{self._libraries['seq_end_pos']}_hs.tsv")
+                f"/{library['name']}_{self._libraries['seq_start_pos']}_{self._libraries['seq_end_pos']}_hs.tsv")
             
             if saved_helical_sep_file.is_file():
                 return pd.read_csv(saved_helical_sep_file, sep='\t')
             
             t = time.time()
-            df_hel = HelicalSeparationCounter().find_helical_separation(cut_dfs[library_name])
+            df_hel = HelicalSeparationCounter().find_helical_separation(cut_dfs[library['name']])
             print(f'Helical separation count time: {(time.time() - t) / 60} min')
             
             df_hel.to_csv(saved_helical_sep_file, sep='\t', index=False)
             
             return df_hel
 
-        keys = ['train', 'test', 'train_test']      
+        keys = ['train', 'test', 'train_test'] 
+     
         return dict(
             map(
                 lambda key: (key, list(map(_get_helical_sep_of, self._libraries[key]))), 
@@ -456,14 +443,14 @@ class DataOrganizer:
         """
         cut_dfs = self._get_cut_dfs()
         
-        def _get_kmer_of(library_name: str):
-            df = cut_dfs[library_name]
+        def _get_kmer_of(library: SequenceLibrary):
+            df = cut_dfs[library['name']]
             df_kmer = df
 
             for k in self._options['k_list']: 
                 # Check if k-mer count already saved
                 saved_kmer_count_file = Path(f"data/generated_data/kmer_count"
-                    f"/{library_name}_{self._libraries['seq_start_pos']}"
+                    f"/{library['name']}_{self._libraries['seq_start_pos']}"
                     f"_{self._libraries['seq_end_pos']}_kmercount_{k}.tsv")
                 
                 if saved_kmer_count_file.is_file():
@@ -512,6 +499,21 @@ class DataOrganizer:
                     train_test_kmer_dfs.keys()
                 )
             )
+        
+        # Randomly select rows
+        train_test_dfs: dict[str, list[pd.DataFrame]] = dict(
+            map(
+                lambda k: (
+                    k, 
+                    list(map(
+                        lambda df, library: df.sample(n=library['quantity']), 
+                        train_test_dfs[k], 
+                        self._libraries[k]
+                    ))
+                ),
+                train_test_dfs.keys()
+            )
+        )
 
         # Scale C0
         def _scale(df: pd.DataFrame) -> pd.DataFrame: 
