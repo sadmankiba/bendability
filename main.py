@@ -22,8 +22,8 @@ def plotting_boxplot():
 
 def run_model():
     libraries: TrainTestSequenceLibraries = {
-        'train': [ SequenceLibrary(name=TL, quantity=50000) ],
-        'test': [ SequenceLibrary(name=RL, quantity=10000) ], 
+        'train': [ SequenceLibrary(name=TL, quantity=20000) ],
+        'test': [ SequenceLibrary(name=RL, quantity=5000) ], 
         'train_test': [],
         'seq_start_pos': 1,
         'seq_end_pos': 50
@@ -35,7 +35,7 @@ def run_model():
     selector = feature_factory.make_feature_selector()
 
     options: DataOrganizeOptions = {
-        'k_list': [2,3,4],
+        'k_list': [2],
         'range_split': np.array([0.2, 0.6, 0.2]),
         'binary_class': False,
         'balance': False,

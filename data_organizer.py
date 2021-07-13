@@ -352,7 +352,7 @@ class DataOrganizer:
         self._cut_dfs = None
         self._class_maker = ClassificationMaker(
             options['range_split'], options['binary_class']
-            ) if options.get('range_split') and options.get('binary_class') else None
+            ) if (options.get('range_split') is not None and options.get('binary_class') is not None) else None
         
         if not self._options.get('c0_scale'):
             self._options['c0_scale'] = 1     
