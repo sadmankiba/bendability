@@ -5,6 +5,7 @@ from util import get_possible_seq, gen_random_sequences
 import pandas as pd
 import numpy as np
 import regex as re
+import matplotlib.pyplot as plt
 
 import math
 import random
@@ -12,6 +13,10 @@ import string
 import re as bre    # built-in re
 import itertools as it
 from pathlib import Path
+
+# Constants
+NUM_DINC_PAIRS = 136    # Possible dinucleotide pairs
+NUM_DISTANCES = 48      # Possible distances between two dinucleotides
 
 class HelicalSeparationCounter:
     """
@@ -23,7 +28,12 @@ class HelicalSeparationCounter:
         
 
     def _get_dinc_pairs(self) -> list[tuple[str, str]]:
-        '''Generates dinucleotide pairs'''
+        """
+        Generates dinucleotide pairs
+        
+        Returns:
+            A list of tuples of two dinucleotides
+        """
         all_dinc = get_possible_seq(2)
         
         dinc_pairs = [ pair for pair in it.combinations(all_dinc, 2)] + [(dinc, dinc) for dinc in all_dinc]
@@ -71,14 +81,12 @@ class HelicalSeparationCounter:
         return result  
 
 
-    def _normalized_helical_sep_of(self, seq_list: list[str]) -> np.ndarray:
+    def _get_all_normalized_dist(self, seq_list: list[str]) -> np.ndarray:
         """
-        Count normalized helical separation for an nc-pair in a single sequence
-
-        Vectorized calculation!
+        Calculates normalized p(i) for i = 1-48 for all dinc pairs
 
         Returns:
-            A numpy array of shape (len(seq_list), 136)
+            A numpy array of shape (len(seq_list), 136, 48)
         """
         # Find all pair distance in sequence list
         pair_all_dist = np.array(list(map(self._get_all_dist, seq_list)))
@@ -89,8 +97,19 @@ class HelicalSeparationCounter:
         expected_dist = expected_dist_df.drop(columns='Pair').values
         assert expected_dist.shape == (136, 48)
 
-        # Normalize dist
-        pair_normalized_dist = pair_all_dist / expected_dist
+        return pair_all_dist / expected_dist
+
+
+    def _normalized_helical_sep_of(self, seq_list: list[str]) -> np.ndarray:
+        """
+        Count normalized helical separation for an nc-pair in a single sequence
+
+        Vectorized calculation!
+
+        Returns:
+            A numpy array of shape (len(seq_list), 136)
+        """
+        pair_normalized_dist = self._get_all_normalized_dist(seq_list)
 
         def sum_max_p(pos_list: list[int]):
             """
@@ -153,4 +172,31 @@ class HelicalSeparationCounter:
         df[self._dinc_pairs] = self._normalized_helical_sep_of(df['Sequence'].tolist())
         
         return df
+
+
+    def plot_normalized_dist(self, df: pd.DataFrame, library_name: str) -> None:
+        """
+        Plots avg. normalized distance of sequences with most and least 1000 C0 values 
+        """
+        most_1000 = df.sort_values('C0').iloc[:1000]
+        least_1000 = df.sort_values('C0').iloc[-1000:]
+
+        most1000_dist = self._get_all_normalized_dist(most_1000['Sequence'].tolist()).mean(axis=0)
+        least1000_dist = self._get_all_normalized_dist(least_1000['Sequence'].tolist()).mean(axis=0)
+
+        assert most1000_dist.shape == (NUM_DINC_PAIRS, NUM_DISTANCES)
+        assert least1000_dist.shape == (NUM_DINC_PAIRS, NUM_DISTANCES)
+
+        for i in range(NUM_DINC_PAIRS):
+            plt.close()
+            plt.clf()
+            pair_str = self._dinc_pairs[i][0] + "-" + self._dinc_pairs[i][1]
+            plt.plot(np.arange(NUM_DISTANCES) + 1, most1000_dist[i], linestyle='-', color='r', label='1000 most loopable sequences')
+            plt.plot(np.arange(NUM_DISTANCES) + 1, least1000_dist[i], linestyle='-', color='b', label='1000 least loopable sequences')
+            plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.20))
+            plt.xlabel('Position (bp)')
+            plt.ylabel('p(i)')
+            plt.title(pair_str)
+            plt.savefig(f'figures/distances/{library_name}/{pair_str}.png', bbox_inches="tight")
+        
 

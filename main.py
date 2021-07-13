@@ -1,6 +1,7 @@
 from data_organizer import DataOrganizer, ShapeOrganizerFactory, \
         SequenceLibrary, DataOrganizeOptions, TrainTestSequenceLibraries
 from feat_selector import FeatureSelectorFactory
+from helsep import HelicalSeparationCounter
 from occurence import Occurence
 from util import append_reverse_compliment
 from shape import find_all_shape_values
@@ -53,5 +54,11 @@ def run_model():
 
 
 if __name__ == '__main__':
-    run_model()
+    helsep = HelicalSeparationCounter()
+    
+    reader = DNASequenceReader()
+    all_dfs = reader.get_processed_data()
+    
+    for lib in [RL, CHRVL, TL, LIBL]:
+        helsep.plot_normalized_dist(all_dfs[lib], lib)
     
