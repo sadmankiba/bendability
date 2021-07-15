@@ -9,6 +9,7 @@ from reader import DNASequenceReader
 from constants import RL, CNL, TL, CHRVL, LIBL
 from correlation import Correlation
 from model import Model
+from analysis import Analysis
 
 import numpy as np
 
@@ -54,11 +55,7 @@ def run_model():
 
 
 if __name__ == '__main__':
-    helsep = HelicalSeparationCounter()
+    analysis = Analysis()
+    analysis.plot_chrv_c0(7000, 14000)
     
-    reader = DNASequenceReader()
-    all_dfs = reader.get_processed_data()
-    
-    for lib in [RL, CHRVL, TL, LIBL]:
-        helsep.plot_normalized_dist(all_dfs[lib], lib)
     
