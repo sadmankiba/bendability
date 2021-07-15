@@ -9,7 +9,7 @@ from reader import DNASequenceReader
 from constants import RL, CNL, TL, CHRVL, LIBL
 from correlation import Correlation
 from model import Model
-from analysis import Analysis
+from loops import Loops
 
 import numpy as np
 
@@ -55,7 +55,7 @@ def run_model():
 
 
 if __name__ == '__main__':
-    analysis = Analysis()
-    analysis.plot_chrv_c0(7000, 14000)
-    
+    loops = Loops('juicer/data/generated_data/loops/a364_loops_hires/merged_loops.bedpe')
+    loops.plot_chrv_c0_in_loops()
+
     
