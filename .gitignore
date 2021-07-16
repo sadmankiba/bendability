@@ -4,9 +4,11 @@ __pycache__/
 
 *.zip
 *.png
+*.jpg
 
 data/
 juicer/
+DNABendabilityModels/
 
 meuseum_mod/predictions/*.csv
 !meuseum_mod/predictions/6_9.csv 
