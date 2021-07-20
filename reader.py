@@ -10,23 +10,23 @@ class DNASequenceReader:
     Reads and returns processed DNA sequence libraries
     """
     def __init__(self):
-        pass 
+        self._bendability_data_dir='data/input_data/bendability'
 
 
     def _get_raw_data(self):
-        CNL_FILE = 'data/41586_2020_3052_MOESM4_ESM.txt'
+        CNL_FILE = f'{self._bendability_data_dir}/41586_2020_3052_MOESM4_ESM.txt'
         cnl_df_raw = pd.read_table(CNL_FILE, sep='\t')
 
-        RL_FILE = 'data/41586_2020_3052_MOESM6_ESM.txt'
+        RL_FILE = f'{self._bendability_data_dir}/41586_2020_3052_MOESM6_ESM.txt'
         rl_df_raw = pd.read_table(RL_FILE, sep='\t')
 
-        TL_FILE = 'data/41586_2020_3052_MOESM8_ESM.txt'
+        TL_FILE = f'{self._bendability_data_dir}/41586_2020_3052_MOESM8_ESM.txt'
         tl_df_raw = pd.read_table(TL_FILE, sep='\t')
 
-        CHRV_FILE = 'data/41586_2020_3052_MOESM9_ESM.txt'
+        CHRV_FILE = f'{self._bendability_data_dir}/41586_2020_3052_MOESM9_ESM.txt'
         chrvl_df_raw = pd.read_table(CHRV_FILE, sep='\t')
 
-        LIBL_FILE = 'data/41586_2020_3052_MOESM11_ESM.txt'
+        LIBL_FILE = f'{self._bendability_data_dir}/41586_2020_3052_MOESM11_ESM.txt'
         libl_df_raw = pd.read_table(LIBL_FILE, sep='\t')
 
         return (cnl_df_raw, rl_df_raw, tl_df_raw, chrvl_df_raw, libl_df_raw)

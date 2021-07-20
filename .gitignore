@@ -6,7 +6,7 @@ __pycache__/
 *.png
 *.jpg
 
-data/
+data/generated_data/
 juicer/
 DNABendabilityModels/
 unused/
