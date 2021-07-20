@@ -11,6 +11,7 @@ class DNASequenceReader:
     """
     def __init__(self):
         self._bendability_data_dir='data/input_data/bendability'
+        self._nuc_center_file = 'data/input_data/nucleosome_position/41586_2012_BFnature11142_MOESM263_ESM.txt'
 
 
     def _get_raw_data(self):
@@ -63,3 +64,19 @@ class DNASequenceReader:
             CHRVL: chrvl_df, 
             LIBL: libl_df
         }
+
+
+    def read_nuc_center(self) -> pd.DataFrame:
+        """
+        Read nucleosome center position data. 
+        
+        Data is provided by paper "A map of nucleosome positions in yeast at base-pair resolution"
+
+        Returns:
+            A `pandas.DataFrame` with columns ['Chromosome ID', 'Position', 'NCP score', 'NCP score/noise']
+        """
+        return pd.read_table(self._nuc_center_file, 
+                    delim_whitespace=True,
+                    header=None, 
+                    names=['Chromosome ID', 'Position', 'NCP score', 'NCP score/noise']
+                )

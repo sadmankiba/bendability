@@ -3,12 +3,16 @@ from constants import CHRVL, SEQ_LEN
 
 import matplotlib.pyplot as plt 
 import numpy as np
+import pandas as pd
 
 import math 
 from pathlib import Path
 
 class ChrV:
     "Analysis of Chromosome V in yeast"
+    def __init__(self):
+        self._chrv_df = DNASequenceReader().get_processed_data()[CHRVL]
+         
     
     def _calc_moving_avg(self, arr: np.ndarray, k: int) -> np.ndarray:
         """
@@ -25,7 +29,21 @@ class ChrV:
         
         return ma
 
-    
+
+    def _read_chrv_lib_segment(self, start: int, end: int):
+        """
+        Read Chr V library and cut df to contain sequences in a segment.
+
+        Returns: 
+            A pair of pandas.DataFrame containing chr V lib of selected segment. 
+        """
+        first_seq_num = math.ceil(start / 7)
+        last_seq_num = math.ceil((end - SEQ_LEN + 1) / 7)
+
+        return self._chrv_df.loc[(self._chrv_df['Sequence #'] >= first_seq_num) 
+                                & (self._chrv_df['Sequence #'] <= last_seq_num), :]
+        
+
     def plot_moving_avg(self, start: int, end: int):
         """
         Plot simple moving average of C0
@@ -34,17 +52,10 @@ class ChrV:
             start: Start position in the chromosome 
             end: End position in the chromosome
         """
-        first_seq_num = math.ceil(start / 7)
-        last_seq_num = math.ceil((end - SEQ_LEN + 1) / 7)
-
-        reader = DNASequenceReader()
-        all_lib = reader.get_processed_data()
-        chrv_df = all_lib[CHRVL]
-        df_sel = chrv_df.loc[(chrv_df['Sequence #'] >= first_seq_num) 
-                                & (chrv_df['Sequence #'] <= last_seq_num), :]
+        df_sel = self._read_chrv_lib_segment(start, end)
 
         # Average C0 in whole chromosome
-        plt.axhline(y=chrv_df['C0'].mean(), color='r', linestyle='-')
+        plt.axhline(y=self._chrv_df['C0'].mean(), color='r', linestyle='-')
         
         # Plot mean of data of either side of a central value
         x = (df_sel['Sequence #'] - 1) * 7 + SEQ_LEN / 2
@@ -68,4 +79,51 @@ class ChrV:
         
         plt.savefig(f'{ma_fig_dir}/ma_{start}_{end}.png')
         plt.show()
+    
+
+    def plot_c0_vs_pos_from_dyad(self):
+        """
+        Plot C0 vs. position from dyad of nucleosomes in chromosome V 
+        """
+        nuc_df = DNASequenceReader().read_nuc_center()
+        centers = nuc_df.loc[nuc_df['Chromosome ID'] == 'chrV']['Position'].tolist()
+        
+        # Read C0 of -150 to +150 sequences (36 or 37 50-bp sequences)
+        c0_at_nuc: list[list[float]] = list(
+            map(
+                lambda c: self._read_chrv_lib_segment(c - 150, c + 150)['C0'].tolist(), 
+                centers
+            )
+        )
+
+        # Make lists of same length
+        min_len = min(map(len, c0_at_nuc))
+        c0_at_nuc = list(
+            map(
+                lambda l: l[:min_len],
+                c0_at_nuc
+            )
+        ) 
+        mean_c0 = np.array(c0_at_nuc).mean(axis=0)
+        
+        # Plot avg. line
+        avg_c0 = self._chrv_df['C0'].mean()
+        hline = plt.axhline(y=avg_c0, color='r', linestyle='-')
+        plt.text(0, avg_c0, 'average', color='r', ha='center', va='bottom')
+
+        x = (np.arange(mean_c0.size) - mean_c0.size / 2) * 7 + 1
+        plt.plot(x, mean_c0)
+        plt.xlabel('Distance from dyad(bp)')
+        plt.ylabel('C0')
+
+        fig_dir = 'figures/chrv'
+        if not Path(fig_dir).is_dir():
+            Path(fig_dir).mkdir(parents=True, exist_ok=True)
+       
+        plt.savefig(f'{fig_dir}/c0_dyad_pos.png')
+        plt.show()
+
+
+
+
         

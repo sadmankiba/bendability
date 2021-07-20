@@ -4,12 +4,11 @@ from feat_selector import FeatureSelectorFactory
 from occurence import Occurence
 from util import append_reverse_compliment
 from reader import DNASequenceReader
-from constants import RL, TL, CHRV_LEN
+from constants import RL, TL, CNL, CHRVL
 from model import Model
 from chrv import ChrV
 
 import numpy as np
-
 
 def plotting_boxplot():
     reader = DNASequenceReader()
@@ -51,7 +50,4 @@ def run_model():
 
 
 if __name__ == '__main__':
-    chrv = ChrV()
-    chrv.plot_moving_avg(1, CHRV_LEN)
-
-    
+    ChrV().plot_c0_vs_pos_from_dyad()
