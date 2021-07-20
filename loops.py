@@ -29,7 +29,6 @@ class Loops:
                     .rename(columns={'x2': 'start', 'y1': 'end'})
         
 
-
     def plot_chrv_c0(self, start: int, end: int, res: int):
         """
         Plots chromosomeV c0 values in a loop 
