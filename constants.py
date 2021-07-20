@@ -14,3 +14,9 @@ RL_LEN = 12472
 TL_LEN = 82368
 CHRVL_LEN = 82404
 LIBL_LEN = 92918
+
+# Sequence length
+SEQ_LEN = 50
+
+# Chromosome V
+CHRV_LEN = 576871

@@ -1,15 +1,12 @@
 from data_organizer import DataOrganizer, ShapeOrganizerFactory, \
         SequenceLibrary, DataOrganizeOptions, TrainTestSequenceLibraries
 from feat_selector import FeatureSelectorFactory
-from helsep import HelicalSeparationCounter
 from occurence import Occurence
 from util import append_reverse_compliment
-from shape import find_all_shape_values
 from reader import DNASequenceReader
-from constants import RL, CNL, TL, CHRVL, LIBL
-from correlation import Correlation
+from constants import RL, TL, CHRV_LEN
 from model import Model
-from loops import Loops
+from chrv import ChrV
 
 import numpy as np
 
@@ -53,9 +50,8 @@ def run_model():
     # model.run_shape_cnn_classifier()
 
 
-
 if __name__ == '__main__':
-    loops = Loops('juicer/data/generated_data/loops/a364_loops_hires/merged_loops.bedpe')
-    loops.plot_chrv_c0_in_loops()
+    chrv = ChrV()
+    chrv.plot_moving_avg(1, CHRV_LEN)
 
     

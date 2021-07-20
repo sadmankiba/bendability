@@ -11,3 +11,6 @@ class TestChrV(unittest.TestCase):
         ma = chrv._calc_moving_avg(arr, 4)
         self.assertListEqual(ma.tolist(), [0.5, 0, 0.25, 0.75])
         
+
+if __name__ == '__main__':
+    unittest.main()
