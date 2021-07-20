@@ -35,8 +35,6 @@ class DNASequenceReader:
     def _preprocess(self, df: pd.DataFrame):
         df = df[["Sequence #", "Sequence", " C0"]].rename(columns={" C0": "C0"})
         df['Sequence'] = df['Sequence'].str[25:-25]
-        # for i in range(len(df)):
-        #     df.at[i, 'Sequence'] = df['Sequence'][i][25:-25] 
         
         return df
 
@@ -51,7 +49,7 @@ class DNASequenceReader:
             
         """ 
         (cnl_df_raw, rl_df_raw, tl_df_raw, chrvl_df_raw, libl_df_raw) = self._get_raw_data()
-
+        
         cnl_df = self._preprocess(cnl_df_raw)
         rl_df = self._preprocess(rl_df_raw)
         tl_df = self._preprocess(tl_df_raw)
