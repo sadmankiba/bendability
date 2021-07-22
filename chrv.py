@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from reader import DNASequenceReader
 from constants import CHRVL, SEQ_LEN
 
@@ -7,6 +9,8 @@ import pandas as pd
 
 import math 
 from pathlib import Path
+
+CHRV_TOTAL_BP = 576871
 
 class ChrV:
     "Analysis of Chromosome V in yeast"
@@ -82,12 +86,36 @@ class ChrV:
         plt.show()
     
 
-    def plot_c0_vs_dist_from_dyad(self, dist=150):
-        """
-        Plot C0 vs. distance from dyad of nucleosomes in chromosome V
+    def _plot_c0_vs_dist_from_dyad(self, x: np.ndarray, y: np.ndarray, dist: int, spread_str: str) -> None:
+        """Underlying plotter of c0 vs dist from dyad"""
+        # Plot avg. line
+        avg_c0 = self.chrv_df['C0'].mean()
+        plt.axhline(y=avg_c0, color='r', linestyle='-')
+        plt.text(0, avg_c0, 'average', color='r', ha='center', va='bottom')
 
+        # Plot C0
+        plt.plot(x, y)
+        plt.xlabel('Distance from dyad(bp)')
+        plt.ylabel('C0')
+        plt.title(f'C0 of +-{dist} bp from nuclesome dyad')
+        plt.grid() 
+
+        # Save figure
+        fig_dir = 'figures/chrv'
+        if not Path(fig_dir).is_dir():
+            Path(fig_dir).mkdir(parents=True, exist_ok=True)
+       
+        plt.savefig(f'{fig_dir}/c0_dyad_dist_{dist}_{spread_str}.png')
+
+
+    def plot_c0_vs_dist_from_dyad_no_spread(self, dist=150) -> None:
+        """
+        Plot C0 vs. distance from dyad of nucleosomes in chromosome V from 50-bp sequence C0
+
+        Currently, giving horizontally shifted graph. (incorrect)
+         
         Args: 
-            dist: +-distance from dyad to plot 
+            dist: +-distance from dyad to plot (1-indexed)
         """
         nuc_df = DNASequenceReader().read_nuc_center()
         centers = nuc_df.loc[nuc_df['Chromosome ID'] == 'chrV']['Position'].tolist()
@@ -111,25 +139,53 @@ class ChrV:
             )
         ) 
         mean_c0 = np.array(c0_at_nuc).mean(axis=0)
-        
-        # Plot avg. line
-        avg_c0 = self.chrv_df['C0'].mean()
-        hline = plt.axhline(y=avg_c0, color='r', linestyle='-')
-        plt.text(0, avg_c0, 'average', color='r', ha='center', va='bottom')
-
         x = (np.arange(mean_c0.size) - mean_c0.size / 2) * 7 + 1
-        plt.plot(x, mean_c0)
-        plt.xlabel('Distance from dyad(bp)')
-        plt.ylabel('C0')
-        plt.title(f'C0 of +-{dist} bp from nuclesome dyad')
-        plt.grid() 
 
-        fig_dir = 'figures/chrv'
-        if not Path(fig_dir).is_dir():
-            Path(fig_dir).mkdir(parents=True, exist_ok=True)
-       
-        plt.savefig(f'{fig_dir}/c0_dyad_dist_{dist}.png')
-        plt.show()
+        self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, 'no_spread')
+        
+
+    def _spread_c0(self) -> np.ndarray:
+        """Determine C0 at each bp by spreading C0 of a 50-bp seq to position 22-28"""
+        c0_arr = self.chrv_df['C0'].to_numpy()
+        spread = np.concatenate((
+            np.full((21,), c0_arr[0]), 
+            np.vstack(([c0_arr] * 7)).ravel(order='F'),
+            np.full((22,), c0_arr[-1])
+        ))
+        assert spread.size == CHRV_TOTAL_BP
+        
+        return spread
+
+
+    def plot_c0_vs_dist_from_dyad_spread(self, dist=150) -> None:
+        """
+        Plot C0 vs. distance from dyad of nucleosomes in chromosome V by
+        spreading 50-bp sequence C0
+
+        Args: 
+            dist: +-distance from dyad to plot (1-indexed) 
+        """
+        spread_c0 = self._spread_c0()
+        nuc_df = DNASequenceReader().read_nuc_center()
+        centers = nuc_df.loc[nuc_df['Chromosome ID'] == 'chrV']['Position'].tolist()
+        
+        # Remove center positions at each end that aren't in at least dist depth
+        centers = list(filter(lambda i: i > dist and i < CHRV_TOTAL_BP - dist, centers))
+
+        # Read C0 of -dist to +dist sequences
+        c0_at_nuc: list[np.ndarray] = list(
+            map(
+                lambda c: spread_c0[c - 1 - dist:c + dist], 
+                centers
+            )
+        )
+        assert c0_at_nuc[0].size == 2 * dist + 1
+        assert c0_at_nuc[-1].size == 2 * dist + 1
+        
+        x = np.arange(dist * 2 + 1) - dist
+        mean_c0 = np.array(c0_at_nuc).mean(axis=0)
+
+        self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, 'spread')
 
 
 

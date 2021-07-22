@@ -50,4 +50,4 @@ def run_model():
 
 
 if __name__ == '__main__':
-    ChrV().plot_c0_vs_dist_from_dyad(100)
+    ChrV().plot_c0_vs_dist_from_dyad_spread(300)
