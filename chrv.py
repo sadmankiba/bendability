@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from reader import DNASequenceReader
-from constants import CHRVL, SEQ_LEN
+from constants import CHRVL, SEQ_LEN, CHRV_TOTAL_BP
 
 import matplotlib.pyplot as plt 
 import numpy as np
@@ -9,8 +9,6 @@ import pandas as pd
 
 import math 
 from pathlib import Path
-
-CHRV_TOTAL_BP = 576871
 
 class ChrV:
     "Analysis of Chromosome V in yeast"
@@ -48,7 +46,7 @@ class ChrV:
                                 & (self.chrv_df['Sequence #'] <= last_seq_num), :]
         
 
-    def plot_moving_avg(self, start: int, end: int):
+    def plot_moving_avg(self, start: int, end: int) -> None:
         """
         Plot simple moving average of C0
         
@@ -58,22 +56,35 @@ class ChrV:
         """
         df_sel = self.read_chrv_lib_segment(start, end)
 
-        # Average C0 in whole chromosome
-        plt.axhline(y=self.chrv_df['C0'].mean(), color='r', linestyle='-')
+        plt.close()
+        plt.clf()
         
         # Plot C0 of each sequence in Chr V library
         x = (df_sel['Sequence #'] - 1) * 7 + SEQ_LEN / 2
-        y = df_sel['C0']
+        y = df_sel['C0'].to_numpy()
         plt.plot(x, y, color='blue', alpha=0.2, label=1)
 
         # Plot mean C0 of either side of a central value
-        k = [15, 25, 50]
-        colors = ['green', 'red', 'black']
-        alpha = [0.7, 0.8, 0.9]
+        k = [10] #, 25, 50]
+        colors = ['green'] #, 'red', 'black']
+        alpha = [0.7] #, 0.8, 0.9]
         for p in zip(k, colors, alpha):
             ma = self._calc_moving_avg(y, p[0])
             plt.plot((x + ((p[0] - 1) * 7) // 2)[:ma.size], ma, color=p[1], alpha=p[2], label=p[0])
+        
+        # Plot horizontal line at avg C0 in whole chromosome
+        plt.axhline(y=self.chrv_df['C0'].mean(), color='r', linestyle='-')
+        x_lim = plt.gca().get_xlim()
+        plt.text((x_lim[0] + x_lim[1]) / 2, self.chrv_df['C0'].mean(), 'avg', color='r', ha='center', va='bottom')
+        
         plt.legend()
+        plt.grid()
+
+
+    def plot_c0(self, start: int, end: int) -> None:
+        """Plot C0 across whole chromosome"""
+        self.plot_moving_avg(start, end)
+
         plt.xlabel(f'Position along chromosome V')
         plt.ylabel('Moving avg. of C0')
         
