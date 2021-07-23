@@ -82,12 +82,18 @@ class Loops:
         # List C0 of two times loop length around center
         loop_df = loop_df.assign(center = (loop_df['start'] + loop_df['end']) / 2)
         chrv = ChrV()
-        # loop_df = loop_df.assign(
-        #     C0 = lambda row: chrv.read_chrv_lib_segment(
-        #         row['start'] * 2 - row['center'], 
-        #         row['end'] * 2 - row['center']
-        #     )['C0'].to_numpy()
-        # )
+        
+        chrv_c0_spread = chrv.spread_c0_balanced()
+        anchors = np.concatenate((loop_df['start'].to_numpy(), loop_df['end'].to_numpy()))
+        mean_c0 = np.array(
+            list(
+                map(
+                    lambda a: chrv_c0_spread[a - 1 - lim: a + lim],
+                    anchors
+                )
+            )
+        ).mean(axis=0)
+        
         loop_c0 = list(
             map(
                 lambda i: chrv.read_chrv_lib_segment(
@@ -102,14 +108,12 @@ class Loops:
         loop_c0 = list(map(lambda arr: resize(arr, (201,)), loop_c0))
 
         mean_c0 = np.array(loop_c0).mean(axis=0)
-
-        # Plot avg. line
-        avg_c0 = chrv.chrv_df['C0'].mean()
-        hline = plt.axhline(y=avg_c0, color='r', linestyle='-')
-        plt.text(0, avg_c0, 'average', color='r', ha='center', va='bottom')
-
+        
         x = (np.arange(mean_c0.size) - mean_c0.size // 2)
         plt.plot(x, mean_c0)
+        chrv.plot_avg()
+        plt.grid()
+
         plt.xlabel('distance from loop center(percentage)')
         plt.ylabel('C0')
 
@@ -143,7 +147,7 @@ class Loops:
                 
                 plt.savefig(f'{loop_fig_dir}/anchor_{a}.png')
         
-        chrv_c0_spread = chrv.spread_c0_weighted()
+        chrv_c0_spread = chrv.spread_c0_balanced()
         anchors = np.concatenate((loop_df['start'].to_numpy(), loop_df['end'].to_numpy()))
         mean_c0 = np.array(
             list(
@@ -160,7 +164,7 @@ class Loops:
         x = np.arange(mean_c0.size) - mean_c0.size // 2
         plt.plot(x, mean_c0, color='blue')
         chrv.plot_avg()
-        
+
         plt.grid()
         plt.xlabel('Distance from loop anchor(bp)')
         plt.ylabel('C0')
@@ -169,7 +173,7 @@ class Loops:
         if not Path(fig_dir).is_dir():
             Path(fig_dir).mkdir(parents=True, exist_ok=True)
        
-        plt.savefig(f'{fig_dir}/c0_loop_hires_anchor_dist_{lim}_weighted.png')
+        plt.savefig(f'{fig_dir}/c0_loop_hires_anchor_dist_{lim}_balanced.png')
         
 
 
