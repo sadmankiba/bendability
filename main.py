@@ -6,7 +6,7 @@ from util import append_reverse_compliment
 from reader import DNASequenceReader
 from constants import CHRV_TOTAL_BP, RL, TL
 from model import Model
-from chrv import ChrV
+from loops import Loops
 
 import numpy as np
 
@@ -50,4 +50,4 @@ def run_model():
 
 
 if __name__ == '__main__':
-    ChrV().plot_c0_vs_dist_from_dyad_spread()
+    Loops().plot_c0_vs_dist_from_loop_center()

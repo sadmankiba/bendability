@@ -107,7 +107,7 @@ class Loops:
         
         # Plot anchor lines
         y_lim = plt.gca().get_ylim()
-        for pos in [-perc, perc]:
+        for pos in [-50, 50]:
             plt.axvline(x=pos, color='green', linestyle='--')
             plt.text(pos, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'anchor', color='green', ha='left', va='center')
 
@@ -117,7 +117,7 @@ class Loops:
 
         plt.xlabel('Distance from loop center(percentage)')
         plt.ylabel('C0')
-
+        plt.title(f'C0 vs. distance from loop center (-{perc}% to {perc}% of loop length)')
         
         fig_dir = 'figures/chrv/loops'
         if not Path(fig_dir).is_dir():
