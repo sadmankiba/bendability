@@ -20,5 +20,15 @@ class TestChrV(unittest.TestCase):
         self.assertTrue(path.is_file())
 
 
+    def test_covering_sequences_at(self):
+        chrv = ChrV()
+        arr = chrv._covering_sequences_at(30)
+        self.assertListEqual(arr.tolist(), [1, 2, 3, 4, 5])
+        arr = chrv._covering_sequences_at(485)
+        self.assertListEqual(arr.tolist(), [64, 65, 66, 67, 68, 69, 70])
+        arr = chrv._covering_sequences_at(576860)
+        self.assertListEqual(arr.tolist(), [82403, 82404])
+        
+
 if __name__ == '__main__':
     unittest.main()

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from reader import DNASequenceReader
-from constants import CHRVL, SEQ_LEN, CHRV_TOTAL_BP
+from constants import CHRVL, SEQ_LEN, CHRV_TOTAL_BP, CHRVL_LEN
 
 import matplotlib.pyplot as plt 
 import numpy as np
@@ -44,6 +44,33 @@ class ChrV:
 
         return self.chrv_df.loc[(self.chrv_df['Sequence #'] >= first_seq_num) 
                                 & (self.chrv_df['Sequence #'] <= last_seq_num), :]
+    
+
+    def _covering_sequences_at(self, pos: int) -> np.ndarray:
+        """
+        Find covering 50-bp sequences in chr V library of a position in chr V
+        
+        Args: 
+            pos: position in chr V (1-indexed)
+        
+        Returns:
+            A numpy 1D array containing sequence numbers of chr V library
+        """
+        if pos < SEQ_LEN:   # 1, 2, ... , 50
+            arr = np.arange((pos + 6) // 7) + 1
+        elif pos > CHRV_TOTAL_BP - SEQ_LEN:   # 576822, ..., 576871
+            arr = -(np.arange((CHRV_TOTAL_BP - pos + 1 + 6) // 7)[::-1]) + CHRVL_LEN
+        elif pos % 7 == 1:  # 50, 57, 64, ..., 576821
+            arr = np.arange(8) + (pos - SEQ_LEN + 7) // 7
+        else: 
+            arr = np.arange(7) + (pos - SEQ_LEN + 14) // 7
+        
+        start_pos = (arr - 1) * 7 + 1
+        end_pos = start_pos + SEQ_LEN - 1
+        assert np.all(pos >= start_pos) and np.all(pos <= end_pos)
+
+        return arr
+
         
 
     def plot_moving_avg(self, start: int, end: int) -> None:
@@ -166,6 +193,11 @@ class ChrV:
         assert spread.size == CHRV_TOTAL_BP
         
         return spread
+
+    
+    def spread_c0_balanced(self) -> np.ndarray:
+        """Determine C0 at each bp by average of 5/6 50-bp sequences around"""
+
 
 
     def plot_c0_vs_dist_from_dyad_spread(self, dist=150) -> None:
