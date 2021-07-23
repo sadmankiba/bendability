@@ -1,6 +1,6 @@
 from scipy.ndimage.measurements import label
 from reader import DNASequenceReader
-from constants import CHRVL
+from constants import CHRVL, CHRV_TOTAL_BP
 from chrv import ChrV
 
 import matplotlib.pyplot as plt 
@@ -79,32 +79,58 @@ class Loops:
         """
         loop_df = self._read_loops()
 
-        # Filter loops 
+        # Filter loops by length
         max_loop_length = 100000
         loop_df = loop_df.loc[loop_df['end'] - loop_df['start'] < max_loop_length].reset_index()
         
-        # List C0 of two times loop length around center
+        # Get spread C0
         chrv = ChrV()
-        
         chrv_c0_spread = chrv.spread_c0_balanced()
-        loop_c0 = list(
-            map(
-                lambda i: chrv_c0_spread[
-                            int(loop_df.iloc[i]['start'] 
-                                + (loop_df.iloc[i]['end'] - loop_df.iloc[i]['start']) * (100 - total_perc) / 2)  
-                            : int(loop_df.iloc[i]['end'] 
-                                + (loop_df.iloc[i]['end'] - loop_df.iloc[i]['start']) * (total_perc - 100) / 2)
-                        ],
-                range(len(loop_df))
-            )
-        )
-
-        loop_c0 = list(map(lambda arr: resize(arr, (total_perc + 1,)), loop_c0))
-
-        mean_c0 = np.array(loop_c0).mean(axis=0)
         
+        def _find_loop_c0(row: pd.Series) -> np.ndarray:
+            """
+            Find C0 from start to end considering total percentage. 
+            
+            Returns:
+                A 1D numpy array. If C0 can't be calculated for whole total percentage 
+                an empty array of size 0 is returned. 
+            """
+            start_pos = int(row['start'] + (row['end'] - row['start']) * (100 - total_perc) / 2)
+            end_pos = int(row['end'] + (row['end'] - row['start']) * (total_perc - 100) / 2)
+            
+            if start_pos < 0 or end_pos > CHRV_TOTAL_BP - 1: 
+                print(f'Excluding loop: ({row["start"]}-{row["end"]})!')
+                return np.empty((0,))
+
+            return chrv_c0_spread[start_pos: end_pos]
+        
+        assert _find_loop_c0(pd.Series({'start': 30, 'end': 50})).size == 20 * total_perc / 100
+        assert _find_loop_c0(pd.Series({'start': 50, 'end': 30})).size == 0
+
+        # loop_c0 = list(
+        #     map(
+        #         lambda i: chrv_c0_spread[
+        #                     int(loop_df.iloc[i]['start'] 
+        #                         + (loop_df.iloc[i]['end'] - loop_df.iloc[i]['start']) * (100 - total_perc) / 2)  
+        #                     : int(loop_df.iloc[i]['end'] 
+        #                         + (loop_df.iloc[i]['end'] - loop_df.iloc[i]['start']) * (total_perc - 100) / 2)
+        #                 ],
+        #         range(len(loop_df))
+        #     )
+        # )
+
+        # loop_c0 = list(map(lambda arr: resize(arr, (total_perc + 1,)), loop_c0))
+        
+        # Find mean C0 along loop 
+        loop_c0: pd.Series = loop_df.apply(_find_loop_c0, axis=1)
+        loop_c0 = pd.Series(list(filter(lambda arr: arr.size != 0, loop_c0)))
+        print(loop_c0.shape)
+        
+        mean_c0 = np.array(loop_c0.tolist()).mean(axis=0)
+        
+        # Plot c0
         x = np.arange(total_perc + 1) - (total_perc - 100) / 2
-        plt.plot(x, mean_c0, color='blue')
+        plt.plot(x, mean_c0, color='tab:blue')
         chrv.plot_avg()
         plt.grid()
         
@@ -113,17 +139,19 @@ class Loops:
         # Plot anchor lines
         if total_perc >= 100:
             for pos in [0, 100]:
-                plt.axvline(x=pos, color='green', linestyle='--')
-                plt.text(pos, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'anchor', color='green', ha='left', va='center')
+                plt.axvline(x=pos, color='tab:green', linestyle='--')
+                plt.text(pos, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'anchor', color='tab:green', ha='left', va='center')
 
         # Plot center line
-        plt.axvline(x=50, color='orange', linestyle='--')
-        plt.text(0, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'center', color='green', ha='left', va='center')
+        plt.axvline(x=50, color='tab:orange', linestyle='--')
+        plt.text(0, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'center', color='tab:orange', ha='left', va='center')
 
-        plt.xlabel('Distance from loop center(percentage)')
+        # Label plot
+        plt.xlabel('Position along loop (percentage)')
         plt.ylabel('C0')
-        plt.title(f'C0 vs. distance from loop center ({x[0]}% to {x[-1]}% of loop length)')
+        plt.title(f'C0 along loop ({x[0]}% to {x[-1]}% of loop length)')
         
+        # Save plot
         fig_dir = 'figures/chrv/loops'
         if not Path(fig_dir).is_dir():
             Path(fig_dir).mkdir(parents=True, exist_ok=True)

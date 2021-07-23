@@ -50,4 +50,4 @@ def run_model():
 
 
 if __name__ == '__main__':
-    Loops().plot_c0_vs_dist_from_loop_center()
+    Loops().plot_c0_vs_total_loop(150)
