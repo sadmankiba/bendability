@@ -5,6 +5,8 @@ import numpy as np
 import unittest 
 from pathlib import Path
 
+from constants import CHRVL_LEN, CHRV_TOTAL_BP
+
 class TestChrV(unittest.TestCase):
     def test_moving_avg(self):
         chrv = ChrV()
@@ -28,7 +30,27 @@ class TestChrV(unittest.TestCase):
         self.assertListEqual(arr.tolist(), [64, 65, 66, 67, 68, 69, 70])
         arr = chrv._covering_sequences_at(576860)
         self.assertListEqual(arr.tolist(), [82403, 82404])
+    
+
+    def test_spread_c0_balanced(self):
+        chrv = ChrV()
+        spread_c0 = chrv.spread_c0_balanced()
+        self.assertTupleEqual(spread_c0.shape, (CHRV_TOTAL_BP,))
         
+        samples = spread_c0[np.random.randint(0,CHRVL_LEN - 1,100)]
+        self.assertTrue(np.all(samples) < 2.5)
+        self.assertTrue(np.all(samples) > -2.5)
+
+
+    def test_spread_c0_weighted(self):
+        chrv = ChrV()
+        spread_c0 = chrv.spread_c0_weighted()
+        self.assertTupleEqual(spread_c0.shape, (CHRV_TOTAL_BP,))
+        
+        samples = spread_c0[np.random.randint(0,CHRVL_LEN - 1,100)]
+        self.assertTrue(np.all(samples) < 2.5)
+        self.assertTrue(np.all(samples) > -2.5)
+
 
 if __name__ == '__main__':
     unittest.main()

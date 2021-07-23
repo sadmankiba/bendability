@@ -54,7 +54,8 @@ class ChrV:
             pos: position in chr V (1-indexed)
         
         Returns:
-            A numpy 1D array containing sequence numbers of chr V library
+            A numpy 1D array containing sequence numbers of chr V library 
+            in increasing order
         """
         if pos < SEQ_LEN:   # 1, 2, ... , 50
             arr = np.arange((pos + 6) // 7) + 1
@@ -196,8 +197,41 @@ class ChrV:
 
     
     def spread_c0_balanced(self) -> np.ndarray:
-        """Determine C0 at each bp by average of 5/6 50-bp sequences around"""
+        """Determine C0 at each bp by average of covering 50-bp sequences around"""
+        def balanced_c0_at(pos) -> float:
+            seq_indices = self._covering_sequences_at(pos) - 1
+            return self.chrv_df['C0'][seq_indices].mean()
+        
+        return np.array(list(map(balanced_c0_at, np.arange(CHRV_TOTAL_BP) + 1)))
+    
 
+    def spread_c0_weighted(self) -> np.ndarray:
+        """Determine C0 at each bp by weighted average of covering 50-bp sequences around"""
+        def weights_for(size: int) -> list[int]:
+            # TODO: Use short algorithm
+            if size == 1: 
+                return [1]
+            elif size == 2: 
+                return [1, 1]
+            elif size == 3: 
+                return [1, 2, 1]
+            elif size == 4: 
+                return [1, 2, 2, 1]
+            elif size == 5: 
+                return [1, 2, 3, 2, 1]
+            elif size == 6: 
+                return [1, 2, 3, 3, 2, 1]
+            elif size == 7: 
+                return [1, 2, 3, 4, 3, 2, 1]
+            elif size == 8: 
+                return [1, 2, 3, 4, 4, 3, 2, 1]
+            
+        def weighted_c0_at(pos) -> float:
+            seq_indices = self._covering_sequences_at(pos) - 1
+            c0s = self.chrv_df['C0'][seq_indices].to_numpy()
+            return np.sum(c0s * weights_for(c0s.size)) / sum(weights_for(c0s.size))
+
+        return np.array(list(map(weighted_c0_at, np.arange(CHRV_TOTAL_BP) + 1)))
 
 
     def plot_c0_vs_dist_from_dyad_spread(self, dist=150) -> None:
