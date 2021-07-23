@@ -6,9 +6,11 @@ from constants import CHRVL, SEQ_LEN, CHRV_TOTAL_BP, CHRVL_LEN
 import matplotlib.pyplot as plt 
 import numpy as np
 import pandas as pd
+from scipy.interpolate import make_interp_spline
 
 import math 
 from pathlib import Path
+import time
 
 class ChrV:
     "Analysis of Chromosome V in yeast"
@@ -72,6 +74,16 @@ class ChrV:
 
         return arr
 
+    
+    def plot_avg(self) -> None: 
+        """
+        Plot a horizontal red line denoting avg. C0 in whole chromosome
+        
+        Best to draw after x limit is set. 
+        """
+        plt.axhline(y=self.chrv_df['C0'].mean(), color='r', linestyle='-')
+        x_lim = plt.gca().get_xlim()
+        plt.text((x_lim[0] + x_lim[1]) / 2, self.chrv_df['C0'].mean(), 'avg', color='r', ha='center', va='bottom')
         
 
     def plot_moving_avg(self, start: int, end: int) -> None:
@@ -96,15 +108,10 @@ class ChrV:
         k = [10] #, 25, 50]
         colors = ['green'] #, 'red', 'black']
         alpha = [0.7] #, 0.8, 0.9]
-        for p in zip(k, colors, alpha):
-            ma = self._calc_moving_avg(y, p[0])
-            plt.plot((x + ((p[0] - 1) * 7) // 2)[:ma.size], ma, color=p[1], alpha=p[2], label=p[0])
         
-        # Plot horizontal line at avg C0 in whole chromosome
-        plt.axhline(y=self.chrv_df['C0'].mean(), color='r', linestyle='-')
-        x_lim = plt.gca().get_xlim()
-        plt.text((x_lim[0] + x_lim[1]) / 2, self.chrv_df['C0'].mean(), 'avg', color='r', ha='center', va='bottom')
         
+        self.plot_avg()
+
         plt.legend()
         plt.grid()
 
@@ -198,15 +205,33 @@ class ChrV:
     
     def spread_c0_balanced(self) -> np.ndarray:
         """Determine C0 at each bp by average of covering 50-bp sequences around"""
+        saved_data = Path('data/generated_data/chrv/spread_c0_balanced.tsv')
+        if saved_data.is_file():
+            return pd.read_csv(saved_data, sep='\t')['c0_balanced'].to_numpy()
+        
         def balanced_c0_at(pos) -> float:
             seq_indices = self._covering_sequences_at(pos) - 1
             return self.chrv_df['C0'][seq_indices].mean()
         
-        return np.array(list(map(balanced_c0_at, np.arange(CHRV_TOTAL_BP) + 1)))
-    
+        t = time.time()
+        res = np.array(list(map(balanced_c0_at, np.arange(CHRV_TOTAL_BP) + 1)))
+        print('Calculation of spread c0 balanced:', time.time() - t, 'seconds.')
+        
+        # Save data
+        if not saved_data.parents[0].is_dir():
+            saved_data.parents[0].mkdir(parents=True, exist_ok=True)
+        pd.DataFrame({'position': np.arange(CHRV_TOTAL_BP) + 1, 'c0_balanced': res})\
+            .to_csv(saved_data, sep='\t', index=False)
+
+        return res
+
 
     def spread_c0_weighted(self) -> np.ndarray:
         """Determine C0 at each bp by weighted average of covering 50-bp sequences around"""
+        saved_data = Path('data/generated_data/chrv/spread_c0_weighted.tsv')
+        if saved_data.is_file():
+            return pd.read_csv(saved_data, sep='\t')['c0_weighted'].to_numpy()
+
         def weights_for(size: int) -> list[int]:
             # TODO: Use short algorithm
             if size == 1: 
@@ -231,7 +256,17 @@ class ChrV:
             c0s = self.chrv_df['C0'][seq_indices].to_numpy()
             return np.sum(c0s * weights_for(c0s.size)) / sum(weights_for(c0s.size))
 
-        return np.array(list(map(weighted_c0_at, np.arange(CHRV_TOTAL_BP) + 1)))
+        t = time.time()
+        res = np.array(list(map(weighted_c0_at, np.arange(CHRV_TOTAL_BP) + 1)))
+        print(print('Calculation of spread c0 weighted:', time.time() - t, 'seconds.'))
+        
+        # Save data
+        if not saved_data.parents[0].is_dir():
+            saved_data.parents[0].mkdir(parents=True, exist_ok=True)
+        pd.DataFrame({'position': np.arange(CHRV_TOTAL_BP) + 1, 'c0_weighted': res})\
+            .to_csv(saved_data, sep='\t', index=False)
+
+        return res 
 
 
     def plot_c0_vs_dist_from_dyad_spread(self, dist=150) -> None:

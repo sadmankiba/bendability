@@ -143,7 +143,7 @@ class Loops:
                 
                 plt.savefig(f'{loop_fig_dir}/anchor_{a}.png')
         
-        chrv_c0_spread = chrv._spread_c0()
+        chrv_c0_spread = chrv.spread_c0_weighted()
         anchors = np.concatenate((loop_df['start'].to_numpy(), loop_df['end'].to_numpy()))
         mean_c0 = np.array(
             list(
@@ -158,7 +158,8 @@ class Loops:
         plt.clf()
 
         x = np.arange(mean_c0.size) - mean_c0.size // 2
-        plt.plot(x, mean_c0)
+        plt.plot(x, mean_c0, color='blue', alpha=0.2, label=1)
+        plt.plot((x + ((p[0] - 1) * 7) // 2)[:ma.size], ma, color=p[1], alpha=p[2], label=p[0])
         plt.xlabel('Distance from loop anchor(bp)')
         plt.ylabel('C0')
 
@@ -166,7 +167,7 @@ class Loops:
         if not Path(fig_dir).is_dir():
             Path(fig_dir).mkdir(parents=True, exist_ok=True)
        
-        plt.savefig(f'{fig_dir}/c0_loop_hires_anchor_dist_{lim}.png')
+        plt.savefig(f'{fig_dir}/c0_loop_hires_anchor_dist_{lim}_weighted.png')
         
 
 
