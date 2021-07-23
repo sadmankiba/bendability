@@ -147,13 +147,16 @@ class Loops:
         plt.savefig(f'{fig_dir}/c0_total_loop_perc_{total_perc}_maxlen_{max_loop_length}.png', dpi=200)
 
     # *** #
-    def plot_c0_around_anchor(self, lim=2000):
+    def plot_c0_around_anchor(self, lim=500):
         """Plot C0 around loop anchor points"""
+        # TODO: Distance from loop anchor : percentage
         loop_df = self._read_loops()
         
         chrv = ChrV()
+        # Plot C0 around individual anchor points
         for i in range(len(loop_df)):
             for col in ['start', 'end']:
+                # Plot C0
                 a = loop_df.iloc[i][col]
                 chrv.plot_moving_avg(a - lim, a + lim)
                 plt.ylim(-0.7, 0.7)
@@ -165,13 +168,13 @@ class Loops:
                 # Save figure
                 loop_fig_dir = f'figures/chrv/loops/{loop_df.iloc[i]["res"]}'
                 if not Path(loop_fig_dir).is_dir():
-                    Path(loop_fig_dir).mkdir(parents=True, exist_ok=True)
-                
-                plt.savefig(f'{loop_fig_dir}/anchor_{a}.png')
+                    Path(loop_fig_dir).mkdir(parents=True, exist_ok=True)  
+                plt.savefig(f'{loop_fig_dir}/anchor_{col}_{a}.png')
         
         chrv_c0_spread = chrv.spread_c0_balanced()
         
-        def mean_around_anchors(anchors: np.ndarray):
+        def mean_around_anchors(anchors: np.ndarray) -> np.ndarray:
+            """Calculate mean C0 at bp-resolution around anchors"""
             return np.array(
                 list(
                     map(
@@ -190,15 +193,16 @@ class Loops:
         plt.clf()
 
         x = np.arange(2 * lim + 1) - lim
-        plt.plot(x, mean_c0_start, color='tab:blue', label='start')
-        plt.plot(x, mean_c0_end, color='tab:green', label='end')
-        plt.plot(x, mean_c0_all, color='tab:orange', label='all')
+        plt.plot(x, mean_c0_start, color='tab:green', label='start')
+        plt.plot(x, mean_c0_end, color='tab:orange', label='end')
+        plt.plot(x, mean_c0_all, color='tab:blue', label='all')
         chrv.plot_avg()
 
         plt.legend()
         plt.grid()
         plt.xlabel('Distance from loop anchor(bp)')
         plt.ylabel('C0')
+        plt.title('C0 around anchor points at bp-resolution. Considering start, end and all anchors.')
 
         fig_dir = 'figures/chrv/loops'
         if not Path(fig_dir).is_dir():
