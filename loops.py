@@ -95,8 +95,8 @@ class Loops:
                 A 1D numpy array. If C0 can't be calculated for whole total percentage 
                 an empty array of size 0 is returned. 
             """
-            start_pos = int(row['start'] + (row['end'] - row['start']) * (100 - total_perc) / 2)
-            end_pos = int(row['end'] + (row['end'] - row['start']) * (total_perc - 100) / 2)
+            start_pos = int(row['start'] + (row['end'] - row['start']) * (1 - total_perc / 100) / 2)
+            end_pos = int(row['end'] + (row['end'] - row['start']) * (total_perc / 100 - 1) / 2)
             
             if start_pos < 0 or end_pos > CHRV_TOTAL_BP - 1: 
                 print(f'Excluding loop: ({row["start"]}-{row["end"]})!')
@@ -104,28 +104,15 @@ class Loops:
 
             return chrv_c0_spread[start_pos: end_pos]
         
-        assert _find_loop_c0(pd.Series({'start': 30, 'end': 50})).size == 20 * total_perc / 100
+        assert _find_loop_c0(pd.Series({'start': 30, 'end': 50})).size == int(20 * total_perc / 100)
         assert _find_loop_c0(pd.Series({'start': 50, 'end': 30})).size == 0
-
-        # loop_c0 = list(
-        #     map(
-        #         lambda i: chrv_c0_spread[
-        #                     int(loop_df.iloc[i]['start'] 
-        #                         + (loop_df.iloc[i]['end'] - loop_df.iloc[i]['start']) * (100 - total_perc) / 2)  
-        #                     : int(loop_df.iloc[i]['end'] 
-        #                         + (loop_df.iloc[i]['end'] - loop_df.iloc[i]['start']) * (total_perc - 100) / 2)
-        #                 ],
-        #         range(len(loop_df))
-        #     )
-        # )
-
-        # loop_c0 = list(map(lambda arr: resize(arr, (total_perc + 1,)), loop_c0))
         
-        # Find mean C0 along loop 
+        # Find C0 along loop. Resize. Take mean.
         loop_c0: pd.Series = loop_df.apply(_find_loop_c0, axis=1)
         loop_c0 = pd.Series(list(filter(lambda arr: arr.size != 0, loop_c0)))
+        # TODO: Are we missing info when resizing?
+        loop_c0 = pd.Series(list(map(lambda arr: resize(arr, (total_perc + 1,)), loop_c0)))
         print(loop_c0.shape)
-        
         mean_c0 = np.array(loop_c0.tolist()).mean(axis=0)
         
         # Plot c0
@@ -144,7 +131,7 @@ class Loops:
 
         # Plot center line
         plt.axvline(x=50, color='tab:orange', linestyle='--')
-        plt.text(0, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'center', color='tab:orange', ha='left', va='center')
+        plt.text(50, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'center', color='tab:orange', ha='left', va='center')
 
         # Label plot
         plt.xlabel('Position along loop (percentage)')
