@@ -133,32 +133,42 @@ class ChrV:
         """
         self.plot_moving_avg(start, end)
 
+        plt.ylim(-0.8, 0.6)
         plt.xlabel(f'Position along chromosome V')
         plt.ylabel('Moving avg. of C0')
+        plt.title(f"C0, 10-bp moving avg. of C0 and nuclesome centers in Chr V ({start}-{end})")
         
         # Save figure
+        plt.gcf().set_size_inches(12, 6)
         ma_fig_dir = f'figures/chrv'
         if not Path(ma_fig_dir).is_dir():
             Path(ma_fig_dir).mkdir(parents=True, exist_ok=True)
         
-        plt.savefig(f'{ma_fig_dir}/ma_{start}_{end}.png')
+        plt.savefig(f'{ma_fig_dir}/ma_{start}_{end}.png', dpi=200)
         plt.show()
     
 
     def _plot_c0_vs_dist_from_dyad(self, x: np.ndarray, y: np.ndarray, dist: int, spread_str: str) -> None:
         """Underlying plotter of c0 vs dist from dyad"""
-        # Plot avg. line
-        avg_c0 = self.chrv_df['C0'].mean()
-        plt.axhline(y=avg_c0, color='r', linestyle='-')
-        plt.text(0, avg_c0, 'average', color='r', ha='center', va='bottom')
-
         # Plot C0
-        plt.plot(x, y)
+        plt.plot(x, y, color='tab:blue')
+        
+        # Highlight nuc. end positions and dyad
+        y_lim = plt.gca().get_ylim()
+        for p in [-73, 73]:
+            plt.axvline(x=p, color='tab:green', linestyle='--')
+            plt.text(p, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, f'{p}bp', color='tab:green', ha='right', va='center')
+
+        plt.axvline(x=0, color='tab:orange', linestyle='--')
+        plt.text(0, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, f'dyad', color='tab:orange', ha='right', va='center')
+
+        self.plot_avg()
+        plt.grid()
+
         plt.xlabel('Distance from dyad(bp)')
         plt.ylabel('C0')
         plt.title(f'C0 of +-{dist} bp from nuclesome dyad')
-        plt.grid() 
-
+        
         # Save figure
         fig_dir = 'figures/chrv'
         if not Path(fig_dir).is_dir():
@@ -203,7 +213,7 @@ class ChrV:
         self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, 'no_spread')
         
 
-    def _spread_c0(self) -> np.ndarray:
+    def spread_c0(self) -> np.ndarray:
         """Determine C0 at each bp by spreading C0 of a 50-bp seq to position 22-28"""
         c0_arr = self.chrv_df['C0'].to_numpy()
         spread = np.concatenate((
@@ -290,7 +300,7 @@ class ChrV:
         Args: 
             dist: +-distance from dyad to plot (1-indexed) 
         """
-        spread_c0 = self._spread_c0()
+        spread_c0 = self.spread_c0_balanced()
         nuc_df = DNASequenceReader().read_nuc_center()
         centers = nuc_df.loc[nuc_df['Chromosome ID'] == 'chrV']['Position'].tolist()
         
@@ -310,7 +320,7 @@ class ChrV:
         x = np.arange(dist * 2 + 1) - dist
         mean_c0 = np.array(c0_at_nuc).mean(axis=0)
 
-        self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, 'spread')
+        self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, 'balanced')
 
 
 

@@ -106,9 +106,9 @@ class Loops:
         plt.grid()
         
         # Plot anchor lines
+        y_lim = plt.gca().get_ylim()
         for pos in [-perc, perc]:
             plt.axvline(x=pos, color='green', linestyle='--')
-            y_lim = plt.gca().get_ylim()
             plt.text(pos, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'anchor', color='green', ha='right', va='center')
 
         # Plot center line
