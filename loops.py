@@ -1,3 +1,4 @@
+from scipy.ndimage.measurements import label
 from reader import DNASequenceReader
 from constants import CHRVL
 from chrv import ChrV
@@ -69,9 +70,12 @@ class Loops:
             plt.savefig(f'{loop_fig_dir}/{row["start"]}_{row["end"]}.png')
 
 
-    def plot_c0_vs_dist_from_loop_center(self):
+    def plot_c0_vs_dist_from_loop_center(self, perc=75):
         """
         Plot C0 vs distance from loop centers
+
+        Args: 
+            perc: Percentage of loop length to consider from center
         """
         loop_df = self._read_loops()
 
@@ -84,45 +88,41 @@ class Loops:
         chrv = ChrV()
         
         chrv_c0_spread = chrv.spread_c0_balanced()
-        anchors = np.concatenate((loop_df['start'].to_numpy(), loop_df['end'].to_numpy()))
-        mean_c0 = np.array(
-            list(
-                map(
-                    lambda a: chrv_c0_spread[a - 1 - lim: a + lim],
-                    anchors
-                )
-            )
-        ).mean(axis=0)
-        
         loop_c0 = list(
             map(
-                lambda i: chrv.read_chrv_lib_segment(
-                    loop_df.loc[i]['start'] * 2 - loop_df.loc[i]['center'], 
-                    loop_df.loc[i]['end'] * 2 - loop_df.loc[i]['center']
-                )['C0'].to_numpy(),
+                lambda i: chrv_c0_spread[int(loop_df.iloc[i]['start'] * 2 - loop_df.iloc[i]['center'])  
+                                : int(loop_df.iloc[i]['end'] * 2 - loop_df.iloc[i]['center'])],
                 range(len(loop_df))
             )
-        ) 
+        )
 
-        # Convert 1D arrays to have length 201 (-100% - 100%)
-        loop_c0 = list(map(lambda arr: resize(arr, (201,)), loop_c0))
+        loop_c0 = list(map(lambda arr: resize(arr, (2 * perc + 1,)), loop_c0))
 
         mean_c0 = np.array(loop_c0).mean(axis=0)
         
-        x = (np.arange(mean_c0.size) - mean_c0.size // 2)
-        plt.plot(x, mean_c0)
+        x = np.arange(mean_c0.size) - mean_c0.size // 2
+        plt.plot(x, mean_c0, color='blue')
         chrv.plot_avg()
         plt.grid()
+        
+        # Plot anchor lines
+        for pos in [-perc, perc]:
+            plt.axvline(x=pos, color='green', linestyle='--')
+            y_lim = plt.gca().get_ylim()
+            plt.text(pos, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'anchor', color='green', ha='right', va='center')
 
-        plt.xlabel('distance from loop center(percentage)')
+        # Plot center line
+        plt.axvline(x=0, color='orange', linestyle='--')
+        plt.text(0, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'center', color='green', ha='right', va='center')
+
+        plt.xlabel('Distance from loop center(percentage)')
         plt.ylabel('C0')
 
-        fig_dir = 'figures/chrv'
+        fig_dir = 'figures/chrv/loops'
         if not Path(fig_dir).is_dir():
             Path(fig_dir).mkdir(parents=True, exist_ok=True)
        
-        plt.savefig(f'{fig_dir}/c0_loop_hires_center_dist.png')
-        plt.show()
+        plt.savefig(f'{fig_dir}/c0_loop_hires_center_dist_{perc}.png')
 
 
     def plot_c0_around_anchor(self, lim=2000):
@@ -148,21 +148,29 @@ class Loops:
                 plt.savefig(f'{loop_fig_dir}/anchor_{a}.png')
         
         chrv_c0_spread = chrv.spread_c0_balanced()
-        anchors = np.concatenate((loop_df['start'].to_numpy(), loop_df['end'].to_numpy()))
-        mean_c0 = np.array(
-            list(
-                map(
-                    lambda a: chrv_c0_spread[a - 1 - lim: a + lim],
-                    anchors
+        
+        def mean_around_anchors(anchors: np.ndarray):
+            return np.array(
+                list(
+                    map(
+                        lambda a: chrv_c0_spread[a - 1 - lim: a + lim],
+                        anchors
+                    )
                 )
-            )
-        ).mean(axis=0)
+            ).mean(axis=0)
+
+        anchors = np.concatenate((loop_df['start'].to_numpy(), loop_df['end'].to_numpy()))
+        mean_c0_start = mean_around_anchors(loop_df['start'].to_numpy())
+        mean_c0_end = mean_around_anchors(loop_df['end'].to_numpy())
+        mean_c0_all = mean_around_anchors(anchors)
 
         plt.close()
         plt.clf()
 
-        x = np.arange(mean_c0.size) - mean_c0.size // 2
-        plt.plot(x, mean_c0, color='blue')
+        x = np.arange(2 * lim + 1) - lim
+        plt.plot(x, mean_c0_start, color='tab:blue', label='start')
+        plt.plot(x, mean_c0_end, color='tab:green', label='end')
+        plt.plot(x, mean_c0_all, color='tab:orange', label='all')
         chrv.plot_avg()
 
         plt.grid()

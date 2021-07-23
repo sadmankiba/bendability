@@ -50,4 +50,4 @@ def run_model():
 
 
 if __name__ == '__main__':
-    Loops().plot_c0_around_anchor(500)
+    Loops().plot_c0_vs_dist_from_loop_center()
