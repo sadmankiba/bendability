@@ -38,7 +38,7 @@ class Loops:
                     .assign(end = lambda df: (df['y1'] + df['y2']) / 2)\
                         [['res', 'start', 'end']].astype(int)
     
-
+    # ** #
     def stat_loops(self) -> None:
         """Prints statistics of loops"""
         loop_df = self._read_loops()
@@ -47,6 +47,21 @@ class Loops:
             # Avg. loop length per resolution 
             # Avg. loop length 
             # Quartile of loop length 
+        loop_df = self._read_loops()
+        max_loop_length = 100000
+        loop_df = loop_df.loc[loop_df['end'] - loop_df['start'] < max_loop_length].reset_index()
+        loop_df = loop_df.assign(length = lambda df: df['end'] - df['start'])
+        loop_df['length'].plot(kind='hist')
+        plt.xlabel('Loop length (bp)')
+        plt.title(f'Histogram of loop length. Mean = {loop_df["length"].mean()}bp. Median = {loop_df["length"].median()}bp')
+        
+        # TODO: Encapsulate saving figure logic in a function
+        fig_dir = 'figures/chrv/loops'
+        if not Path(fig_dir).is_dir():
+            Path(fig_dir).mkdir(parents=True, exist_ok=True)
+       
+        plt.gcf().set_size_inches(12, 6)
+        plt.savefig(f'{fig_dir}/loop_highres_hist_maxlen_{max_loop_length}.png', dpi=200)
 
     # ** #
     def plot_chrv_c0_in_loops(self):
