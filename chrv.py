@@ -88,7 +88,7 @@ class ChrV:
 
     def plot_moving_avg(self, start: int, end: int) -> None:
         """
-        Plot simple moving average of C0
+        Plot C0, a few moving averages of C0 and nuc. centers in chr V. 
         
         Args: 
             start: Start position in the chromosome 
@@ -108,16 +108,29 @@ class ChrV:
         k = [10] #, 25, 50]
         colors = ['green'] #, 'red', 'black']
         alpha = [0.7] #, 0.8, 0.9]
-        
+        for p in zip(k, colors, alpha):
+            ma = self._calc_moving_avg(y, p[0])
+            plt.plot((x + ((p[0] - 1) * 7) // 2)[:ma.size], ma, color=p[1], alpha=p[2], label=p[0])
         
         self.plot_avg()
+
+        # Find and plot nuc. centers
+        nuc_df = DNASequenceReader().read_nuc_center()
+        centers = nuc_df.loc[nuc_df['Chromosome ID'] == 'chrV']['Position'].to_numpy()
+        centers = centers[centers > start]
+        centers = centers[centers < end]
+        
+        for c in centers:
+            plt.axvline(x=c, color='grey', linestyle='--')
 
         plt.legend()
         plt.grid()
 
 
     def plot_c0(self, start: int, end: int) -> None:
-        """Plot C0 across whole chromosome"""
+        """Plot C0, moving avg., nuc. centers of a segment in chromosome V
+        and add appropriate labels.   
+        """
         self.plot_moving_avg(start, end)
 
         plt.xlabel(f'Position along chromosome V')
