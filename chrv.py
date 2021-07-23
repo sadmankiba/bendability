@@ -83,7 +83,7 @@ class ChrV:
         """
         plt.axhline(y=self.chrv_df['C0'].mean(), color='r', linestyle='-')
         x_lim = plt.gca().get_xlim()
-        plt.text((x_lim[0] + x_lim[1]) / 2, self.chrv_df['C0'].mean(), 'avg', color='r', ha='center', va='bottom')
+        plt.text(x_lim[0] + (x_lim[1] - x_lim[0]) * 0.15, self.chrv_df['C0'].mean(), 'avg', color='r', ha='center', va='bottom')
         
 
     def plot_moving_avg(self, start: int, end: int) -> None:
@@ -126,7 +126,7 @@ class ChrV:
         plt.legend()
         plt.grid()
 
-
+    # *** #
     def plot_c0(self, start: int, end: int) -> None:
         """Plot C0, moving avg., nuc. centers of a segment in chromosome V
         and add appropriate labels.   
@@ -157,10 +157,10 @@ class ChrV:
         y_lim = plt.gca().get_ylim()
         for p in [-73, 73]:
             plt.axvline(x=p, color='tab:green', linestyle='--')
-            plt.text(p, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, f'{p}bp', color='tab:green', ha='right', va='center')
+            plt.text(p, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, f'{p}bp', color='tab:green', ha='left', va='center')
 
         plt.axvline(x=0, color='tab:orange', linestyle='--')
-        plt.text(0, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, f'dyad', color='tab:orange', ha='right', va='center')
+        plt.text(0, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, f'dyad', color='tab:orange', ha='left', va='center')
 
         self.plot_avg()
         plt.grid()
@@ -228,6 +228,8 @@ class ChrV:
     
     def spread_c0_balanced(self) -> np.ndarray:
         """Determine C0 at each bp by average of covering 50-bp sequences around"""
+        # TODO: spread C0 -> separate class
+
         saved_data = Path('data/generated_data/chrv/spread_c0_balanced.tsv')
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep='\t')['c0_balanced'].to_numpy()
@@ -291,7 +293,7 @@ class ChrV:
 
         return res 
 
-
+    # *** #
     def plot_c0_vs_dist_from_dyad_spread(self, dist=150) -> None:
         """
         Plot C0 vs. distance from dyad of nucleosomes in chromosome V by

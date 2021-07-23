@@ -48,7 +48,7 @@ class Loops:
             # Avg. loop length 
             # Quartile of loop length 
 
-
+    # ** #
     def plot_chrv_c0_in_loops(self):
         loop_df = self._read_loops()
 
@@ -69,7 +69,7 @@ class Loops:
             
             plt.savefig(f'{loop_fig_dir}/{row["start"]}_{row["end"]}.png')
 
-
+    # *** #
     def plot_c0_vs_dist_from_loop_center(self, perc=75):
         """
         Plot C0 vs distance from loop centers
@@ -109,22 +109,24 @@ class Loops:
         y_lim = plt.gca().get_ylim()
         for pos in [-perc, perc]:
             plt.axvline(x=pos, color='green', linestyle='--')
-            plt.text(pos, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'anchor', color='green', ha='right', va='center')
+            plt.text(pos, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'anchor', color='green', ha='left', va='center')
 
         # Plot center line
         plt.axvline(x=0, color='orange', linestyle='--')
-        plt.text(0, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'center', color='green', ha='right', va='center')
+        plt.text(0, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'center', color='green', ha='left', va='center')
 
         plt.xlabel('Distance from loop center(percentage)')
         plt.ylabel('C0')
 
+        
         fig_dir = 'figures/chrv/loops'
         if not Path(fig_dir).is_dir():
             Path(fig_dir).mkdir(parents=True, exist_ok=True)
        
-        plt.savefig(f'{fig_dir}/c0_loop_hires_center_dist_{perc}.png')
+        plt.gcf().set_size_inches(12, 6)
+        plt.savefig(f'{fig_dir}/c0_loop_hires_center_dist_{perc}.png', dpi=200)
 
-
+    # *** #
     def plot_c0_around_anchor(self, lim=2000):
         """Plot C0 around loop anchor points"""
         loop_df = self._read_loops()
@@ -173,6 +175,7 @@ class Loops:
         plt.plot(x, mean_c0_all, color='tab:orange', label='all')
         chrv.plot_avg()
 
+        plt.legend()
         plt.grid()
         plt.xlabel('Distance from loop anchor(bp)')
         plt.ylabel('C0')
@@ -180,8 +183,9 @@ class Loops:
         fig_dir = 'figures/chrv/loops'
         if not Path(fig_dir).is_dir():
             Path(fig_dir).mkdir(parents=True, exist_ok=True)
-       
-        plt.savefig(f'{fig_dir}/c0_loop_hires_anchor_dist_{lim}_balanced.png')
+
+        plt.gcf().set_size_inches(12, 6)
+        plt.savefig(f'{fig_dir}/c0_loop_hires_anchor_dist_{lim}_balanced.png', dpi=200)
         
 
 
