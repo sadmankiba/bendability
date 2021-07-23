@@ -70,12 +70,12 @@ class Loops:
             plt.savefig(f'{loop_fig_dir}/{row["start"]}_{row["end"]}.png')
 
     # *** #
-    def plot_c0_vs_dist_from_loop_center(self, perc=75):
+    def plot_c0_vs_total_loop(self, total_perc=150):
         """
-        Plot C0 vs distance from loop centers
+        Plot C0 in total loop
 
         Args: 
-            perc: Percentage of loop length to consider from center
+            total_perc: Total percentage of loop length to consider 
         """
         loop_df = self._read_loops()
 
@@ -84,47 +84,52 @@ class Loops:
         loop_df = loop_df.loc[loop_df['end'] - loop_df['start'] < max_loop_length].reset_index()
         
         # List C0 of two times loop length around center
-        loop_df = loop_df.assign(center = (loop_df['start'] + loop_df['end']) / 2)
         chrv = ChrV()
         
         chrv_c0_spread = chrv.spread_c0_balanced()
         loop_c0 = list(
             map(
-                lambda i: chrv_c0_spread[int(loop_df.iloc[i]['start'] * 2 - loop_df.iloc[i]['center'])  
-                                : int(loop_df.iloc[i]['end'] * 2 - loop_df.iloc[i]['center'])],
+                lambda i: chrv_c0_spread[
+                            int(loop_df.iloc[i]['start'] 
+                                + (loop_df.iloc[i]['end'] - loop_df.iloc[i]['start']) * (100 - total_perc) / 2)  
+                            : int(loop_df.iloc[i]['end'] 
+                                + (loop_df.iloc[i]['end'] - loop_df.iloc[i]['start']) * (total_perc - 100) / 2)
+                        ],
                 range(len(loop_df))
             )
         )
 
-        loop_c0 = list(map(lambda arr: resize(arr, (2 * perc + 1,)), loop_c0))
+        loop_c0 = list(map(lambda arr: resize(arr, (total_perc + 1,)), loop_c0))
 
         mean_c0 = np.array(loop_c0).mean(axis=0)
         
-        x = np.arange(mean_c0.size) - mean_c0.size // 2
+        x = np.arange(total_perc + 1) - (total_perc - 100) / 2
         plt.plot(x, mean_c0, color='blue')
         chrv.plot_avg()
         plt.grid()
         
-        # Plot anchor lines
         y_lim = plt.gca().get_ylim()
-        for pos in [-50, 50]:
-            plt.axvline(x=pos, color='green', linestyle='--')
-            plt.text(pos, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'anchor', color='green', ha='left', va='center')
+        
+        # Plot anchor lines
+        if total_perc >= 100:
+            for pos in [0, 100]:
+                plt.axvline(x=pos, color='green', linestyle='--')
+                plt.text(pos, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'anchor', color='green', ha='left', va='center')
 
         # Plot center line
-        plt.axvline(x=0, color='orange', linestyle='--')
+        plt.axvline(x=50, color='orange', linestyle='--')
         plt.text(0, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, 'center', color='green', ha='left', va='center')
 
         plt.xlabel('Distance from loop center(percentage)')
         plt.ylabel('C0')
-        plt.title(f'C0 vs. distance from loop center (-{perc}% to {perc}% of loop length)')
+        plt.title(f'C0 vs. distance from loop center ({x[0]}% to {x[-1]}% of loop length)')
         
         fig_dir = 'figures/chrv/loops'
         if not Path(fig_dir).is_dir():
             Path(fig_dir).mkdir(parents=True, exist_ok=True)
        
         plt.gcf().set_size_inches(12, 6)
-        plt.savefig(f'{fig_dir}/c0_loop_hires_center_dist_{perc}.png', dpi=200)
+        plt.savefig(f'{fig_dir}/c0_total_loop_perc_{total_perc}_maxlen_{max_loop_length}.png', dpi=200)
 
     # *** #
     def plot_c0_around_anchor(self, lim=2000):
