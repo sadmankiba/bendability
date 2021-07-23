@@ -158,8 +158,10 @@ class Loops:
         plt.clf()
 
         x = np.arange(mean_c0.size) - mean_c0.size // 2
-        plt.plot(x, mean_c0, color='blue', alpha=0.2, label=1)
-        plt.plot((x + ((p[0] - 1) * 7) // 2)[:ma.size], ma, color=p[1], alpha=p[2], label=p[0])
+        plt.plot(x, mean_c0, color='blue')
+        chrv.plot_avg()
+        
+        plt.grid()
         plt.xlabel('Distance from loop anchor(bp)')
         plt.ylabel('C0')
 
