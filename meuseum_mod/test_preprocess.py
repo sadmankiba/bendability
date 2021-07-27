@@ -1,13 +1,9 @@
-import unittest
+from data_preprocess import Preprocess
+from museum_constants import LIBRARIES
 
-
-class TestUtil(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def test_rc_comp2(self):
-        pass
-
-
-if __name__ == '__main__':
-    unittest.main()
+class TestPreprocess:
+    def test_get_sequences_target(self):
+        lib = LIBRARIES['chrvl']
+        prep = Preprocess(f'../data/input_data/bendability/{lib["file"]}')
+        seq_target = prep.get_sequences_target()
+        assert set(seq_target.keys()) == set(['all_seqs', 'rc_seqs', 'target'])
