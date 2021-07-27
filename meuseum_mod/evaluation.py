@@ -1,6 +1,13 @@
-from constants import LIBRARY_NAMES
-from data_preprocess import Preprocess
+
 from model6 import nn_model
+from data_preprocess import Preprocess
+
+# Import from parent directory
+import sys 
+import os
+sys.path.insert(1, os.path.join(sys.path[0], '..')) 
+
+from constants import CHRVL, LIBRARY_NAMES
 
 import keras 
 from contextlib import suppress
@@ -36,51 +43,6 @@ def get_parameters(file_name):
     dict["batch_size"] = int(dict["batch_size"])
 
     return dict
-
-
-def check_performance(model: keras.Model, lib_name: LIBRARY_NAMES) -> pd.DataFrame:
-    """
-    Check model performance on a sequence library and return predicted values.
-    """
-    prep = Preprocess(lib_name)
-    # if want mono-nucleotide sequences
-    data = prep.one_hot_encode()
-    # if want dinucleotide sequences
-    #dict = prep.dinucleotide_encode()
-    
-    x1 = data["target"]
-    x2 = data["forward"]
-    y = data["reverse"]
-
-    history2 = model.evaluate({'forward': x1, 'reverse': x2}, y)
-
-    print('metric values of model.evaluate: ' + str(history2))
-    print('metrics names are ' + str(model.metrics_names))
-
-    y_pred = model.predict({'forward': x1, 'reverse': x2}).flatten()
-    assert y_pred.shape == y.shape
-    print('r2 score:', r2_score(y, y_pred))
-    print('Pearson\'s correlation:', pearsonr(y, y_pred)[0])
-    print('Spearman\'s correlation: ', spearmanr(y, y_pred)[0])
-
-    df = pd.DataFrame(
-        {'Sequence': prep.df['Sequence'].str[25:-25].tolist(), 'Predicted Value': y_pred, 'True Value': y})
-    
-    df.to_csv(f'predictions/{lib_name}_pred.tsv', sep='\t', index=False)
-    print('Predictions saved.')
-    
-    # Plot scatter plot
-    # p = (ggplot(data=df,
-    #             mapping=aes(x='True Value', y='Predicted Value'))
-    #      + stat_bin_2d(bins=150)
-    #      + xlim(-2.75, 2.75)
-    #      + ylim(-2.75, 2.75)
-    #      )
-
-    # with open(f'figures/scatter_{library["name"]}.png', 'w') as f:
-    #     print(p, file=f)
-    
-    return df
 
 
 def save_kernel_weights_logos(model):
@@ -156,12 +118,14 @@ def save_kernel_weights_logos(model):
     
 
 class Evaluation:
-    def evaluate(self, lib_name: LIBRARY_NAMES):
+    def __init__(self):
+        self._model = self._load_model()
+
+
+    def _load_model(self) -> keras.Model:
         argv = sys.argv
         parameter_file = argv[1] #e.g. parameter1.txt
         
-        start_time = time.time()
-
         params = get_parameters(parameter_file)
 
         dim_num = (-1, 50, 4)
@@ -178,14 +142,60 @@ class Evaluation:
 
         print('Loading weights in model...')
         model.load_weights('model_weights/w6.h5_archived')
+        return model
+
+
+    def check_performance(self, lib_name: LIBRARY_NAMES) -> pd.DataFrame:
+        """
+        Check model performance on a sequence library and return predicted values.
+        """
+        prep = Preprocess(lib_name)
+        data = prep.one_hot_encode()
+        
+        x1 = data["forward"]
+        x2 = data["reverse"]
+        y = data["target"]
+
+        history2 = self._model.evaluate({'forward': x1, 'reverse': x2}, y)
+
+        print('metric values of model.evaluate: ' + str(history2))
+        print('metrics names are ' + str(self._model.metrics_names))
+
+        y_pred = self._model.predict({'forward': x1, 'reverse': x2}).flatten()
+        assert y_pred.shape == y.shape
+        print('r2 score:', r2_score(y, y_pred))
+        print('Pearson\'s correlation:', pearsonr(y, y_pred)[0])
+        print('Spearman\'s correlation: ', spearmanr(y, y_pred)[0])
+
+        df = pd.DataFrame(
+            {'Sequence': prep.df['Sequence'].str[25:-25].tolist(), 'Predicted Value': y_pred, 'True Value': y})
+        
+        df.to_csv(f'predictions/{lib_name}_pred.tsv', sep='\t', index=False)
+        print('Predictions saved.')
+        
+        # Plot scatter plot
+        # p = (ggplot(data=df,
+        #             mapping=aes(x='True Value', y='Predicted Value'))
+        #      + stat_bin_2d(bins=150)
+        #      + xlim(-2.75, 2.75)
+        #      + ylim(-2.75, 2.75)
+        #      )
+
+        # with open(f'figures/scatter_{library["name"]}.png', 'w') as f:
+        #     print(p, file=f)
+        
+        return df
+
+
+    def evaluate(self, lib_name: LIBRARY_NAMES):
+        # Eliminate this function
+        start_time = time.time()
 
         np.set_printoptions(threshold=sys.maxsize, precision=5, suppress=True)
-        check_performance(model, lib_name)
-
-        # save_kernel_weights_logos(model)
+        self.check_performance(lib_name)
 
         print(f"Took --- {time.time() - start_time} seconds ---")
 
 
 if __name__ == "__main__":
-    Evaluation().evaluate()
+    Evaluation().evaluate(CHRVL)

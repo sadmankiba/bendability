@@ -1,3 +1,5 @@
+from typing import Union, Literal
+
 # Library names
 CNL = 'cnl'
 RL = 'rl'
@@ -6,7 +8,7 @@ CHRVL = 'chrvl'
 LIBL = 'libl'
 
 # Type
-library_names = [CNL, RL, TL, CHRVL, LIBL]
+LIBRARY_NAMES = Literal['cnl', 'rl', 'tl', 'chrvl', 'libl']
 
 # Library length 
 CNL_LEN = 19907

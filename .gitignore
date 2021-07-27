@@ -12,5 +12,5 @@ juicer/
 DNABendabilityModels/
 unused/
 
-meuseum_mod/predictions/*.csv
+meuseum_mod/predictions/*.[tc]sv
 !meuseum_mod/predictions/6_9.csv 

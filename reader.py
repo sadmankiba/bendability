@@ -7,6 +7,8 @@ from Bio import SeqIO
 import numpy as np
 
 import math
+import inspect 
+from pathlib import Path
 
 CNL_FILE = '41586_2020_3052_MOESM4_ESM.txt'
 RL_FILE = '41586_2020_3052_MOESM6_ESM.txt'
@@ -19,8 +21,13 @@ class DNASequenceReader:
     Reads and returns processed DNA sequence libraries
     """
     def __init__(self):
-        self._bendability_data_dir='data/input_data/bendability'
-        self._nuc_center_file = 'data/input_data/nucleosome_position/41586_2012_BFnature11142_MOESM263_ESM.txt'
+        # Get current directory of this module in runtime. With this, we can
+        # create correct path even when this module is called from modules in
+        # other directories. (e.g. child directory)
+        parent_dir = Path(inspect.getabsfile(inspect.currentframe())).parent
+        
+        self._bendability_data_dir=f'{parent_dir}/data/input_data/bendability'
+        self._nuc_center_file = f'{parent_dir}/data/input_data/nucleosome_position/41586_2012_BFnature11142_MOESM263_ESM.txt'
 
 
     def _get_raw_data(self):

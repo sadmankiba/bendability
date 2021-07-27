@@ -5,7 +5,7 @@ from helsep import HelicalSeparationCounter
 from occurence import Occurence
 from shape import run_dna_shape_r_wrapper
 from reader import DNASequenceReader
-from constants import library_names
+from constants import LIBRARY_NAMES
 from feat_selector import FeatureSelector
 
 import numpy as np
@@ -358,7 +358,7 @@ class DataOrganizer:
             self._options['c0_scale'] = 1     
 
 
-    def _get_cut_dfs(self) -> dict[Union[library_names], pd.DataFrame]:
+    def _get_cut_dfs(self) -> dict[LIBRARY_NAMES, pd.DataFrame]:
         """
         Reads all sequence libraries and cut sequences accordingly. 
 

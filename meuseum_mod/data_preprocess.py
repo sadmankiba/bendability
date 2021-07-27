@@ -14,6 +14,7 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from dinucleotide import mono_to_dinucleotide, dinucleotide_one_hot_encode
 
 import re
+from typing import Literal
 
 
 class Preprocess:
@@ -49,8 +50,8 @@ class Preprocess:
         return all_sequences
 
 
-    def get_sequences_target(self) -> dict[str, list]:
-        all_seqs = self.df['Sequence'].str[25:-25].tolist()
+    def get_sequences_target(self) -> dict[Literal['all_seqs', 'target', 'rc_seqs'], list]:
+        all_seqs = self.df['Sequence'].tolist()
         rc_seqs = self.rc_comp2(all_seqs)
         
         # Set target
@@ -90,7 +91,7 @@ class Preprocess:
         #dict = self.without_augment()
         seq_and_target = self.get_sequences_target()
         result = dict()
-        result["target"] = np.array(seq_and_target['target'])
+        result["target"] = np.asarray(seq_and_target['target'])
 
         forward = []
         reverse = []
@@ -125,7 +126,8 @@ class Preprocess:
             features.append(new)
 
         features = np.stack(features)
-        result["forward"] = np.array(features)
+        result["forward"] = np.asarray(features)
+        assert result["forward"][0].shape == (50, 4)
 
         # some sequences do not have entire 'ACGT'
         temp_seqs = []
@@ -157,7 +159,8 @@ class Preprocess:
             features.append(new)
 
         features = np.stack(features)
-        result["reverse"] = np.array(features)
+        result["reverse"] = np.asarray(features)
+        assert result["reverse"][0].shape == (50, 4)
 
         return result
 
