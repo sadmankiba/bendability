@@ -90,7 +90,7 @@ class Preprocess:
         #dict = self.without_augment()
         seq_and_target = self.get_sequences_target()
         result = dict()
-        result["target"] = seq_and_target['target']
+        result["target"] = np.array(seq_and_target['target'])
 
         forward = []
         reverse = []
@@ -125,7 +125,7 @@ class Preprocess:
             features.append(new)
 
         features = np.stack(features)
-        result["forward"] = features
+        result["forward"] = np.array(features)
 
         # some sequences do not have entire 'ACGT'
         temp_seqs = []
@@ -157,7 +157,7 @@ class Preprocess:
             features.append(new)
 
         features = np.stack(features)
-        result["reverse"] = features
+        result["reverse"] = np.array(features)
 
         return result
 

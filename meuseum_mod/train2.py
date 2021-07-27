@@ -1,3 +1,4 @@
+from constants import CHRVL, TL
 from model6 import nn_model
 import time
 import sys
@@ -26,14 +27,13 @@ def get_parameters(file_name):
 def main(argv=None):
     if argv is None:
         argv = sys.argv
-        # input argszw
-        train_file = argv[1]
-        # e.g. data/41586_2020_3052_MOESM8_ESM.txt
-        val_file = argv[2]
-        # e.g. data/41586_2020_3052_MOESM9_ESM.txt
+        
         parameter_file = argv[3]
         #e.g. parameter1.txt
 
+    train_lib = TL
+    val_lib = CHRVL
+    
     # excute the code
     start_time = time.time()
     # Reproducibility
@@ -48,36 +48,28 @@ def main(argv=None):
                   activation_type=params["activation_type"], epochs=params["epochs"], batch_size=params["batch_size"], loss_func=params["loss_func"], optimizer=params["optimizer"])
     model = nn.create_model()
 
-    train_prep = Preprocess(train_file)
+    train_prep = Preprocess(train_lib)
     # if want mono-nucleotide sequences
     train_data = train_prep.one_hot_encode()
     # if want dinucleotide sequences
     #dict = prep.dinucleotide_encode()
 
-    train_readout = train_data["readout"]
-    train_fw_fasta = train_data["forward"]
-    train_rc_fasta = train_data["reverse"]
-
-    val_prep = Preprocess(val_file)
+    val_prep = Preprocess(val_lib)
     # if want mono-nucleotide sequences
     val_data = val_prep.one_hot_encode()
     # if want dinucleotide sequences
     #dict = prep.dinucleotide_encode()
 
-    val_readout = val_data["readout"]
-    val_fw_fasta = val_data["forward"]
-    val_rc_fasta = val_data["reverse"]
-
     np.set_printoptions(threshold=sys.maxsize)
 
     # change from list to numpy array
-    y_train = np.asarray(train_readout)
-    x1_train = np.asarray(train_fw_fasta)
-    x2_train = np.asarray(train_rc_fasta)
+    y_train = train_data["readout"]
+    x1_train = train_data["forward"]
+    x2_train = train_data["reverse"]
 
-    y_val = np.asarray(val_readout)
-    x1_val = np.asarray(val_fw_fasta)
-    x2_val = np.asarray(val_rc_fasta)
+    y_val = val_data["readout"]
+    x1_val = val_data["forward"]
+    x2_val = val_data["reverse"]
 
     # Without early stopping
     history = model.fit({'forward': x1_train, 'reverse': x2_train}, y_train,

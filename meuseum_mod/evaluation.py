@@ -47,14 +47,10 @@ def check_performance(model: keras.Model, lib_name: LIBRARY_NAMES) -> pd.DataFra
     data = prep.one_hot_encode()
     # if want dinucleotide sequences
     #dict = prep.dinucleotide_encode()
-
-    target = data["target"]
-    fw = data["forward"]
-    rc = data["reverse"]
     
-    x1 = np.asarray(fw)
-    x2 = np.asarray(rc)
-    y = np.asarray(target)
+    x1 = data["target"]
+    x2 = data["forward"]
+    y = data["reverse"]
 
     history2 = model.evaluate({'forward': x1, 'reverse': x2}, y)
 
@@ -159,8 +155,8 @@ def save_kernel_weights_logos(model):
                 plt.savefig('logos/l6/logo' + str(layer_num) + '_' + str(i) + '.png', dpi=50)
     
 
-class Prediction:
-    def predict(self, lib_name: LIBRARY_NAMES):
+class Evaluation:
+    def evaluate(self, lib_name: LIBRARY_NAMES):
         argv = sys.argv
         parameter_file = argv[1] #e.g. parameter1.txt
         
@@ -192,4 +188,4 @@ class Prediction:
 
 
 if __name__ == "__main__":
-    sys.exit(Prediction().predict())
+    Evaluation().evaluate()
