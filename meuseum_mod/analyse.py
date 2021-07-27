@@ -16,6 +16,7 @@ import logomaker as lm
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import r2_score
+from scipy.stats import pearsonr, spearmanr
 from plotnine import ggplot, aes, xlim, ylim, stat_bin_2d
 
 import shutil
@@ -79,6 +80,8 @@ def check_performance(model, library: Library):
     y_pred = model.predict({'forward': x1, 'reverse': x2}).flatten()
     assert y_pred.shape == y.shape
     print('r2 score:', r2_score(y, y_pred))
+    print('Pearson\'s correlation:', pearsonr(y, y_pred)[0])
+    print('Spearman\'s correlation: ', spearmanr(y, y_pred)[0])
 
     df = pd.DataFrame(
         {'Sequence': prep.df['Sequence'].str[25:-25].tolist(), 'Predicted Value': y_pred, 'True Value': y})
@@ -87,15 +90,15 @@ def check_performance(model, library: Library):
     print('Predictions saved.')
     
     # Plot scatter plot
-    p = (ggplot(data=df,
-                mapping=aes(x='True Value', y='Predicted Value'))
-         + stat_bin_2d(bins=150)
-         + xlim(-2.75, 2.75)
-         + ylim(-2.75, 2.75)
-         )
+    # p = (ggplot(data=df,
+    #             mapping=aes(x='True Value', y='Predicted Value'))
+    #      + stat_bin_2d(bins=150)
+    #      + xlim(-2.75, 2.75)
+    #      + ylim(-2.75, 2.75)
+    #      )
 
-    with open(f'figures/scatter_{library["name"]}.png', 'w') as f:
-        print(p, file=f)
+    # with open(f'figures/scatter_{library["name"]}.png', 'w') as f:
+    #     print(p, file=f)
 
 
 def save_kernel_weights_logos(model):
@@ -174,7 +177,7 @@ def main():
     argv = sys.argv
     parameter_file = argv[1] #e.g. parameter1.txt
 
-    analyse_library = 'tl'
+    analyse_library = 'chrvl'
     
     start_time = time.time()
 
@@ -193,7 +196,7 @@ def main():
     # )
 
     print('Loading weights in model...')
-    model.load_weights('model_weights/w6.h5')
+    model.load_weights('model_weights/w6.h5_archived')
 
     np.set_printoptions(threshold=sys.maxsize, precision=5, suppress=True)
     check_performance(model, LIBRARIES[analyse_library])

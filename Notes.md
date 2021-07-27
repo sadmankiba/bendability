@@ -16,14 +16,8 @@ Changed headers in each dataset to separate `Sequence #` from `Sequence` by tab.
 | TL/20k | RL/5k  | 2     | 20       | SVR C=1    | 48       | 1 - 50 | 0.05    | 0.36     |
 
 **Observation**
-- Correlation feature selector has worse performance than all feature selector. Maybe because some features excluded carried non-linear signal for bendability. 
 
-### Samin's CNN Model
-
-| Test Library | R2 Score |
-| TL (trained)| 0.92 |
-| CNL | 0.77 |
-| RL | 0.81 |
+- Correlation feature selector has worse performance than all feature selector. Maybe because some features excluded carried non-linear signal for bendability.
 
 ### NN with DNA Shape
 
