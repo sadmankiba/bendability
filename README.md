@@ -10,7 +10,16 @@ This repository contains various utility tools to analyze DNA Bendability.
 
 3. Nucleosome center positions from [A map of nucleosome positions in yeast at base-pair resolution](https://www.nature.com/articles/nature11142?page=3)
 
-## Use Code 
+4. Reference genome sequence of S. Cerevisiae downloaded from [Saccharomyces Genome Database (SGD)](https://www.yeastgenome.org/)
+
+
+## Using Code 
+
+Install necessary packages. 
+
+```sh 
+pip install -r requirements.txt
+```
 
 Invoking functionalities is very simple. Just create approriate object and call it's public functions from `main.py`.
 
@@ -29,11 +38,11 @@ python3 main.py
 Test if all functionalities are working fine.
 
 ```sh
-python3 -m unittest
+python3 -m pytest
 ```
 
 Or, run a single test file. 
 
 ```sh 
-python3 test_reader.py
+python3 -m pytest test_reader.py
 ```

@@ -4,8 +4,9 @@ from reader import DNASequenceReader
 import pandas as pd
 
 import unittest
+import random
 
-# TODO: Convert unittest to pytest
+# TODO: Convert unittest specific asserts to simple assert
 
 class TestGetRawData(unittest.TestCase):
     def setUp(self):
@@ -75,6 +76,21 @@ class TestReader(unittest.TestCase):
         reader = DNASequenceReader()
         predict_df = reader.read_library_prediction(CHRVL)
         self.assertCountEqual(predict_df.columns, ['Sequence #', 'Sequence', 'C0'])
+
+
+    def test_read_yeast_genome(self):
+        reader = DNASequenceReader()
+        chrv_df = reader.get_processed_data()[CHRVL]
+        chrv_genome_read_df = reader.read_yeast_genome(5)
+
+        self.assertEqual(len(chrv_df),  len(chrv_genome_read_df))
+        
+        sample_idx = random.sample(range(len(chrv_df)), 100)
+        self.assertListEqual(chrv_df.iloc[sample_idx]['Sequence #'].tolist(), 
+            chrv_genome_read_df.iloc[sample_idx]['Sequence #'].tolist())
+        
+        self.assertListEqual(chrv_df.iloc[sample_idx]['Sequence'].tolist(), 
+            chrv_genome_read_df.iloc[sample_idx]['Sequence'].tolist())
 
 
 if __name__ == '__main__':

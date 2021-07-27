@@ -1,8 +1,12 @@
 from __future__ import annotations
 
-from constants import CNL, RL, TL, CHRVL, LIBL
+from constants import CNL, RL, SEQ_LEN, TL, CHRVL, LIBL
 
 import pandas as pd
+from Bio import SeqIO
+import numpy as np
+
+import math
 
 
 class DNASequenceReader:
@@ -96,3 +100,37 @@ class DNASequenceReader:
                     header=None, 
                     names=['Chromosome ID', 'Position', 'NCP score', 'NCP score/noise']
                 )
+    
+
+    def read_yeast_genome(self, chr: int) -> pd.DataFrame:
+        """
+        Read reference sequence of a yeast chromosome. Transforms it into 50-bp
+        sequences at 7-bp resolution. 
+
+        Args: 
+            chr: Chromosome number (1 - 16)
+        
+        Returns:
+            A pandas DataFrame with columns ['Sequence #', 'Sequence']
+        """
+        assert chr >= 1 and chr <= 16
+        
+        # Read file
+        genome_file = open("data/input_data/yeast_genome/S288C_reference_sequence_R64-3-1_20210421.fsa")
+        fasta_sequences = SeqIO.parse(genome_file,'fasta')
+        
+        # Get sequence of a chromosome
+        ref_str = f'ref|NC_00{str(1132 + chr)}|'
+        seq = list(filter(lambda fasta: fasta.id == ref_str, fasta_sequences))[0].seq
+        genome_file.close()
+        
+        # Split into 50-bp sequences 
+        num_50bp_seqs = math.ceil((len(seq) - SEQ_LEN + 1) / 7)
+        seqs_50bp = list(
+            map(
+                lambda seq_idx: seq[seq_idx * 7: seq_idx * 7 + 50], 
+                range(num_50bp_seqs)
+            )
+        )
+
+        return pd.DataFrame({'Sequence #': np.arange(num_50bp_seqs) + 1, 'Sequence': seqs_50bp})    

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
@@ -11,13 +13,7 @@ class Preprocess:
     def __init__(self, file):
         self.file = file
         self.df = pandas.read_table(filepath_or_buffer=file, )
-        # self.read_fasta_into_list()
-        # self.read_fasta_forward()
-        # self.rc_comp2()
-        # self.read_readout()
-        # self.without_augment()
-        # self.augment()
-        # self.one_hot_encode()
+
     
     def rc_comp2(self, seqn):
         '''
@@ -40,16 +36,20 @@ class Preprocess:
 
         return all_sequences
 
-    def get_sequences_target(self):
+
+    def get_sequences_target(self) -> dict[str, list]:
         all_seqs = self.df['Sequence'].str[25:-25].tolist()
         rc_seqs = self.rc_comp2(all_seqs)
-        target = self.df[' C0'].tolist()
+        
+        # Set target
+        target = self.df[' C0'].tolist() if ' C0' in self.df else None  
 
         return {
             "all_seqs": all_seqs,
             "target": target,
             "rc_seqs": rc_seqs
         }
+
 
     def without_augment(self):
         new_fasta = self.read_fasta_into_list()
@@ -59,7 +59,7 @@ class Preprocess:
         return dict
 
 
-    def one_hot_encode(self):
+    def one_hot_encode(self) -> dict[str, np.ndarray]:
         """
         Encodes DNA sequences with one hot encoding
 
