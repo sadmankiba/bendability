@@ -8,6 +8,11 @@ import numpy as np
 
 import math
 
+CNL_FILE = '41586_2020_3052_MOESM4_ESM.txt'
+RL_FILE = '41586_2020_3052_MOESM6_ESM.txt'
+TL_FILE = '41586_2020_3052_MOESM8_ESM.txt'
+CHRVL_FILE = '41586_2020_3052_MOESM9_ESM.txt'
+LIBL_FILE = '41586_2020_3052_MOESM11_ESM.txt'
 
 class DNASequenceReader:
     """
@@ -19,20 +24,11 @@ class DNASequenceReader:
 
 
     def _get_raw_data(self):
-        CNL_FILE = f'{self._bendability_data_dir}/41586_2020_3052_MOESM4_ESM.txt'
-        cnl_df_raw = pd.read_table(CNL_FILE, sep='\t')
-
-        RL_FILE = f'{self._bendability_data_dir}/41586_2020_3052_MOESM6_ESM.txt'
-        rl_df_raw = pd.read_table(RL_FILE, sep='\t')
-
-        TL_FILE = f'{self._bendability_data_dir}/41586_2020_3052_MOESM8_ESM.txt'
-        tl_df_raw = pd.read_table(TL_FILE, sep='\t')
-
-        CHRV_FILE = f'{self._bendability_data_dir}/41586_2020_3052_MOESM9_ESM.txt'
-        chrvl_df_raw = pd.read_table(CHRV_FILE, sep='\t')
-
-        LIBL_FILE = f'{self._bendability_data_dir}/41586_2020_3052_MOESM11_ESM.txt'
-        libl_df_raw = pd.read_table(LIBL_FILE, sep='\t')
+        cnl_df_raw = pd.read_table(f'{self._bendability_data_dir}/{CNL_FILE}', sep='\t')
+        rl_df_raw = pd.read_table(f'{self._bendability_data_dir}/{RL_FILE}', sep='\t')
+        tl_df_raw = pd.read_table(f'{self._bendability_data_dir}/{TL_FILE}', sep='\t')
+        chrvl_df_raw = pd.read_table(f'{self._bendability_data_dir}/{CHRVL_FILE}', sep='\t')
+        libl_df_raw = pd.read_table(f'{self._bendability_data_dir}/{LIBL_FILE}', sep='\t')
 
         return (cnl_df_raw, rl_df_raw, tl_df_raw, chrvl_df_raw, libl_df_raw)
 
