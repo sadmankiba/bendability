@@ -86,7 +86,7 @@ def check_performance(model, library: Library):
     df = pd.DataFrame(
         {'Sequence': prep.df['Sequence'].str[25:-25].tolist(), 'Predicted Value': y_pred, 'True Value': y})
     
-    df.to_csv(f'predictions/{library["name"]}_pred.csv', sep='\t', index=False)
+    df.to_csv(f'predictions/{library["name"]}_pred.tsv', sep='\t', index=False)
     print('Predictions saved.')
     
     # Plot scatter plot

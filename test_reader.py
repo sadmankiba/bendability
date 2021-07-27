@@ -1,8 +1,11 @@
+from constants import CHRVL
 from reader import DNASequenceReader
 
 import pandas as pd
 
 import unittest
+
+# TODO: Convert unittest to pytest
 
 class TestModel(unittest.TestCase):
     def setUp(self):
@@ -61,6 +64,13 @@ class TestModel(unittest.TestCase):
     def test_read_nuc_center(self):
         nuc_df = DNASequenceReader().read_nuc_center()
         self.assertEqual(len(nuc_df), 67548) 
+
+
+    def test_read_library_prediction(self):
+        reader = DNASequenceReader()
+        predict_df = reader.read_library_prediction(CHRVL)
+        self.assertCountEqual(predict_df.columns, ['Sequence #', 'Sequence', 'C0'])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -66,6 +66,19 @@ class DNASequenceReader:
         }
 
 
+    def read_library_prediction(self, lib_name: str):
+        """Read predicted C0 by meuseum model"""
+
+        predict_df = pd.read_table(f'meuseum_mod/predictions/{lib_name}_pred.csv', sep='\t')
+        predict_df = predict_df.assign(seq_no = lambda df: df.index + 1)\
+                        .rename(columns = {
+                            'seq_no': 'Sequence #',
+                            'Predicted Value': 'C0' 
+                        }).drop(columns=['True Value'])
+        
+        return predict_df 
+
+
     def read_nuc_center(self) -> pd.DataFrame:
         """
         Read nucleosome center position data. 
