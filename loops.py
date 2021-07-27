@@ -84,13 +84,14 @@ class Loops:
             
             plt.savefig(f'{loop_fig_dir}/{row["start"]}_{row["end"]}.png')
 
-    # *** #
-    def plot_c0_vs_total_loop(self, total_perc=150):
+    # *** #    
+    def plot_c0_vs_total_loop(self, total_perc: int, c0_category: str) -> None:
         """
-        Plot C0 in total loop
+        Plot mean C0 across total loop in found loops in chr V
 
         Args: 
             total_perc: Total percentage of loop length to consider 
+            c0_category: How C0 is found. Either 'actual' or 'predicted'.
         """
         loop_df = self._read_loops()
 
@@ -100,7 +101,7 @@ class Loops:
         
         # Get spread C0
         chrv = ChrV()
-        chrv_c0_spread = chrv.spread_c0_balanced()
+        chrv_c0_spread = chrv.spread_c0_balanced(c0_category)
         
         def _find_loop_c0(row: pd.Series) -> np.ndarray:
             """
@@ -125,6 +126,7 @@ class Loops:
         # Find C0 along loop. Resize. Take mean.
         loop_c0: pd.Series = loop_df.apply(_find_loop_c0, axis=1)
         loop_c0 = pd.Series(list(filter(lambda arr: arr.size != 0, loop_c0)))
+        
         # TODO: Are we missing info when resizing?
         loop_c0 = pd.Series(list(map(lambda arr: resize(arr, (total_perc + 1,)), loop_c0)))
         print(loop_c0.shape)
@@ -133,7 +135,7 @@ class Loops:
         # Plot c0
         x = np.arange(total_perc + 1) - (total_perc - 100) / 2
         plt.plot(x, mean_c0, color='tab:blue')
-        chrv.plot_avg()
+        chrv.plot_avg(c0_category)
         plt.grid()
         
         y_lim = plt.gca().get_ylim()
@@ -151,7 +153,7 @@ class Loops:
         # Label plot
         plt.xlabel('Position along loop (percentage)')
         plt.ylabel('C0')
-        plt.title(f'C0 along loop ({x[0]}% to {x[-1]}% of loop length)')
+        plt.title(f'{c0_category} C0 along loop ({x[0]}% to {x[-1]}% of loop length)')
         
         # Save plot
         fig_dir = 'figures/chrv/loops'
@@ -159,7 +161,8 @@ class Loops:
             Path(fig_dir).mkdir(parents=True, exist_ok=True)
        
         plt.gcf().set_size_inches(12, 6)
-        plt.savefig(f'{fig_dir}/c0_total_loop_perc_{total_perc}_maxlen_{max_loop_length}.png', dpi=200)
+        plt.savefig(f'{fig_dir}/{c0_category}_c0_total_loop_perc_{total_perc}_maxlen_{max_loop_length}.png', dpi=200)
+
 
     # *** #
     def plot_c0_around_anchor(self, lim=500):
@@ -186,7 +189,7 @@ class Loops:
                     Path(loop_fig_dir).mkdir(parents=True, exist_ok=True)  
                 plt.savefig(f'{loop_fig_dir}/anchor_{col}_{a}.png')
         
-        chrv_c0_spread = chrv.spread_c0_balanced()
+        chrv_c0_spread = chrv.spread_c0_balanced('actual')
         
         def mean_around_anchors(anchors: np.ndarray) -> np.ndarray:
             """Calculate mean C0 at bp-resolution around anchors"""
@@ -211,7 +214,7 @@ class Loops:
         plt.plot(x, mean_c0_start, color='tab:green', label='start')
         plt.plot(x, mean_c0_end, color='tab:orange', label='end')
         plt.plot(x, mean_c0_all, color='tab:blue', label='all')
-        chrv.plot_avg()
+        chrv.plot_avg('actual')
 
         plt.legend()
         plt.grid()

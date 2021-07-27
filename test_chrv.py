@@ -18,7 +18,7 @@ class TestChrV(unittest.TestCase):
     def test_plot_c0_vs_dist_from_dyad_spread(self):
         chrv = ChrV()
         chrv.plot_c0_vs_dist_from_dyad_spread(150)
-        path = Path('figures/chrv/c0_dyad_dist_150_spread.png')
+        path = Path('figures/chrv/c0_dyad_dist_150_balanced.png')
         self.assertTrue(path.is_file())
 
 
@@ -34,7 +34,7 @@ class TestChrV(unittest.TestCase):
 
     def test_spread_c0_balanced(self):
         chrv = ChrV()
-        spread_c0 = chrv.spread_c0_balanced()
+        spread_c0 = chrv.spread_c0_balanced('actual')
         self.assertTupleEqual(spread_c0.shape, (CHRV_TOTAL_BP,))
         
         samples = spread_c0[np.random.randint(0,CHRVL_LEN - 1,100)]

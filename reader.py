@@ -49,6 +49,7 @@ class DNASequenceReader:
                 pandas Dataframe with columns `["Sequence #", "Sequence", "C0"]`
             
         """ 
+        #TODO : Read specific library given as input parameters instead of all
         (cnl_df_raw, rl_df_raw, tl_df_raw, chrvl_df_raw, libl_df_raw) = self._get_raw_data()
         
         cnl_df = self._preprocess(cnl_df_raw)
@@ -75,6 +76,8 @@ class DNASequenceReader:
                             'seq_no': 'Sequence #',
                             'Predicted Value': 'C0' 
                         }).drop(columns=['True Value'])
+        
+        predict_df['Sequence'] = predict_df['Sequence'].str[25:-25]
         
         return predict_df 
 

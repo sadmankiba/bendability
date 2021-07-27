@@ -14,8 +14,12 @@ import time
 
 class ChrV:
     "Analysis of Chromosome V in yeast"
+    # TODO: Subclass ChrV based on actual vs. predicted ?
+
     def __init__(self):
-        self.chrv_df = DNASequenceReader().get_processed_data()[CHRVL]
+        reader = DNASequenceReader()
+        self.chrv_df = reader.get_processed_data()[CHRVL]
+        self._predicted_chrv_df = reader.read_library_prediction(CHRVL)
          
     
     def _calc_moving_avg(self, arr: np.ndarray, k: int) -> np.ndarray:
@@ -75,12 +79,16 @@ class ChrV:
         return arr
 
     
-    def plot_avg(self) -> None: 
+    def plot_avg(self, c0_category: str) -> None: 
         """
         Plot a horizontal red line denoting avg. C0 in whole chromosome
         
-        Best to draw after x limit is set. 
+        Best to draw after x limit is set.
+
+        Args: 
+            c0_category: How C0 is found. Either 'actual' or 'predicted'.  
         """
+        df = self.chrv_df if c0_category == 'actual' else self._predicted_chrv_df
         plt.axhline(y=self.chrv_df['C0'].mean(), color='r', linestyle='-')
         x_lim = plt.gca().get_xlim()
         plt.text(x_lim[0] + (x_lim[1] - x_lim[0]) * 0.15, self.chrv_df['C0'].mean(), 'avg', color='r', ha='center', va='bottom')
@@ -88,7 +96,10 @@ class ChrV:
 
     def plot_moving_avg(self, start: int, end: int) -> None:
         """
-        Plot C0, a few moving averages of C0 and nuc. centers in chr V. 
+        Plot C0, a few moving averages of C0 and nuc. centers in a segment of chr V.
+
+        Does not give labels so that custom labels can be given after calling this
+        function.  
         
         Args: 
             start: Start position in the chromosome 
@@ -112,7 +123,7 @@ class ChrV:
             ma = self._calc_moving_avg(y, p[0])
             plt.plot((x + ((p[0] - 1) * 7) // 2)[:ma.size], ma, color=p[1], alpha=p[2], label=p[0])
         
-        self.plot_avg()
+        self.plot_avg('actual')
 
         # Find and plot nuc. centers
         nuc_df = DNASequenceReader().read_nuc_center()
@@ -162,7 +173,7 @@ class ChrV:
         plt.axvline(x=0, color='tab:orange', linestyle='--')
         plt.text(0, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, f'dyad', color='tab:orange', ha='left', va='center')
 
-        self.plot_avg()
+        self.plot_avg('actual')
         plt.grid()
 
         plt.xlabel('Distance from dyad(bp)')
@@ -226,17 +237,22 @@ class ChrV:
         return spread
 
     
-    def spread_c0_balanced(self) -> np.ndarray:
-        """Determine C0 at each bp by average of covering 50-bp sequences around"""
+    def spread_c0_balanced(self, c0_category: str) -> np.ndarray:
+        """Determine C0 at each bp by average of covering 50-bp sequences around
+        
+        Args:
+            c0_category: How C0 is found. Either 'actual' or 'predicted'.
+        """
         # TODO: spread C0 -> separate class
 
-        saved_data = Path('data/generated_data/chrv/spread_c0_balanced.tsv')
+        saved_data = Path(f'data/generated_data/chrv/spread_{c0_category}_c0_balanced.tsv')
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep='\t')['c0_balanced'].to_numpy()
         
         def balanced_c0_at(pos) -> float:
             seq_indices = self._covering_sequences_at(pos) - 1
-            return self.chrv_df['C0'][seq_indices].mean()
+            df = self.chrv_df if c0_category == 'actual' else self._predicted_chrv_df
+            return df['C0'][seq_indices].mean()
         
         t = time.time()
         res = np.array(list(map(balanced_c0_at, np.arange(CHRV_TOTAL_BP) + 1)))
@@ -302,7 +318,7 @@ class ChrV:
         Args: 
             dist: +-distance from dyad to plot (1-indexed) 
         """
-        spread_c0 = self.spread_c0_balanced()
+        spread_c0 = self.spread_c0_balanced('actual')
         nuc_df = DNASequenceReader().read_nuc_center()
         centers = nuc_df.loc[nuc_df['Chromosome ID'] == 'chrV']['Position'].tolist()
         

@@ -7,11 +7,11 @@ import unittest
 
 # TODO: Convert unittest to pytest
 
-class TestModel(unittest.TestCase):
+class TestGetRawData(unittest.TestCase):
     def setUp(self):
         pass
     
-    
+
     def test_get_raw_data_cnl(self):
         reader = DNASequenceReader()
         cnl_df_raw = reader._get_raw_data()[0]
@@ -45,6 +45,11 @@ class TestModel(unittest.TestCase):
         libl_df_raw = reader._get_raw_data()[4]
         required_cols = ["Sequence #", "Sequence", " C0"]
         self.assertTrue(set(libl_df_raw.columns).issuperset(required_cols))
+
+
+class TestReader(unittest.TestCase):
+    def setUp(self):
+        pass
 
 
     def test_preprocess(self):
