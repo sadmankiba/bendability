@@ -1,18 +1,30 @@
 from __future__ import annotations
 
+# Import from parent directory
+import sys 
+import os
+sys.path.insert(1, os.path.join(sys.path[0], '..')) 
+
+from reader import DNASequenceReader
+from constants import LIBRARY_NAMES
+
 import sys
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from dinucleotide import mono_to_dinucleotide, dinucleotide_one_hot_encode
-import pandas
 
 import re
 
 
 class Preprocess:
-    def __init__(self, file):
-        self.file = file
-        self.df = pandas.read_table(filepath_or_buffer=file, )
+    def __init__(self, lib_name: LIBRARY_NAMES):
+        """
+        Construct a Preprocess object. 
+
+        Args:
+            lib_name: Library name 
+        """
+        self.df = DNASequenceReader().get_processed_data()[lib_name]
 
     
     def rc_comp2(self, seqn):
@@ -42,7 +54,7 @@ class Preprocess:
         rc_seqs = self.rc_comp2(all_seqs)
         
         # Set target
-        target = self.df[' C0'].tolist() if ' C0' in self.df else None  
+        target = self.df['C0'].tolist() if 'C0' in self.df else None  
 
         return {
             "all_seqs": all_seqs,

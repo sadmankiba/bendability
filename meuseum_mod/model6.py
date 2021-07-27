@@ -74,7 +74,7 @@ class nn_model:
         self.loss_func = loss_func
         self.optimizer = optimizer
 
-    def create_model(self):
+    def create_model(self) -> keras.Model:
         # different metric functions
         def coeff_determination(y_true, y_pred):
             SS_res = K.sum(K.square(y_true-y_pred))

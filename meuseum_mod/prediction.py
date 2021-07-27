@@ -1,7 +1,8 @@
-from constants import LIBRARIES, Library
+from constants import LIBRARY_NAMES
 from data_preprocess import Preprocess
 from model6 import nn_model
 
+import keras 
 from contextlib import suppress
 from os import stat
 import sys
@@ -37,11 +38,11 @@ def get_parameters(file_name):
     return dict
 
 
-def check_performance(model, library: Library) -> pd.DataFrame:
+def check_performance(model: keras.Model, lib_name: LIBRARY_NAMES) -> pd.DataFrame:
     """
     Check model performance on a sequence library and return predicted values.
     """
-    prep = Preprocess(f'data/{library["file"]}')
+    prep = Preprocess(lib_name)
     # if want mono-nucleotide sequences
     data = prep.one_hot_encode()
     # if want dinucleotide sequences
@@ -69,7 +70,7 @@ def check_performance(model, library: Library) -> pd.DataFrame:
     df = pd.DataFrame(
         {'Sequence': prep.df['Sequence'].str[25:-25].tolist(), 'Predicted Value': y_pred, 'True Value': y})
     
-    df.to_csv(f'predictions/{library["name"]}_pred.tsv', sep='\t', index=False)
+    df.to_csv(f'predictions/{lib_name}_pred.tsv', sep='\t', index=False)
     print('Predictions saved.')
     
     # Plot scatter plot
@@ -159,7 +160,7 @@ def save_kernel_weights_logos(model):
     
 
 class Prediction:
-    def predict(self, lib_name: str):
+    def predict(self, lib_name: LIBRARY_NAMES):
         argv = sys.argv
         parameter_file = argv[1] #e.g. parameter1.txt
         
@@ -183,7 +184,7 @@ class Prediction:
         model.load_weights('model_weights/w6.h5_archived')
 
         np.set_printoptions(threshold=sys.maxsize, precision=5, suppress=True)
-        check_performance(model, LIBRARIES[lib_name])
+        check_performance(model, lib_name)
 
         # save_kernel_weights_logos(model)
 
