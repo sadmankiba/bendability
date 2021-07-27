@@ -50,4 +50,4 @@ def run_model():
 
 
 if __name__ == '__main__':
-    Loops().plot_c0_vs_total_loop(200)
+    Loops().plot_c0_vs_total_loop(200, 'predicted')
