@@ -116,7 +116,7 @@ class DNASequenceReader:
         num_50bp_seqs = math.ceil((len(seq) - SEQ_LEN + 1) / 7)
         seqs_50bp = list(
             map(
-                lambda seq_idx: seq[seq_idx * 7: seq_idx * 7 + 50], 
+                lambda seq_idx: str(seq[seq_idx * 7: seq_idx * 7 + 50]), 
                 range(num_50bp_seqs)
             )
         )

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from reader import DNASequenceReader
 from constants import CHRVL, SEQ_LEN, CHRV_TOTAL_BP, CHRVL_LEN
+from meuseum_mod.evaluation import Evaluation
 
 import matplotlib.pyplot as plt 
 import numpy as np
@@ -39,28 +40,31 @@ class Chromosome:
     # TODO: Subclass Chr based on actual vs. predicted ?
 
     def __init__(self, chr_num: Union[YeastChrNum, Literal['VL']]):
+        # TODO: chr_num and c0_type should be public (used in Loops)
         self._chr_num = 'V' if chr_num == 'VL' else chr_num
         self._c0_type = 'actual' if chr_num == 'VL' else 'predicted'
         self._df = (DNASequenceReader().get_processed_data()[CHRVL] 
-            if chr_num == 'VL' else self._read_chr_prediction(chr_num))
+            if chr_num == 'VL' else self._get_chr_prediction(chr_num))
         self._total_bp = (len(self._df) - 1) * 7 + SEQ_LEN
         self._chr_util = ChromosomeUtil()
          
 
-    def _read_chr_prediction(self, chr_num: YeastChrNum):
+    def _get_chr_prediction(self, chr_num: YeastChrNum):
         """Read predicted C0 of a yeast chromosome by meuseum model"""
 
-        predict_df = pd.read_table(f'data/generated_data/predictions/chr{chr_num}_pred.tsv', sep='\t')
-        predict_df = predict_df.assign(seq_no = lambda df: df.index + 1)\
-                        .rename(columns = {
-                            'seq_no': 'Sequence #',
-                            'Predicted Value': 'C0' 
-                        }).drop(columns=['True Value'])
+        saved_predict_data = Path(f'data/generated_data/predictions/chr{chr_num}_pred.tsv')
+        if saved_predict_data.is_file():
+            return pd.read_csv(saved_predict_data, sep='\t')
         
-        predict_df['Sequence'] = predict_df['Sequence'].str[25:-25]
+        df = DNASequenceReader().read_yeast_genome(7)
+        predict_df = Evaluation().predict(df).rename(columns = {'c0_predict': 'C0'})
+        
+        # Save data
+        if not saved_predict_data.parents[0].is_dir():
+            saved_predict_data.parents[0].mkdir(parents=True, exist_ok=True)
+        predict_df.to_csv(saved_predict_data, sep='\t', index=False)
         
         return predict_df
-
 
     def read_chr_lib_segment(self, start: int, end: int) -> pd.DataFrame:
         """

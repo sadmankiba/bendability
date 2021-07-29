@@ -1,3 +1,4 @@
+from chromosome import Chromosome
 from data_organizer import DataOrganizer, ShapeOrganizerFactory, \
         SequenceLibrary, DataOrganizeOptions, TrainTestSequenceLibraries
 from feat_selector import FeatureSelectorFactory
@@ -50,4 +51,4 @@ def run_model():
 
 
 if __name__ == '__main__':
-    DNASequenceReader().read_yeast_genome('')
+    Loops(Chromosome('VII')).plot_mean_c0_across_loops()

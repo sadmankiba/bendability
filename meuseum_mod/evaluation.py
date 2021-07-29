@@ -1,8 +1,4 @@
 
-from pandas.core.frame import DataFrame
-from model6 import nn_model
-from data_preprocess import Preprocess
-
 # Import from parent directory
 import sys 
 import os
@@ -10,6 +6,8 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 from constants import CNL
 from reader import DNASequenceReader
+from meuseum_mod.model6 import nn_model
+from meuseum_mod.data_preprocess import Preprocess
 
 import keras 
 from contextlib import suppress
@@ -30,6 +28,8 @@ from scipy.stats import pearsonr, spearmanr
 from plotnine import ggplot, aes, xlim, ylim, stat_bin_2d
 
 import shutil
+from pathlib import Path 
+import inspect
 
 def get_parameters(file_name):
     dict = {}
@@ -125,7 +125,10 @@ class Evaluation:
 
 
     def _load_model(self) -> keras.Model:
-        parameter_file = 'parameter1.txt'
+        # Find parent directory path dynamically
+        parent_dir = Path(inspect.getabsfile(inspect.currentframe())).parent
+        
+        parameter_file = f'{parent_dir}/parameter1.txt'
         
         params = get_parameters(parameter_file)
 
@@ -142,7 +145,7 @@ class Evaluation:
         # )
 
         print('Loading weights in model...')
-        model.load_weights('model_weights/w6.h5_archived')
+        model.load_weights(f'{parent_dir}/model_weights/w6.h5_archived')
         return model
 
 
