@@ -56,7 +56,7 @@ class Chromosome:
         if saved_predict_data.is_file():
             return pd.read_csv(saved_predict_data, sep='\t')
         
-        df = DNASequenceReader().read_yeast_genome(7)
+        df = DNASequenceReader().read_yeast_genome(self._chr_num)
         predict_df = Evaluation().predict(df).rename(columns = {'c0_predict': 'C0'})
         
         # Save data

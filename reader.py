@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from constants import CNL, RL, SEQ_LEN, TL, CHRVL, LIBL
+from chromosome import YeastChrNum
+from util import roman_to_num
 
 import pandas as pd
 from Bio import SeqIO
@@ -90,17 +92,15 @@ class DNASequenceReader:
                 )
     
 
-    def read_yeast_genome(self, chr: int) -> pd.DataFrame:
+    def read_yeast_genome(self, chr_num: YeastChrNum) -> pd.DataFrame:
         """
         Read reference sequence of a yeast chromosome. Transforms it into 50-bp
         sequences at 7-bp resolution. 
-
-        Args: 
-            chr: Chromosome number (1 - 16)
         
         Returns:
             A pandas DataFrame with columns ['Sequence #', 'Sequence']
         """
+        chr = roman_to_num(chr_num)
         assert chr >= 1 and chr <= 16
         
         # Read file

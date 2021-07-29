@@ -1,4 +1,5 @@
 from __future__ import annotations
+from chromosome import YeastChrNum
 
 import pandas as pd
 import numpy as np
@@ -146,3 +147,24 @@ def get_random_string(length):
     letters = string.ascii_lowercase
     result_str = ''.join(random.choice(letters) for i in range(length))
     return result_str
+
+def roman_to_num(chr_num: YeastChrNum) -> int:
+    rom_num_map = {
+        'I': 1,
+        'II': 2,
+        'III': 3,
+        'IV': 4,
+        'V': 5,
+        'VI': 6,
+        'VII': 7,
+        'VIII': 8,
+        'IX': 9,
+        'X': 10,
+        'XI': 11,
+        'XII': 12,
+        'XIII': 13,
+        'XIV': 14,
+        'XV': 15,
+        'XVI': 16
+    }
+    return rom_num_map[chr_num]
