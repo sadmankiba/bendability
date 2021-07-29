@@ -60,4 +60,9 @@ class TestChromosome(unittest.TestCase):
         self.assertCountEqual(predict_df.columns, ['Sequence #', 'Sequence', 'C0'])
 
 
+    def test_get_nuc_occupancy(self):
+        chr = Chromosome('VII')
+        nuc_occ = chr.get_nucleosome_occupancy()
+        assert nuc_occ.shape == (chr._total_bp, )
+        assert any(nuc_occ)
 
