@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dinucleotide import mono_to_dinucleotide, dinucleotide_one_hot_encode
+
 # Import from parent directory
 import sys 
 import os
@@ -11,21 +13,18 @@ from constants import LIBRARY_NAMES
 import sys
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-from dinucleotide import mono_to_dinucleotide, dinucleotide_one_hot_encode
+import pandas as pd
 
 import re
 from typing import Literal
 
 
 class Preprocess:
-    def __init__(self, lib_name: LIBRARY_NAMES):
+    def __init__(self, df: pd.DataFrame):
         """
         Construct a Preprocess object. 
-
-        Args:
-            lib_name: Library name 
         """
-        self._df = DNASequenceReader().get_processed_data()[lib_name]
+        self._df = df
 
     
     def _rc_comp2(self, seqn):

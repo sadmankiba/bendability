@@ -1,4 +1,5 @@
 
+from pandas.core.frame import DataFrame
 from model6 import nn_model
 from data_preprocess import Preprocess
 
@@ -7,7 +8,8 @@ import sys
 import os
 sys.path.insert(1, os.path.join(sys.path[0], '..')) 
 
-from constants import CHRVL, LIBRARY_NAMES
+from constants import CNL
+from reader import DNASequenceReader
 
 import keras 
 from contextlib import suppress
@@ -144,7 +146,7 @@ class Evaluation:
         return model
 
 
-    def _plot_scatter(self, df: pd.DataFrame, lib_name: LIBRARY_NAMES) -> None:
+    def _plot_scatter(self, df: pd.DataFrame) -> None:
         p = (ggplot(data=df,
                     mapping=aes(x='True Value', y='Predicted Value'))
              + stat_bin_2d(bins=150)
@@ -152,18 +154,17 @@ class Evaluation:
              + ylim(-2.75, 2.75)
              )
 
-        with open(f'figures/scatter_{lib_name}.png', 'w') as f:
+        with open(f'figures/scatter.png', 'w') as f:
             print(p, file=f)
-        pass
 
 
-    def check_performance(self, lib_name: LIBRARY_NAMES) -> pd.DataFrame:
+    def check_performance(self, df: pd.DataFrame) -> None:
         """
         Check model performance on a sequence library and return predicted values.
         """
         start_time = time.time()
 
-        prep = Preprocess(lib_name)
+        prep = Preprocess(df)
         data = prep.one_hot_encode()
         
         x1 = data["forward"]
@@ -176,6 +177,27 @@ class Evaluation:
         print('metrics names are ' + str(self._model.metrics_names))
 
         print(f"Took --- {time.time() - start_time} seconds ---")
+    
+
+    def predict(self, df: pd.DataFrame) -> pd.DataFrame:
+        prep = Preprocess(df)
+        data = prep.one_hot_encode()
+        
+        x1 = data["forward"]
+        x2 = data["reverse"]
+
+        y_pred = self._model.predict({'forward': x1, 'reverse': x2}).flatten()
+        return df.assign(c0_predict = y_pred)
+        # df['c0_predict'] = y_pred
+                
+        
+    def print_prediction_metrics(self, df: pd.DataFrame) -> None:
+        prep = Preprocess(df)
+        data = prep.one_hot_encode()
+        
+        x1 = data["forward"]
+        x2 = data["reverse"]
+        y = data["target"]
 
         y_pred = self._model.predict({'forward': x1, 'reverse': x2}).flatten()
         assert y_pred.shape == y.shape
@@ -183,17 +205,10 @@ class Evaluation:
         print('Pearson\'s correlation:', pearsonr(y, y_pred)[0])
         print('Spearman\'s correlation: ', spearmanr(y, y_pred)[0])
 
-        df = pd.DataFrame(
-            {'Sequence': prep.df['Sequence'].str[25:-25].tolist(), 'Predicted Value': y_pred, 'True Value': y})
+        # self._plot_scatter(df)
         
-        df.to_csv(f'predictions/{lib_name}_pred.tsv', sep='\t', index=False)
-        print('Predictions saved.')
-        
-        # self._plot_scatter(df, lib_name)
-        
-        return df
-    
 
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize, precision=5, suppress=True)
-    Evaluation().check_performance(CHRVL)
+    df = DNASequenceReader().get_processed_data()[CNL]
+    Evaluation().check_performance(df)
