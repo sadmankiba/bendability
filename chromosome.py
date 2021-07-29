@@ -11,20 +11,14 @@ from scipy.interpolate import make_interp_spline
 import math 
 from pathlib import Path
 import time
+from typing import Literal, Union
 
-RomanNumber = str
+YeastChrNum = Literal['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 
+                        'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI']
 
-class Chromosome:
-    "Analysis of Chromosome in yeast"
-    # TODO: Subclass ChrV based on actual vs. predicted ?
 
-    def __init__(self):
-        reader = DNASequenceReader()
-        self.chrv_df = reader.get_processed_data()[CHRVL]
-        self._predicted_chrv_df = self._read_chr_prediction('V')
-         
-    
-    def _calc_moving_avg(self, arr: np.ndarray, k: int) -> np.ndarray:
+class ChromosomeUtil:
+    def calc_moving_avg(self, arr: np.ndarray, k: int) -> np.ndarray:
         """
         Calculate moving average of k data points 
         """
@@ -40,7 +34,20 @@ class Chromosome:
         return ma
 
 
-    def _read_chr_prediction(self, chr_num: RomanNumber):
+class Chromosome:
+    "Analysis of Chromosome in yeast"
+    # TODO: Subclass Chr based on actual vs. predicted ?
+
+    def __init__(self, chr_num: Union[YeastChrNum, Literal['VL']]):
+        self._chr_num = 'V' if chr_num == 'VL' else chr_num
+        self._c0_type = 'actual' if chr_num == 'VL' else 'predicted'
+        self._df = (DNASequenceReader().get_processed_data()[CHRVL] 
+            if chr_num == 'VL' else self._read_chr_prediction(chr_num))
+        self._total_bp = (len(self._df) - 1) * 7 + SEQ_LEN
+        self._chr_util = ChromosomeUtil()
+         
+
+    def _read_chr_prediction(self, chr_num: YeastChrNum):
         """Read predicted C0 of a yeast chromosome by meuseum model"""
 
         predict_df = pd.read_table(f'data/generated_data/predictions/chr{chr_num}_pred.tsv', sep='\t')
@@ -55,36 +62,36 @@ class Chromosome:
         return predict_df
 
 
-    def read_chrv_lib_segment(self, start: int, end: int) -> pd.DataFrame:
+    def read_chr_lib_segment(self, start: int, end: int) -> pd.DataFrame:
         """
-        Read Chr V library and cut df to contain sequences in a segment.
+        Get sequences in library of a chromosome segment.
 
         Returns: 
-            A pandas.DataFrame containing chr V lib of selected segment. 
+            A pandas.DataFrame containing chr library of selected segment. 
         """
         first_seq_num = math.ceil(start / 7)
         last_seq_num = math.ceil((end - SEQ_LEN + 1) / 7)
 
-        return self.chrv_df.loc[(self.chrv_df['Sequence #'] >= first_seq_num) 
-                                & (self.chrv_df['Sequence #'] <= last_seq_num), :]
+        return self._df.loc[(self._df['Sequence #'] >= first_seq_num) 
+                                & (self._df['Sequence #'] <= last_seq_num), :]
     
 
     def _covering_sequences_at(self, pos: int) -> np.ndarray:
         """
-        Find covering 50-bp sequences in chr V library of a position in chr V
+        Find covering 50-bp sequences in chr library of a bp in chromosome.
         
         Args: 
-            pos: position in chr V (1-indexed)
+            pos: position in chr (1-indexed)
         
         Returns:
-            A numpy 1D array containing sequence numbers of chr V library 
+            A numpy 1D array containing sequence numbers of chr library 
             in increasing order
         """
         if pos < SEQ_LEN:   # 1, 2, ... , 50
             arr = np.arange((pos + 6) // 7) + 1
-        elif pos > CHRV_TOTAL_BP - SEQ_LEN:   # 576822, ..., 576871
-            arr = -(np.arange((CHRV_TOTAL_BP - pos + 1 + 6) // 7)[::-1]) + CHRVL_LEN
-        elif pos % 7 == 1:  # 50, 57, 64, ..., 576821
+        elif pos > self._total_bp - SEQ_LEN:   # For chr V, 576822, ..., 576871
+            arr = -(np.arange((self._total_bp - pos + 1 + 6) // 7)[::-1]) + len(self._df) 
+        elif pos % 7 == 1:  # For chr V, 50, 57, 64, ..., 576821
             arr = np.arange(8) + (pos - SEQ_LEN + 7) // 7
         else: 
             arr = np.arange(7) + (pos - SEQ_LEN + 14) // 7
@@ -96,24 +103,20 @@ class Chromosome:
         return arr
 
     
-    def plot_avg(self, c0_category: str) -> None: 
+    def plot_avg(self) -> None: 
         """
         Plot a horizontal red line denoting avg. C0 in whole chromosome
         
         Best to draw after x limit is set.
-
-        Args: 
-            c0_category: How C0 is found. Either 'actual' or 'predicted'.  
         """
-        df = self.chrv_df if c0_category == 'actual' else self._predicted_chrv_df
-        plt.axhline(y=self.chrv_df['C0'].mean(), color='r', linestyle='-')
+        plt.axhline(y=self._df['C0'].mean(), color='r', linestyle='-')
         x_lim = plt.gca().get_xlim()
-        plt.text(x_lim[0] + (x_lim[1] - x_lim[0]) * 0.15, self.chrv_df['C0'].mean(), 'avg', color='r', ha='center', va='bottom')
+        plt.text(x_lim[0] + (x_lim[1] - x_lim[0]) * 0.15, self._df['C0'].mean(), 'avg', color='r', ha='center', va='bottom')
         
 
     def plot_moving_avg(self, start: int, end: int) -> None:
         """
-        Plot C0, a few moving averages of C0 and nuc. centers in a segment of chr V.
+        Plot C0, a few moving averages of C0 and nuc. centers in a segment of chr.
 
         Does not give labels so that custom labels can be given after calling this
         function.  
@@ -122,12 +125,12 @@ class Chromosome:
             start: Start position in the chromosome 
             end: End position in the chromosome
         """
-        df_sel = self.read_chrv_lib_segment(start, end)
+        df_sel = self.read_chr_lib_segment(start, end)
 
         plt.close()
         plt.clf()
         
-        # Plot C0 of each sequence in Chr V library
+        # Plot C0 of each sequence in Chr library
         x = (df_sel['Sequence #'] - 1) * 7 + SEQ_LEN / 2
         y = df_sel['C0'].to_numpy()
         plt.plot(x, y, color='blue', alpha=0.2, label=1)
@@ -137,14 +140,16 @@ class Chromosome:
         colors = ['green'] #, 'red', 'black']
         alpha = [0.7] #, 0.8, 0.9]
         for p in zip(k, colors, alpha):
-            ma = self._calc_moving_avg(y, p[0])
+            ma = self._chr_util.calc_moving_avg(y, p[0])
             plt.plot((x + ((p[0] - 1) * 7) // 2)[:ma.size], ma, color=p[1], alpha=p[2], label=p[0])
         
-        self.plot_avg('actual')
+        self.plot_avg()
 
         # Find and plot nuc. centers
         nuc_df = DNASequenceReader().read_nuc_center()
-        centers = nuc_df.loc[nuc_df['Chromosome ID'] == 'chrV']['Position'].to_numpy()
+        centers = nuc_df.loc[
+                        nuc_df['Chromosome ID'] == f'chr{self._chr_num}'
+                    ]['Position'].to_numpy()
         centers = centers[centers > start]
         centers = centers[centers < end]
         
@@ -156,19 +161,19 @@ class Chromosome:
 
     # *** #
     def plot_c0(self, start: int, end: int) -> None:
-        """Plot C0, moving avg., nuc. centers of a segment in chromosome V
+        """Plot C0, moving avg., nuc. centers of a segment in chromosome
         and add appropriate labels.   
         """
         self.plot_moving_avg(start, end)
 
         plt.ylim(-0.8, 0.6)
-        plt.xlabel(f'Position along chromosome V')
+        plt.xlabel(f'Position along chromosome {self._chr_num}')
         plt.ylabel('Moving avg. of C0')
-        plt.title(f"C0, 10-bp moving avg. of C0 and nuclesome centers in Chr V ({start}-{end})")
+        plt.title(f"C0, 10-bp moving avg. of C0 and nuclesome centers in Chr {self._chr_num} ({start}-{end})")
         
         # Save figure
         plt.gcf().set_size_inches(12, 6)
-        ma_fig_dir = f'figures/chrv'
+        ma_fig_dir = f'figures/chromosome/{self._chr_num}_{self._c0_type}'
         if not Path(ma_fig_dir).is_dir():
             Path(ma_fig_dir).mkdir(parents=True, exist_ok=True)
         
@@ -190,7 +195,7 @@ class Chromosome:
         plt.axvline(x=0, color='tab:orange', linestyle='--')
         plt.text(0, y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75, f'dyad', color='tab:orange', ha='left', va='center')
 
-        self.plot_avg('actual')
+        self.plot_avg()
         plt.grid()
 
         plt.xlabel('Distance from dyad(bp)')
@@ -198,7 +203,7 @@ class Chromosome:
         plt.title(f'C0 of +-{dist} bp from nuclesome dyad')
         
         # Save figure
-        fig_dir = 'figures/chrv'
+        fig_dir = f'figures/chromosome/{self._chr_num}_{self._c0_type}'
         if not Path(fig_dir).is_dir():
             Path(fig_dir).mkdir(parents=True, exist_ok=True)
        
@@ -215,7 +220,7 @@ class Chromosome:
             dist: +-distance from dyad to plot (1-indexed)
         """
         nuc_df = DNASequenceReader().read_nuc_center()
-        centers = nuc_df.loc[nuc_df['Chromosome ID'] == 'chrV']['Position'].tolist()
+        centers = nuc_df.loc[nuc_df['Chromosome ID'] == f'chr{self._chr_num}']['Position'].tolist()
         
         # Read C0 of -dist to +dist sequences
         c0_at_nuc: list[list[float]] = list(
@@ -243,42 +248,37 @@ class Chromosome:
 
     def spread_c0(self) -> np.ndarray:
         """Determine C0 at each bp by spreading C0 of a 50-bp seq to position 22-28"""
-        c0_arr = self.chrv_df['C0'].to_numpy()
+        c0_arr = self._df['C0'].to_numpy()
         spread = np.concatenate((
             np.full((21,), c0_arr[0]), 
             np.vstack(([c0_arr] * 7)).ravel(order='F'),
             np.full((22,), c0_arr[-1])
         ))
-        assert spread.size == CHRV_TOTAL_BP
+        assert spread.size == self._total_bp
         
         return spread
 
     
-    def spread_c0_balanced(self, c0_category: str) -> np.ndarray:
-        """Determine C0 at each bp by average of covering 50-bp sequences around
-        
-        Args:
-            c0_category: How C0 is found. Either 'actual' or 'predicted'.
-        """
+    def spread_c0_balanced(self) -> np.ndarray:
+        """Determine C0 at each bp by average of covering 50-bp sequences around"""
         # TODO: spread C0 -> separate class
 
-        saved_data = Path(f'data/generated_data/chrv/spread_{c0_category}_c0_balanced.tsv')
+        saved_data = Path(f'data/generated_data/chromosome/{self._chr_num}_{self._c0_type}/spread_c0_balanced.tsv')
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep='\t')['c0_balanced'].to_numpy()
         
         def balanced_c0_at(pos) -> float:
             seq_indices = self._covering_sequences_at(pos) - 1
-            df = self.chrv_df if c0_category == 'actual' else self._predicted_chrv_df
-            return df['C0'][seq_indices].mean()
+            return self._df['C0'][seq_indices].mean()
         
         t = time.time()
-        res = np.array(list(map(balanced_c0_at, np.arange(CHRV_TOTAL_BP) + 1)))
+        res = np.array(list(map(balanced_c0_at, np.arange(self._total_bp) + 1)))
         print('Calculation of spread c0 balanced:', time.time() - t, 'seconds.')
         
         # Save data
         if not saved_data.parents[0].is_dir():
             saved_data.parents[0].mkdir(parents=True, exist_ok=True)
-        pd.DataFrame({'position': np.arange(CHRV_TOTAL_BP) + 1, 'c0_balanced': res})\
+        pd.DataFrame({'position': np.arange(self._total_bp) + 1, 'c0_balanced': res})\
             .to_csv(saved_data, sep='\t', index=False)
 
         return res
@@ -286,7 +286,7 @@ class Chromosome:
 
     def spread_c0_weighted(self) -> np.ndarray:
         """Determine C0 at each bp by weighted average of covering 50-bp sequences around"""
-        saved_data = Path('data/generated_data/chrv/spread_c0_weighted.tsv')
+        saved_data = Path(f'data/generated_data/chromosome/{self._chr_num}_{self._c0_type}/spread_c0_weighted.tsv')
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep='\t')['c0_weighted'].to_numpy()
 
@@ -315,13 +315,13 @@ class Chromosome:
             return np.sum(c0s * weights_for(c0s.size)) / sum(weights_for(c0s.size))
 
         t = time.time()
-        res = np.array(list(map(weighted_c0_at, np.arange(CHRV_TOTAL_BP) + 1)))
+        res = np.array(list(map(weighted_c0_at, np.arange(self._total_bp) + 1)))
         print(print('Calculation of spread c0 weighted:', time.time() - t, 'seconds.'))
         
         # Save data
         if not saved_data.parents[0].is_dir():
             saved_data.parents[0].mkdir(parents=True, exist_ok=True)
-        pd.DataFrame({'position': np.arange(CHRV_TOTAL_BP) + 1, 'c0_weighted': res})\
+        pd.DataFrame({'position': np.arange(self._total_bp) + 1, 'c0_weighted': res})\
             .to_csv(saved_data, sep='\t', index=False)
 
         return res 
@@ -329,18 +329,18 @@ class Chromosome:
     # *** #
     def plot_c0_vs_dist_from_dyad_spread(self, dist=150) -> None:
         """
-        Plot C0 vs. distance from dyad of nucleosomes in chromosome V by
+        Plot C0 vs. distance from dyad of nucleosomes in chromosome by
         spreading 50-bp sequence C0
 
         Args: 
             dist: +-distance from dyad to plot (1-indexed) 
         """
-        spread_c0 = self.spread_c0_balanced('actual')
+        spread_c0 = self.spread_c0_balanced()
         nuc_df = DNASequenceReader().read_nuc_center()
-        centers = nuc_df.loc[nuc_df['Chromosome ID'] == 'chrV']['Position'].tolist()
+        centers = nuc_df.loc[nuc_df['Chromosome ID'] == f'chr{self._chr_num}']['Position'].tolist()
         
         # Remove center positions at each end that aren't in at least dist depth
-        centers = list(filter(lambda i: i > dist and i < CHRV_TOTAL_BP - dist, centers))
+        centers = list(filter(lambda i: i > dist and i < self._total_bp - dist, centers))
 
         # Read C0 of -dist to +dist sequences
         c0_at_nuc: list[np.ndarray] = list(
