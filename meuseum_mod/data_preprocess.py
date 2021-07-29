@@ -8,7 +8,7 @@ import os
 sys.path.insert(1, os.path.join(sys.path[0], '..')) 
 
 from reader import DNASequenceReader
-from constants import LIBRARY_NAMES
+from custom_types import LIBRARY_NAMES
 from meuseum_mod.dinucleotide import mono_to_dinucleotide, dinucleotide_one_hot_encode
 
 import sys

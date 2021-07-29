@@ -5,7 +5,7 @@ from helsep import HelicalSeparationCounter
 from occurence import Occurence
 from shape import run_dna_shape_r_wrapper
 from reader import DNASequenceReader
-from constants import LIBRARY_NAMES
+from custom_types import LIBRARY_NAMES
 from feat_selector import FeatureSelector
 
 import numpy as np

@@ -3,6 +3,7 @@ from __future__ import annotations
 from reader import DNASequenceReader
 from constants import CHRVL, SEQ_LEN, CHRV_TOTAL_BP, CHRVL_LEN
 from meuseum_mod.evaluation import Evaluation
+from custom_types import YeastChrNum
 
 import matplotlib.pyplot as plt 
 import numpy as np
@@ -14,8 +15,6 @@ from pathlib import Path
 import time
 from typing import Literal, Union
 
-YeastChrNum = Literal['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 
-                        'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI']
 
 
 class ChromosomeUtil:

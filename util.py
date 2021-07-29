@@ -1,5 +1,5 @@
 from __future__ import annotations
-from chromosome import YeastChrNum
+from custom_types import YeastChrNum
 
 import pandas as pd
 import numpy as np

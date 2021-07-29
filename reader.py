@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from constants import CNL, RL, SEQ_LEN, TL, CHRVL, LIBL
-from chromosome import YeastChrNum
+from custom_types import YeastChrNum
 from util import roman_to_num
 
 import pandas as pd

@@ -7,9 +7,6 @@ TL = 'tl'
 CHRVL = 'chrvl'
 LIBL = 'libl'
 
-# Type
-LIBRARY_NAMES = Literal['cnl', 'rl', 'tl', 'chrvl', 'libl']
-
 # Library length 
 CNL_LEN = 19907
 RL_LEN = 12472

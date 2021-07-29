@@ -9,13 +9,12 @@ from pathlib import Path
 
 class TestLoops(unittest.TestCase):
     def test_read_loops(self):
-        loop_file = 'juicer/data/generated_data/loops/merged_loops_r_500_1000_2000.bedpe'
-        loops = Loops(None, loop_file)
-        df = loops._read_loops()
+        loop = Loops(Chromosome('VL'))
+        df = loop._read_loops()
         assert set(df.columns) == set(['start', 'end', 'res'])
 
         # Count number of lines in bedpe file
-        s = subprocess.check_output(["wc", "-l", loop_file])
+        s = subprocess.check_output(["wc", "-l", loop._loop_file])
         assert len(df) == int(s.split()[0]) - 2
 
 
