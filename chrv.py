@@ -12,6 +12,8 @@ import math
 from pathlib import Path
 import time
 
+RomanNumber = str
+
 class ChrV:
     "Analysis of Chromosome V in yeast"
     # TODO: Subclass ChrV based on actual vs. predicted ?
@@ -19,7 +21,7 @@ class ChrV:
     def __init__(self):
         reader = DNASequenceReader()
         self.chrv_df = reader.get_processed_data()[CHRVL]
-        self._predicted_chrv_df = reader.read_chr_prediction('V')
+        self._predicted_chrv_df = self._read_chr_prediction('V')
          
     
     def _calc_moving_avg(self, arr: np.ndarray, k: int) -> np.ndarray:
@@ -36,6 +38,21 @@ class ChrV:
             ma = np.append(ma, ma[-1] + (arr[i + k] - arr[i]) / k)
         
         return ma
+
+
+    def _read_chr_prediction(self, chr_num: RomanNumber):
+        """Read predicted C0 of a yeast chromosome by meuseum model"""
+
+        predict_df = pd.read_table(f'data/generated_data/predictions/chr{chr_num}_pred.tsv', sep='\t')
+        predict_df = predict_df.assign(seq_no = lambda df: df.index + 1)\
+                        .rename(columns = {
+                            'seq_no': 'Sequence #',
+                            'Predicted Value': 'C0' 
+                        }).drop(columns=['True Value'])
+        
+        predict_df['Sequence'] = predict_df['Sequence'].str[25:-25]
+        
+        return predict_df
 
 
     def read_chrv_lib_segment(self, start: int, end: int) -> pd.DataFrame:

@@ -52,5 +52,11 @@ class TestChrV(unittest.TestCase):
         self.assertTrue(np.all(samples) > -2.5)
 
 
+    def test_read_chr_prediction(self):
+        chrv = ChrV()
+        predict_df = chrv._read_chr_prediction('V')
+        self.assertCountEqual(predict_df.columns, ['Sequence #', 'Sequence', 'C0'])
+
+
 if __name__ == '__main__':
     unittest.main()

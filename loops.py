@@ -64,7 +64,7 @@ class Loops:
         plt.savefig(f'{fig_dir}/loop_highres_hist_maxlen_{max_loop_length}.png', dpi=200)
 
     # ** #
-    def plot_chrv_c0_in_loops(self):
+    def plot_c0_in_individual_loop(self):
         loop_df = self._read_loops()
 
         chrv = ChrV()
@@ -85,7 +85,7 @@ class Loops:
             plt.savefig(f'{loop_fig_dir}/{row["start"]}_{row["end"]}.png')
 
     # *** #    
-    def plot_c0_vs_total_loop(self, total_perc: int, c0_category: str) -> None:
+    def plot_mean_c0_across_loops(self, total_perc: int, c0_category: str) -> None:
         """
         Plot mean C0 across total loop in found loops in chr V
 

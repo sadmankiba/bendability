@@ -72,12 +72,6 @@ class TestReader(unittest.TestCase):
         self.assertEqual(len(nuc_df), 67548) 
 
 
-    def test_read_chr_prediction(self):
-        reader = DNASequenceReader()
-        predict_df = reader.read_chr_prediction('V')
-        self.assertCountEqual(predict_df.columns, ['Sequence #', 'Sequence', 'C0'])
-
-
     def test_read_yeast_genome(self):
         reader = DNASequenceReader()
         chrv_df = reader.get_processed_data()[CHRVL]
