@@ -1,4 +1,4 @@
-from chrv import ChrV
+from chromosome import Chromosome
 
 import numpy as np 
 
@@ -9,21 +9,21 @@ from constants import CHRVL_LEN, CHRV_TOTAL_BP
 
 class TestChrV(unittest.TestCase):
     def test_moving_avg(self):
-        chrv = ChrV()
+        chrv = Chromosome()
         arr = np.array([4, 6, 1, -9, 2, 7, 3])
         ma = chrv._calc_moving_avg(arr, 4)
         self.assertListEqual(ma.tolist(), [0.5, 0, 0.25, 0.75])
     
     
     def test_plot_c0_vs_dist_from_dyad_spread(self):
-        chrv = ChrV()
+        chrv = Chromosome()
         chrv.plot_c0_vs_dist_from_dyad_spread(150)
         path = Path('figures/chrv/c0_dyad_dist_150_balanced.png')
         self.assertTrue(path.is_file())
 
 
     def test_covering_sequences_at(self):
-        chrv = ChrV()
+        chrv = Chromosome()
         arr = chrv._covering_sequences_at(30)
         self.assertListEqual(arr.tolist(), [1, 2, 3, 4, 5])
         arr = chrv._covering_sequences_at(485)
@@ -33,7 +33,7 @@ class TestChrV(unittest.TestCase):
     
 
     def test_spread_c0_balanced(self):
-        chrv = ChrV()
+        chrv = Chromosome()
         spread_c0 = chrv.spread_c0_balanced('actual')
         self.assertTupleEqual(spread_c0.shape, (CHRV_TOTAL_BP,))
         
@@ -43,7 +43,7 @@ class TestChrV(unittest.TestCase):
 
 
     def test_spread_c0_weighted(self):
-        chrv = ChrV()
+        chrv = Chromosome()
         spread_c0 = chrv.spread_c0_weighted()
         self.assertTupleEqual(spread_c0.shape, (CHRV_TOTAL_BP,))
         
@@ -53,7 +53,7 @@ class TestChrV(unittest.TestCase):
 
 
     def test_read_chr_prediction(self):
-        chrv = ChrV()
+        chrv = Chromosome()
         predict_df = chrv._read_chr_prediction('V')
         self.assertCountEqual(predict_df.columns, ['Sequence #', 'Sequence', 'C0'])
 

@@ -1,7 +1,7 @@
 from scipy.ndimage.measurements import label
 from reader import DNASequenceReader
 from constants import CHRVL, CHRV_TOTAL_BP
-from chrv import ChrV
+from chromosome import Chromosome
 
 import matplotlib.pyplot as plt 
 import pandas as pd
@@ -67,7 +67,7 @@ class Loops:
     def plot_c0_in_individual_loop(self):
         loop_df = self._read_loops()
 
-        chrv = ChrV()
+        chrv = Chromosome()
         for i in range(len(loop_df)):
             row = loop_df.iloc[i]
             # TODO: -150% to +150% of loop. Vertical line = loop anchor
@@ -100,7 +100,7 @@ class Loops:
         loop_df = loop_df.loc[loop_df['end'] - loop_df['start'] < max_loop_length].reset_index()
         
         # Get spread C0
-        chrv = ChrV()
+        chrv = Chromosome()
         chrv_c0_spread = chrv.spread_c0_balanced(c0_category)
         
         def _find_loop_c0(row: pd.Series) -> np.ndarray:
@@ -170,7 +170,7 @@ class Loops:
         # TODO: Distance from loop anchor : percentage
         loop_df = self._read_loops()
         
-        chrv = ChrV()
+        chrv = Chromosome()
         # Plot C0 around individual anchor points
         for i in range(len(loop_df)):
             for col in ['start', 'end']:

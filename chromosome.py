@@ -14,8 +14,8 @@ import time
 
 RomanNumber = str
 
-class ChrV:
-    "Analysis of Chromosome V in yeast"
+class Chromosome:
+    "Analysis of Chromosome in yeast"
     # TODO: Subclass ChrV based on actual vs. predicted ?
 
     def __init__(self):
