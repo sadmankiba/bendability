@@ -16,6 +16,8 @@ TL_FILE = '41586_2020_3052_MOESM8_ESM.txt'
 CHRVL_FILE = '41586_2020_3052_MOESM9_ESM.txt'
 LIBL_FILE = '41586_2020_3052_MOESM11_ESM.txt'
 
+RomanNumber = str
+
 class DNASequenceReader:
     """
     Reads and returns processed DNA sequence libraries
@@ -74,10 +76,10 @@ class DNASequenceReader:
         }
 
 
-    def read_library_prediction(self, lib_name: str):
-        """Read predicted C0 by meuseum model"""
+    def read_chr_prediction(self, chr_num: RomanNumber):
+        """Read predicted C0 of a yeast chromosome by meuseum model"""
 
-        predict_df = pd.read_table(f'meuseum_mod/predictions/{lib_name}_pred.csv', sep='\t')
+        predict_df = pd.read_table(f'data/generated_data/predictions/chr{chr_num}_pred.tsv', sep='\t')
         predict_df = predict_df.assign(seq_no = lambda df: df.index + 1)\
                         .rename(columns = {
                             'seq_no': 'Sequence #',

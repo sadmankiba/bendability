@@ -72,9 +72,9 @@ class TestReader(unittest.TestCase):
         self.assertEqual(len(nuc_df), 67548) 
 
 
-    def test_read_library_prediction(self):
+    def test_read_chr_prediction(self):
         reader = DNASequenceReader()
-        predict_df = reader.read_library_prediction(CHRVL)
+        predict_df = reader.read_chr_prediction('V')
         self.assertCountEqual(predict_df.columns, ['Sequence #', 'Sequence', 'C0'])
 
 

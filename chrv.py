@@ -19,7 +19,7 @@ class ChrV:
     def __init__(self):
         reader = DNASequenceReader()
         self.chrv_df = reader.get_processed_data()[CHRVL]
-        self._predicted_chrv_df = reader.read_library_prediction(CHRVL)
+        self._predicted_chrv_df = reader.read_chr_prediction('V')
          
     
     def _calc_moving_avg(self, arr: np.ndarray, k: int) -> np.ndarray:

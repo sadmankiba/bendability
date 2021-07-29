@@ -29,7 +29,7 @@ class Loops:
         Reads loop positions from .bedpe file
 
         Returns: 
-            A dataframe with three columns: resolution, start, end
+            A dataframe with three columns: [res, start, end]
         """
         df = pd.read_table(self._loop_file, skiprows = [1])
         # TODO: Exclude same loops

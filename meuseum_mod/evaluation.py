@@ -145,10 +145,25 @@ class Evaluation:
         return model
 
 
+    def _plot_scatter(self, df: pd.DataFrame, lib_name: LIBRARY_NAMES) -> None:
+        p = (ggplot(data=df,
+                    mapping=aes(x='True Value', y='Predicted Value'))
+             + stat_bin_2d(bins=150)
+             + xlim(-2.75, 2.75)
+             + ylim(-2.75, 2.75)
+             )
+
+        with open(f'figures/scatter_{lib_name}.png', 'w') as f:
+            print(p, file=f)
+        pass
+
+
     def check_performance(self, lib_name: LIBRARY_NAMES) -> pd.DataFrame:
         """
         Check model performance on a sequence library and return predicted values.
         """
+        start_time = time.time()
+
         prep = Preprocess(lib_name)
         data = prep.one_hot_encode()
         
@@ -160,6 +175,8 @@ class Evaluation:
 
         print('metric values of model.evaluate: ' + str(history2))
         print('metrics names are ' + str(self._model.metrics_names))
+
+        print(f"Took --- {time.time() - start_time} seconds ---")
 
         y_pred = self._model.predict({'forward': x1, 'reverse': x2}).flatten()
         assert y_pred.shape == y.shape
@@ -173,29 +190,11 @@ class Evaluation:
         df.to_csv(f'predictions/{lib_name}_pred.tsv', sep='\t', index=False)
         print('Predictions saved.')
         
-        # Plot scatter plot
-        # p = (ggplot(data=df,
-        #             mapping=aes(x='True Value', y='Predicted Value'))
-        #      + stat_bin_2d(bins=150)
-        #      + xlim(-2.75, 2.75)
-        #      + ylim(-2.75, 2.75)
-        #      )
-
-        # with open(f'figures/scatter_{library["name"]}.png', 'w') as f:
-        #     print(p, file=f)
+        # self._plot_scatter(df, lib_name)
         
         return df
-
-
-    def evaluate(self, lib_name: LIBRARY_NAMES):
-        # Eliminate this function
-        start_time = time.time()
-
-        np.set_printoptions(threshold=sys.maxsize, precision=5, suppress=True)
-        self.check_performance(lib_name)
-
-        print(f"Took --- {time.time() - start_time} seconds ---")
-
+    
 
 if __name__ == "__main__":
-    Evaluation().evaluate(CHRVL)
+    np.set_printoptions(threshold=sys.maxsize, precision=5, suppress=True)
+    Evaluation().check_performance(CHRVL)
