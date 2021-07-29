@@ -25,10 +25,10 @@ class Preprocess:
         Args:
             lib_name: Library name 
         """
-        self.df = DNASequenceReader().get_processed_data()[lib_name]
+        self._df = DNASequenceReader().get_processed_data()[lib_name]
 
     
-    def rc_comp2(self, seqn):
+    def _rc_comp2(self, seqn):
         '''
         Find reverse complement
         '''
@@ -50,26 +50,18 @@ class Preprocess:
         return all_sequences
 
 
-    def get_sequences_target(self) -> dict[Literal['all_seqs', 'target', 'rc_seqs'], list]:
-        all_seqs = self.df['Sequence'].tolist()
-        rc_seqs = self.rc_comp2(all_seqs)
+    def _get_sequences_target(self) -> dict[Literal['all_seqs', 'target', 'rc_seqs'], list]:
+        all_seqs = self._df['Sequence'].tolist()
+        rc_seqs = self._rc_comp2(all_seqs)
         
         # Set target
-        target = self.df['C0'].tolist() if 'C0' in self.df else None  
+        target = self._df['C0'].tolist() if 'C0' in self._df else None  
 
         return {
             "all_seqs": all_seqs,
             "target": target,
             "rc_seqs": rc_seqs
         }
-
-
-    def without_augment(self):
-        new_fasta = self.read_fasta_into_list()
-        readout = self.read_readout()
-
-        dict = {"new_fasta": new_fasta, "readout": readout}
-        return dict
 
 
     def one_hot_encode(self) -> dict[str, np.ndarray]:
@@ -89,7 +81,7 @@ class Preprocess:
         one_hot_encoder = OneHotEncoder(categories='auto')
 
         #dict = self.without_augment()
-        seq_and_target = self.get_sequences_target()
+        seq_and_target = self._get_sequences_target()
         result = dict()
         result["target"] = np.asarray(seq_and_target['target'])
 
@@ -166,6 +158,7 @@ class Preprocess:
 
 
     def dinucleotide_encode(self):
+        # Requires fix
         new_fasta = self.read_fasta_into_list()
         rc_fasta = self.rc_comp2()
         forward_sequences = mono_to_dinucleotide(new_fasta)

@@ -1,5 +1,6 @@
 
 from data_preprocess import Preprocess
+# TODO: Try making parent directory a package: https://stackoverflow.com/a/50194143/7283201
 # Import from parent directory
 import sys 
 import os
@@ -9,7 +10,7 @@ from constants import CHRVL, CHRVL_LEN, RL, RL_LEN
 class TestPreprocess:
     def test_get_sequences_target(self):
         prep = Preprocess(CHRVL)
-        seq_target = prep.get_sequences_target()
+        seq_target = prep._get_sequences_target()
         assert set(seq_target.keys()) == set(['all_seqs', 'rc_seqs', 'target'])
         assert len(seq_target['all_seqs']) == CHRVL_LEN
         assert len(seq_target['rc_seqs']) == CHRVL_LEN

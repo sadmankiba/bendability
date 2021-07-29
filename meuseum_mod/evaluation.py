@@ -123,8 +123,7 @@ class Evaluation:
 
 
     def _load_model(self) -> keras.Model:
-        argv = sys.argv
-        parameter_file = argv[1] #e.g. parameter1.txt
+        parameter_file = 'parameter1.txt'
         
         params = get_parameters(parameter_file)
 
