@@ -38,3 +38,11 @@ class TestLoops(unittest.TestCase):
         loop.plot_c0_around_anchor(500)
         path = Path('figures/chromosome/V_actual/loops/mean_c0_loop_hires_anchor_dist_500_balanced.png')
         assert path.is_file()
+
+    def test_plot_nuc(self):
+        loop = Loops(Chromosome('II'))
+        loop.plot_mean_nuc_occupancy_across_loops()
+        path = Path('figures/chromosome/II_predicted/loops/mean_nucleosome_occupancy_total_loop_perc_150_maxlen_100000.png')
+        assert path.is_file()
+
+TestLoops().test_plot_nuc()
