@@ -29,11 +29,19 @@ class Loops:
             A dataframe with three columns: [res, start, end]
         """
         df = pd.read_table(self._loop_file, skiprows = [1])
-        # TODO: Exclude same loops
-        return df.assign(res = lambda df: df['x2'] - df['x1'])\
+        # TODO: Exclude same loops for multiple resolutions
+        def _use_middle_coordinates():
+            return df.assign(res = lambda df: df['x2'] - df['x1'])\
                     .assign(start = lambda df: (df['x1'] + df['x2']) / 2)\
                     .assign(end = lambda df: (df['y1'] + df['y2']) / 2)\
                         [['res', 'start', 'end']].astype(int)
+        
+        def _use_centroids():
+            return df.assign(res = lambda df: df['x2'] - df['x1'])\
+                    .rename(columns={'centroid1': 'start', 'centroid2': 'end'})\
+                        [['res', 'start', 'end']].astype(int)
+        
+        return _use_centroids()
     
     # ** #
     def stat_loops(self) -> None:
@@ -166,7 +174,7 @@ class Loops:
         """
         self._plot_mean_across_loops(total_perc, self._chr.spread_c0_balanced(), 'c0')
         
-        
+    # ** #    
     def plot_c0_around_individual_anchor(self):
         loop_df = self._read_loops()
         
@@ -237,6 +245,17 @@ class Loops:
 
     def plot_mean_nuc_occupancy_across_loops(self, total_perc=150) -> None:
         self._plot_mean_across_loops(total_perc, self._chr.get_nucleosome_occupancy(), 'nucleosome_occupancy')
+
+
+    def find_avg_c0(self):
+        """Find average c0 of loops. 
+
+        First, average c0 of individual loops are calculated. Then, mean is
+        taken over all loop averages. 
+        """
+        loop_df = self._read_loops()
+        chrv_c0_spread = self._chr.spread_c0_balanced()
+
 
 
 
