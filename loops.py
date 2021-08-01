@@ -127,7 +127,7 @@ class Loops:
         # Plot mean value
         x = np.arange((total_perc + 1) * resize_multiple) / resize_multiple - (total_perc - 100) / 2
         plt.plot(x, mean_val, color='tab:blue')
-        self._chr.plot_avg()
+        self._chr.plot_horizontal_line(chr_spread.mean())
         plt.grid()
         
         y_lim = plt.gca().get_ylim()
@@ -167,14 +167,9 @@ class Loops:
         self._plot_mean_across_loops(total_perc, self._chr.spread_c0_balanced(), 'c0')
         
         
-
-    # *** #
-    def plot_c0_around_anchor(self, lim=500):
-        """Plot C0 around loop anchor points"""
-        # TODO: Distance from loop anchor : percentage
+    def plot_c0_around_individual_anchor(self):
         loop_df = self._read_loops()
         
-        # Plot C0 around individual anchor points
         for i in range(len(loop_df)):
             for col in ['start', 'end']:
                 # Plot C0
@@ -184,13 +179,20 @@ class Loops:
                 plt.xticks(ticks=[a - lim, a, a + lim], labels=[-lim, 0, +lim])
                 plt.xlabel(f'Distance from loop anchor')
                 plt.ylabel('Intrinsic Cyclizability')
-                plt.title(f'C0 around loop anchor at {a}bp. Found with res {loop_df.iloc[i]["res"]}')
+                plt.title(f'C0 around chromosome {self._chr._chr_num} loop {col} anchor at {a}bp. Found with res {loop_df.iloc[i]["res"]}')
 
                 # Save figure
                 loop_fig_dir = f'figures/chromosome/{self._chr._chr_num}_{self._chr._c0_type}/loops/{loop_df.iloc[i]["res"]}'
                 if not Path(loop_fig_dir).is_dir():
                     Path(loop_fig_dir).mkdir(parents=True, exist_ok=True)  
                 plt.savefig(f'{loop_fig_dir}/anchor_{col}_{a}.png')
+        
+        
+    # *** #
+    def plot_c0_around_anchor(self, lim=500):
+        """Plot C0 around loop anchor points"""
+        # TODO: Distance from loop anchor : percentage
+        loop_df = self._read_loops()
         
         chrv_c0_spread = self._chr.spread_c0_balanced()
         
@@ -223,7 +225,7 @@ class Loops:
         plt.grid()
         plt.xlabel('Distance from loop anchor(bp)')
         plt.ylabel('C0')
-        plt.title(f'{self._chr._c0_type} C0 around anchor points at bp-resolution. Considering start, end and all anchors.')
+        plt.title(f'Mean {self._chr._c0_type} C0 around anchor points. Considering start, end and all anchors.')
 
         fig_dir = f'figures/chromosome/{self._chr._chr_num}_{self._chr._c0_type}/loops'
         if not Path(fig_dir).is_dir():

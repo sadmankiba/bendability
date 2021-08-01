@@ -51,4 +51,4 @@ def run_model():
 
 
 if __name__ == '__main__':
-    Loops(Chromosome('IX')).plot_mean_c0_across_loops()
+    Loops(Chromosome('II')).plot_c0_around_anchor()

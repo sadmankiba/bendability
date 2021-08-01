@@ -107,15 +107,22 @@ class Chromosome:
         return arr
 
     
+    def plot_horizontal_line(self, y: float) -> None:
+        """
+        Plot a horizontal red line denoting avg
+        """
+        plt.axhline(y=y, color='r', linestyle='-')
+        x_lim = plt.gca().get_xlim()
+        plt.text(x_lim[0] + (x_lim[1] - x_lim[0]) * 0.15, y, 'avg', color='r', ha='center', va='bottom')
+        
+
     def plot_avg(self) -> None: 
         """
         Plot a horizontal red line denoting avg. C0 in whole chromosome
         
         Best to draw after x limit is set.
         """
-        plt.axhline(y=self._df['C0'].mean(), color='r', linestyle='-')
-        x_lim = plt.gca().get_xlim()
-        plt.text(x_lim[0] + (x_lim[1] - x_lim[0]) * 0.15, self._df['C0'].mean(), 'avg', color='r', ha='center', va='bottom')
+        self.plot_horizontal_line(self._df['C0'].mean())
         
 
     def plot_moving_avg(self, start: int, end: int) -> None:
