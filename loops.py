@@ -1,4 +1,6 @@
-from scipy.ndimage.measurements import label
+from __future__ import annotations
+
+from custom_types import YeastChrNum
 from reader import DNASequenceReader
 from constants import CHRVL, CHRV_TOTAL_BP
 from chromosome import Chromosome
@@ -14,7 +16,7 @@ from pathlib import Path
 
 class Loops:
     """
-    Functions to analyze DNA sequence libraries
+    Abstraction of collection of loops in a single chromosome
     """
     def __init__(self, chr: Chromosome):
         self._loop_file = f'data/input_data/loops/merged_loops_res_100_200_400_chr{chr._chr_num}.bedpe'    
@@ -175,7 +177,7 @@ class Loops:
         self._plot_mean_across_loops(total_perc, self._chr.spread_c0_balanced(), 'c0')
         
     # ** #    
-    def plot_c0_around_individual_anchor(self):
+    def plot_c0_around_individual_anchor(self, lim=500):
         loop_df = self._read_loops()
         
         for i in range(len(loop_df)):
@@ -247,7 +249,7 @@ class Loops:
         self._plot_mean_across_loops(total_perc, self._chr.get_nucleosome_occupancy(), 'nucleosome_occupancy')
 
 
-    def find_avg_c0(self):
+    def find_avg_c0(self) -> float:
         """Find average c0 of loops. 
 
         First, average c0 of individual loops are calculated. Then, mean is
@@ -255,9 +257,27 @@ class Loops:
         """
         loop_df = self._read_loops()
         chrv_c0_spread = self._chr.spread_c0_balanced()
+        return sum(
+            map(
+                lambda idx: chrv_c0_spread[loop_df.iloc[idx]['start'] - 1 : loop_df.iloc[idx]['end']].mean(), 
+                range(len(loop_df))
+            )
+        ) / len(loop_df)
+
+        
 
 
+class MultipleChrLoops:
+    """
+    Abstraction to analyze loops in multiple chromosomes
+    """
+    def __init__(self, chrs: list[YeastChrNum]= ['II', 'III', 'V', 'VII', 'IX', 'XI', 'XII']):
+        self._chrs = chrs
 
+    def find_avg_c0(self):
+        for chr in self._chrs():
+            loops = Loops(Chromosome(chr))
+            loops.find_avg_c0
 
         
             
