@@ -314,9 +314,13 @@ class MultiChrLoops:
     def find_avg_c0(self):
         mcloop_df = pd.DataFrame({'Chr': self._chrs})
         chrs = mcloop_df['Chr'].apply(lambda chr_id: Chromosome(chr_id))
-        mcloop_df['avg_c0'] = mcloop_df['Chr'].apply(lambda chr_num: Chromosome(chr_num).spread_c0_balanced().mean())
-        mcloop_df['avg_loop_c0'] = mcloop_df['Chr'].apply(lambda chr_num: Loops(Chromosome(chr_num)).find_avg_c0())
-        mcloop_df['avg_loop_c0_quart_len'] = mcloop_df['Chr'].apply(lambda chr_num: Loops(Chromosome(chr_num)).find_avg_c0_in_quartile_by_len())
+        mcloop_df['avg_c0'] = chrs.apply(lambda chr: chr.spread_c0_balanced().mean())
+        
+        mc_loops = chrs.apply(lambda chr: Loops(chr))
+        mcloop_df['avg_loop_c0'] = mc_loops.apply(lambda loops: loops.find_avg_c0())
+        mcloop_df['avg_loop_c0_quart_len'] = mc_loops.apply(lambda loops: loops.find_avg_c0_in_quartile_by_len())
+        mcloop_df['avg_loop_c0_quart_pos'] = mc_loops.apply(lambda loops: loops.find_avg_c0_in_quartile_by_pos())
+
         IOUtil().save_tsv(mcloop_df, 'data/generated_data/loops/multichr_c0_stat.tsv')
         
 
