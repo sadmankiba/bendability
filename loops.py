@@ -22,7 +22,7 @@ class Loops:
     def __init__(self, chr: Chromosome):
         self._loop_file = f'data/input_data/loops/merged_loops_res_100_200_400_chr{chr._chr_num}.bedpe'    
         self._chr = chr
-        # TODO: create self._loop_df
+        self._loop_df = self._read_loops()
 
 
     def _read_loops(self) -> pd.DataFrame:
@@ -50,13 +50,7 @@ class Loops:
     # ** #
     def stat_loops(self) -> None:
         """Prints statistics of loops"""
-        loop_df = self._read_loops()
-        # TODO
-        # Loop length histogram
-            # Avg. loop length per resolution 
-            # Avg. loop length 
-            # Quartile of loop length 
-        loop_df = self._read_loops()
+        loop_df = self._loop_df
         max_loop_length = 100000
         loop_df = loop_df.loc[loop_df['end'] - loop_df['start'] < max_loop_length].reset_index()
         loop_df = loop_df.assign(length = lambda df: df['end'] - df['start'])
@@ -74,7 +68,7 @@ class Loops:
 
     # ** #
     def plot_c0_in_individual_loop(self):
-        loop_df = self._read_loops()
+        loop_df = self._loop_df
 
         for i in range(len(loop_df)):
             row = loop_df.iloc[i]
@@ -99,7 +93,7 @@ class Loops:
         
         Plots mean C0 or mean nuc. occupancy. Does not add labels. 
         """
-        loop_df = self._read_loops()
+        loop_df = self._loop_df
 
         # Filter loops by length
         max_loop_length = 100000
@@ -180,7 +174,7 @@ class Loops:
         
     # ** #    
     def plot_c0_around_individual_anchor(self, lim=500):
-        loop_df = self._read_loops()
+        loop_df = self._loop_df
         
         for i in range(len(loop_df)):
             for col in ['start', 'end']:
@@ -204,7 +198,7 @@ class Loops:
     def plot_c0_around_anchor(self, lim=500):
         """Plot C0 around loop anchor points"""
         # TODO: Distance from loop anchor : percentage
-        loop_df = self._read_loops()
+        loop_df = self._loop_df
         
         chrv_c0_spread = self._chr.spread_c0_balanced()
         
@@ -262,7 +256,7 @@ class Loops:
                 object are considered. 
         """
         if loop_df is None:
-            loop_df = self._read_loops()
+            loop_df = self._loop_df
         chrv_c0_spread = self._chr.spread_c0_balanced()
         return sum(
             map(
@@ -275,7 +269,7 @@ class Loops:
     def find_avg_c0_in_quartile_by_len(self) -> list[float]:
         """Find average c0 of collection of loops by dividing them into
         quartiles by length"""
-        loop_df = self._read_loops()
+        loop_df = self._loop_df
         loop_df = loop_df.assign(len = lambda df: df['end'] - df['start'])
         quart1, quart2, quart3 = loop_df['len'].quantile([0.25, 0.5, 0.75]).tolist()
         quart_loop_df = ( loop_df.loc[loop_df['len'] <= quart1],
