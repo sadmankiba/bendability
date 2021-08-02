@@ -11,7 +11,7 @@ class TestLoops(unittest.TestCase):
     def test_read_loops(self):
         loop = Loops(Chromosome('VL'))
         df = loop._read_loops()
-        assert set(df.columns) == set(['start', 'end', 'res'])
+        assert set(df.columns) == set(['start', 'end', 'res', 'len'])
 
         # Count number of lines in bedpe file
         s = subprocess.check_output(["wc", "-l", loop._loop_file])
@@ -21,30 +21,27 @@ class TestLoops(unittest.TestCase):
     def test_plot_mean_c0_across_loops(self):
         loop = Loops(Chromosome('VL'))
         loop.plot_mean_c0_across_loops(150)
-        path = Path('figures/chromosome/V_actual/loops/mean_c0_total_loop_perc_150_maxlen_100000.png')
+        path = Path('figures/loop/mean_c0_p_150_mxl_100000_VL.png')
         assert path.is_file()
     
 
     def test_plot_c0_in_individual_loop(self):
         loop = Loops(Chromosome('VL'))
         loop.plot_c0_in_individual_loop()
-        loop_df = loop._read_loops()
-        resolutions = np.unique(loop_df['res'].to_numpy())
-        for res in resolutions:
-            assert Path(f'figures/chromosome/V_actual/loops/{res}').is_dir()
+        assert Path(f'figures/loop/VL').is_dir()
 
 
     def test_plot_c0_around_anchor(self):
         loop = Loops(Chromosome('VL'))
         loop.plot_c0_around_anchor(500)
-        path = Path('figures/chromosome/V_actual/loops/mean_c0_loop_hires_anchor_dist_500_balanced.png')
+        path = Path('figures/loop_anchor/dist_500_VL.png')
         assert path.is_file()
 
 
-    def test_plot_nuc(self):
+    def test_plot_nuc_across_loops(self):
         loop = Loops(Chromosome('II'))
         loop.plot_mean_nuc_occupancy_across_loops()
-        path = Path('figures/chromosome/II_predicted/loops/mean_nucleosome_occupancy_total_loop_perc_150_maxlen_100000.png')
+        path = Path('figures/loop/mean_nuc_occ_p_150_mxl_100000_II.png')
         assert path.is_file()
 
 
@@ -64,5 +61,5 @@ class TestLoops(unittest.TestCase):
 class TestMultipleChrLoops:
     def test_multichr_find_avg_c0(self):
         MultiChrLoops().find_avg_c0()
-        path = Path('data/generated_data/loops/multichr_c0_stat.tsv')
+        path = Path('data/generated_data/loop/multichr_c0_stat.tsv')
         assert path.is_file()

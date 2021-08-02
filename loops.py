@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import IO
 
 from custom_types import YeastChrNum
 from reader import DNASequenceReader
@@ -20,7 +21,7 @@ class Loops:
     Abstraction of collection of loops in a single chromosome
     """
     def __init__(self, chr: Chromosome):
-        self._loop_file = f'data/input_data/loops/merged_loops_res_100_200_400_chr{chr._chr_num}.bedpe'    
+        self._loop_file = f'data/input_data/loops/merged_loops_res_500_chr{chr._chr_num}.bedpe'    
         self._chr = chr
         self._loop_df = self._read_loops()
 
@@ -80,12 +81,13 @@ class Loops:
             plt.ylabel('Intrinsic Cyclizability')
             plt.title(f'C0 in loop between {row["start"]}-{row["end"]}. Found with resolution: {row["res"]}.')
 
-            # Save figure
-            loop_fig_dir = f'figures/chromosome/{self._chr._chr_num}_{self._chr._c0_type}/loops/{row["res"]}'
-            if not Path(loop_fig_dir).is_dir():
-                Path(loop_fig_dir).mkdir(parents=True, exist_ok=True)
+            IOUtil().save_figure(f'figures/loop/{self._chr._chr_id}/{row["start"]}_{row["end"]}.png')
             
-            plt.savefig(f'{loop_fig_dir}/{row["start"]}_{row["end"]}.png')
+            # loop_fig_dir = f'figures/loops/{self._chr._chr_id}'
+            # if not Path(loop_fig_dir).is_dir():
+            #     Path(loop_fig_dir).mkdir(parents=True, exist_ok=True)
+            
+            # plt.savefig(f'{loop_fig_dir}/{row["start"]}_{row["end"]}.png')
 
 
     def _plot_mean_across_loops(self, total_perc: int, chr_spread: np.ndarray, val_type: str) -> None:
@@ -154,13 +156,12 @@ class Loops:
         plt.ylabel(val_type)
         plt.title(f'Mean {self._chr._c0_type} {val_type} along chromosome {self._chr._chr_num} loop ({x[0]}% to {x[-1]}% of loop length)')
         
-        # Save plot
-        fig_dir = f'figures/chromosome/{self._chr._chr_num}_{self._chr._c0_type}/loops'
-        if not Path(fig_dir).is_dir():
-            Path(fig_dir).mkdir(parents=True, exist_ok=True)
-       
-        plt.gcf().set_size_inches(12, 6)
-        plt.savefig(f'{fig_dir}/mean_{val_type}_total_loop_perc_{total_perc}_maxlen_{max_loop_length}.png', dpi=200)
+        IOUtil().save_figure(f'figures/loop/mean_{val_type}_p_{total_perc}_mxl_{max_loop_length}_{self._chr._chr_id}.png')
+        # fig_dir = 'figures/loop'
+        # if not Path(fig_dir).is_dir():
+        #     Path(fig_dir).mkdir(parents=True, exist_ok=True)
+        # plt.gcf().set_size_inches(12, 6)
+        # plt.savefig(f'{fig_dir}/mean_{val_type}_p_{total_perc}_mxl_{max_loop_length}_{self._chr._chr_id}.png', dpi=200)
 
         
     # *** #    
@@ -189,10 +190,7 @@ class Loops:
                 plt.title(f'C0 around chromosome {self._chr._chr_num} loop {col} anchor at {a}bp. Found with res {loop_df.iloc[i]["res"]}')
 
                 # Save figure
-                loop_fig_dir = f'figures/chromosome/{self._chr._chr_num}_{self._chr._c0_type}/loops/{loop_df.iloc[i]["res"]}'
-                if not Path(loop_fig_dir).is_dir():
-                    Path(loop_fig_dir).mkdir(parents=True, exist_ok=True)  
-                plt.savefig(f'{loop_fig_dir}/anchor_{col}_{a}.png')
+                IOUtil().save_figure(f'figures/loop_anchor/{self._chr._chr_id}/{col}_{a}.png')
         
         
     # *** #
@@ -234,16 +232,11 @@ class Loops:
         plt.ylabel('C0')
         plt.title(f'Mean {self._chr._c0_type} C0 around anchor points. Considering start, end and all anchors.')
 
-        fig_dir = f'figures/chromosome/{self._chr._chr_num}_{self._chr._c0_type}/loops'
-        if not Path(fig_dir).is_dir():
-            Path(fig_dir).mkdir(parents=True, exist_ok=True)
-
-        plt.gcf().set_size_inches(12, 6)
-        plt.savefig(f'{fig_dir}/mean_c0_loop_hires_anchor_dist_{lim}_balanced.png', dpi=200)
+        IOUtil().save_figure(f'figures/loop_anchor/dist_{lim}_{self._chr._chr_id}.png')
         
 
     def plot_mean_nuc_occupancy_across_loops(self, total_perc=150) -> None:
-        self._plot_mean_across_loops(total_perc, self._chr.get_nucleosome_occupancy(), 'nucleosome_occupancy')
+        self._plot_mean_across_loops(total_perc, self._chr.get_nucleosome_occupancy(), 'nuc_occ')
 
 
     def find_avg_c0(self, loop_df: pd.DataFrame=None) -> float:
@@ -321,7 +314,7 @@ class MultiChrLoops:
         mcloop_df['avg_loop_c0_quart_len'] = mc_loops.apply(lambda loops: loops.find_avg_c0_in_quartile_by_len())
         mcloop_df['avg_loop_c0_quart_pos'] = mc_loops.apply(lambda loops: loops.find_avg_c0_in_quartile_by_pos())
 
-        IOUtil().save_tsv(mcloop_df, 'data/generated_data/loops/multichr_c0_stat.tsv')
+        IOUtil().save_tsv(mcloop_df, 'data/generated_data/loop/multichr_c0_stat.tsv')
         
 
         

@@ -4,6 +4,7 @@ from reader import DNASequenceReader
 from constants import CHRVL, SEQ_LEN, CHRV_TOTAL_BP, CHRVL_LEN
 from meuseum_mod.evaluation import Evaluation
 from custom_types import YeastChrNum
+from util import IOUtil
 
 import matplotlib.pyplot as plt 
 import numpy as np
@@ -13,7 +14,7 @@ from scipy.interpolate import make_interp_spline
 import math 
 from pathlib import Path
 import time
-from typing import Literal, Union
+from typing import IO, Literal, Union
 
 
 
@@ -36,22 +37,29 @@ class ChromosomeUtil:
 
 class Chromosome:
     "Analysis of Chromosome in yeast"
-    # TODO: Subclass Chr based on actual vs. predicted ?
 
-    def __init__(self, chr_num: Union[YeastChrNum, Literal['VL']]):
-        # TODO: chr_num, c0_type should be public (used in Loops)
-        self._chr_num = 'V' if chr_num == 'VL' else chr_num
-        self._c0_type = 'actual' if chr_num == 'VL' else 'predicted'
+    def __init__(self, chr_id: Union[YeastChrNum, Literal['VL']]):
+        """
+        Create a Chromosome object 
+
+        Args: 
+            chr_id: For Roman Numbers, predicted C0 is used. 'VL' represents 
+                chr V library of bendability data.
+        """
+        # TODO: _chr_num, _c0_type should be public (used in Loops)
+        self._chr_num = 'V' if chr_id == 'VL' else chr_id
+        self._chr_id = chr_id
+        self._c0_type = 'actual' if chr_id == 'VL' else 'predicted'
         self._df = (DNASequenceReader().get_processed_data()[CHRVL] 
-            if chr_num == 'VL' else self._get_chr_prediction(chr_num))
+            if chr_id == 'VL' else self._get_chr_prediction())
         self._total_bp = (len(self._df) - 1) * 7 + SEQ_LEN
         self._chr_util = ChromosomeUtil()
          
 
-    def _get_chr_prediction(self, chr_num: YeastChrNum):
+    def _get_chr_prediction(self):
         """Read predicted C0 of a yeast chromosome by meuseum model"""
 
-        saved_predict_data = Path(f'data/generated_data/predictions/chr{chr_num}_pred.tsv')
+        saved_predict_data = Path(f'data/generated_data/predictions/chr{self._chr_num}_pred.tsv')
         if saved_predict_data.is_file():
             return pd.read_csv(saved_predict_data, sep='\t')
         
@@ -59,9 +67,10 @@ class Chromosome:
         predict_df = Evaluation().predict(df).rename(columns = {'c0_predict': 'C0'})
         
         # Save data
-        if not saved_predict_data.parents[0].is_dir():
-            saved_predict_data.parents[0].mkdir(parents=True, exist_ok=True)
-        predict_df.to_csv(saved_predict_data, sep='\t', index=False)
+        IOUtil().save_tsv(predict_df, saved_predict_data)
+        # if not saved_predict_data.parents[0].is_dir():
+        #     saved_predict_data.parents[0].mkdir(parents=True, exist_ok=True)
+        # predict_df.to_csv(saved_predict_data, sep='\t', index=False)
         
         return predict_df
 
@@ -184,7 +193,7 @@ class Chromosome:
         
         # Save figure
         plt.gcf().set_size_inches(12, 6)
-        ma_fig_dir = f'figures/chromosome/{self._chr_num}_{self._c0_type}'
+        ma_fig_dir = f'figures/chromosome/{self._chr_id}'
         if not Path(ma_fig_dir).is_dir():
             Path(ma_fig_dir).mkdir(parents=True, exist_ok=True)
         
@@ -214,7 +223,7 @@ class Chromosome:
         plt.title(f'C0 of +-{dist} bp from nuclesome dyad')
         
         # Save figure
-        fig_dir = f'figures/chromosome/{self._chr_num}_{self._c0_type}'
+        fig_dir = f'figures/chromosome/{self._chr_id}'
         if not Path(fig_dir).is_dir():
             Path(fig_dir).mkdir(parents=True, exist_ok=True)
        
@@ -274,7 +283,7 @@ class Chromosome:
         """Determine C0 at each bp by average of covering 50-bp sequences around"""
         # TODO: spread C0 -> separate class
 
-        saved_data = Path(f'data/generated_data/chromosome/{self._chr_num}_{self._c0_type}/spread_c0_balanced.tsv')
+        saved_data = Path(f'data/generated_data/chromosome/{self._chr_id}/spread_c0_balanced.tsv')
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep='\t')['c0_balanced'].to_numpy()
         
@@ -297,7 +306,7 @@ class Chromosome:
 
     def spread_c0_weighted(self) -> np.ndarray:
         """Determine C0 at each bp by weighted average of covering 50-bp sequences around"""
-        saved_data = Path(f'data/generated_data/chromosome/{self._chr_num}_{self._c0_type}/spread_c0_weighted.tsv')
+        saved_data = Path(f'data/generated_data/chromosome/{self._chr_id}/spread_c0_weighted.tsv')
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep='\t')['c0_weighted'].to_numpy()
 
@@ -375,7 +384,7 @@ class Chromosome:
         Each dyad is extended 50 bp in both direction, resulting in a footprint
         of 101 bp for each nucleosome.
         """
-        saved_data = Path(f'data/generated_data/chromosome/{self._chr_num}_{self._c0_type}/nucleosome_occupancy.tsv')
+        saved_data = Path(f'data/generated_data/chromosome/{self._chr_id}/nucleosome_occupancy.tsv')
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep='\t')['nuc_occupancy'].to_numpy()
         

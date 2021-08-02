@@ -4,6 +4,7 @@ from custom_types import YeastChrNum
 import pandas as pd
 import numpy as np
 import regex as re
+import matplotlib.pyplot as plt
 
 import math
 import random
@@ -170,7 +171,16 @@ def roman_to_num(chr_num: YeastChrNum) -> int:
     return rom_num_map[chr_num]
 
 class IOUtil:
-    def save_tsv(self, df: pd.DataFrame, path_str: str) -> None:
+    # TODO: Change name - SaveUtil
+    def save_figure(self, path_str: str | Path):
+        path = Path(path_str)
+        if not path.parent.is_dir():
+            path.parent.mkdir(parents=True, exist_ok=True)
+        plt.gcf().set_size_inches(12, 6)
+        plt.savefig(path, dpi=200)
+
+
+    def save_tsv(self, df: pd.DataFrame, path_str: str | Path) -> None:
         """Save a dataframe in tsv format"""
         path = Path(path_str)
         if not path.parent.is_dir():

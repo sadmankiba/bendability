@@ -30,7 +30,7 @@ class TestChromosome(unittest.TestCase):
     def test_plot_c0_vs_dist_from_dyad_spread(self):
         chrv = Chromosome('VL')
         chrv.plot_c0_vs_dist_from_dyad_spread(150)
-        path = Path('figures/chrv/c0_dyad_dist_150_balanced.png')
+        path = Path('figures/chromosome/VL/c0_dyad_dist_150_balanced.png')
         self.assertTrue(path.is_file())
     
 
@@ -54,9 +54,9 @@ class TestChromosome(unittest.TestCase):
         self.assertTrue(np.all(samples) > -2.5)
 
 
-    def test_read_chr_prediction(self):
-        chrv = Chromosome('VL')
-        predict_df = chrv._read_chr_prediction('V')
+    def test_get_chr_prediction(self):
+        chrv = Chromosome('IX')
+        predict_df = chrv._get_chr_prediction()
         self.assertCountEqual(predict_df.columns, ['Sequence #', 'Sequence', 'C0'])
 
 
