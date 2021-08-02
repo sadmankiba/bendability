@@ -172,7 +172,7 @@ class Loops:
         Args: 
             total_perc: Total percentage of loop length to consider 
         """
-        self._plot_mean_across_loops(total_perc, self._chr.spread_c0_balanced(), 'c0')
+        self._plot_mean_across_loops(total_perc, self._chr.get_spread(), 'c0')
         
     # ** #    
     def plot_c0_around_individual_anchor(self, lim=500):
@@ -199,7 +199,7 @@ class Loops:
         # TODO: Distance from loop anchor : percentage
         loop_df = self._loop_df
         
-        chrv_c0_spread = self._chr.spread_c0_balanced()
+        chrv_c0_spread = self._chr.get_spread()
         
         def mean_around_anchors(anchors: np.ndarray) -> np.ndarray:
             """Calculate mean C0 at bp-resolution around anchors"""
@@ -251,7 +251,7 @@ class Loops:
         """
         if loop_df is None:
             loop_df = self._loop_df
-        chrv_c0_spread = self._chr.spread_c0_balanced()
+        chrv_c0_spread = self._chr.get_spread()
         return sum(
             map(
                 lambda idx: chrv_c0_spread[loop_df.iloc[idx]['start'] - 1 : loop_df.iloc[idx]['end']].mean(), 
@@ -279,7 +279,7 @@ class Loops:
         Returns: 
             A 1D numpy array of size 4
         """
-        chrv_c0_spread = self._chr.spread_c0_balanced()
+        chrv_c0_spread = self._chr.get_spread()
         
         def _avg_c0_in_quartile_by_pos(row: pd.Series) -> list[float]:
             quart_pos = row.quantile([0.0, 0.25, 0.5, 0.75, 1.0]).astype(int)
@@ -307,7 +307,7 @@ class MultiChrLoops:
     def find_avg_c0(self):
         mcloop_df = pd.DataFrame({'Chr': self._chrs})
         chrs = mcloop_df['Chr'].apply(lambda chr_id: Chromosome(chr_id))
-        mcloop_df['avg_c0'] = chrs.apply(lambda chr: chr.spread_c0_balanced().mean())
+        mcloop_df['avg_c0'] = chrs.apply(lambda chr: chr.get_spread().mean())
         
         mc_loops = chrs.apply(lambda chr: Loops(chr))
         mcloop_df['avg_loop_c0'] = mc_loops.apply(lambda loops: loops.find_avg_c0())

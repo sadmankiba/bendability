@@ -88,7 +88,7 @@ class Nucleosome:
         Args: 
             dist: +-distance from dyad to plot (1-indexed) 
         """
-        spread_c0 = self._chr.spread_c0_balanced()
+        spread_c0 = self._chr.get_spread()
         nuc_df = DNASequenceReader().read_nuc_center()
         centers = nuc_df.loc[nuc_df['Chromosome ID'] == f'chr{self._chr._chr_num}']['Position'].tolist()
         

@@ -10,6 +10,7 @@ class TestNucleosome:
         assert nuc_occ.shape == (nuc._chr._total_bp, )
         assert any(nuc_occ)
 
+
     def test_plot_c0_vs_dist_from_dyad_spread(self):
         nuc = Nucleosome(Chromosome('VL'))
         nuc.plot_c0_vs_dist_from_dyad_spread(150)
