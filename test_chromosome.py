@@ -30,6 +30,16 @@ class TestSpread(unittest.TestCase):
         arr = spread._covering_sequences_at(576860)
         self.assertListEqual(arr.tolist(), [82403, 82404])
 
+    def test_mean_of_7(self):
+        chrv = Chromosome('VL')
+        spread = Spread(chrv._df['C0'].to_numpy(), chrv._chr_id)
+        spread_c0 = spread.mean_of_7()
+        self.assertTupleEqual(spread_c0.shape, (CHRV_TOTAL_BP,))
+        
+        samples = spread_c0[np.random.randint(0,CHRVL_LEN - 1,100)]
+        self.assertTrue(np.all(samples) < 2.5)
+        self.assertTrue(np.all(samples) > -2.5)
+        
 
     def test_mean_of_covering_seq(self):
         chrv = Chromosome('VL')

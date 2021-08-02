@@ -21,7 +21,10 @@ from typing import IO, Literal, Union
 class ChromosomeUtil:
     def calc_moving_avg(self, arr: np.ndarray, k: int) -> np.ndarray:
         """
-        Calculate moving average of k data points 
+        Calculate moving average of k data points
+
+        Returns: 
+            A 1D numpy array 
         """
         assert len(arr.shape) == 1
 
@@ -92,10 +95,37 @@ class Spread:
         return arr
 
 
+    def mean_of_7(self) -> np.ndarray: 
+        """
+        Determine C0 at each bp by taking mean of 7 covering sequences
+        
+        If 8 sequences cover a bp, first 7 considered. If less than 7 seq
+        cover a bp, nearest 7-seq mean is used. 
+        """
+        saved_data = Path(f'data/generated_data/spread/spread_c0_mean7_{self._chr_id}.tsv')
+        if saved_data.is_file():
+            return pd.read_csv(saved_data, sep='\t')['c0_mean7'].to_numpy()
+
+        mvavg = ChromosomeUtil().calc_moving_avg(self._seq_c0_res7, 7)
+        spread_mvavg = np.vstack((mvavg, mvavg, mvavg, mvavg, mvavg, mvavg, mvavg)).ravel(order='F')
+        full_spread = np.concatenate((
+            np.full((42,), spread_mvavg[0]), 
+            spread_mvavg,
+            np.full((43,), spread_mvavg[-1])
+        ))
+        assert full_spread.shape == (self._total_bp,)
+        
+        IOUtil().save_tsv(
+            pd.DataFrame({'position': np.arange(self._total_bp) + 1, 'c0_mean7': full_spread}),
+            saved_data
+        )
+        return full_spread 
+         
+
     def mean_of_covering_seq(self) -> np.ndarray:
         """Determine C0 at each bp by average of covering 50-bp sequences around"""
-
-        saved_data = Path(f'data/generated_data/chromosome/{self._chr_id}/spread_c0_balanced.tsv')
+        # TODO: HOF to wrap check and save data?
+        saved_data = Path(f'data/generated_data/spread/spread_c0_balanced_{self._chr_id}.tsv')
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep='\t')['c0_balanced'].to_numpy()
         
@@ -118,7 +148,7 @@ class Spread:
 
     def weighted_covering_seq(self) -> np.ndarray:
         """Determine C0 at each bp by weighted average of covering 50-bp sequences around"""
-        saved_data = Path(f'data/generated_data/chromosome/{self._chr_id}/spread_c0_weighted.tsv')
+        saved_data = Path(f'data/generated_data/spread/spread_c0_weighted_{self._chr_id}.tsv')
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep='\t')['c0_weighted'].to_numpy()
 
