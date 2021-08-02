@@ -4,6 +4,7 @@ from custom_types import YeastChrNum
 from reader import DNASequenceReader
 from constants import CHRVL, CHRV_TOTAL_BP
 from chromosome import Chromosome
+from util import IOUtil
 
 import matplotlib.pyplot as plt 
 import pandas as pd
@@ -250,7 +251,7 @@ class Loops:
 
 
     def find_avg_c0(self) -> float:
-        """Find average c0 of loops. 
+        """Find average c0 of collection of loops. 
 
         First, average c0 of individual loops are calculated. Then, mean is
         taken over all loop averages. 
@@ -267,7 +268,7 @@ class Loops:
         
 
 
-class MultipleChrLoops:
+class MultiChrLoops:
     """
     Abstraction to analyze loops in multiple chromosomes
     """
@@ -275,9 +276,11 @@ class MultipleChrLoops:
         self._chrs = chrs
 
     def find_avg_c0(self):
-        for chr in self._chrs():
-            loops = Loops(Chromosome(chr))
-            loops.find_avg_c0
+        mcloop_df = pd.DataFrame({'Chr': self._chrs})
+        mcloop_df['avg_c0'] = mcloop_df.apply(lambda df: Chromosome(df['Chr']).spread_c0_balanced().mean())
+        mcloop_df['avg_loop_c0'] = mcloop_df.apply(lambda df: Loops(Chromosome(df['Chr'])).find_avg_c0())
+        IOUtil().save_tsv(mcloop_df, 'data/generated_data/loops/multichr_c0_stat.tsv')
+        
 
         
             

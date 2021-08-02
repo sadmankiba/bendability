@@ -39,7 +39,7 @@ class Chromosome:
     # TODO: Subclass Chr based on actual vs. predicted ?
 
     def __init__(self, chr_num: Union[YeastChrNum, Literal['VL']]):
-        # TODO: chr_num and c0_type should be public (used in Loops)
+        # TODO: chr_num, c0_type should be public (used in Loops)
         self._chr_num = 'V' if chr_num == 'VL' else chr_num
         self._c0_type = 'actual' if chr_num == 'VL' else 'predicted'
         self._df = (DNASequenceReader().get_processed_data()[CHRVL] 

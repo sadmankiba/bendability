@@ -168,3 +168,12 @@ def roman_to_num(chr_num: YeastChrNum) -> int:
         'XVI': 16
     }
     return rom_num_map[chr_num]
+
+class IOUtil:
+    def save_tsv(self, df: pd.DataFrame, path_str: str) -> None:
+        """Save a dataframe in tsv format"""
+        path = Path(path_str)
+        if not path.parent.is_dir():
+            path.parent.mkdir(parents=True, exist_ok=True)
+        
+        df.to_csv(path, sep='\t', index=False)

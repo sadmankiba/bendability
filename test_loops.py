@@ -1,4 +1,4 @@
-from loops import Loops
+from loops import Loops, MultiChrLoops
 from chromosome import Chromosome
 
 import numpy as np
@@ -45,4 +45,17 @@ class TestLoops(unittest.TestCase):
         loop = Loops(Chromosome('II'))
         loop.plot_mean_nuc_occupancy_across_loops()
         path = Path('figures/chromosome/II_predicted/loops/mean_nucleosome_occupancy_total_loop_perc_150_maxlen_100000.png')
+        assert path.is_file()
+
+
+    def test_find_avg_c0(self):
+        mean = Loops(Chromosome('VL')).find_avg_c0()
+        print(mean)
+        assert mean > 0
+        assert mean < 0.3
+
+class TestMultipleChrLoops:
+    def test_multichr_find_avg_c0(self):
+        MultiChrLoops().find_avg_c0()
+        path = Path('data/generated_data/loops/multichr_c0_stat.tsv')
         assert path.is_file()
