@@ -54,6 +54,13 @@ class TestLoops(unittest.TestCase):
         assert mean < 0
         assert mean > -0.3
 
+
+    def test_find_avg_c0_in_quartile_by_pos(self):
+        arr = Loops(Chromosome('VL')).find_avg_c0_in_quartile_by_pos()
+        print(arr)
+        assert arr.shape == (4,)
+
+
 class TestMultipleChrLoops:
     def test_multichr_find_avg_c0(self):
         MultiChrLoops().find_avg_c0()
