@@ -26,13 +26,6 @@ class TestChromosome(unittest.TestCase):
         arr = chrv._covering_sequences_at(576860)
         self.assertListEqual(arr.tolist(), [82403, 82404])
     
-    
-    def test_plot_c0_vs_dist_from_dyad_spread(self):
-        chrv = Chromosome('VL')
-        chrv.plot_c0_vs_dist_from_dyad_spread(150)
-        path = Path('figures/chromosome/VL/c0_dyad_dist_150_balanced.png')
-        self.assertTrue(path.is_file())
-    
 
     def test_spread_c0_balanced(self):
         chrv = Chromosome('VL')
@@ -59,10 +52,4 @@ class TestChromosome(unittest.TestCase):
         predict_df = chrv._get_chr_prediction()
         self.assertCountEqual(predict_df.columns, ['Sequence #', 'Sequence', 'C0'])
 
-
-    def test_get_nuc_occupancy(self):
-        chr = Chromosome('VII')
-        nuc_occ = chr.get_nucleosome_occupancy()
-        assert nuc_occ.shape == (chr._total_bp, )
-        assert any(nuc_occ)
 
