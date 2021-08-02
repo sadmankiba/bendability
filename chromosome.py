@@ -212,6 +212,8 @@ class Spread:
         elif spread_str == 'single':
             return self._from_single_seq()
 
+YeastChrNumList = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 
+                        'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI']
 
 class Chromosome:
     "Analysis of Chromosome in yeast"
@@ -347,8 +349,8 @@ class Chromosome:
         plt.show()
 
 
-    def get_spread(self):
-        Spread(self._df['C0'].values, self._chr_id).get_spread(self.spread_str)
+    def get_spread(self) -> np.ndarray:
+        return Spread(self._df['C0'].values, self._chr_id).get_spread(self.spread_str)
     
 
     

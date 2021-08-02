@@ -21,6 +21,9 @@ class Nucleosome:
 
     def _plot_c0_vs_dist_from_dyad(self, x: np.ndarray, y: np.ndarray, dist: int, spread_str: str) -> None:
         """Underlying plotter of c0 vs dist from dyad"""
+        plt.close()
+        plt.clf()
+        
         # Plot C0
         plt.plot(x, y, color='tab:blue')
         
@@ -79,7 +82,6 @@ class Nucleosome:
         self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, 'no_spread')
     
 
-    # *** #
     def plot_c0_vs_dist_from_dyad_spread(self, dist=150) -> None:
         """
         Plot C0 vs. distance from dyad of nucleosomes in chromosome by
