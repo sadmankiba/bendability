@@ -50,7 +50,7 @@ class ChromosomeUtil:
         x_lim = plt.gca().get_xlim()
         plt.text(x_lim[0] + (x_lim[1] - x_lim[0]) * 0.15, y, 'avg', color='r', ha='center', va='bottom')
         
-
+SpreadType = Literal['mean7', 'mean_cover', 'weighted', 'single']
 
 class Spread:
     """Spread C0 at each bp from C0 of 50-bp sequences at 7-bp resolution"""
@@ -95,7 +95,7 @@ class Spread:
         return arr
 
 
-    def mean_of_7(self) -> np.ndarray: 
+    def _mean_of_7(self) -> np.ndarray: 
         """
         Determine C0 at each bp by taking mean of 7 covering sequences
         
@@ -122,7 +122,7 @@ class Spread:
         return full_spread 
          
 
-    def mean_of_covering_seq(self) -> np.ndarray:
+    def _mean_of_covering_seq(self) -> np.ndarray:
         """Determine C0 at each bp by average of covering 50-bp sequences around"""
         # TODO: HOF to wrap check and save data?
         saved_data = Path(f'data/generated_data/spread/spread_c0_balanced_{self._chr_id}.tsv')
@@ -146,7 +146,7 @@ class Spread:
         return res
 
 
-    def weighted_covering_seq(self) -> np.ndarray:
+    def _weighted_covering_seq(self) -> np.ndarray:
         """Determine C0 at each bp by weighted average of covering 50-bp sequences around"""
         saved_data = Path(f'data/generated_data/spread/spread_c0_weighted_{self._chr_id}.tsv')
         if saved_data.is_file():
@@ -189,7 +189,7 @@ class Spread:
         return res 
 
 
-    def from_single_seq(self) -> np.ndarray:
+    def _from_single_seq(self) -> np.ndarray:
         """Determine C0 at each bp by spreading C0 of a 50-bp seq to position 22-28"""
         c0_arr = self._seq_c0_res7
         spread = np.concatenate((
@@ -201,17 +201,30 @@ class Spread:
         
         return spread
 
-    
+
+    def get_spread(self, spread_str: SpreadType) -> np.ndarray:
+        if spread_str == 'mean7':
+            return self._mean_of_7()
+        elif spread_str == 'mean_cover':
+            return self._mean_of_covering_seq()
+        elif spread_str == 'weighted':
+            return self._weighted_covering_seq()
+        elif spread_str == 'single':
+            return self._from_single_seq()
+
+
 class Chromosome:
     "Analysis of Chromosome in yeast"
 
-    def __init__(self, chr_id: Union[YeastChrNum, Literal['VL']]):
+    def __init__(self, chr_id: Union[YeastChrNum, Literal['VL']], 
+                    spread_str : SpreadType = 'mean7'):
         """
         Create a Chromosome object 
 
         Args: 
             chr_id: For Roman Numbers, predicted C0 is used. 'VL' represents 
                 chr V library of bendability data.
+            spread_str: Which type of spread to use. 
         """
         # TODO: _chr_num, _c0_type should be public (used in Loops)
         self._chr_num = 'V' if chr_id == 'VL' else chr_id
@@ -219,8 +232,10 @@ class Chromosome:
         self._c0_type = 'actual' if chr_id == 'VL' else 'predicted'
         self._df = (DNASequenceReader().get_processed_data()[CHRVL] 
             if chr_id == 'VL' else self._get_chr_prediction())
-        self._chr_util = ChromosomeUtil()
+        # TODO: Don't keep _chr_util attribute
+        self._chr_util = ChromosomeUtil()  
         self._total_bp = self._chr_util.get_total_bp(len(self._df))
+        self.spread_str = spread_str
          
 
     def _get_chr_prediction(self):
@@ -333,7 +348,7 @@ class Chromosome:
 
 
     def get_spread(self):
-        Spread(self._df['C0'].values, self._chr_id).mean_of_covering_seq()
+        Spread(self._df['C0'].values, self._chr_id).get_spread(self.spread_str)
     
 
     

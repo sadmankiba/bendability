@@ -108,7 +108,7 @@ class Nucleosome:
         x = np.arange(dist * 2 + 1) - dist
         mean_c0 = np.array(c0_at_nuc).mean(axis=0)
 
-        self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, 'balanced')
+        self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, self._chr.spread_str)
 
 
     def get_nucleosome_occupancy(self) -> np.ndarray:
