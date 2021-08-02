@@ -22,6 +22,7 @@ class Loops:
     def __init__(self, chr: Chromosome):
         self._loop_file = f'data/input_data/loops/merged_loops_res_100_200_400_chr{chr._chr_num}.bedpe'    
         self._chr = chr
+        # TODO: create self._loop_df
 
 
     def _read_loops(self) -> pd.DataFrame:
@@ -250,13 +251,18 @@ class Loops:
         self._plot_mean_across_loops(total_perc, self._chr.get_nucleosome_occupancy(), 'nucleosome_occupancy')
 
 
-    def find_avg_c0(self) -> float:
+    def find_avg_c0(self, loop_df: pd.DataFrame=None) -> float:
         """Find average c0 of collection of loops. 
 
         First, average c0 of individual loops are calculated. Then, mean is
         taken over all loop averages. 
+
+        Args: 
+            loop_df: A dataframe of loops. If None, then all loops of this 
+                object are considered. 
         """
-        loop_df = self._read_loops()
+        if loop_df is None:
+            loop_df = self._read_loops()
         chrv_c0_spread = self._chr.spread_c0_balanced()
         return sum(
             map(
@@ -265,20 +271,37 @@ class Loops:
             )
         ) / len(loop_df)
 
-        
 
+    def find_avg_c0_in_quartile_by_len(self) -> list[float]:
+        """Find average c0 of collection of loops by dividing them into
+        quartiles by length"""
+        loop_df = self._read_loops()
+        loop_df = loop_df.assign(len = lambda df: df['end'] - df['start'])
+        quart1, quart2, quart3 = loop_df['len'].quantile([0.25, 0.5, 0.75]).tolist()
+        quart_loop_df = ( loop_df.loc[loop_df['len'] <= quart1],
+            loop_df.loc[(quart1 < loop_df['len']) & (loop_df['len'] <= quart2)],
+            loop_df.loc[(quart2 < loop_df['len']) & (loop_df['len'] <= quart3)],
+            loop_df.loc[quart3 < loop_df['len']]
+        )
+        return list(map(lambda avg_c0: round(avg_c0, 3), map(self.find_avg_c0, quart_loop_df)))
+
+
+    def find_avg_c0_in_quartile_by_pos(self) -> list[float]:
+        """Find average c0 of different positions in collection of loops"""
+        pass
 
 class MultiChrLoops:
     """
     Abstraction to analyze loops in multiple chromosomes
     """
-    def __init__(self, chrs: list[YeastChrNum]= ['II', 'III', 'V', 'VII', 'IX', 'XI', 'XII']):
+    def __init__(self, chrs: list[YeastChrNum]= ['II', 'III', 'VL', 'VII', 'IX', 'XI', 'XII']):
         self._chrs = chrs
 
     def find_avg_c0(self):
         mcloop_df = pd.DataFrame({'Chr': self._chrs})
-        mcloop_df['avg_c0'] = mcloop_df.apply(lambda df: Chromosome(df['Chr']).spread_c0_balanced().mean())
-        mcloop_df['avg_loop_c0'] = mcloop_df.apply(lambda df: Loops(Chromosome(df['Chr'])).find_avg_c0())
+        mcloop_df['avg_c0'] = mcloop_df['Chr'].apply(lambda chr_num: Chromosome(chr_num).spread_c0_balanced().mean())
+        mcloop_df['avg_loop_c0'] = mcloop_df['Chr'].apply(lambda chr_num: Loops(Chromosome(chr_num)).find_avg_c0())
+        mcloop_df['avg_loop_c0_quart_len'] = mcloop_df['Chr'].apply(lambda chr_num: Loops(Chromosome(chr_num)).find_avg_c0_in_quartile_by_len())
         IOUtil().save_tsv(mcloop_df, 'data/generated_data/loops/multichr_c0_stat.tsv')
         
 

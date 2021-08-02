@@ -7,7 +7,7 @@ from util import append_reverse_compliment
 from reader import DNASequenceReader
 from constants import CHRV_TOTAL_BP, RL, TL
 from model import Model
-from loops import Loops
+from loops import Loops, MultiChrLoops
 
 import numpy as np
 
@@ -51,4 +51,4 @@ def run_model():
 
 
 if __name__ == '__main__':
-    Loops(Chromosome('II')).plot_c0_around_anchor()
+    MultiChrLoops().find_avg_c0()

@@ -51,8 +51,8 @@ class TestLoops(unittest.TestCase):
     def test_find_avg_c0(self):
         mean = Loops(Chromosome('VL')).find_avg_c0()
         print(mean)
-        assert mean > 0
-        assert mean < 0.3
+        assert mean < 0
+        assert mean > -0.3
 
 class TestMultipleChrLoops:
     def test_multichr_find_avg_c0(self):

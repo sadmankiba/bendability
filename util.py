@@ -176,4 +176,4 @@ class IOUtil:
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
         
-        df.to_csv(path, sep='\t', index=False)
+        df.to_csv(path, sep='\t', index=False, float_format='%.3f')
