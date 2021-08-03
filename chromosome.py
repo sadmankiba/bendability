@@ -213,8 +213,10 @@ class Spread:
         elif spread_str == 'single':
             return self._from_single_seq()
 
-YeastChrNumList = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 
-                        'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI']
+YeastChrNumList = ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 
+                        'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI')
+
+ChrIdList = YeastChrNumList + ('VL',)
 
 class Chromosome:
     "Analysis of Chromosome in yeast"
