@@ -44,7 +44,7 @@ class Nucleosome:
         plt.title(f'C0 of +-{dist} bp from nuclesome dyad')
         
         # Save figure
-        IOUtil().save_figure(f'figures/nucleosome/dist_{dist}_{spread_str}_{self._chr._chr_id}.png')
+        IOUtil().save_figure(f'figures/nucleosome/dist_{dist}_s_{spread_str}_m_{self._chr.predict_model_no()}_{self._chr._chr_id}.png')
         
 
     def plot_c0_vs_dist_from_dyad_no_spread(self, dist=150) -> None:

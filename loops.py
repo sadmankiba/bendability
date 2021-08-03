@@ -156,12 +156,7 @@ class Loops:
         plt.ylabel(val_type)
         plt.title(f'Mean {self._chr._c0_type} {val_type} along chromosome {self._chr._chr_num} loop ({x[0]}% to {x[-1]}% of loop length)')
         
-        IOUtil().save_figure(f'figures/loop/mean_{val_type}_p_{total_perc}_mxl_{max_loop_length}_{self._chr._chr_id}.png')
-        # fig_dir = 'figures/loop'
-        # if not Path(fig_dir).is_dir():
-        #     Path(fig_dir).mkdir(parents=True, exist_ok=True)
-        # plt.gcf().set_size_inches(12, 6)
-        # plt.savefig(f'{fig_dir}/mean_{val_type}_p_{total_perc}_mxl_{max_loop_length}_{self._chr._chr_id}.png', dpi=200)
+        IOUtil().save_figure(f'figures/loop/mean_{val_type}_p_{total_perc}_mxl_{max_loop_length}_{self._chr}.png')
 
         
     # *** #    
@@ -190,7 +185,7 @@ class Loops:
                 plt.title(f'C0 around chromosome {self._chr._chr_num} loop {col} anchor at {a}bp. Found with res {loop_df.iloc[i]["res"]}')
 
                 # Save figure
-                IOUtil().save_figure(f'figures/loop_anchor/{self._chr._chr_id}/{col}_{a}.png')
+                IOUtil().save_figure(f'figures/loop_anchor/{self._chr}/{col}_{a}.png')
         
         
     # *** #
@@ -232,7 +227,7 @@ class Loops:
         plt.ylabel('C0')
         plt.title(f'Mean {self._chr._c0_type} C0 around anchor points. Considering start, end and all anchors.')
 
-        IOUtil().save_figure(f'figures/loop_anchor/dist_{lim}_{self._chr._chr_id}.png')
+        IOUtil().save_figure(f'figures/loop_anchor/dist_{lim}_{self._chr}.png')
         
 
     def plot_mean_nuc_occupancy_across_loops(self, total_perc=150) -> None:

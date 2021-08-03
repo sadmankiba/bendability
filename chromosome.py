@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from prediction import Prediction
 from reader import DNASequenceReader
 from constants import CHRVL, SEQ_LEN, CHRV_TOTAL_BP, CHRVL_LEN
 from meuseum_mod.evaluation import Evaluation
@@ -219,7 +220,7 @@ class Chromosome:
     "Analysis of Chromosome in yeast"
 
     def __init__(self, chr_id: Union[YeastChrNum, Literal['VL']], 
-                    spread_str : SpreadType = 'mean7'):
+                    prediction : Prediction, spread_str : SpreadType = 'mean7'):
         """
         Create a Chromosome object 
 
@@ -228,22 +229,34 @@ class Chromosome:
                 chr V library of bendability data.
             spread_str: Which type of spread to use. 
         """
-        # TODO: _chr_num, _c0_type should be public (used in Loops)
-        self._chr_num = 'V' if chr_id == 'VL' else chr_id
+        # TODO: 
+        # _chr_num, _chr_id should be public (used in Loops)
+        # _c0_type in function
+        # total_bp in function
+        # Don't keep _chr_util attribute
+        if chr_id == 'VL':
+            assert prediction is None
+            self._chr_num = 'V'
+            self._c0_type = 'actual'
+            self._df = DNASequenceReader().get_processed_data()[CHRVL]
+        else: 
+            self._chr_num = chr_id
+            self._c0_type = 'predicted'
+            self._df = self._get_chr_prediction()
+        
         self._chr_id = chr_id
-        self._c0_type = 'actual' if chr_id == 'VL' else 'predicted'
-        self._df = (DNASequenceReader().get_processed_data()[CHRVL] 
-            if chr_id == 'VL' else self._get_chr_prediction())
-        # TODO: Don't keep _chr_util attribute
         self._chr_util = ChromosomeUtil()  
         self._total_bp = self._chr_util.get_total_bp(len(self._df))
         self.spread_str = spread_str
-         
+        self._prediction = prediction
+
+    def __str__(self):
+        return f's_{self.spread_str}_m_{self.predict_model_no()}_{self._chr_id}'
 
     def _get_chr_prediction(self):
         """Read predicted C0 of a yeast chromosome by meuseum model"""
 
-        saved_predict_data = Path(f'data/generated_data/predictions/chr{self._chr_num}_pred.tsv')
+        saved_predict_data = Path(f'data/generated_data/predictions/chr{self._chr_num}_pred_m_{self._prediction._model_no}.tsv')
         if saved_predict_data.is_file():
             return pd.read_csv(saved_predict_data, sep='\t')
         
@@ -252,9 +265,6 @@ class Chromosome:
         
         # Save data
         IOUtil().save_tsv(predict_df, saved_predict_data)
-        # if not saved_predict_data.parents[0].is_dir():
-        #     saved_predict_data.parents[0].mkdir(parents=True, exist_ok=True)
-        # predict_df.to_csv(saved_predict_data, sep='\t', index=False)
         
         return predict_df
 
@@ -345,7 +355,7 @@ class Chromosome:
         if not Path(ma_fig_dir).is_dir():
             Path(ma_fig_dir).mkdir(parents=True, exist_ok=True)
         
-        plt.savefig(f'{ma_fig_dir}/ma_{start}_{end}.png', dpi=200)
+        plt.savefig(f'{ma_fig_dir}/ma_{start}_{end}_s_{self.spread_str}_m_{self._prediction._model_no}.png', dpi=200)
         plt.show()
 
 
@@ -353,5 +363,7 @@ class Chromosome:
         return Spread(self._df['C0'].values, self._chr_id).get_spread(self.spread_str)
     
 
+    def predict_model_no(self) -> int:
+        return self._prediction._model_no
     
         

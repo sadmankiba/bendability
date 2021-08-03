@@ -5,11 +5,11 @@ from feat_selector import FeatureSelectorFactory
 from occurence import Occurence
 from util import append_reverse_compliment
 from reader import DNASequenceReader
-from constants import CHRV_TOTAL_BP, RL, TL
+from constants import CHRV_TOTAL_BP, RL, TL, CHRVL
 from model import Model
-from loops import Loops, MultiChrLoops
 from chromosome import YeastChrNumList
 from nucleosome import Nucleosome
+from prediction import Prediction
 
 import numpy as np
 
@@ -53,7 +53,4 @@ def run_model():
 
 
 if __name__ == '__main__':
-    for chr_num in YeastChrNumList:
-        print("Chromosome:", chr_num)
-        Nucleosome(Chromosome(chr_num)).plot_c0_vs_dist_from_dyad_spread()
-    
+    pass
