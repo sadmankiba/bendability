@@ -7,9 +7,11 @@ import unittest
 import subprocess
 from pathlib import Path
 
+from prediction import Prediction
+
 class TestLoops(unittest.TestCase):
     def test_read_loops(self):
-        loop = Loops(Chromosome('VL'))
+        loop = Loops(Chromosome('VL', None))
         df = loop._read_loops()
         assert set(df.columns) == set(['start', 'end', 'res', 'len'])
 
@@ -19,41 +21,44 @@ class TestLoops(unittest.TestCase):
 
 
     def test_plot_mean_c0_across_loops(self):
-        loop = Loops(Chromosome('VL'))
+        chr = Chromosome('VL', None)
+        loop = Loops(chr)
         loop.plot_mean_c0_across_loops(150)
-        path = Path('figures/loop/mean_c0_p_150_mxl_100000_VL.png')
+        path = Path(f'figures/loop/mean_c0_p_150_mxl_100000_{chr}.png')
         assert path.is_file()
     
 
     def test_plot_c0_in_individual_loop(self):
-        loop = Loops(Chromosome('VL'))
+        loop = Loops(Chromosome('VL', None))
         loop.plot_c0_in_individual_loop()
         assert Path(f'figures/loop/VL').is_dir()
 
 
     def test_plot_c0_around_anchor(self):
-        loop = Loops(Chromosome('VL'))
+        chr = Chromosome('VL', None)
+        loop = Loops(chr)
         loop.plot_c0_around_anchor(500)
-        path = Path('figures/loop_anchor/dist_500_VL.png')
+        path = Path(f'figures/loop_anchor/dist_500_{chr}.png')
         assert path.is_file()
 
 
     def test_plot_nuc_across_loops(self):
-        loop = Loops(Chromosome('II'))
+        chr = Chromosome('II', Prediction(30))
+        loop = Loops(chr)
         loop.plot_mean_nuc_occupancy_across_loops()
-        path = Path('figures/loop/mean_nuc_occ_p_150_mxl_100000_II.png')
+        path = Path(f'figures/loop/mean_nuc_occ_p_150_mxl_100000_{chr}.png')
         assert path.is_file()
 
 
     def test_find_avg_c0(self):
-        mean = Loops(Chromosome('VL')).find_avg_c0()
+        mean = Loops(Chromosome('VL', None)).find_avg_c0()
         print(mean)
         assert mean < 0
         assert mean > -0.3
 
 
     def test_find_avg_c0_in_quartile_by_pos(self):
-        arr = Loops(Chromosome('VL')).find_avg_c0_in_quartile_by_pos()
+        arr = Loops(Chromosome('VL', None)).find_avg_c0_in_quartile_by_pos()
         print(arr)
         assert arr.shape == (4,)
 

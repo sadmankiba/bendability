@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import IO
 
 from custom_types import YeastChrNum
+from prediction import Prediction
 from reader import DNASequenceReader
 from constants import CHRVL, CHRV_TOTAL_BP
 from chromosome import Chromosome
@@ -301,7 +302,11 @@ class MultiChrLoops:
 
     def find_avg_c0(self):
         mcloop_df = pd.DataFrame({'Chr': self._chrs})
-        chrs = mcloop_df['Chr'].apply(lambda chr_id: Chromosome(chr_id))
+        model_no = 30
+        chrs = mcloop_df['Chr'].apply(
+            lambda chr_id: Chromosome(chr_id, Prediction(model_no)) 
+                if chr_id != 'VL' else Chromosome(chr_id, None)
+        )
         mcloop_df['avg_c0'] = chrs.apply(lambda chr: chr.get_spread().mean())
         
         mc_loops = chrs.apply(lambda chr: Loops(chr))
@@ -309,7 +314,7 @@ class MultiChrLoops:
         mcloop_df['avg_loop_c0_quart_len'] = mc_loops.apply(lambda loops: loops.find_avg_c0_in_quartile_by_len())
         mcloop_df['avg_loop_c0_quart_pos'] = mc_loops.apply(lambda loops: loops.find_avg_c0_in_quartile_by_pos())
 
-        IOUtil().save_tsv(mcloop_df, 'data/generated_data/loop/multichr_c0_stat.tsv')
+        IOUtil().append_tsv(mcloop_df, f'data/generated_data/loop/multichr_c0_stat_{model_no}.tsv')
         
 
         

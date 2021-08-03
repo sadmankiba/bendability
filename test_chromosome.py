@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from constants import CHRVL_LEN, CHRV_TOTAL_BP
+from prediction import Prediction
 
 
 class TestChromosomeUtil(unittest.TestCase):
@@ -21,7 +22,7 @@ class TestChromosomeUtil(unittest.TestCase):
 
 class TestSpread(unittest.TestCase):
     def test_covering_sequences_at(self):
-        chrv = Chromosome('VL')
+        chrv = Chromosome('VL', None)
         spread = Spread(chrv._df['C0'].to_numpy(), chrv._chr_id)
         arr = spread._covering_sequences_at(30)
         self.assertListEqual(arr.tolist(), [1, 2, 3, 4, 5])
@@ -31,7 +32,7 @@ class TestSpread(unittest.TestCase):
         self.assertListEqual(arr.tolist(), [82403, 82404])
 
     def test_mean_of_7(self):
-        chrv = Chromosome('VL')
+        chrv = Chromosome('VL', None)
         spread = Spread(chrv._df['C0'].to_numpy(), chrv._chr_id)
         spread_c0 = spread.mean_of_7()
         self.assertTupleEqual(spread_c0.shape, (CHRV_TOTAL_BP,))
@@ -42,7 +43,7 @@ class TestSpread(unittest.TestCase):
         
 
     def test_mean_of_covering_seq(self):
-        chrv = Chromosome('VL')
+        chrv = Chromosome('VL', None)
         spread = Spread(chrv._df['C0'].to_numpy(), chrv._chr_id)
         spread_c0 = spread.mean_of_covering_seq()
         self.assertTupleEqual(spread_c0.shape, (CHRV_TOTAL_BP,))
@@ -53,7 +54,7 @@ class TestSpread(unittest.TestCase):
 
 
     def test_spread_c0_weighted(self):
-        chrv = Chromosome('VL')
+        chrv = Chromosome('VL', None)
         spread = Spread(chrv._df['C0'].to_numpy(), chrv._chr_id)
         spread_c0 = spread.weighted_covering_seq()
         self.assertTupleEqual(spread_c0.shape, (CHRV_TOTAL_BP,))
@@ -65,7 +66,7 @@ class TestSpread(unittest.TestCase):
 
 class TestChromosome(unittest.TestCase):
     def test_get_chr_prediction(self):
-        chrv = Chromosome('IX')
+        chrv = Chromosome('IX', Prediction(model_no=6))
         predict_df = chrv._get_chr_prediction()
         self.assertCountEqual(predict_df.columns, ['Sequence #', 'Sequence', 'C0'])
 

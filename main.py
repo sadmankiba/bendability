@@ -53,4 +53,5 @@ def run_model():
 
 
 if __name__ == '__main__':
-    pass
+    for chr in YeastChrNumList:
+        Nucleosome(Chromosome(chr, Prediction(30))).plot_c0_vs_dist_from_dyad_spread()

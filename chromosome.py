@@ -230,10 +230,12 @@ class Chromosome:
             spread_str: Which type of spread to use. 
         """
         # TODO: 
-        # _chr_num, _chr_id should be public (used in Loops)
         # _c0_type in function
         # total_bp in function
         # Don't keep _chr_util attribute
+        self._prediction = prediction
+        self._chr_id = chr_id
+        
         if chr_id == 'VL':
             assert prediction is None
             self._chr_num = 'V'
@@ -244,11 +246,10 @@ class Chromosome:
             self._c0_type = 'predicted'
             self._df = self._get_chr_prediction()
         
-        self._chr_id = chr_id
         self._chr_util = ChromosomeUtil()  
         self._total_bp = self._chr_util.get_total_bp(len(self._df))
         self.spread_str = spread_str
-        self._prediction = prediction
+
 
     def __str__(self):
         return f's_{self.spread_str}_m_{self.predict_model_no()}_{self._chr_id}'
