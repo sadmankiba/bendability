@@ -103,7 +103,6 @@ class Prediction:
             'pearsons_corr': [pearsonr(y, y_pred)[0]], 
             'spearmans_corr': [spearmanr(y, y_pred)[0]]
         })
-        # TODO: update_tsv
-        IOUtil().save_tsv(metrics_df, f'data/generated_data/prediction_metrics/pred_m_{self._model_no}.tsv')
+        IOUtil().append_tsv(metrics_df, f'data/generated_data/prediction_metrics/pred_m_{self._model_no}.tsv')
         
         

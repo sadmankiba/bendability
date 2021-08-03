@@ -1,11 +1,12 @@
 from util import get_possible_seq, cut_sequence, \
-        reverse_compliment_of, append_reverse_compliment
+        reverse_compliment_of, append_reverse_compliment, IOUtil
 
 import pandas as pd
 import numpy as np
 
 import unittest
-
+from pathlib import Path
+import os
 
 # https://stackoverflow.com/a/31832447/7283201
 
@@ -48,6 +49,21 @@ class TestUtil(unittest.TestCase):
         # Test two list have same content, also regarding their order
         self.assertListEqual(cdf_seq_list, expected)
 
+class TestIOUtil:
+    def test_append_tsv(self):
+        sample_df = pd.DataFrame({'a': [1, 2], 'b': [11, 12]})
+        path = Path('data/generated_data/test_append.tsv')
+        
+        if not path.parent.is_dir():
+            path.parent.mkdir(parents=True, exist_ok=True)
+        
+        sample_df.to_csv(path, sep='\t', index=False)
+        other_df = pd.DataFrame({'a': [3], 'b': [13]})
+        
+        IOUtil().append_tsv(other_df, path)
+        append_df = pd.read_csv(path, sep='\t')
+        assert len(append_df) == 3
+        os.remove(path)
 
 if __name__ == "__main__":
     unittest.main()

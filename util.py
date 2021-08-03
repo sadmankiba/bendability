@@ -187,3 +187,17 @@ class IOUtil:
             path.parent.mkdir(parents=True, exist_ok=True)
         
         df.to_csv(path, sep='\t', index=False, float_format='%.3f')
+    
+    
+    def append_tsv(self, df: pd.DataFrame, path_str: str | Path) -> None: 
+        """Append a dataframe to a tsv if it exists, otherwise create"""
+        path = Path(path_str)
+        if path.is_file():
+            target_df = pd.read_csv(path, sep='\t')
+            pd.merge(df, target_df, how='outer')\
+                .to_csv(path, sep='\t', index=False, float_format='%3f')
+            return
+        
+        self.save_tsv(df, path_str)
+
+
