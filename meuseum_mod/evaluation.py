@@ -120,6 +120,8 @@ def save_kernel_weights_logos(model):
     
 
 class Evaluation:
+    # TODO: Move these methods to Prediction class in parent directory and
+    # delete this module 
     def __init__(self):
         self._model = self._load_model()
 
@@ -191,7 +193,6 @@ class Evaluation:
 
         y_pred = self._model.predict({'forward': x1, 'reverse': x2}).flatten()
         return df.assign(c0_predict = y_pred)
-        # df['c0_predict'] = y_pred
                 
         
     def print_prediction_metrics(self, df: pd.DataFrame) -> None:
