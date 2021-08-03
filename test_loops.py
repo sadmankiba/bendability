@@ -65,6 +65,6 @@ class TestLoops(unittest.TestCase):
 
 class TestMultipleChrLoops:
     def test_multichr_find_avg_c0(self):
-        MultiChrLoops().find_avg_c0()
-        path = Path('data/generated_data/loop/multichr_c0_stat.tsv')
+        MultiChrLoops().save_avg_c0_stat()
+        path = Path('data/generated_data/loop/multichr_avg_c0_stat_30.tsv')
         assert path.is_file()

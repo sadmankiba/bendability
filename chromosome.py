@@ -4,7 +4,7 @@ from prediction import Prediction
 from reader import DNASequenceReader
 from constants import CHRVL, SEQ_LEN, CHRV_TOTAL_BP, CHRVL_LEN
 from meuseum_mod.evaluation import Evaluation
-from custom_types import YeastChrNum
+from custom_types import ChrId, YeastChrNum
 from util import IOUtil
 
 import matplotlib.pyplot as plt 
@@ -56,7 +56,7 @@ SpreadType = Literal['mean7', 'mean_cover', 'weighted', 'single']
 class Spread:
     """Spread C0 at each bp from C0 of 50-bp sequences at 7-bp resolution"""
     
-    def __init__(self, seq_c0_res7: np.ndarray, chr_id: Union[YeastChrNum, Literal['VL']]):
+    def __init__(self, seq_c0_res7: np.ndarray, chr_id: ChrId, model_no: int):
         """
         Construct a spread object
         
@@ -67,6 +67,7 @@ class Spread:
         self._seq_c0_res7 = seq_c0_res7
         self._total_bp = ChromosomeUtil().get_total_bp(seq_c0_res7.size)
         self._chr_id = chr_id
+        self._model_no = model_no
 
 
     def _covering_sequences_at(self, pos: int) -> np.ndarray:
@@ -103,7 +104,7 @@ class Spread:
         If 8 sequences cover a bp, first 7 considered. If less than 7 seq
         cover a bp, nearest 7-seq mean is used. 
         """
-        saved_data = Path(f'data/generated_data/spread/spread_c0_mean7_{self._chr_id}.tsv')
+        saved_data = Path(f'data/generated_data/spread/spread_c0_mean7_{self._chr_id}_m_{self._model_no}.tsv')
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep='\t')['c0_mean7'].to_numpy()
 
@@ -126,7 +127,7 @@ class Spread:
     def _mean_of_covering_seq(self) -> np.ndarray:
         """Determine C0 at each bp by average of covering 50-bp sequences around"""
         # TODO: HOF to wrap check and save data?
-        saved_data = Path(f'data/generated_data/spread/spread_c0_balanced_{self._chr_id}.tsv')
+        saved_data = Path(f'data/generated_data/spread/spread_c0_balanced_{self._chr_id}_m_{self._model_no}.tsv')
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep='\t')['c0_balanced'].to_numpy()
         
@@ -149,7 +150,7 @@ class Spread:
 
     def _weighted_covering_seq(self) -> np.ndarray:
         """Determine C0 at each bp by weighted average of covering 50-bp sequences around"""
-        saved_data = Path(f'data/generated_data/spread/spread_c0_weighted_{self._chr_id}.tsv')
+        saved_data = Path(f'data/generated_data/spread/spread_c0_weighted_{self._chr_id}_m_{self._model_no}.tsv')
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep='\t')['c0_weighted'].to_numpy()
 
@@ -264,7 +265,7 @@ class Chromosome:
             return pd.read_csv(saved_predict_data, sep='\t')
         
         df = DNASequenceReader().read_yeast_genome(self._chr_num)
-        predict_df = Evaluation().predict(df).rename(columns = {'c0_predict': 'C0'})
+        predict_df = self._prediction.predict(df).rename(columns = {'c0_predict': 'C0'})
         
         # Save data
         IOUtil().save_tsv(predict_df, saved_predict_data)
@@ -363,10 +364,10 @@ class Chromosome:
 
 
     def get_spread(self) -> np.ndarray:
-        return Spread(self._df['C0'].values, self._chr_id).get_spread(self.spread_str)
+        return Spread(self._df['C0'].values, self._chr_id, self.predict_model_no()).get_spread(self.spread_str)
     
 
     def predict_model_no(self) -> int:
-        return self._prediction._model_no
+        return self._prediction._model_no if self._chr_id != 'VL' else None
     
         

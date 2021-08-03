@@ -336,7 +336,7 @@ class Loops:
         """Find average c0 of collection of loops by dividing them into
         quartiles by length"""
         quart_loop_df = self._get_quartile_dfs(self._loop_df)
-        return list(map(self.find_avg_around_pos, [pos] * 4, [lim] * 4, quart_loop_df))
+        return list(map(self.find_avg_around_anc, [pos] * 4, [lim] * 4, quart_loop_df))
 
 
 class MultiChrLoops:
@@ -423,6 +423,7 @@ class MultiChrLoops:
             columns=quart_anc_len_cols
         ) for pos in ['start', 'center', 'end']])
 
-        mcloop_df.drop(columns=['c0','Chr']) = mcloop_df.drop(columns=['c0', 'Chr']).apply(lambda col: col - mcloop_df['c0'])
+        mcloop_df[mcloop_df.drop(columns=['c0','Chr']).columns] = \
+            mcloop_df.drop(columns=['c0', 'Chr']).apply(lambda col: col - mcloop_df['c0'])
         
         IOUtil().append_tsv(mcloop_df, f'data/generated_data/loop/multichr_avg_c0_stat_{model_no}.tsv')
