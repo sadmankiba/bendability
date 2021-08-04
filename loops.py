@@ -324,8 +324,8 @@ class Loops:
         return round(sum(
             map(
                 lambda idx: chrv_c0_spread[
-                    loop_df.iloc[idx][pos] - lim - 1 
-                        : loop_df.iloc[idx][pos] + lim
+                    int(loop_df.iloc[idx][pos]) - lim - 1 
+                        : int(loop_df.iloc[idx][pos]) + lim
                     ].mean(), 
                 range(len(loop_df))
             )
@@ -333,8 +333,13 @@ class Loops:
 
 
     def find_avg_around_anc_in_quartile_by_len(self, pos: Literal['start', 'end', 'center'], lim :int = 500) -> list[float]:
-        """Find average c0 of collection of loops by dividing them into
-        quartiles by length"""
+        """
+        Find average c0 of collection of loops by dividing them into
+        quartiles by length
+        
+        Returns: 
+            A list of 4 float numbers
+        """
         quart_loop_df = self._get_quartile_dfs(self._loop_df)
         return list(map(self.find_avg_around_anc, [pos] * 4, [lim] * 4, quart_loop_df))
 
@@ -349,13 +354,17 @@ class MultiChrLoops:
     def save_avg_c0_stat(self):
         mcloop_df = pd.DataFrame({'Chr': self._chrs})
         model_no = 30
+
+        # Create a Pandas Series of Chromosomes
         chrs = mcloop_df['Chr'].apply(
             lambda chr_id: Chromosome(chr_id, Prediction(model_no)) 
                 if chr_id != 'VL' else Chromosome(chr_id, None)
         )
         mcloop_df['c0'] = chrs.apply(lambda chr: chr.get_spread().mean())
         
+        # Create a Pandas Series of Loops
         mc_loops = chrs.apply(lambda chr: Loops(chr))
+        
         mcloop_df['loop'] = mc_loops.apply(lambda loops: loops.find_avg_c0())
         
         # Add quartile by length columns
@@ -380,17 +389,23 @@ class MultiChrLoops:
             columns=quart_pos_cols
         )
 
-        # Add Quartile by position in quartile by length columns
-        def _make_avg_arr(func: function, *args):
-            """Calculate values to append to dataframe by calling functions of
-            Loops objects"""
+        
+        def _make_avg_arr(func: function, *args) -> np.ndarray:
+            """
+            Calculate values to append to dataframe by calling functions of
+            Loops objects
+
+            Returns:
+                A 2D numpy array, where each column represents a column for
+                dataframe
+            """
             return np.array(
                 mc_loops.apply(
                     lambda loops: func(loops, *args)
                 ).tolist()
             )
 
-
+        # Add Quartile by position in quartile by length columns
         quart_len_pos_cols = [f'quart_len_{p[0]}_pos_{p[1]}' 
                         for p in itertools.product(range(1,5), range(1,5))]
         
@@ -408,21 +423,32 @@ class MultiChrLoops:
         # )
 
         # Add anchor and center columns
-        anc_bp_it = itertools.product(['start', 'center', 'end'], [500, 200, 50])
-        anc_bp_cols = [f'{p[0]}_{p[1]}' for p in anc_bp_it]
-        mcloop_df[anc_bp_cols] = pd.concat([ 
-            mc_loops.apply(lambda loops: loops.find_avg_around_anc(p[0], p[1]))
-            for p in anc_bp_it 
+        def _get_anc_bp_it():
+            return itertools.product(['start', 'center', 'end'], [500, 200, 50])
+        
+        anc_bp_cols = [f'{p[0]}_{p[1]}' for p in _get_anc_bp_it()]
+
+        anc_bp_cols_df = pd.concat([ 
+            pd.Series(
+                mc_loops.apply(lambda loops: loops.find_avg_around_anc(p[0], p[1])), 
+                name=f'{p[0]}_{p[1]}'
+            )
+            for p in _get_anc_bp_it() 
         ], axis=1)
+        mcloop_df[anc_bp_cols] = anc_bp_cols_df
 
         # Add anchor and center columns of quartile by len 
         quart_anc_len_cols = [f'{p[0]}_200_quart_len_{p[1]}'
-                for p in itertools(['start', 'center', 'end'], range(1,5))]
-        mcloop_df[quart_anc_len_cols] = pd.concat([pd.DataFrame(
-            _make_avg_arr(Loops.find_avg_around_anc_in_quartile_by_len, pos, 200),
-            columns=quart_anc_len_cols
-        ) for pos in ['start', 'center', 'end']])
+                for p in itertools.product(['start', 'center', 'end'], range(1,5))]
+        mcloop_df[quart_anc_len_cols] = pd.concat([
+            pd.DataFrame(
+                _make_avg_arr(Loops.find_avg_around_anc_in_quartile_by_len, pos, 200),
+                columns=quart_anc_len_cols[pos_idx * 4: (pos_idx + 1) * 4]
+            ) 
+            for pos_idx, pos in enumerate(['start', 'center', 'end'])
+        ], axis=1)
 
+        # Subtract avg. of C0 of chromosome from rest of the columns
         mcloop_df[mcloop_df.drop(columns=['c0','Chr']).columns] = \
             mcloop_df.drop(columns=['c0', 'Chr']).apply(lambda col: col - mcloop_df['c0'])
         

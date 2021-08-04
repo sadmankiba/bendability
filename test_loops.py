@@ -63,6 +63,12 @@ class TestLoops(unittest.TestCase):
         assert arr.shape == (4,)
 
 
+    def test_find_avg_around_anc(self):
+        avg = Loops(Chromosome('VL', None)).find_avg_around_anc('start', 500)
+        assert avg > -1
+        assert avg < 1
+
+
 class TestMultipleChrLoops:
     def test_multichr_find_avg_c0(self):
         MultiChrLoops().save_avg_c0_stat()
