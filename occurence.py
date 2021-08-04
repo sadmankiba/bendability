@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from util import get_possible_seq, gen_random_sequences, sorted_split
+from util import get_possible_seq, gen_random_sequences, sorted_split, \
+    append_reverse_compliment
+from reader import DNASequenceReader
+from constants import RL 
 
 import pandas as pd
 import numpy as np
@@ -199,3 +202,10 @@ class Occurence:
         # sorted_occur = sorted(seq_occur_map.items(), key=lambda x: x[1][0], reverse=True)
         # arr = np.array([ pair[1] for pair in sorted_occur ])
         # assert arr.shape == (4**2, N_BINS)
+
+
+    def plot_boxplot_lib(self, library_name: str):
+        reader = DNASequenceReader()
+        all_lib = reader.get_processed_data()
+        df = append_reverse_compliment(all_lib[library_name])
+        self.plot_boxplot(df, library_name)

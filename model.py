@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from data_organizer import DataOrganizer
+from data_organizer import DataOrganizer, TrainTestSequenceLibraries, SequenceLibrary,\
+        DataOrganizeOptions
+from constants import RL, TL
+from feat_selector import FeatureSelectorFactory
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -169,3 +172,35 @@ class Model:
 
     def run_shape_seq_classifier(self) -> None:
         pass
+
+
+class ModelRunner:
+    def run_model():
+        libraries: TrainTestSequenceLibraries = {
+            'train': [ SequenceLibrary(name=TL, quantity=20000) ],
+            'test': [ SequenceLibrary(name=RL, quantity=5000) ], 
+            'train_test': [],
+            'seq_start_pos': 1,
+            'seq_end_pos': 50
+        }
+
+        # shape_factory = ShapeOrganizerFactory('normal', 'ProT')
+        # shape_organizer = shape_factory.make_shape_organizer(library)
+        feature_factory = FeatureSelectorFactory('corr')
+        selector = feature_factory.make_feature_selector()
+
+        options: DataOrganizeOptions = {
+            'k_list': [2],
+            'range_split': np.array([0.2, 0.6, 0.2]),
+            'binary_class': False,
+            'balance': False,
+            'c0_scale': 20
+        }
+
+        organizer = DataOrganizer(libraries, None, selector, options)
+
+        model = Model(organizer)
+
+        # model.run_seq_classifier()
+        model.run_seq_regression()
+        # model.run_shape_cnn_classifier()

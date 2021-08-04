@@ -182,13 +182,16 @@ class IOUtil:
 
     def save_tsv(self, df: pd.DataFrame, path_str: str | Path) -> None:
         """Save a dataframe in tsv format"""
+        self.make_parent_dirs(path_str)
+        df.to_csv(path_str, sep='\t', index=False, float_format='%.3f')
+    
+
+    def make_parent_dirs(self, path_str: str | Path) -> None:
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
         
-        df.to_csv(path, sep='\t', index=False, float_format='%.3f')
-    
-    
+
     def append_tsv(self, df: pd.DataFrame, path_str: str | Path) -> None: 
         """Append a dataframe to a tsv if it exists, otherwise create"""
         path = Path(path_str)

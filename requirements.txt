@@ -1,3 +1,4 @@
+fanc
 pytest
 biopython
 seaborn

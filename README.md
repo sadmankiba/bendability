@@ -15,12 +15,17 @@ This repository contains various utility tools to analyze DNA Bendability.
 
 ## Using Code 
 
-Install necessary packages. 
+### Installing Packages
+
+`fanc` package requires `hdf5` library. Check [here](https://vaquerizaslab.github.io/fanc/getting_started.html)
+
+Now, install necessary packages. 
 
 ```sh 
 pip install -r requirements.txt
 ```
 
+### Running a function
 Invoking functionalities is very simple. Just create approriate object and call it's public functions from `main.py`.
 
 ```py
