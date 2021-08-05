@@ -236,15 +236,15 @@ class Chromosome:
         # _c0_type in function
         # total_bp in function
         # Don't keep _chr_util attribute
-        self._prediction = prediction
         self._chr_id = chr_id
         
         if chr_id == 'VL':
-            assert prediction is None
+            self._prediction = None
             self._chr_num = 'V'
             self._c0_type = 'actual'
             self._df = DNASequenceReader().get_processed_data()[CHRVL]
         else: 
+            self._prediction = prediction
             self._chr_num = chr_id
             self._c0_type = 'predicted'
             self._df = self._get_chr_prediction()

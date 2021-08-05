@@ -1,5 +1,3 @@
-from typing import Union, Literal
-
 # Library names
 CNL = 'cnl'
 RL = 'rl'
