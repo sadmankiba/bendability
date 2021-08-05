@@ -1,4 +1,4 @@
-from loops import Loops, MeanLoops, MultiChrLoops
+from loops import Loops, MeanLoops, MultiChrmMeanLoopsCollector
 from chromosome import Chromosome
 
 import numpy as np
@@ -77,6 +77,6 @@ class TestMeanLoops:
 
 class TestMultipleChrLoops:
     def test_multichr_find_avg_c0(self):
-        MultiChrLoops(('VL',)).save_avg_c0_stat()
+        MultiChrmMeanLoopsCollector(('VL',)).save_avg_c0_stat([0,1,2,3,4,5,6], True)
         path = Path('data/generated_data/loop/multichr_avg_c0_stat_m_30.tsv')
         assert path.is_file()

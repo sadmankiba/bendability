@@ -368,68 +368,68 @@ class MeanLoops:
         return tuple(nuc_linker_avg)
 
 
-class MultiChrLoops:
+class MultiChrmMeanLoopsCollector:
     """
-    Class to analyze mean c0 in loops in multiple chromosomes
+    Class to accumulate various mean functions in loops in a dataframe for
+    side-by-side comparison. 
     """
-    def __init__(self, chrs: tuple[ChrId] = ChrIdList):
-        self._chrs = chrs
-
-    def save_avg_c0_stat(self):
-        mcloop_df = pd.DataFrame({'Chr': self._chrs})
-        model_no = 30
-
-        # Create a Pandas Series of Chromosomes
-        chrs = mcloop_df['Chr'].apply(
-            lambda chr_id: Chromosome(chr_id, Prediction(model_no)) 
+    def __init__(self, chrids: tuple[ChrId] = ChrIdList):
+        self._mcloop_df = pd.DataFrame({'Chr': chrids})
+        self._model_no = 30
+        self._chrs = self._get_chromosomes()
+        self._mcloops = self._chrs.apply(lambda chr: MeanLoops(chr))
+        
+    def _get_chromosomes(self) -> pd.Series:
+        """Create a Pandas Series of Chromosomes"""
+        return self._mcloop_df['Chr'].apply(
+            lambda chr_id: Chromosome(chr_id, Prediction(self._model_no)) 
                 if chr_id != 'VL' else Chromosome(chr_id, None)
         )
-        mcloop_df['c0'] = chrs.apply(lambda chr: chr.get_spread().mean())
-        
-        # Create a Pandas Series of Loops
-        mc_loops = chrs.apply(lambda chr: MeanLoops(chr))
-        
-        mcloop_df['loop'] = mc_loops.apply(lambda mloops: mloops.find_avg_c0())
+    
+    def _make_avg_arr(self, func: function, *args) -> np.ndarray:
+        """
+        Calculate values to append to dataframe by calling functions of
+        Loops objects
 
-        
-        def _make_avg_arr(func: function, *args) -> np.ndarray:
-            """
-            Calculate values to append to dataframe by calling functions of
-            Loops objects
-
-            Returns:
-                A 2D numpy array, where each column represents a column for
-                dataframe
-            """
-            return np.array(
-                mc_loops.apply(
-                    lambda mloops: func(mloops, *args)
-                ).tolist()
-            )
-        
-        # Add quartile by length columns
-        quart_len_cols = ['quart_len_1', 'quart_len_2', 'quart_len_3', 'quart_len_4']
-        mcloop_df[quart_len_cols] = pd.DataFrame(
-            _make_avg_arr(MeanLoops.find_avg_c0_in_quartile_by_len), 
-            columns=quart_len_cols
+        Returns:
+            A 2D numpy array, where each column represents a column for
+            dataframe
+        """
+        return np.array(
+            self._mcloops.apply(
+                lambda mloops: func(mloops, *args)
+            ).tolist()
         )
 
-        # Add quartile by position columns
+    def _add_chrm_mean(self) -> None:
+        self._mcloop_df['c0'] = self._chrs.apply(lambda chr: chr.get_spread().mean())
+    
+    def _add_loop_mean(self) -> None:
+        self._mcloop_df['loop'] = self._mcloops.apply(lambda mloops: mloops.find_avg_c0())
+    
+    def _add_quartile_by_len(self) -> None:
+        quart_len_cols = ['quart_len_1', 'quart_len_2', 'quart_len_3', 'quart_len_4']
+        self._mcloop_df[quart_len_cols] = pd.DataFrame(
+            self._make_avg_arr(MeanLoops.find_avg_c0_in_quartile_by_len), 
+            columns=quart_len_cols
+        )
+    
+    def _add_quartile_by_pos(self) -> None: 
         quart_pos_cols = ['quart_pos_1', 'quart_pos_2', 'quart_pos_3', 'quart_pos_4']
-        mcloop_df[quart_pos_cols] = pd.DataFrame(
-            _make_avg_arr(MeanLoops.find_avg_c0_in_quartile_by_pos), 
+        self._mcloop_df[quart_pos_cols] = pd.DataFrame(
+            self._make_avg_arr(MeanLoops.find_avg_c0_in_quartile_by_pos), 
             columns=quart_pos_cols
         )
 
-        # Add Quartile by position in quartile by length columns
+    def _add_quartile_by_len_pos(self) -> None:
         quart_len_pos_cols = [f'quart_len_{p[0]}_pos_{p[1]}' 
                         for p in itertools.product(range(1,5), range(1,5))]
-        mcloop_df[quart_len_pos_cols] = pd.DataFrame(
-            _make_avg_arr(MeanLoops.find_avg_c0_in_quartile_by_pos_in_quart_len),
+        self._mcloop_df[quart_len_pos_cols] = pd.DataFrame(
+            self._make_avg_arr(MeanLoops.find_avg_c0_in_quartile_by_pos_in_quart_len),
             columns=quart_len_pos_cols
         )
 
-        # Add anchor and center columns
+    def _add_anchor_center_bp(self) -> None: 
         def _get_anc_bp_it():
             return itertools.product(['start', 'center', 'end'], [500, 200, 50])
         
@@ -437,26 +437,47 @@ class MultiChrLoops:
 
         anc_bp_cols_df = pd.concat([ 
             pd.Series(
-                mc_loops.apply(lambda mloops: mloops.find_avg_around_anc(p[0], p[1])), 
+                self._mcloops.apply(lambda mloops: mloops.find_avg_around_anc(p[0], p[1])), 
                 name=f'{p[0]}_{p[1]}'
             )
             for p in _get_anc_bp_it() 
         ], axis=1)
-        mcloop_df[anc_bp_cols] = anc_bp_cols_df
-
-        # Add anchor and center columns of quartile by len 
+        self._mcloop_df[anc_bp_cols] = anc_bp_cols_df
+    
+    def _add_quartile_len_anchor_center_bp(self) -> None: 
         quart_anc_len_cols = [f'{p[0]}_200_quart_len_{p[1]}'
                 for p in itertools.product(['start', 'center', 'end'], range(1,5))]
-        mcloop_df[quart_anc_len_cols] = pd.concat([
+        self._mcloop_df[quart_anc_len_cols] = pd.concat([
             pd.DataFrame(
-                _make_avg_arr(MeanLoops.find_avg_around_anc_in_quartile_by_len, pos, 200),
+                self._make_avg_arr(MeanLoops.find_avg_around_anc_in_quartile_by_len, pos, 200),
                 columns=quart_anc_len_cols[pos_idx * 4: (pos_idx + 1) * 4]
             ) 
             for pos_idx, pos in enumerate(['start', 'center', 'end'])
         ], axis=1)
-
-        # Subtract avg. of C0 of chromosome from rest of the columns
-        mcloop_df[mcloop_df.drop(columns=['c0','Chr']).columns] = \
-            mcloop_df.drop(columns=['c0', 'Chr']).apply(lambda col: col - mcloop_df['c0'])
+    
+    def _subtract_mean_chrm_c0(self) -> None:
+        self._mcloop_df[self._mcloop_df.drop(columns=['c0','Chr']).columns] = \
+            self._mcloop_df.drop(columns=['c0', 'Chr']).apply(lambda col: col - self._mcloop_df['c0'])
+    
+    def save_avg_c0_stat(self, mean_methods: list[int], subtract_chrm=True) -> None:
+        """
+        Args:
+            mean_methods: A list of int. Between 0-6 (inclusive)
+            subtract_chrm: Whether to subtract chrm c0
+        """
+        method_map = {
+            0: self._add_chrm_mean,
+            1: self._add_loop_mean,
+            2: self._add_quartile_by_len,
+            3: self._add_quartile_by_pos,
+            4: self._add_quartile_by_len_pos,
+            5: self._add_anchor_center_bp,
+            6: self._add_quartile_len_anchor_center_bp,
+        }
+        for m in mean_methods:
+            method_map[m]()
         
-        IOUtil().append_tsv(mcloop_df, f'data/generated_data/loop/multichr_avg_c0_stat_m_{model_no}.tsv')
+        if subtract_chrm:
+            self._subtract_mean_chrm_c0()
+
+        IOUtil().append_tsv(self._mcloop_df, f'data/generated_data/loop/multichr_avg_c0_stat_m_{self._model_no}.tsv')
