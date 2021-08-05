@@ -15,8 +15,18 @@ import math
 from pathlib import Path
 import time
 from typing import IO, Literal, Union
+from dataclasses import dataclass
 
+@dataclass
+class Region:
+    """Class for representing a region in genome"""
+    chromosome: YeastChrNum
+    start: int
+    end: int 
 
+    def center(self) -> float: 
+        return (self.start + self.end) / 2
+ 
 
 class ChromosomeUtil:
     def calc_moving_avg(self, arr: np.ndarray, k: int) -> np.ndarray:
