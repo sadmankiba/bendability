@@ -25,12 +25,16 @@ class Boundary:
         self._hic_file = fanc.load("hic/data/GSE151553_A364_merged.juicer.hic@500")
         self.boundaries = self._get_all_boundaries()
 
-    def plot_boundaries(self):
+    def plot_boundaries(self, chrm_num: YeastChrNum, start: int, end: int):
         ph = fancplot.TriangularMatrixPlot(self._hic_file, max_dist=50000, vmin=0, vmax=50)
         pb = fancplot.BarPlot(self.boundaries)
         f = fancplot.GenomicFigure([ph, pb])
-        fig, axes = f.plot('XII:100kb-300kb')
-        IOUtil().save_figure('figures/hic/xii_100kb_300kb.png')
+        if start > 0 and end > 0:
+            fig, axes = f.plot(f'{chrm_num}:{int(start / 1000)}kb-{int(end / 1000)}kb')
+            IOUtil().save_figure('figures/hic/xii_100kb_300kb.png')
+        else:
+            fig, axes = f.plot(f'{chrm_num}')
+            IOUtil().save_figure(f'figures/hic/{chrm_num}_boundaries.png')
 
     def _get_all_boundaries(self) -> fanc.architecture.domains.Boundaries:
         insulation_output_path = "data/generated_data/hic/yeast.insulation"
