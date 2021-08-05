@@ -144,7 +144,7 @@ class nn_model:
 
         model = keras.Model(inputs=[forward, reverse], outputs=outputs)
 
-        model.summary()
+        # model.summary()
 
         if self.loss_func == 'mse':
             model.compile(loss='mean_squared_error', optimizer=self.optimizer, metrics=[

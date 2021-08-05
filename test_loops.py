@@ -69,6 +69,14 @@ class TestLoops(unittest.TestCase):
         assert avg < 1
 
 
+    def test_find_avg_c0_in_nuc_linker(self):
+        loops = Loops(Chromosome('VL', None))
+        na, la = loops.find_mean_c0_in_nuc_linker()
+        assert -1 < na < 0
+        assert -1 < la < 0 
+        assert na > la
+
+
 class TestMultipleChrLoops:
     def test_multichr_find_avg_c0(self):
         MultiChrLoops().save_avg_c0_stat()

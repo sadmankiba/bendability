@@ -1,4 +1,5 @@
 from __future__ import annotations
+from nucleosome import Nucleosome
 from typing import IO
 
 from custom_types import ChrId
@@ -94,12 +95,6 @@ class Loops:
             plt.title(f'C0 in loop between {row["start"]}-{row["end"]}. Found with resolution: {row["res"]}.')
 
             IOUtil().save_figure(f'figures/loop/{self._chr._chr_id}/{row["start"]}_{row["end"]}.png')
-            
-            # loop_fig_dir = f'figures/loops/{self._chr._chr_id}'
-            # if not Path(loop_fig_dir).is_dir():
-            #     Path(loop_fig_dir).mkdir(parents=True, exist_ok=True)
-            
-            # plt.savefig(f'{loop_fig_dir}/{row["start"]}_{row["end"]}.png')
 
 
     def _plot_mean_across_loops(self, total_perc: int, chr_spread: np.ndarray, val_type: str) -> None:
@@ -241,7 +236,7 @@ class Loops:
 
         IOUtil().save_figure(f'figures/loop_anchor/dist_{lim}_{self._chr}.png')
         
-
+    # TODO: Create separate plotter and avg calculator class that take Loop class
     def plot_mean_nuc_occupancy_across_loops(self, total_perc=150) -> None:
         self._plot_mean_across_loops(total_perc, self._chr.get_nucleosome_occupancy(), 'nuc_occ')
 
@@ -343,6 +338,26 @@ class Loops:
         quart_loop_df = self._get_quartile_dfs(self._loop_df)
         return list(map(self.find_avg_around_anc, [pos] * 4, [lim] * 4, quart_loop_df))
 
+
+    def find_mean_c0_in_nuc_linker(self, nuc_half : int = 73) -> tuple[float, float]:
+        """
+        Returns:  
+            A tuple: nuc mean C0, linker mean C0
+        """
+        nuc = Nucleosome(self._chr)
+        nuc_regions = nuc.get_nuc_regions(nuc_half)
+        spread_c0 = self._chr.get_spread()
+        
+        def _find_avg_nuc_linker_c0_of(loop: pd.Series) -> tuple[float, float]:
+            """Find nuc avg C0 and linker avg C0 in a loop"""
+            loop_spread = spread_c0[loop['start'] - 1 : loop['end'] - 1]
+            loop_nuc_mask = nuc_regions[loop['start'] - 1 : loop['end'] - 1]
+            return loop_spread[loop_nuc_mask].mean(), loop_spread[~loop_nuc_mask].mean()
+            
+        nuc_linker_means = self._loop_df.apply(lambda loop: _find_avg_nuc_linker_c0_of(loop), axis=1)
+        nuc_linker_avg = np.array(nuc_linker_means.tolist()).mean(axis=0)
+        assert nuc_linker_avg.shape == (2,)
+        return tuple(nuc_linker_avg)
 
 class MultiChrLoops:
     """

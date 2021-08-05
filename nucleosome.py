@@ -11,7 +11,7 @@ from pathlib import Path
 import time
 from typing import Literal
 
-
+# TODO: Should be Nucleosomes
 class Nucleosome:
     """
     Class for representing nucleosomes in a chromosome
@@ -150,7 +150,7 @@ class Nucleosome:
         """
         Args:
             nuc_half: the region considered as within nucleosome
-            
+
         Returns: 
             A numpy 1D array of boolean of size chromosome total bp to 
             denote nucleosome regions. An element is set to True if it 
@@ -165,6 +165,11 @@ class Nucleosome:
         return nuc_array
     
     def find_avg_nuc_linker_c0(self, nuc_half : int = 73) -> None: 
+        """
+        Note:
+            nuc_half < 73 would mean including some nuc region with linker.
+            might give less difference.
+        """
         spread_c0 = self._chr.get_spread()
         nuc_regions = self.get_nuc_regions(nuc_half)
         nuc_avg = spread_c0[nuc_regions].mean()
