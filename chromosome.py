@@ -3,7 +3,6 @@ from __future__ import annotations
 from prediction import Prediction
 from reader import DNASequenceReader
 from constants import CHRVL, SEQ_LEN, CHRV_TOTAL_BP, CHRVL_LEN
-from meuseum_mod.evaluation import Evaluation
 from custom_types import ChrId, YeastChrNum
 from util import IOUtil
 

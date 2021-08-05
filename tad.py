@@ -21,9 +21,11 @@ This module requires hic-matrix data that can be found here: https://www.ncbi.nl
 '''
 
 class Boundary:
-    def __init__(self):
-        self._hic_file = fanc.load("hic/data/GSE151553_A364_merged.juicer.hic@500")
+    def __init__(self, resolution : int = 500, window_size : int = 1000):
+        self._hic_file = fanc.load(f"hic/data/GSE151553_A364_merged.juicer.hic@{resolution}")
         self.boundaries = self._get_all_boundaries()
+        self._window_size = window_size
+        self._resolution = resolution
 
     def plot_boundaries(self, chrm_num: YeastChrNum, start: int, end: int):
         ph = fancplot.TriangularMatrixPlot(self._hic_file, max_dist=50000, vmin=0, vmax=50)
@@ -36,19 +38,38 @@ class Boundary:
             fig, axes = f.plot(f'{chrm_num}')
             IOUtil().save_figure(f'figures/hic/{chrm_num}_boundaries.png')
 
-    def _get_all_boundaries(self) -> fanc.architecture.domains.Boundaries:
-        insulation_output_path = "data/generated_data/hic/yeast.insulation"
+
+    def _get_insulation(self) -> fanc.InsulationScores:
+        insulation_output_path = f"data/generated_data/hic/insulation_fanc_res_{self._resolution}"
         if Path(insulation_output_path).is_file():
-            insulation = fanc.load(insulation_output_path)
-        else:
-            IOUtil().make_parent_dirs(insulation_output_path)
+            return fanc.load(insulation_output_path)
         
-            insulation = fanc.InsulationScores.from_hic(self._hic_file,
-                            [1000, 2000, 5000, 10000, 25000],
-                            file_name=insulation_output_path)
-        return fanc.Boundaries.from_insulation_score(insulation, window_size=1000)
+        IOUtil().make_parent_dirs(insulation_output_path)
+        
+        return fanc.InsulationScores.from_hic(self._hic_file,
+                        [1000, 2000, 5000, 10000, 25000],
+                        file_name=insulation_output_path)
+        
+
+    def _get_all_boundaries(self) -> fanc.architecture.domains.Boundaries:
+        boundary_file_path = f'data/generated_data/hic/boundaries_fanc_res_{self._resolution}_w_{self._window_size}'
+        if Path(boundary_file_path).is_file():
+            return fanc.load(boundary_file_path)
+
+        insulation = self._get_insulation()
+        return fanc.Boundaries.from_insulation_score(insulation, window_size=self._window_size, file_name=boundary_file_path)
     
     
+    def save_boundaries(self) -> None:
+        df = pd.DataFrame({
+            'chromosome': list(map(lambda r: r.chromosome, self.boundaries)), 
+            'start': list(map(lambda r: r.start, self.boundaries)), 
+            'end': list(map(lambda r: r.end, self.boundaries)),
+            'score': list(map(lambda r: r.score, self.boundaries)) 
+        })
+        IOUtil().save_tsv(df)
+        
+
     def get_boundaries_in(self, chrm_num: YeastChrNum) -> list[fanc.GenomicRegion]:
         return list(filter(lambda region: chrm_num == region.chromosome, self.boundaries))
 

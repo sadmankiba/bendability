@@ -1,4 +1,4 @@
-from tad import BoundaryAnalysis
+from tad import Boundary, BoundaryAnalysis
 
 if __name__ == '__main__':
-    BoundaryAnalysis().find_c0_at_octiles(250)    
+    Boundary().get_boundaries_in('VII')
