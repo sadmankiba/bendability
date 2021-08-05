@@ -23,9 +23,10 @@ This module requires hic-matrix data that can be found here: https://www.ncbi.nl
 class Boundary:
     def __init__(self, resolution : int = 500, window_size : int = 1000):
         self._hic_file = fanc.load(f"hic/data/GSE151553_A364_merged.juicer.hic@{resolution}")
-        self.boundaries = self._get_all_boundaries()
         self._window_size = window_size
         self._resolution = resolution
+        self.boundaries = self._get_all_boundaries()
+        
 
     def plot_boundaries(self, chrm_num: YeastChrNum, start: int, end: int):
         ph = fancplot.TriangularMatrixPlot(self._hic_file, max_dist=50000, vmin=0, vmax=50)
@@ -67,7 +68,7 @@ class Boundary:
             'end': list(map(lambda r: r.end, self.boundaries)),
             'score': list(map(lambda r: r.score, self.boundaries)) 
         })
-        IOUtil().save_tsv(df)
+        IOUtil().save_tsv(df, f'data/generated_data/hic/boundaries_w_{self._window_size}_res_{self._resolution}.tsv')
         
 
     def get_boundaries_in(self, chrm_num: YeastChrNum) -> list[fanc.GenomicRegion]:

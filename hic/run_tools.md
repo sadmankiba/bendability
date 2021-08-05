@@ -3,30 +3,41 @@
 ## HiC Explorer
 
 ### Format Conversion
+
 **Convert Format**
 
 First, `hic` to `cool`
 
-```sh
-hicConvertFormat --matrices data/GSE151553_A364_merged.hic --outFileName data/GSE151553_A364_merged.cool --inputFormat hic --outputFormat cool 
-```
-
-Then, `cool` to `h5`
+Not setting resolution will convert for every resolution. This will create a multiple cool(mcool) file.
 
 ```sh
-hicConvertFormat --matrices data/GSE151553_A364_merged.mcool --outFileName data/GSE151553_A364_merged.h5 --inputFormat mcool --outputFormat h5 
+hicConvertFormat --matrices data/GSE151553_A364_merged.hic --outFileName data/GSE151553_A364_merged.mcool --inputFormat hic --outputFormat cool
 ```
 
+Or, create a cool file with single resolution. 
+
+```sh
+hicConvertFormat --matrices data/GSE151553_A364_merged.hic --outFileName data/GSE151553_A364_merged.cool --inputFormat hic --outputFormat cool --resolutions 500
+```
 
 **Find TADs**
 
 ```sh
-hicFindTADs -m data/GSE151553_A364_merged.mcool::/resolutions/500 --outPrefix data/generated_data/chrIX_min1000_max25000_step1500_thres0.05_delta0.01_fdr --chromosomes IX --minDepth 2000 --maxDepth 5000 --step 1000 --thresholdComparisons 0.05  --delta 0.01 --correctForMultipleTesting fdr -p 64
+hicFindTADs -m data/GSE151553_A364_merged.mcool::/resolutions/500 --outPrefix data/generated_data/chrIX_min2000_max5000_step1000_thres0.05_delta0.01_fdr --chromosomes IX --minDepth 2000 --maxDepth 5000 --step 1000 --thresholdComparisons 0.05  --delta 0.01 --correctForMultipleTesting fdr -p 64
+```
+
+This will divide whole chromosome into regions(domains). So, there are no non-domain region.
+
+**Plot TADs**
+
+```sh
+hicPlotTADs --tracks track.ini -o figures/ix_domains_hicexp.png --region chrIX:1-434000
 ```
 
 ## FAN-C
 
 ### TAD
+
 **Plot domain**
 
 ```sh
@@ -38,7 +49,7 @@ fancplot -o figures/chrix_180kb_280kb.png IX:180kb-280kb -p triangular data/GSE1
 **Find insulation Score**
 
 ```sh
-fanc insulation data/GSE151553_A364_merged.juicer.hic@500 data/generated_data/chrix_100kb_400kb.insulation -r IX:100kb-400kb -o bed -w 1000 2000 5000 10000 25000 
+fanc insulation data/GSE151553_A364_merged.juicer.hic@500 data/generated_data/chrix_100kb_400kb.insulation -r IX:100kb-400kb -o bed -w 1000 2000 5000 10000 25000
 ```
 
 **Plot Insulation Score**
@@ -50,7 +61,7 @@ fancplot --width 6 -o figures/chrix_500b_tads_insulation_1k_2k_5k.png IX:100kb-4
 **Find Boundaries**
 
 ```sh
-fanc boundaries data/generated_data/chrix_100kb_400kb.insulation_1kb.bed data/generated_data/chrix_100kb_400kb.insulation_1kb_boundaries 
+fanc boundaries data/generated_data/chrix_100kb_400kb.insulation_1kb.bed data/generated_data/chrix_100kb_400kb.insulation_1kb_boundaries
 ```
 
 **Plot Boundaries**
