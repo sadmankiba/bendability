@@ -390,28 +390,6 @@ class MultiChrLoops:
         mc_loops = chrs.apply(lambda chr: MeanLoops(chr))
         
         mcloop_df['loop'] = mc_loops.apply(lambda mloops: mloops.find_avg_c0())
-        
-        # Add quartile by length columns
-        quart_len_cols = ['quart_len_1', 'quart_len_2', 'quart_len_3', 'quart_len_4']
-        mcloop_df[quart_len_cols] = pd.DataFrame(
-            np.array(
-                mc_loops.apply(
-                    lambda mloops: mloops.find_avg_c0_in_quartile_by_len()
-                ).tolist()
-            ), 
-            columns=quart_len_cols
-        )
-
-        # Add quartile by position columns
-        quart_pos_cols = ['quart_pos_1', 'quart_pos_2', 'quart_pos_3', 'quart_pos_4']
-        mcloop_df[quart_pos_cols] = pd.DataFrame(
-            np.array(
-                mc_loops.apply(
-                    lambda mloops: mloops.find_avg_c0_in_quartile_by_pos()
-                ).tolist()
-            ), 
-            columns=quart_pos_cols
-        )
 
         
         def _make_avg_arr(func: function, *args) -> np.ndarray:
@@ -428,11 +406,24 @@ class MultiChrLoops:
                     lambda mloops: func(mloops, *args)
                 ).tolist()
             )
+        
+        # Add quartile by length columns
+        quart_len_cols = ['quart_len_1', 'quart_len_2', 'quart_len_3', 'quart_len_4']
+        mcloop_df[quart_len_cols] = pd.DataFrame(
+            _make_avg_arr(MeanLoops.find_avg_c0_in_quartile_by_len), 
+            columns=quart_len_cols
+        )
+
+        # Add quartile by position columns
+        quart_pos_cols = ['quart_pos_1', 'quart_pos_2', 'quart_pos_3', 'quart_pos_4']
+        mcloop_df[quart_pos_cols] = pd.DataFrame(
+            _make_avg_arr(MeanLoops.find_avg_c0_in_quartile_by_pos), 
+            columns=quart_pos_cols
+        )
 
         # Add Quartile by position in quartile by length columns
         quart_len_pos_cols = [f'quart_len_{p[0]}_pos_{p[1]}' 
                         for p in itertools.product(range(1,5), range(1,5))]
-        
         mcloop_df[quart_len_pos_cols] = pd.DataFrame(
             _make_avg_arr(MeanLoops.find_avg_c0_in_quartile_by_pos_in_quart_len),
             columns=quart_len_pos_cols
