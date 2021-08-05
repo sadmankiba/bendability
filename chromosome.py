@@ -266,6 +266,7 @@ class Chromosome:
     def __str__(self):
         return f's_{self.spread_str}_m_{self.predict_model_no()}_{self._chr_id}'
 
+
     def _get_chr_prediction(self):
         """Read predicted C0 of a yeast chromosome by meuseum model"""
 
@@ -295,6 +296,8 @@ class Chromosome:
         return self._df.loc[(self._df['Sequence #'] >= first_seq_num) 
                                 & (self._df['Sequence #'] <= last_seq_num), :]
     
+    def plot_horizontal_line(self, *args) -> None: 
+        ChromosomeUtil().plot_horizontal_line(*args)
 
     def plot_avg(self) -> None: 
         """

@@ -1,4 +1,4 @@
-from loops import Loops, MultiChrLoops
+from loops import Loops, MeanLoops, MultiChrLoops
 from chromosome import Chromosome
 
 import numpy as np
@@ -50,27 +50,25 @@ class TestLoops(unittest.TestCase):
         assert path.is_file()
 
 
+class TestMeanLoops:
     def test_find_avg_c0(self):
-        mean = Loops(Chromosome('VL', None)).find_avg_c0()
+        mean = MeanLoops(Chromosome('VL', None)).find_avg_c0()
         print(mean)
         assert mean < 0
         assert mean > -0.3
 
-
     def test_find_avg_c0_in_quartile_by_pos(self):
-        arr = Loops(Chromosome('VL', None)).find_avg_c0_in_quartile_by_pos()
+        arr = MeanLoops(Chromosome('VL', None)).find_avg_c0_in_quartile_by_pos()
         print(arr)
         assert arr.shape == (4,)
 
-
     def test_find_avg_around_anc(self):
-        avg = Loops(Chromosome('VL', None)).find_avg_around_anc('start', 500)
+        avg = MeanLoops(Chromosome('VL', None)).find_avg_around_anc('start', 500)
         assert avg > -1
         assert avg < 1
 
-
     def test_find_avg_c0_in_nuc_linker(self):
-        loops = Loops(Chromosome('VL', None))
+        loops = MeanLoops(Chromosome('VL', None))
         na, la = loops.find_mean_c0_in_nuc_linker()
         assert -1 < na < 0
         assert -1 < la < 0 
@@ -79,6 +77,6 @@ class TestLoops(unittest.TestCase):
 
 class TestMultipleChrLoops:
     def test_multichr_find_avg_c0(self):
-        MultiChrLoops().save_avg_c0_stat()
-        path = Path('data/generated_data/loop/multichr_avg_c0_stat_30.tsv')
+        MultiChrLoops(('VL',)).save_avg_c0_stat()
+        path = Path('data/generated_data/loop/multichr_avg_c0_stat_m_30.tsv')
         assert path.is_file()

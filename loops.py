@@ -52,16 +52,6 @@ class Loops:
         
         return _use_centroids().assign(len = lambda df: df['end'] - df['start'])
  
-
-    def _get_quartile_dfs(self, df: pd.DataFrame):
-        """Split a dataframe into 4 representing quartile on column len"""
-        quart1, quart2, quart3 = df['len'].quantile([0.25, 0.5, 0.75]).tolist()
-        return ( df.loc[df['len'] <= quart1],
-            df.loc[(quart1 < df['len']) & (df['len'] <= quart2)],
-            df.loc[(quart2 < df['len']) & (df['len'] <= quart3)],
-            df.loc[quart3 < df['len']]
-        )
-
     # ** #
     def stat_loops(self) -> None:
         """Prints statistics of loops"""
@@ -238,9 +228,28 @@ class Loops:
         
     # TODO: Create separate plotter and avg calculator class that take Loop class
     def plot_mean_nuc_occupancy_across_loops(self, total_perc=150) -> None:
-        self._plot_mean_across_loops(total_perc, self._chr.get_nucleosome_occupancy(), 'nuc_occ')
+        self._plot_mean_across_loops(total_perc, Nucleosome(self._chr).get_nucleosome_occupancy(), 'nuc_occ')
 
 
+    
+class MeanLoops:
+    """Class to find mean across loops in various ways"""
+
+    def __init__(self, chrm: Chromosome):
+        self._chrm = chrm 
+        self._loops = Loops(chrm)
+        self._loop_df = self._loops._loop_df
+
+    def _get_quartile_dfs(self, df: pd.DataFrame):
+        """Split a dataframe into 4 representing quartile on column len"""
+        quart1, quart2, quart3 = df['len'].quantile([0.25, 0.5, 0.75]).tolist()
+        return ( df.loc[df['len'] <= quart1],
+            df.loc[(quart1 < df['len']) & (df['len'] <= quart2)],
+            df.loc[(quart2 < df['len']) & (df['len'] <= quart3)],
+            df.loc[quart3 < df['len']]
+        )
+
+    # TODO: Remove find_avg from method names
     def find_avg_c0(self, loop_df: pd.DataFrame=None) -> float:
         """Find average c0 of collection of loops. 
 
@@ -253,7 +262,7 @@ class Loops:
         """
         if loop_df is None:
             loop_df = self._loop_df
-        chrv_c0_spread = self._chr.get_spread()
+        chrv_c0_spread = self._chrm.get_spread()
         return round(sum(
             map(
                 lambda idx: chrv_c0_spread[loop_df.iloc[idx]['start'] - 1 : loop_df.iloc[idx]['end']].mean(), 
@@ -278,7 +287,7 @@ class Loops:
         if loop_df is None:
             loop_df = self._loop_df
         
-        chrv_c0_spread = self._chr.get_spread()
+        chrv_c0_spread = self._chrm.get_spread()
         
         def _avg_c0_in_quartile_by_pos(row: pd.Series) -> list[float]:
             quart_pos = row.quantile([0.0, 0.25, 0.5, 0.75, 1.0]).astype(int)
@@ -303,7 +312,6 @@ class Loops:
             A 1D numpy array of size 16. 
         """
         loop_df = self._loop_df
-        quart1, quart2, quart3 = loop_df['len'].quantile([0.25, 0.5, 0.75]).tolist()
         quart_loop_df = self._get_quartile_dfs(loop_df)
         return np.array(list(map(self.find_avg_c0_in_quartile_by_pos, quart_loop_df))).flatten()
     
@@ -312,7 +320,7 @@ class Loops:
         if loop_df is None:
             loop_df = self._loop_df
 
-        chrv_c0_spread = self._chr.get_spread()    
+        chrv_c0_spread = self._chrm.get_spread()    
         
         loop_df = loop_df.assign(center = lambda df : (df['start'] + df['end']) / 2)
         
@@ -344,9 +352,9 @@ class Loops:
         Returns:  
             A tuple: nuc mean C0, linker mean C0
         """
-        nuc = Nucleosome(self._chr)
+        nuc = Nucleosome(self._chrm)
         nuc_regions = nuc.get_nuc_regions(nuc_half)
-        spread_c0 = self._chr.get_spread()
+        spread_c0 = self._chrm.get_spread()
         
         def _find_avg_nuc_linker_c0_of(loop: pd.Series) -> tuple[float, float]:
             """Find nuc avg C0 and linker avg C0 in a loop"""
@@ -359,9 +367,10 @@ class Loops:
         assert nuc_linker_avg.shape == (2,)
         return tuple(nuc_linker_avg)
 
+
 class MultiChrLoops:
     """
-    Abstraction to analyze loops in multiple chromosomes
+    Class to analyze mean c0 in loops in multiple chromosomes
     """
     def __init__(self, chrs: tuple[ChrId] = ChrIdList):
         self._chrs = chrs
@@ -378,16 +387,16 @@ class MultiChrLoops:
         mcloop_df['c0'] = chrs.apply(lambda chr: chr.get_spread().mean())
         
         # Create a Pandas Series of Loops
-        mc_loops = chrs.apply(lambda chr: Loops(chr))
+        mc_loops = chrs.apply(lambda chr: MeanLoops(chr))
         
-        mcloop_df['loop'] = mc_loops.apply(lambda loops: loops.find_avg_c0())
+        mcloop_df['loop'] = mc_loops.apply(lambda mloops: mloops.find_avg_c0())
         
         # Add quartile by length columns
         quart_len_cols = ['quart_len_1', 'quart_len_2', 'quart_len_3', 'quart_len_4']
         mcloop_df[quart_len_cols] = pd.DataFrame(
             np.array(
                 mc_loops.apply(
-                    lambda loops: loops.find_avg_c0_in_quartile_by_len()
+                    lambda mloops: mloops.find_avg_c0_in_quartile_by_len()
                 ).tolist()
             ), 
             columns=quart_len_cols
@@ -398,7 +407,7 @@ class MultiChrLoops:
         mcloop_df[quart_pos_cols] = pd.DataFrame(
             np.array(
                 mc_loops.apply(
-                    lambda loops: loops.find_avg_c0_in_quartile_by_pos()
+                    lambda mloops: mloops.find_avg_c0_in_quartile_by_pos()
                 ).tolist()
             ), 
             columns=quart_pos_cols
@@ -416,7 +425,7 @@ class MultiChrLoops:
             """
             return np.array(
                 mc_loops.apply(
-                    lambda loops: func(loops, *args)
+                    lambda mloops: func(mloops, *args)
                 ).tolist()
             )
 
@@ -425,17 +434,9 @@ class MultiChrLoops:
                         for p in itertools.product(range(1,5), range(1,5))]
         
         mcloop_df[quart_len_pos_cols] = pd.DataFrame(
-            _make_avg_arr(Loops.find_avg_c0_in_quartile_by_pos_in_quart_len),
+            _make_avg_arr(MeanLoops.find_avg_c0_in_quartile_by_pos_in_quart_len),
             columns=quart_len_pos_cols
         )
-        # mcloop_df[quart_pos_cols] = pd.DataFrame(
-        #     np.array(
-        #         mc_loops.apply(
-        #             lambda loops: loops.find_avg_c0_in_quartile_by_pos_in_quart_len()
-        #         ).tolist()
-        #     ), 
-        #     columns=quart_len_pos_cols
-        # )
 
         # Add anchor and center columns
         def _get_anc_bp_it():
@@ -445,7 +446,7 @@ class MultiChrLoops:
 
         anc_bp_cols_df = pd.concat([ 
             pd.Series(
-                mc_loops.apply(lambda loops: loops.find_avg_around_anc(p[0], p[1])), 
+                mc_loops.apply(lambda mloops: mloops.find_avg_around_anc(p[0], p[1])), 
                 name=f'{p[0]}_{p[1]}'
             )
             for p in _get_anc_bp_it() 
@@ -457,7 +458,7 @@ class MultiChrLoops:
                 for p in itertools.product(['start', 'center', 'end'], range(1,5))]
         mcloop_df[quart_anc_len_cols] = pd.concat([
             pd.DataFrame(
-                _make_avg_arr(Loops.find_avg_around_anc_in_quartile_by_len, pos, 200),
+                _make_avg_arr(MeanLoops.find_avg_around_anc_in_quartile_by_len, pos, 200),
                 columns=quart_anc_len_cols[pos_idx * 4: (pos_idx + 1) * 4]
             ) 
             for pos_idx, pos in enumerate(['start', 'center', 'end'])
@@ -467,4 +468,4 @@ class MultiChrLoops:
         mcloop_df[mcloop_df.drop(columns=['c0','Chr']).columns] = \
             mcloop_df.drop(columns=['c0', 'Chr']).apply(lambda col: col - mcloop_df['c0'])
         
-        IOUtil().append_tsv(mcloop_df, f'data/generated_data/loop/multichr_avg_c0_stat_{model_no}.tsv')
+        IOUtil().append_tsv(mcloop_df, f'data/generated_data/loop/multichr_avg_c0_stat_m_{model_no}.tsv')
