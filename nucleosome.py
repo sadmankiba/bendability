@@ -164,8 +164,9 @@ class Nucleosome:
         
         return nuc_array
     
-    def find_avg_nuc_linker_c0(self, nuc_half : int = 73) -> None: 
+    def find_avg_nuc_linker_c0(self, nuc_half : int = 73) -> tuple[float, float]: 
         """
+        Find mean c0 in nuc and linker regions
         Note:
             nuc_half < 73 would mean including some nuc region with linker.
             might give less difference.
