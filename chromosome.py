@@ -57,8 +57,12 @@ class ChromosomeUtil:
         """
         plt.axhline(y=y, color='r', linestyle='-')
         x_lim = plt.gca().get_xlim()
-        plt.text(x_lim[0] + (x_lim[1] - x_lim[0]) * 0.15, y,
-                 'avg', color='r', ha='center', va='bottom')
+        plt.text(x_lim[0] + (x_lim[1] - x_lim[0]) * 0.15,
+                 y,
+                 'avg',
+                 color='r',
+                 ha='center',
+                 va='bottom')
 
 
 SpreadType = Literal['mean7', 'mean_cover', 'weighted', 'single']
@@ -66,8 +70,10 @@ SpreadType = Literal['mean7', 'mean_cover', 'weighted', 'single']
 
 class Spread:
     """Spread C0 at each bp from C0 of 50-bp sequences at 7-bp resolution"""
-
-    def __init__(self, seq_c0_res7: np.ndarray, chr_id: ChrId, model_no: int = 6):
+    def __init__(self,
+                 seq_c0_res7: np.ndarray,
+                 chr_id: ChrId,
+                 model_no: int = 6):
         """
         Construct a spread object
 
@@ -91,11 +97,11 @@ class Spread:
             A numpy 1D array containing sequence numbers of chr library 
             in increasing order
         """
-        if pos < SEQ_LEN:   # 1, 2, ... , 50
+        if pos < SEQ_LEN:  # 1, 2, ... , 50
             arr = np.arange((pos + 6) // 7) + 1
-        elif pos > self._total_bp - SEQ_LEN:   # For chr V, 576822, ..., 576871
-            arr = -(np.arange((self._total_bp - pos + 1 + 6) // 7)
-                    [::-1]) + self._seq_c0_res7.size
+        elif pos > self._total_bp - SEQ_LEN:  # For chr V, 576822, ..., 576871
+            arr = -(np.arange((self._total_bp - pos + 1 + 6) //
+                              7)[::-1]) + self._seq_c0_res7.size
         elif pos % 7 == 1:  # For chr V, 50, 57, 64, ..., 576821
             arr = np.arange(8) + (pos - SEQ_LEN + 7) // 7
         else:
@@ -115,32 +121,32 @@ class Spread:
         cover a bp, nearest 7-seq mean is used. 
         """
         saved_data = Path(
-            f'data/generated_data/spread/spread_c0_mean7_{self._chr_id}_m_{self._model_no}.tsv')
+            f'data/generated_data/spread/spread_c0_mean7_{self._chr_id}_m_{self._model_no}.tsv'
+        )
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep='\t')['c0_mean7'].to_numpy()
 
         mvavg = ChromosomeUtil().calc_moving_avg(self._seq_c0_res7, 7)
         spread_mvavg = np.vstack(
             (mvavg, mvavg, mvavg, mvavg, mvavg, mvavg, mvavg)).ravel(order='F')
-        full_spread = np.concatenate((
-            np.full((42,), spread_mvavg[0]),
-            spread_mvavg,
-            np.full((43,), spread_mvavg[-1])
-        ))
-        assert full_spread.shape == (self._total_bp,)
+        full_spread = np.concatenate((np.full(
+            (42, ),
+            spread_mvavg[0]), spread_mvavg, np.full((43, ), spread_mvavg[-1])))
+        assert full_spread.shape == (self._total_bp, )
 
         IOUtil().save_tsv(
-            pd.DataFrame({'position': np.arange(
-                self._total_bp) + 1, 'c0_mean7': full_spread}),
-            saved_data
-        )
+            pd.DataFrame({
+                'position': np.arange(self._total_bp) + 1,
+                'c0_mean7': full_spread
+            }), saved_data)
         return full_spread
 
     def _mean_of_covering_seq(self) -> np.ndarray:
         """Determine C0 at each bp by average of covering 50-bp sequences around"""
         # TODO: HOF to wrap check and save data?
         saved_data = Path(
-            f'data/generated_data/spread/spread_c0_balanced_{self._chr_id}_m_{self._model_no}.tsv')
+            f'data/generated_data/spread/spread_c0_balanced_{self._chr_id}_m_{self._model_no}.tsv'
+        )
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep='\t')['c0_balanced'].to_numpy()
 
@@ -149,9 +155,10 @@ class Spread:
             return self._df['C0'][seq_indices].mean()
 
         t = time.time()
-        res = np.array(
-            list(map(balanced_c0_at, np.arange(self._total_bp) + 1)))
-        print('Calculation of spread c0 balanced:', time.time() - t, 'seconds.')
+        res = np.array(list(map(balanced_c0_at,
+                                np.arange(self._total_bp) + 1)))
+        print('Calculation of spread c0 balanced:',
+              time.time() - t, 'seconds.')
 
         # Save data
         if not saved_data.parents[0].is_dir():
@@ -164,7 +171,8 @@ class Spread:
     def _weighted_covering_seq(self) -> np.ndarray:
         """Determine C0 at each bp by weighted average of covering 50-bp sequences around"""
         saved_data = Path(
-            f'data/generated_data/spread/spread_c0_weighted_{self._chr_id}_m_{self._model_no}.tsv')
+            f'data/generated_data/spread/spread_c0_weighted_{self._chr_id}_m_{self._model_no}.tsv'
+        )
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep='\t')['c0_weighted'].to_numpy()
 
@@ -190,13 +198,15 @@ class Spread:
         def weighted_c0_at(pos) -> float:
             seq_indices = self._covering_sequences_at(pos) - 1
             c0s = self.chrv_df['C0'][seq_indices].to_numpy()
-            return np.sum(c0s * weights_for(c0s.size)) / sum(weights_for(c0s.size))
+            return np.sum(c0s * weights_for(c0s.size)) / sum(
+                weights_for(c0s.size))
 
         t = time.time()
-        res = np.array(
-            list(map(weighted_c0_at, np.arange(self._total_bp) + 1)))
-        print(print('Calculation of spread c0 weighted:',
-              time.time() - t, 'seconds.'))
+        res = np.array(list(map(weighted_c0_at,
+                                np.arange(self._total_bp) + 1)))
+        print(
+            print('Calculation of spread c0 weighted:',
+                  time.time() - t, 'seconds.'))
 
         # Save data
         if not saved_data.parents[0].is_dir():
@@ -209,11 +219,9 @@ class Spread:
     def _from_single_seq(self) -> np.ndarray:
         """Determine C0 at each bp by spreading C0 of a 50-bp seq to position 22-28"""
         c0_arr = self._seq_c0_res7
-        spread = np.concatenate((
-            np.full((21,), c0_arr[0]),
-            np.vstack(([c0_arr] * 7)).ravel(order='F'),
-            np.full((22,), c0_arr[-1])
-        ))
+        spread = np.concatenate((np.full(
+            (21, ), c0_arr[0]), np.vstack(
+                ([c0_arr] * 7)).ravel(order='F'), np.full((22, ), c0_arr[-1])))
         # assert spread.size == self._total_bp
 
         return spread
@@ -230,16 +238,18 @@ class Spread:
 
 
 YeastChrNumList = ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
-                        'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI')
+                   'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI')
 
-ChrIdList = YeastChrNumList + ('VL',)
+ChrIdList = YeastChrNumList + ('VL', )
 
 
 class Chromosome:
     "Analysis of Chromosome in yeast"
 
-    def __init__(self, chr_id: Union[YeastChrNum, Literal['VL']],
-                 prediction: Prediction, spread_str: SpreadType = 'mean7'):
+    def __init__(self,
+                 chr_id: Union[YeastChrNum, Literal['VL']],
+                 prediction: Prediction,
+                 spread_str: SpreadType = 'mean7'):
         """
         Create a Chromosome object 
 
@@ -276,13 +286,14 @@ class Chromosome:
         """Read predicted C0 of a yeast chromosome by meuseum model"""
 
         saved_predict_data = Path(
-            f'data/generated_data/predictions/chr{self._chr_num}_pred_m_{self._prediction._model_no}.tsv')
+            f'data/generated_data/predictions/chr{self._chr_num}_pred_m_{self._prediction._model_no}.tsv'
+        )
         if saved_predict_data.is_file():
             return pd.read_csv(saved_predict_data, sep='\t')
 
         df = DNASequenceReader().read_yeast_genome(self._chr_num)
-        predict_df = self._prediction.predict(
-            df).rename(columns={'c0_predict': 'C0'})
+        predict_df = self._prediction.predict(df).rename(
+            columns={'c0_predict': 'C0'})
 
         # Save data
         IOUtil().save_tsv(predict_df, saved_predict_data)
@@ -341,15 +352,17 @@ class Chromosome:
         for p in zip(k, colors, alpha):
             ma = self._chr_util.calc_moving_avg(y, p[0])
             plt.plot((x + ((p[0] - 1) * 7) // 2)[:ma.size],
-                     ma, color=p[1], alpha=p[2], label=p[0])
+                     ma,
+                     color=p[1],
+                     alpha=p[2],
+                     label=p[0])
 
         self.plot_avg()
 
         # Find and plot nuc. centers
         nuc_df = DNASequenceReader().read_nuc_center()
-        centers = nuc_df.loc[
-            nuc_df['Chromosome ID'] == f'chr{self._chr_num}'
-        ]['Position'].to_numpy()
+        centers = nuc_df.loc[nuc_df['Chromosome ID'] ==
+                             f'chr{self._chr_num}']['Position'].to_numpy()
         centers = centers[centers > start]
         centers = centers[centers < end]
 
@@ -370,7 +383,8 @@ class Chromosome:
         plt.xlabel(f'Position along chromosome {self._chr_num}')
         plt.ylabel('Moving avg. of C0')
         plt.title(
-            f"C0, 10-bp moving avg. of C0 and nuclesome centers in Chr {self._chr_num} ({start}-{end})")
+            f"C0, 10-bp moving avg. of C0 and nuclesome centers in Chr {self._chr_num} ({start}-{end})"
+        )
 
         # Save figure
         plt.gcf().set_size_inches(12, 6)
@@ -379,11 +393,13 @@ class Chromosome:
             Path(ma_fig_dir).mkdir(parents=True, exist_ok=True)
 
         plt.savefig(
-            f'{ma_fig_dir}/ma_{start}_{end}_s_{self.spread_str}_m_{self._prediction._model_no}.png', dpi=200)
+            f'{ma_fig_dir}/ma_{start}_{end}_s_{self.spread_str}_m_{self._prediction._model_no}.png',
+            dpi=200)
         plt.show()
 
     def get_spread(self) -> np.ndarray:
-        return Spread(self._df['C0'].values, self._chr_id, self.predict_model_no()).get_spread(self.spread_str)
+        return Spread(self._df['C0'].values, self._chr_id,
+                      self.predict_model_no()).get_spread(self.spread_str)
 
     def predict_model_no(self) -> int:
         return self._prediction._model_no if self._chr_id != 'VL' else None
