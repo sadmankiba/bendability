@@ -373,9 +373,9 @@ class MultiChrmMeanLoopsCollector:
     Class to accumulate various mean functions in loops in a dataframe for
     side-by-side comparison. 
     """
-    def __init__(self, chrids: tuple[ChrId] = ChrIdList):
+    def __init__(self, model_no: int, chrids: tuple[ChrId] = ChrIdList):
         self._mcloop_df = pd.DataFrame({'Chr': chrids})
-        self._model_no = 30
+        self._model_no = model_no
         self._chrs = self._get_chromosomes()
         self._mcloops = self._chrs.apply(lambda chrm: MeanLoops(chrm))
         self._mcnucs = self._chrs.apply(lambda chrm: Nucleosome(chrm))
