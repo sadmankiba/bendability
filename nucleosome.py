@@ -57,7 +57,6 @@ class Nucleosome:
         plt.ylabel('C0')
         plt.title(f'C0 of +-{dist} bp from nuclesome dyad')
 
-        # Save figure
         IOUtil().save_figure(
             f'figures/nucleosome/dist_{dist}_s_{spread_str}_m_{self._chr.predict_model_no()}_{self._chr._chr_id}.png'
         )

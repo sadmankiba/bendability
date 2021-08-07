@@ -288,8 +288,7 @@ class MeanLoops:
                 df.loc[(quart2 < df['len']) & (df['len'] <= quart3)],
                 df.loc[quart3 < df['len']])
 
-    # TODO: Remove find_avg from method names
-    def find_avg_c0(self, loop_df: pd.DataFrame = None) -> float:
+    def in_complete_loop(self, loop_df: pd.DataFrame = None) -> float:
         """Find average c0 of collection of loops. 
 
         First, average c0 of individual loops are calculated. Then, mean is
@@ -309,13 +308,13 @@ class MeanLoops:
                         'start'] - 1:loop_df.iloc[idx]['end']].mean(),
                     range(len(loop_df)))) / len(loop_df), 3)
 
-    def find_avg_c0_in_quartile_by_len(self) -> list[float]:
+    def in_quartile_by_len(self) -> list[float]:
         """Find average c0 of collection of loops by dividing them into
         quartiles by length"""
         quart_loop_df = self._get_quartile_dfs(self._loop_df)
-        return list(map(self.find_avg_c0, quart_loop_df))
+        return list(map(self.in_complete_loop, quart_loop_df))
 
-    def find_avg_c0_in_quartile_by_pos(self,
+    def in_quartile_by_pos(self,
                                        loop_df: pd.DataFrame = None
                                        ) -> np.ndarray:
         """Find average c0 of different positions in collection of loops
@@ -344,7 +343,7 @@ class MeanLoops:
         assert result.shape == (4, )
         return result
 
-    def find_avg_c0_in_quartile_by_pos_in_quart_len(self) -> np.ndarray:
+    def in_quartile_by_pos_in_quart_len(self) -> np.ndarray:
         """Find average c0 of different positions in quartile of loops by length
         
         Returns: 
@@ -353,10 +352,10 @@ class MeanLoops:
         loop_df = self._loop_df
         quart_loop_df = self._get_quartile_dfs(loop_df)
         return np.array(
-            list(map(self.find_avg_c0_in_quartile_by_pos,
+            list(map(self.in_quartile_by_pos,
                      quart_loop_df))).flatten()
 
-    def find_avg_around_anc(self,
+    def around_anc(self,
                             pos: Literal['start', 'end', 'center'],
                             lim: int = 500,
                             loop_df=None) -> float:
@@ -375,7 +374,7 @@ class MeanLoops:
                         pos]) - lim - 1:int(loop_df.iloc[idx][pos]) + lim].
                     mean(), range(len(loop_df)))) / len(loop_df), 3)
 
-    def find_avg_around_anc_in_quartile_by_len(self,
+    def around_anc_in_quartile_by_len(self,
                                                pos: Literal['start', 'end',
                                                             'center'],
                                                lim: int = 500) -> list[float]:
@@ -388,9 +387,9 @@ class MeanLoops:
         """
         quart_loop_df = self._get_quartile_dfs(self._loop_df)
         return list(
-            map(self.find_avg_around_anc, [pos] * 4, [lim] * 4, quart_loop_df))
+            map(self.around_anc, [pos] * 4, [lim] * 4, quart_loop_df))
 
-    def find_mean_c0_in_nuc_linker(self,
+    def in_nuc_linker(self,
                                    nuc_half: int = 73) -> tuple[float, float]:
         """
         Returns:  
@@ -458,12 +457,12 @@ class MultiChrmMeanLoopsCollector:
 
     def _add_loop_mean(self) -> None:
         self._mcloop_df['loop'] = self._mcloops.apply(
-            lambda mloops: mloops.find_avg_c0())
+            lambda mloops: mloops.in_complete_loop())
 
     def _add_loop_nuc_linker_mean(self) -> None:
         loop_nuc_linker_cols = ['loop_nuc', 'loop_linker']
         self._mcloop_df[loop_nuc_linker_cols] = pd.DataFrame(
-            self._make_avg_arr(MeanLoops.find_mean_c0_in_nuc_linker),
+            self._make_avg_arr(MeanLoops.in_nuc_linker),
             columns=loop_nuc_linker_cols)
 
     def _add_quartile_by_len(self) -> None:
@@ -471,7 +470,7 @@ class MultiChrmMeanLoopsCollector:
             'quart_len_1', 'quart_len_2', 'quart_len_3', 'quart_len_4'
         ]
         self._mcloop_df[quart_len_cols] = pd.DataFrame(self._make_avg_arr(
-            MeanLoops.find_avg_c0_in_quartile_by_len),
+            MeanLoops.in_quartile_by_len),
                                                        columns=quart_len_cols)
 
     def _add_quartile_by_pos(self) -> None:
@@ -479,7 +478,7 @@ class MultiChrmMeanLoopsCollector:
             'quart_pos_1', 'quart_pos_2', 'quart_pos_3', 'quart_pos_4'
         ]
         self._mcloop_df[quart_pos_cols] = pd.DataFrame(self._make_avg_arr(
-            MeanLoops.find_avg_c0_in_quartile_by_pos),
+            MeanLoops.in_quartile_by_pos),
                                                        columns=quart_pos_cols)
 
     def _add_quartile_by_len_pos(self) -> None:
@@ -489,7 +488,7 @@ class MultiChrmMeanLoopsCollector:
         ]
         self._mcloop_df[quart_len_pos_cols] = pd.DataFrame(
             self._make_avg_arr(
-                MeanLoops.find_avg_c0_in_quartile_by_pos_in_quart_len),
+                MeanLoops.in_quartile_by_pos_in_quart_len),
             columns=quart_len_pos_cols)
 
     def _add_anchor_center_bp(self) -> None:
@@ -501,7 +500,7 @@ class MultiChrmMeanLoopsCollector:
 
         anc_bp_cols_df = pd.concat([
             pd.Series(self._mcloops.apply(
-                lambda mloops: mloops.find_avg_around_anc(p[0], p[1])),
+                lambda mloops: mloops.around_anc(p[0], p[1])),
                       name=f'{p[0]}_{p[1]}') for p in _get_anc_bp_it()
         ],
                                    axis=1)
@@ -514,7 +513,7 @@ class MultiChrmMeanLoopsCollector:
         ]
         self._mcloop_df[quart_anc_len_cols] = pd.concat([
             pd.DataFrame(self._make_avg_arr(
-                MeanLoops.find_avg_around_anc_in_quartile_by_len, pos, 200),
+                MeanLoops.around_anc_in_quartile_by_len, pos, 200),
                          columns=quart_anc_len_cols[pos_idx * 4:(pos_idx + 1) *
                                                     4])
             for pos_idx, pos in enumerate(['start', 'center', 'end'])

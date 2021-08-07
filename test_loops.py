@@ -48,27 +48,27 @@ class TestLoops(unittest.TestCase):
 
 
 class TestMeanLoops:
-    def test_find_avg_c0(self):
-        mean = MeanLoops(Chromosome('VL', None)).find_avg_c0()
+    def test_in_complete_loop(self):
+        mean = MeanLoops(Chromosome('VL', None)).in_complete_loop()
         print(mean)
         assert mean < 0
         assert mean > -0.3
 
-    def test_find_avg_c0_in_quartile_by_pos(self):
+    def test_in_quartile_by_pos(self):
         arr = MeanLoops(Chromosome('VL',
-                                   None)).find_avg_c0_in_quartile_by_pos()
+                                   None)).in_quartile_by_pos()
         print(arr)
         assert arr.shape == (4, )
 
-    def test_find_avg_around_anc(self):
+    def test_around_anc(self):
         avg = MeanLoops(Chromosome('VL',
-                                   None)).find_avg_around_anc('start', 500)
+                                   None)).around_anc('start', 500)
         assert avg > -1
         assert avg < 1
 
-    def test_find_avg_c0_in_nuc_linker(self):
-        loops = MeanLoops(Chromosome('VL', None))
-        na, la = loops.find_mean_c0_in_nuc_linker()
+    def test_in_nuc_linker(self):
+        mloops = MeanLoops(Chromosome('VL', None))
+        na, la = mloops.in_nuc_linker()
         assert -1 < na < 0
         assert -1 < la < 0
         assert na > la
