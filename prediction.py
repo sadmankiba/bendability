@@ -36,6 +36,9 @@ class Prediction:
     def __init__(self, model_no: int = 6):
         self._model_no = model_no
         self._model = self._load_model()
+    
+    def __str__(self):
+        return str(self._model_no)
 
     def _select_model(self) -> tuple[nn_model6, str, str]:
         if self._model_no == 6:

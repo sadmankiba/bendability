@@ -52,6 +52,12 @@ Or, run a single test file.
 python3 -m pytest test_reader.py
 ```
 
+Or, run selected tests. 
+
+```sh
+python3 -m pytest test_loops.py -k multichrm
+```
+
 
 ## Formatting 
 

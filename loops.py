@@ -266,7 +266,7 @@ class Loops:
 
         IOUtil().save_figure(f'figures/loop_anchor/dist_{lim}_{self._chr}.png')
 
-    # TODO: Create separate plotter and avg calculator class that take Loop class
+    # TODO: Create separate plotter class that take Loop class
     def plot_mean_nuc_occupancy_across_loops(self, total_perc=150) -> None:
         self._plot_mean_across_loops(
             total_perc,
@@ -418,17 +418,17 @@ class MultiChrmMeanLoopsCollector:
     Class to accumulate various mean functions in loops in a dataframe for
     side-by-side comparison. 
     """
-    def __init__(self, model_no: int, chrids: tuple[ChrId] = ChrIdList):
-        self._mcloop_df = pd.DataFrame({'Chr': chrids})
-        self._model_no = model_no
+    def __init__(self, prediction : Prediction, chrids: tuple[ChrId] = ChrIdList):
+        self._mcloop_df = pd.DataFrame({'ChrID': chrids})
+        self._prediction = prediction
         self._chrs = self._get_chromosomes()
         self._mcloops = self._chrs.apply(lambda chrm: MeanLoops(chrm))
         self._mcnucs = self._chrs.apply(lambda chrm: Nucleosome(chrm))
 
     def _get_chromosomes(self) -> pd.Series:
         """Create a Pandas Series of Chromosomes"""
-        return self._mcloop_df['Chr'].apply(
-            lambda chr_id: Chromosome(chr_id, Prediction(self._model_no))
+        return self._mcloop_df['ChrID'].apply(
+            lambda chr_id: Chromosome(chr_id, self._prediction)
             if chr_id != 'VL' else Chromosome(chr_id, None))
 
     def _make_avg_arr(self, func: function, *args) -> np.ndarray:
@@ -521,8 +521,8 @@ class MultiChrmMeanLoopsCollector:
                                                         axis=1)
 
     def _subtract_mean_chrm_c0(self) -> None:
-        self._mcloop_df[self._mcloop_df.drop(columns=['c0','Chr']).columns] = \
-            self._mcloop_df.drop(columns=['c0', 'Chr']).apply(lambda col: col - self._mcloop_df['c0'])
+        self._mcloop_df[self._mcloop_df.drop(columns=['chromosome','ChrID']).columns] = \
+            self._mcloop_df.drop(columns=['chromosome', 'ChrID']).apply(lambda col: col - self._mcloop_df['chromosome'])
 
     def save_avg_c0_stat(self,
                          mean_methods: list[int],
@@ -550,11 +550,11 @@ class MultiChrmMeanLoopsCollector:
             self._subtract_mean_chrm_c0()
 
         self._mcloop_df['model'] = np.full((len(self._mcloop_df), ),
-                                           self._model_no)
+                                           str(self._prediction))
 
         IOUtil().append_tsv(
             self._mcloop_df,
-            f'data/generated_data/loop/multichr_avg_c0_stat_m_{self._model_no}.tsv'
+            f'data/generated_data/loop/multichr_avg_c0_stat_m_{self._prediction}.tsv'
         )
 
     def plot_loop_nuc_linker_mean(self):
@@ -569,7 +569,7 @@ class MultiChrmMeanLoopsCollector:
         for i in range(arr.shape[1]):
             plt.scatter(x, arr[:, i], marker=markers[i], label=labels[i])
 
-        plt.xticks(x, self._mcloop_df['Chr'])
+        plt.xticks(x, self._mcloop_df['ChrID'])
         plt.xlabel('Chromosome')
         plt.ylabel('Mean C0')
         plt.title(
@@ -578,4 +578,4 @@ class MultiChrmMeanLoopsCollector:
         plt.legend()
 
         IOUtil().save_figure(
-            f'figures/mcloop/nuc_linker_mean_{self._model_no}.png')
+            f'figures/mcloop/nuc_linker_mean_{self._prediction}.png')
