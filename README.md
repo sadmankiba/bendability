@@ -51,3 +51,12 @@ Or, run a single test file.
 ```sh 
 python3 -m pytest test_reader.py
 ```
+
+
+## Formatting 
+
+Format according to PEP-8 guideline. 
+
+```
+yapf -i chromosome.py
+```
