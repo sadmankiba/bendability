@@ -34,7 +34,7 @@ class TestSpread(unittest.TestCase):
     def test_mean_of_7(self):
         chrv = Chromosome('VL', None)
         spread = Spread(chrv._df['C0'].to_numpy(), chrv._chr_id)
-        spread_c0 = spread.mean_of_7()
+        spread_c0 = spread._mean_of_7()
         self.assertTupleEqual(spread_c0.shape, (CHRV_TOTAL_BP,))
         
         samples = spread_c0[np.random.randint(0,CHRVL_LEN - 1,100)]
@@ -45,7 +45,7 @@ class TestSpread(unittest.TestCase):
     def test_mean_of_covering_seq(self):
         chrv = Chromosome('VL', None)
         spread = Spread(chrv._df['C0'].to_numpy(), chrv._chr_id)
-        spread_c0 = spread.mean_of_covering_seq()
+        spread_c0 = spread._mean_of_covering_seq()
         self.assertTupleEqual(spread_c0.shape, (CHRV_TOTAL_BP,))
         
         samples = spread_c0[np.random.randint(0,CHRVL_LEN - 1,100)]
@@ -56,7 +56,7 @@ class TestSpread(unittest.TestCase):
     def test_spread_c0_weighted(self):
         chrv = Chromosome('VL', None)
         spread = Spread(chrv._df['C0'].to_numpy(), chrv._chr_id)
-        spread_c0 = spread.weighted_covering_seq()
+        spread_c0 = spread._weighted_covering_seq()
         self.assertTupleEqual(spread_c0.shape, (CHRV_TOTAL_BP,))
         
         samples = spread_c0[np.random.randint(0,CHRVL_LEN - 1,100)]
