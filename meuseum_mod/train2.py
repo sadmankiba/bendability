@@ -7,6 +7,7 @@ import numpy as np
 import tensorflow as tf
 from data_preprocess import Preprocess
 
+
 # get dictionary from text file
 def get_parameters(file_name):
     dict = {}
@@ -27,13 +28,13 @@ def get_parameters(file_name):
 def main(argv=None):
     if argv is None:
         argv = sys.argv
-        
+
         parameter_file = argv[3]
         #e.g. parameter1.txt
 
     train_lib = TL
     val_lib = CHRVL
-    
+
     # excute the code
     start_time = time.time()
     # Reproducibility
@@ -44,8 +45,16 @@ def main(argv=None):
     params = get_parameters(parameter_file)
 
     dim_num = (-1, 50, 4)
-    nn = nn_model(dim_num=dim_num, filters=params["filters"], kernel_size=params["kernel_size"], pool_type=params["pool_type"], regularizer=params["regularizer"],
-                  activation_type=params["activation_type"], epochs=params["epochs"], batch_size=params["batch_size"], loss_func=params["loss_func"], optimizer=params["optimizer"])
+    nn = nn_model(dim_num=dim_num,
+                  filters=params["filters"],
+                  kernel_size=params["kernel_size"],
+                  pool_type=params["pool_type"],
+                  regularizer=params["regularizer"],
+                  activation_type=params["activation_type"],
+                  epochs=params["epochs"],
+                  batch_size=params["batch_size"],
+                  loss_func=params["loss_func"],
+                  optimizer=params["optimizer"])
     model = nn.create_model()
 
     train_prep = Preprocess(train_lib)
@@ -72,8 +81,17 @@ def main(argv=None):
     x2_val = val_data["reverse"]
 
     # Without early stopping
-    history = model.fit({'forward': x1_train, 'reverse': x2_train}, y_train,
-                        epochs=params["epochs"], batch_size=params["batch_size"], validation_data=({'forward': x1_val, 'reverse': x2_val}, y_val))
+    history = model.fit({
+        'forward': x1_train,
+        'reverse': x2_train
+    },
+                        y_train,
+                        epochs=params["epochs"],
+                        batch_size=params["batch_size"],
+                        validation_data=({
+                            'forward': x1_val,
+                            'reverse': x2_val
+                        }, y_val))
 
     # Early stopping
     #callback = EarlyStopping(monitor='loss', min_delta=0.001, patience=3, verbose=0, mode='auto', baseline=None, restore_best_weights=False)

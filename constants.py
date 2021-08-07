@@ -5,7 +5,7 @@ TL = 'tl'
 CHRVL = 'chrvl'
 LIBL = 'libl'
 
-# Library length 
+# Library length
 CNL_LEN = 19907
 RL_LEN = 12472
 TL_LEN = 82368

@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-
-
 # Import from parent directory
-import sys 
+import sys
 import os
-sys.path.insert(1, os.path.join(sys.path[0], '..')) 
+
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 from reader import DNASequenceReader
 from custom_types import LIBRARY_NAMES
@@ -27,21 +26,21 @@ class Preprocess:
         """
         self._df = df
 
-    
     def _rc_comp2(self, seqn):
         '''
         Find reverse complement
         '''
         def reverse_compliment_of(seq: str):
             # Define replacements
-            rep = {"A": "T", "T": "A", 'G': 'C', 'C': 'G'} 
-            
+            rep = {"A": "T", "T": "A", 'G': 'C', 'C': 'G'}
+
             # Create regex pattern
             rep = dict((re.escape(k), v) for k, v in rep.items())
             pattern = re.compile("|".join(rep.keys()))
-            
-            # Replace and return reverse sequence 
-            return (pattern.sub(lambda m: rep[re.escape(m.group(0))], seq))[::-1]
+
+            # Replace and return reverse sequence
+            return (pattern.sub(lambda m: rep[re.escape(m.group(0))],
+                                seq))[::-1]
 
         all_sequences = []
         for seq in range(len(seqn)):
@@ -49,20 +48,15 @@ class Preprocess:
 
         return all_sequences
 
-
-    def _get_sequences_target(self) -> dict[Literal['all_seqs', 'target', 'rc_seqs'], list]:
+    def _get_sequences_target(
+            self) -> dict[Literal['all_seqs', 'target', 'rc_seqs'], list]:
         all_seqs = self._df['Sequence'].tolist()
         rc_seqs = self._rc_comp2(all_seqs)
-        
+
         # Set target
-        target = self._df['C0'].tolist() if 'C0' in self._df else None  
+        target = self._df['C0'].tolist() if 'C0' in self._df else None
 
-        return {
-            "all_seqs": all_seqs,
-            "target": target,
-            "rc_seqs": rc_seqs
-        }
-
+        return {"all_seqs": all_seqs, "target": target, "rc_seqs": rc_seqs}
 
     def one_hot_encode(self) -> dict[str, np.ndarray]:
         """
@@ -155,7 +149,6 @@ class Preprocess:
         assert result["reverse"][0].shape == (50, 4)
 
         return result
-
 
     def dinucleotide_encode(self):
         # Requires fix

@@ -18,7 +18,8 @@ from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
 
 from datetime import datetime
-from pathlib import Path 
+from pathlib import Path
+
 
 class Model:
     """
@@ -33,18 +34,17 @@ class Model:
         """
         self.organizer = organizer
 
-
     def _get_result_path(self, dir_name: str):
         """
         Makes result path. Creates if needed.
         """
         cur_date = datetime.now().strftime("%Y_%m_%d")
         cur_time = datetime.now().strftime("%H_%M")
-        
+
         return Path(f'data/generated_data/results/{dir_name}/{cur_date}/{cur_time}.tsv')\
             .mkdir(parents=True, exist_ok=True)
-         
-        
+
+
 
     def _train_shape_cnn_classifier(self, X: np.ndarray, y: np.ndarray) \
         -> tuple[models.Sequential, tf.keras.callbacks.History]:
@@ -62,8 +62,12 @@ class Model:
         """
         kernel_size = 8
         model = models.Sequential()
-        model.add(layers.Conv2D(filters=64, kernel_size=(X.shape[1], kernel_size), strides=1,
-            activation='relu', input_shape=(X.shape[1], X.shape[2], 1)))
+        model.add(
+            layers.Conv2D(filters=64,
+                          kernel_size=(X.shape[1], kernel_size),
+                          strides=1,
+                          activation='relu',
+                          input_shape=(X.shape[1], X.shape[2], 1)))
         model.add(layers.MaxPooling2D((2, 2), padding='same'))
 
         model.add(layers.Flatten())
@@ -73,12 +77,17 @@ class Model:
         print(model.summary())
 
         model.compile(optimizer='adam',
-                loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-                metrics=['accuracy'])
+                      loss=tf.keras.losses.SparseCategoricalCrossentropy(
+                          from_logits=True),
+                      metrics=['accuracy'])
 
-        X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.1)
+        X_train, X_valid, y_train, y_valid = train_test_split(X,
+                                                              y,
+                                                              test_size=0.1)
 
-        history = model.fit(X_train, y_train, epochs=15,
+        history = model.fit(X_train,
+                            y_train,
+                            epochs=15,
                             validation_data=(X_valid, y_valid))
 
         return model, history
@@ -95,29 +104,32 @@ class Model:
 
         """
         # Train
-        X_train_valid, X_test, y_train_valid, y_test = self.organizer.get_shape_train_test()
-        model, history = self._train_shape_cnn_classifier(X_train_valid, y_train_valid)
-        test_loss, test_acc = model.evaluate(X_test,  y_test, verbose=2)
+        X_train_valid, X_test, y_train_valid, y_test = self.organizer.get_shape_train_test(
+        )
+        model, history = self._train_shape_cnn_classifier(
+            X_train_valid, y_train_valid)
+        test_loss, test_acc = model.evaluate(X_test, y_test, verbose=2)
         print('test_acc', test_acc)
 
         # Plot
         plt.plot(history.history['accuracy'], label='accuracy')
-        plt.plot(history.history['val_accuracy'], label = 'val_accuracy')
+        plt.plot(history.history['val_accuracy'], label='val_accuracy')
         plt.xlabel('Epoch')
         plt.ylabel('Accuracy')
         plt.legend(loc='lower right')
         plt.show()
 
-
     def run_seq_classifier(self) -> None:
         """
         Runs Scikit-learn classifier to classify C0 value with k-mer count & helical separation.
         """
-        X_train, X_test, y_train, y_test = self.organizer.get_seq_train_test(classify=True)
+        X_train, X_test, y_train, y_test = self.organizer.get_seq_train_test(
+            classify=True)
 
         classifiers = []
         # classifiers.append(('LogisticRegression_C_1', LogisticRegression(C=1)))
-        classifiers.append(('LogisticRegression_C_0.1', LogisticRegression(C=0.1)))
+        classifiers.append(
+            ('LogisticRegression_C_0.1', LogisticRegression(C=0.1)))
         classifiers.append(('SVC', SVC()))
         classifiers.append(('GradientBoost', GradientBoostingClassifier()))
         classifiers.append(('NN', MLPRegressor()))
@@ -131,20 +143,24 @@ class Model:
             clf.fit(X_train, y_train)
             test_acc = clf.score(X_test, y_test)
             train_acc = clf.score(X_train, y_train)
-            print('Model:', name, 'Train acc:', train_acc, ', Test acc:', test_acc)
+            print('Model:', name, 'Train acc:', train_acc, ', Test acc:',
+                  test_acc)
             clf_result = pd.concat([
-                    clf_result, 
-                    pd.DataFrame([[name, test_acc, train_acc]], columns=result_cols)
-                ], 
-                ignore_index=True)
-            clf_result.to_csv(self._get_result_path(dir_name='classification'), sep='\t', index=False)
-            
+                clf_result,
+                pd.DataFrame([[name, test_acc, train_acc]],
+                             columns=result_cols)
+            ],
+                                   ignore_index=True)
+            clf_result.to_csv(self._get_result_path(dir_name='classification'),
+                              sep='\t',
+                              index=False)
 
     def run_seq_regression(self) -> None:
         """
         Runs Scikit-learn regression models to classify C0 value with k-mer count & helical separation.
         """
-        X_train, X_test, y_train, y_test = self.organizer.get_seq_train_test(classify=False)
+        X_train, X_test, y_train, y_test = self.organizer.get_seq_train_test(
+            classify=False)
 
         regressors = []
         regressors.append(('SVR_C_0.1', SVR(C=0.1)))
@@ -161,14 +177,17 @@ class Model:
             reg.fit(X_train, y_train)
             test_acc = reg.score(X_test, y_test)
             train_acc = reg.score(X_train, y_train)
-            print('Model:', name, ' Train acc:', train_acc, ', Test acc:', test_acc)
+            print('Model:', name, ' Train acc:', train_acc, ', Test acc:',
+                  test_acc)
             reg_result = pd.concat([
-                    reg_result, 
-                    pd.DataFrame([[name, test_acc, train_acc]], columns=result_cols)
-                ], 
-                ignore_index=True)
-            reg_result.to_csv(self._get_result_path(dir_name='regression'), sep='\t', index=False)
-        
+                reg_result,
+                pd.DataFrame([[name, test_acc, train_acc]],
+                             columns=result_cols)
+            ],
+                                   ignore_index=True)
+            reg_result.to_csv(self._get_result_path(dir_name='regression'),
+                              sep='\t',
+                              index=False)
 
     def run_shape_seq_classifier(self) -> None:
         pass
@@ -177,8 +196,8 @@ class Model:
 class ModelRunner:
     def run_model():
         libraries: TrainTestSequenceLibraries = {
-            'train': [ SequenceLibrary(name=TL, quantity=20000) ],
-            'test': [ SequenceLibrary(name=RL, quantity=5000) ], 
+            'train': [SequenceLibrary(name=TL, quantity=20000)],
+            'test': [SequenceLibrary(name=RL, quantity=5000)],
             'train_test': [],
             'seq_start_pos': 1,
             'seq_end_pos': 50

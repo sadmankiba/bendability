@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 import boruta
 
+
 class FeatureSelector:
     """
     Selects Features for classification
@@ -17,12 +18,12 @@ class FeatureSelector:
         """
         Selects features
         """
-        self.support_ = None 
+        self.support_ = None
         self.ranking_ = None
-    
+
     def fit(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
         raise Exception('Subclass responsibility')
-    
+
     def transform(self, X: np.ndarray) -> np.ndarray:
         raise Exception('Subclass responsibility')
 
@@ -35,10 +36,8 @@ class ManualFeatureSelector(FeatureSelector):
     def _check_increasing(self, arr: np.ndarray[float]) -> np.ndarray[bool]:
         return np.all(arr[1:, :] > arr[:-1, :], axis=0)
 
-
     def _check_decreasing(self, arr: np.ndarray[float]) -> np.ndarray[bool]:
         return np.all(arr[1:, :] < arr[:-1, :], axis=0)
-
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> None:
         mean_list = []
@@ -48,11 +47,11 @@ class ManualFeatureSelector(FeatureSelector):
         mean_arr = np.array(mean_list)
         assert mean_arr.shape == (np.unique(y).size, X.shape[1])
 
-        # Check which columns are either increasing or decreasing 
-        self.support_ = self._check_increasing(mean_arr) | self._check_decreasing(mean_arr)
+        # Check which columns are either increasing or decreasing
+        self.support_ = self._check_increasing(
+            mean_arr) | self._check_decreasing(mean_arr)
         self.ranking_ = (~self.support_).astype(int) + 1
-    
-            
+
     def transform(self, X: np.ndarray) -> np.ndarray:
         return X[:, self.support_]
 
@@ -61,13 +60,13 @@ class BorutaFeatureSelector(FeatureSelector):
     """
     A wrapper class for Boruta feature selection algorithm
     """
-
     def __init__(self):
-        rf = RandomForestClassifier(n_jobs=-1, class_weight='balanced', max_depth=5)
-        
+        rf = RandomForestClassifier(n_jobs=-1,
+                                    class_weight='balanced',
+                                    max_depth=5)
+
         self._feat_selector = boruta.BorutaPy(rf, n_estimators='auto', verbose=0, \
             random_state=1, perc=90, max_iter=50)
-
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> None:
         """
@@ -81,10 +80,9 @@ class BorutaFeatureSelector(FeatureSelector):
             None
         """
         self._feat_selector.fit(X, y)
-        
+
         self.support_ = self._feat_selector.support_
         self.ranking_ = self._feat_selector.ranking_
-
 
     def transform(self, X: np.ndarray) -> np.ndarray:
         return self._feat_selector.transform(X)
@@ -95,9 +93,8 @@ class AllFeatureSelector(FeatureSelector):
     Selects all features
     """
     def fit(self, X: np.ndarray, y: np.ndarray) -> None:
-        self.support_ = np.full(shape=(X.shape[1],), fill_value=True)
-        self.ranking_ = np.full(shape=(X.shape[1],), fill_value=1)
-        
+        self.support_ = np.full(shape=(X.shape[1], ), fill_value=True)
+        self.ranking_ = np.full(shape=(X.shape[1], ), fill_value=1)
 
     def transform(self, X: np.ndarray) -> np.ndarray:
         return X[:, self.support_]
@@ -110,7 +107,6 @@ class CorrelationFeatureSelector(FeatureSelector):
     """
     def __init__(self, threshold=0.05):
         self._threshold = threshold
-
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> None:
         feat_corr = abs(np.corrcoef(X.transpose(), y)[-1, :-1])
@@ -139,4 +135,3 @@ class FeatureSelectorFactory:
             return AllFeatureSelector()
         else:
             raise Exception('Selector type not recognized')
-

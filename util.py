@@ -9,19 +9,20 @@ import matplotlib.pyplot as plt
 import math
 import random
 import string
-import re as bre    # built-in re
+import re as bre  # built-in re
 import itertools as it
 from pathlib import Path
 
+
 def reverse_compliment_of(seq: str):
     # Define replacements
-    rep = {"A": "T", "T": "A", 'G': 'C', 'C': 'G'} 
-    
+    rep = {"A": "T", "T": "A", 'G': 'C', 'C': 'G'}
+
     # Create regex pattern
     rep = dict((bre.escape(k), v) for k, v in rep.items())
     pattern = bre.compile("|".join(rep.keys()))
-    
-    # Replace and return reverse sequence 
+
+    # Replace and return reverse sequence
     return (pattern.sub(lambda m: rep[bre.escape(m.group(0))], seq))[::-1]
 
 
@@ -30,11 +31,15 @@ def append_reverse_compliment(df: pd.DataFrame) -> pd.DataFrame:
     Appends reverse compliment sequences to a dataframe
     """
     rdf = df.copy()
-    rdf['Sequence'] = df['Sequence'].apply(lambda seq: reverse_compliment_of(seq))
+    rdf['Sequence'] = df['Sequence'].apply(
+        lambda seq: reverse_compliment_of(seq))
     return pd.concat([df, rdf], ignore_index=True)
 
 
-def sorted_split(df: pd.DataFrame, n=1000, n_bins=1, ascending=False) -> list[pd.DataFrame]:
+def sorted_split(df: pd.DataFrame,
+                 n=1000,
+                 n_bins=1,
+                 ascending=False) -> list[pd.DataFrame]:
     """
     Sort data according to C0 value
     params:
@@ -47,8 +52,10 @@ def sorted_split(df: pd.DataFrame, n=1000, n_bins=1, ascending=False) -> list[pd
     """
     sorted_df = df.sort_values(by=['C0'], ascending=ascending)[0:n]
 
-    return [ sorted_df.iloc[start_pos : start_pos + math.ceil(n / n_bins)]
-                for start_pos in range(0, n, math.ceil(n / n_bins)) ]
+    return [
+        sorted_df.iloc[start_pos:start_pos + math.ceil(n / n_bins)]
+        for start_pos in range(0, n, math.ceil(n / n_bins))
+    ]
 
 
 def cut_sequence(df, start, stop):
@@ -56,7 +63,7 @@ def cut_sequence(df, start, stop):
     Cut a sequence from start to stop position.
     start, stop - 1-indexed, inclusive
     """
-    df['Sequence'] = df['Sequence'].str[start-1:stop]
+    df['Sequence'] = df['Sequence'].str[start - 1:stop]
     return df
 
 
@@ -71,7 +78,9 @@ def get_possible_seq(size):
     possib_seq = ['']
 
     for _ in range(size):
-        possib_seq = [ seq + nc for seq in possib_seq for nc in ['A', 'C', 'G', 'T'] ]
+        possib_seq = [
+            seq + nc for seq in possib_seq for nc in ['A', 'C', 'G', 'T']
+        ]
 
     return possib_seq
 
@@ -88,15 +97,16 @@ def get_possible_shape_seq(size: int, n_letters: int):
         A list of strings
     """
     possib_seq = ['']
-    alphabet = [ chr(ord('a') + i) for i in range(n_letters)]
+    alphabet = [chr(ord('a') + i) for i in range(n_letters)]
 
     for _ in range(size):
-        possib_seq = [ seq + c for seq in possib_seq for c in alphabet ]
+        possib_seq = [seq + c for seq in possib_seq for c in alphabet]
 
     return possib_seq
 
 
-def find_shape_occurence_individual(df: pd.DataFrame , k_list: list, n_letters: int):
+def find_shape_occurence_individual(df: pd.DataFrame, k_list: list,
+                                    n_letters: int):
     """
     Find occurences of all possible shape sequences for individual DNA sequences.
 
@@ -113,8 +123,8 @@ def find_shape_occurence_individual(df: pd.DataFrame , k_list: list, n_letters: 
         possib_seq += get_possible_shape_seq(k, n_letters)
 
     for seq in possib_seq:
-        df = df.assign(new_column = lambda x: x['Sequence'].str.count(seq))
-        df = df.rename(columns = {'new_column': seq})
+        df = df.assign(new_column=lambda x: x['Sequence'].str.count(seq))
+        df = df.rename(columns={'new_column': seq})
 
     return df
 
@@ -149,6 +159,7 @@ def get_random_string(length):
     result_str = ''.join(random.choice(letters) for i in range(length))
     return result_str
 
+
 def roman_to_num(chr_num: YeastChrNum) -> int:
     rom_num_map = {
         'I': 1,
@@ -170,6 +181,7 @@ def roman_to_num(chr_num: YeastChrNum) -> int:
     }
     return rom_num_map[chr_num]
 
+
 class IOUtil:
     # TODO: Change name - SaveUtil
     def save_figure(self, path_str: str | Path):
@@ -179,20 +191,17 @@ class IOUtil:
         plt.gcf().set_size_inches(12, 6)
         plt.savefig(path, dpi=200)
 
-
     def save_tsv(self, df: pd.DataFrame, path_str: str | Path) -> None:
         """Save a dataframe in tsv format"""
         self.make_parent_dirs(path_str)
         df.to_csv(path_str, sep='\t', index=False, float_format='%.3f')
-    
 
     def make_parent_dirs(self, path_str: str | Path) -> None:
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
-        
 
-    def append_tsv(self, df: pd.DataFrame, path_str: str | Path) -> None: 
+    def append_tsv(self, df: pd.DataFrame, path_str: str | Path) -> None:
         """Append a dataframe to a tsv if it exists, otherwise create"""
         path = Path(path_str)
         if path.is_file():
@@ -200,7 +209,5 @@ class IOUtil:
             pd.merge(df, target_df, how='outer')\
                 .to_csv(path, sep='\t', index=False, float_format='%3f')
             return
-        
+
         self.save_tsv(df, path_str)
-
-

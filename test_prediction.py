@@ -13,14 +13,15 @@ class TestPrediction:
 
     def test_predict_lib(self):
         Prediction().predict_lib(RL)
-        assert Path(f'data/generated_data/predictions/{RL}_pred_m_6.tsv').is_file()
-    
+        assert Path(
+            f'data/generated_data/predictions/{RL}_pred_m_6.tsv').is_file()
+
     def test_predict_metrics_lib(self):
         Prediction().predict_metrics_lib(RL)
-        assert Path(f'data/generated_data/prediction_metrics/pred_m_6.tsv').is_file()
-    
+        assert Path(
+            f'data/generated_data/prediction_metrics/pred_m_6.tsv').is_file()
+
     def test_predict_metrics_lib_m30(self):
         Prediction(model_no=30).predict_metrics_lib(RL)
-        assert Path(f'data/generated_data/prediction_metrics/pred_m_30.tsv').is_file()
-    
-    
+        assert Path(
+            f'data/generated_data/prediction_metrics/pred_m_30.tsv').is_file()

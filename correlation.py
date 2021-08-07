@@ -1,16 +1,17 @@
 from data_organizer import DataOrganizeOptions, DataOrganizer, SequenceLibrary
-from constants import CNL, TL, RL 
+from constants import CNL, TL, RL
+
 
 class Correlation:
     def kmer_corr(self, library: SequenceLibrary):
         libraries = {
             'train': [library],
-            'test': [], 
+            'test': [],
             'train_test': [],
             'seq_start_pos': 1,
             'seq_end_pos': 50
         }
-        
+
         for k in [2, 3, 4]:
             options = DataOrganizeOptions(k_list=[k])
 
@@ -25,7 +26,7 @@ class Correlation:
     def hel_corr(self, library: SequenceLibrary):
         libraries = {
             'train': [library],
-            'test': [], 
+            'test': [],
             'train_test': [],
             'seq_start_pos': 1,
             'seq_end_pos': 50

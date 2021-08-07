@@ -1,6 +1,7 @@
 from tad import Boundary
 from custom_types import YeastChrNum
 
+
 class TestTad:
     def test_get_boundaries(self):
         boundaries = Boundary()._get_all_boundaries()
@@ -10,7 +11,7 @@ class TestTad:
         resolution_start, resolution_end = region.split("-")
         assert int(resolution_start) >= 0
         assert int(resolution_end) >= 0
-    
+
     def test_get_boundaries_in(self):
         regions = Boundary().get_boundaries_in('XIII')
         assert len(regions) > 0
