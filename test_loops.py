@@ -2,6 +2,7 @@ from constants import CHRV_TOTAL_BP
 from loops import Loops, MeanLoops, MultiChrmMeanLoopsCollector
 from chromosome import Chromosome
 
+import pandas as pd
 import numpy as np
 
 import unittest
@@ -95,14 +96,21 @@ class TestMeanLoops:
 
 
 class TestMultiChrmMeanLoopsCollector:
-    def test_save_stat(self):
+    def test_save_stat_all_methods(self):
         MultiChrmMeanLoopsCollector(
             None, ('VL', )).save_avg_c0_stat()
         path = Path('data/generated_data/loop/multichr_avg_c0_stat_m_None.tsv')
         assert path.is_file()
 
-    def test_partial_call(self):
+        collector_df = pd.read_csv(path, sep='\t')
+        assert np.isnan(collector_df.iloc[0].drop(['ChrID', 'model']).astype(float)).any() == False
+
+    def test_save_stat_partial_call(self):
         MultiChrmMeanLoopsCollector(None, ('VL', )).save_avg_c0_stat([0, 1, 3, 5],
                                                                True)
         path = Path('data/generated_data/loop/multichr_avg_c0_stat_m_None.tsv')
         assert path.is_file()
+
+        collector_df = pd.read_csv(path, sep='\t')
+        cols = ['chromosome', 'chrm_nuc', 'chrm_linker', 'loop', 'non_loop']
+        assert np.isnan(collector_df[cols].iloc[0]).any() == False        
