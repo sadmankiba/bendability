@@ -184,19 +184,18 @@ def roman_to_num(chr_num: YeastChrNum) -> int:
 
 class IOUtil:
     # TODO: Change name - SaveUtil
-    def save_figure(self, path_str: str | Path):
+    def save_figure(self, path_str: str | Path) -> Path:
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
-        
-        # Show grid below other plots
-        plt.rc('axes', axisbelow=True)
        
         # Set plot size 
         plt.gcf().set_size_inches(12, 6)
         
         # Save
         plt.savefig(path, dpi=200)
+        
+        return path 
 
     def save_tsv(self, df: pd.DataFrame, path_str: str | Path) -> None:
         """Save a dataframe in tsv format"""
@@ -220,6 +219,16 @@ class IOUtil:
         self.save_tsv(df, path_str)
 
 class PlotUtil:
+    def plot_horizontal_line(self, y: float, color: str, text: str):
+        plt.axhline(y=y, color=color, linestyle='-')
+        x_lim = plt.gca().get_xlim()
+        plt.text(x_lim[0] + (x_lim[1] - x_lim[0]) * 0.15,
+                 y,
+                 text,
+                 color=color,
+                 ha='center',
+                 va='bottom')
+
     def plot_stacked_bar(self, data, series_labels, category_labels=None, 
                      show_values=False, value_format="{}", y_label=None, 
                      colors=None, grid=False, reverse=False):
@@ -281,3 +290,7 @@ class PlotUtil:
                             value_format.format(h), ha="center", 
                             va="center")
                 
+    def show_grid_below(self) -> None:
+        """Invoke this function before plotting to show grid below"""
+        #TODO: include plotting grid
+        plt.rc('axes', axisbelow=True)

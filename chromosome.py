@@ -4,7 +4,7 @@ from prediction import Prediction
 from reader import DNASequenceReader
 from constants import CHRVL, SEQ_LEN, CHRV_TOTAL_BP, CHRVL_LEN
 from custom_types import ChrId, YeastChrNum
-from util import IOUtil
+from util import IOUtil, PlotUtil
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -55,15 +55,8 @@ class ChromosomeUtil:
         """
         Plot a horizontal red line denoting avg
         """
-        plt.axhline(y=y, color='r', linestyle='-')
-        x_lim = plt.gca().get_xlim()
-        plt.text(x_lim[0] + (x_lim[1] - x_lim[0]) * 0.15,
-                 y,
-                 'avg',
-                 color='r',
-                 ha='center',
-                 va='bottom')
-
+        PlotUtil().plot_horizontal_line(y, 'r', 'avg')
+        
 
 SpreadType = Literal['mean7', 'mean_cover', 'weighted', 'single']
 

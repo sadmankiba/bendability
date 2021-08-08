@@ -67,6 +67,9 @@ class TestLoops(unittest.TestCase):
         path = Path(f'figures/loop/mean_nuc_occ_p_150_mxl_100000_{chr}.png')
         assert path.is_file()
 
+    def test_plot_scatter_mean_c0_nuc_linker_individual_loop(self):
+        path = Loops(Chromosome('VL')).plot_scatter_mean_c0_nuc_linker_individual_loop()
+        assert path.is_file()
 
 class TestMeanLoops:
     def test_in_complete_loop(self):

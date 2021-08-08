@@ -286,6 +286,67 @@ class Loops:
             total_perc,
             Nucleosome(self._chr).get_nucleosome_occupancy(), 'nuc_occ')
 
+    def plot_scatter_mean_c0_nuc_linker_individual_loop(self) -> Path:
+        nucs = Nucleosome(self._chr)
+        nucs_cover = nucs.get_nuc_regions()
+        loops_cover = self.get_loop_cover()
+        c0_spread = self._chr.get_spread()
+        sorted_loop_df = self._loop_df.sort_values('len', ignore_index=True)
+        
+        mean_in_loop = []
+
+        def _append_mean_of(loop: pd.Series) -> None:
+            loop_cover = np.full((self._chr._total_bp,), False)
+            loop_cover[loop['start'] - 1 : loop['end']] = True 
+            loop_mean = c0_spread[loop_cover].mean()
+            loop_nuc_mean = c0_spread[loop_cover & nucs_cover].mean()
+            loop_linker_mean = c0_spread[loop_cover & ~nucs_cover].mean()
+            mean_in_loop.append([loop_mean, loop_nuc_mean, loop_linker_mean])
+        
+        # Find mean C0 of nuc, linker in individual loops
+        sorted_loop_df.apply(_append_mean_of, axis=1)
+        mean_arr = np.array(mean_in_loop)
+
+        # Plot scatter for mean C0 of nuc, linker
+        markers = ['o', 's', 'p']
+        labels = [ 'loop', 'loop nuc', 'loop linker']
+        colors = ['tab:blue', 'tab:orange', 'tab:green']
+        
+        plt.close()
+        plt.clf()
+
+        PlotUtil().show_grid_below()
+
+        x = np.arange(mean_arr.shape[0])
+        for i in range(mean_arr.shape[1]):
+            plt.scatter(x, mean_arr[:, i], marker=markers[i], label=labels[i], color=colors[i])
+        
+        # Plot horizontal lines for mean C0 of non-loop nuc, linker 
+        non_loop_colors = ['tab:red', 'tab:purple', 'tab:brown']
+        non_loops_mean = c0_spread[~loops_cover].mean()
+        non_loops_nuc_mean = c0_spread[~loops_cover & nucs_cover].mean()
+        non_loops_linker_mean = c0_spread[~loops_cover & ~nucs_cover].mean()
+        PlotUtil().plot_horizontal_line(non_loops_mean, non_loop_colors[0], 'non-loop')
+        PlotUtil().plot_horizontal_line(non_loops_nuc_mean, non_loop_colors[1], 'non-loop nuc')
+        PlotUtil().plot_horizontal_line(non_loops_linker_mean, non_loop_colors[2], 'non-loop linker')
+
+        plt.grid()
+
+        # Decorate
+        xticks = sorted_loop_df['len'].apply(lambda len: str(int(len / 1000)) + 'k').tolist()
+        plt.xticks(x, xticks, rotation=90)
+        plt.xlabel('Individual loops labeled with and sorted by length')
+        plt.ylabel('Mean C0')
+        plt.title(
+            f'Comparison of mean {self._chr._c0_type} C0 among loops'
+            f' in chromosome {self._chr._chr_num}'
+        )
+        plt.legend() 
+        
+        return IOUtil().save_figure(
+            f'figures/loops/individual_scatter_nuc_linker_{self._chr}.png')
+
+
 
 class MeanLoops:
     """Class to find mean across loops in various ways"""
@@ -603,10 +664,13 @@ class MultiChrmMeanLoopsCollector:
         )
         return save_df_path
 
-    def plot_loop_nuc_linker_mean(self):
+    def plot_scatter_loop_nuc_linker_mean(self):
         self.save_avg_c0_stat([3, 4, 5, 6], subtract_chrm=False)
         labels = [ 'loop', 'loop_nuc', 'loop_linker', 
             'non_loop', 'non_loop_nuc', 'non_loop_linker']
+
+        # Show grid below other plots
+        plt.rc('axes', axisbelow=True)
 
         arr = self._mcloop_df[labels].values
         x = np.arange(arr.shape[0])
@@ -619,7 +683,8 @@ class MultiChrmMeanLoopsCollector:
         plt.xlabel('Chromosome')
         plt.ylabel('Mean C0')
         plt.title(
-            'Comparison of mean C0 in nucleosome and linker region in loop vs. non-loop'
+            'Comparison of mean C0 in nucleosome and linker region in loop'
+            f' vs. non-loop with max loop length = {self._mxlen}'
         )
         plt.legend()
 
@@ -691,7 +756,7 @@ class MultiChrmCoverLoopsCollector:
         IOUtil().append_tsv(collector_df, save_path_str)
         return collector_df, save_path_str
     
-    def plot_cover_stat(self) -> str:
+    def plot_bar_cover_stat(self) -> str:
         labels = ['loop_nuc', 'loop_linker', 'non_loop_nuc', 'non_loop_linker']
         colt_df = self.get_cover_stat()[0]
         colt_arr = colt_df[labels].values
