@@ -97,7 +97,7 @@ class TestMeanLoops:
 class TestMultiChrmMeanLoopsCollector:
     def test_save_stat(self):
         MultiChrmMeanLoopsCollector(
-            None, ('VL', )).save_avg_c0_stat([0, 1, 2, 3, 4, 5, 6], True)
+            None, ('VL', )).save_avg_c0_stat()
         path = Path('data/generated_data/loop/multichr_avg_c0_stat_m_None.tsv')
         assert path.is_file()
 

@@ -29,7 +29,7 @@ class Loops:
         self._chr = chrm
         self._loop_df = self._read_loops()
         if mxlen:
-            self._loop_df = self._exclude_above_len(mxlen)
+            self.exclude_above_len(mxlen)
 
     def _read_loops(self) -> pd.DataFrame:
         """
@@ -77,10 +77,13 @@ class Loops:
             f'{fig_dir}/loop_highres_hist_maxlen_{max_loop_length}.png',
             dpi=200)
 
-    def _exclude_above_len(self, mxlen: int) -> pd.DataFrame:
-        return self._loop_df.loc[self._loop_df['len'] <= mxlen]
+    def exclude_above_len(self, mxlen: int) -> pd.DataFrame:
+        self._loop_df = self._loop_df.loc[self._loop_df['len'] <= mxlen]
 
-    def get_loop_cover(self, loop_df : pd.DataFrame) -> np.ndarray:
+    def get_loop_cover(self, loop_df : pd.DataFrame | None = None) -> np.ndarray:
+        if loop_df is None: 
+            loop_df = self._loop_df
+
         loop_array = np.full((self._chr._total_bp, ), False)
         
         def _set_bp(start, end) -> None:
@@ -314,7 +317,7 @@ class MeanLoops:
         return round(self._chrm.get_spread()[self._loops.get_loop_cover(loop_df)].mean(), 3)
         
     def in_complete_non_loop(self) -> float:
-        return round(self._chrm.get_spread()[~self._loops.get_loop_cover()].mean(), 3)
+        return round(self._chrm.get_spread()[~self._loops.get_loop_cover(self._loop_df)].mean(), 3)
         
     def in_quartile_by_len(self) -> list[float]:
         """Find average c0 of collection of loops by dividing them into
@@ -423,7 +426,10 @@ class MultiChrmMeanLoopsCollector:
     Class to accumulate various mean functions in loops in a dataframe for
     side-by-side comparison. 
     """
-    def __init__(self, prediction : Prediction, chrids: tuple[ChrId] = ChrIdList):
+    def __init__(self, 
+                prediction : Prediction, 
+                chrids: tuple[ChrId] = ChrIdList, 
+                mxlen: int | None = None):
         # TODO: Rename collector_df
         self._mcloop_df = pd.DataFrame({'ChrID': chrids})  
         self._prediction = prediction
@@ -540,12 +546,14 @@ class MultiChrmMeanLoopsCollector:
                                                         axis=1)
 
     def _subtract_mean_chrm_c0(self) -> None:
-        exclude_cols = ['chromosome','ChrID', 'cover']
+        exclude_cols = ['chromosome','ChrID']
+        if 'cover' in self._mcloop_df.columns:
+            exclude_cols += ['cover']
         self._mcloop_df[self._mcloop_df.drop(columns=exclude_cols).columns] = \
             self._mcloop_df.drop(columns=exclude_cols).apply(lambda col: col - self._mcloop_df['chromosome'])
 
     def save_avg_c0_stat(self,
-                         mean_methods: list[int],
+                         mean_methods: list[int] | None = None,
                          subtract_chrm=True) -> None:
         """
         Args:
@@ -566,6 +574,9 @@ class MultiChrmMeanLoopsCollector:
             10: self._add_anchor_center_bp,
             11: self._add_quartile_len_anchor_center_bp,
         }
+
+        if mean_methods is None:
+            mean_methods = list(method_map.keys())
 
         for m in mean_methods:
             method_map[m]()
