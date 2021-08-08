@@ -1,6 +1,7 @@
 from chromosome import Chromosome, ChromosomeUtil, Spread
 
 import numpy as np
+import pytest
 
 import unittest
 from pathlib import Path
@@ -58,13 +59,16 @@ class TestSpread(unittest.TestCase):
         self.assertTupleEqual(spread_c0.shape, (CHRV_TOTAL_BP, ))
 
         samples = spread_c0[np.random.randint(0, CHRVL_LEN - 1, 100)]
-        self.assertTrue(np.all(samples) < 2.5)
-        self.assertTrue(np.all(samples) > -2.5)
+        self.assertTrue(np.all(samples < 2.5))
+        self.assertTrue(np.all(samples > -2.5))
 
 
-class TestChromosome(unittest.TestCase):
+class TestChromosome:
     def test_get_chr_prediction(self):
-        chrv = Chromosome('IX', Prediction(model_no=6))
-        predict_df = chrv._get_chr_prediction()
-        self.assertCountEqual(predict_df.columns,
-                              ['Sequence #', 'Sequence', 'C0'])
+        chrm = Chromosome('IX', Prediction(model_no=6))
+        predict_df = chrm._get_chrm_df()
+        assert predict_df.columns.tolist() == ['Sequence #', 'Sequence', 'C0']
+    
+    def test_without_prediction_initialization(self):
+        chrm = Chromosome('IX')
+        assert chrm._df.columns.tolist() == ['Sequence #', 'Sequence']

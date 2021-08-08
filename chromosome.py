@@ -152,7 +152,7 @@ class Spread:
 
         def balanced_c0_at(pos) -> float:
             seq_indices = self._covering_sequences_at(pos) - 1
-            return self._df['C0'][seq_indices].mean()
+            return self._seq_c0_res7[seq_indices].mean()
 
         t = time.time()
         res = np.array(list(map(balanced_c0_at,
@@ -197,7 +197,7 @@ class Spread:
 
         def weighted_c0_at(pos) -> float:
             seq_indices = self._covering_sequences_at(pos) - 1
-            c0s = self.chrv_df['C0'][seq_indices].to_numpy()
+            c0s = self._seq_c0_res7[seq_indices]
             return np.sum(c0s * weights_for(c0s.size)) / sum(
                 weights_for(c0s.size))
 
@@ -248,7 +248,7 @@ class Chromosome:
 
     def __init__(self,
                  chr_id: Union[YeastChrNum, Literal['VL']],
-                 prediction: Prediction,
+                 prediction: Prediction | None = None,
                  spread_str: SpreadType = 'mean7'):
         """
         Create a Chromosome object 
@@ -273,7 +273,7 @@ class Chromosome:
             self._prediction = prediction
             self._chr_num = chr_id
             self._c0_type = 'predicted'
-            self._df = self._get_chr_prediction()
+            self._df = self._get_chrm_df()
 
         self._chr_util = ChromosomeUtil()
         self._total_bp = self._chr_util.get_total_bp(len(self._df))
@@ -282,8 +282,15 @@ class Chromosome:
     def __str__(self):
         return f's_{self.spread_str}_m_{self.predict_model_no()}_{self._chr_id}'
 
-    def _get_chr_prediction(self):
-        """Read predicted C0 of a yeast chromosome by meuseum model"""
+    def _get_chrm_df(self) -> pd.DataFrame:
+        """
+        Read chromosome sequence. If prediction object is provided, predict C0 
+        by a model
+        """
+        df = DNASequenceReader().read_yeast_genome(self._chr_num)
+        
+        if self._prediction is None:
+            return df
 
         saved_predict_data = Path(
             f'data/generated_data/predictions/chr{self._chr_num}_pred_m_{self._prediction._model_no}.tsv'
@@ -291,7 +298,6 @@ class Chromosome:
         if saved_predict_data.is_file():
             return pd.read_csv(saved_predict_data, sep='\t')
 
-        df = DNASequenceReader().read_yeast_genome(self._chr_num)
         predict_df = self._prediction.predict(df).rename(
             columns={'c0_predict': 'C0'})
 
