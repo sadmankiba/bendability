@@ -24,18 +24,18 @@ class TestLoops(unittest.TestCase):
     def test_exclude_above_len(self):
         bf_loops = Loops(Chromosome('VL', None))
         bf_len = len(bf_loops._loop_df)
-        bf_arr = bf_loops.get_loop_cover()
+        bf_arr = bf_loops.get_loop_cover(bf_loops._loop_df)
 
         af_loops = Loops(Chromosome('VL', None), 100000)
         af_len = len(af_loops._loop_df)
-        af_arr = af_loops.get_loop_cover()
+        af_arr = af_loops.get_loop_cover(af_loops._loop_df)
         
         assert bf_len >= af_len
         assert bf_arr.sum() >= af_arr.sum()
 
     def test_get_loop_cover(self):
         loops = Loops(Chromosome('VL', None))
-        chrm_arr = loops.get_loop_cover()
+        chrm_arr = loops.get_loop_cover(loops._loop_df)
         assert chrm_arr.shape == (CHRV_TOTAL_BP, )
         perc = chrm_arr.sum() / CHRV_TOTAL_BP * 100
         assert 10 < perc < 90
