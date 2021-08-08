@@ -1,8 +1,7 @@
-from util import get_possible_seq, cut_sequence, \
+from util import PlotUtil, get_possible_seq, cut_sequence, \
         reverse_compliment_of, append_reverse_compliment, IOUtil
 
 import pandas as pd
-import numpy as np
 
 import unittest
 from pathlib import Path
@@ -63,6 +62,30 @@ class TestIOUtil:
         assert len(append_df) == 3
         assert len(append_df.columns) == 4
         os.remove(path)
+
+class TestPlotUtil:
+    def test_plot_stacked_bar(self):
+        series_labels = ['Series 1', 'Series 2']
+
+        data = [
+            [0.2, 0.3, 0.35, 0.3],
+            [0.8, 0.7, 0.6, 0.5]
+        ]
+
+        category_labels = ['Cat A', 'Cat B', 'Cat C', 'Cat D']
+
+        PlotUtil().plot_stacked_bar(
+            data, 
+            series_labels, 
+            category_labels, 
+            show_values=True, 
+            value_format="{:.1f}",
+            colors=['tab:orange', 'tab:green'],
+            y_label="Quantity (units)"
+        )
+        IOUtil().save_figure('figures/test/stacked_bar.png')
+        assert True
+
 
 
 if __name__ == "__main__":

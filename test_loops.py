@@ -1,5 +1,5 @@
 from constants import CHRV_TOTAL_BP
-from loops import Loops, MeanLoops, MultiChrmMeanLoopsCollector
+from loops import Loops, MeanLoops, MultiChrmCoverLoopsCollector, MultiChrmMeanLoopsCollector
 from chromosome import Chromosome
 
 import pandas as pd
@@ -129,3 +129,14 @@ class TestMultiChrmMeanLoopsCollector:
         MultiChrmMeanLoopsCollector(None, ('VL', )).plot_loop_cover_frac()
         fig_path = Path('figures/mcloop/loop_cover_md_None_mx_None.png')
         assert fig_path.is_file()
+
+class TestMultiChrmCoverLoopsCollector:
+    def test_get_cover_stat(self):
+        colt_df, path_str = MultiChrmCoverLoopsCollector(('VL',), 1000000).get_cover_stat()
+        assert Path(path_str).is_file()
+        assert pd.read_csv(path_str, sep='\t').columns.tolist() \
+            == ['ChrID', 'loop_nuc', 'loop_linker', 'non_loop_nuc', 'non_loop_linker'] 
+
+    def test_plot_cover_stat(self):
+        path_str = MultiChrmCoverLoopsCollector(('VL',), 100000).plot_cover_stat()
+        assert Path(path_str).is_file()

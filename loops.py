@@ -7,9 +7,10 @@ from prediction import Prediction
 from reader import DNASequenceReader
 from constants import CHRVL, CHRV_TOTAL_BP
 from chromosome import Chromosome, ChrIdList
-from util import IOUtil
+from util import IOUtil, PlotUtil
 
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import pandas as pd
 from skimage.transform import resize
 import numpy as np
@@ -637,3 +638,76 @@ class MultiChrmMeanLoopsCollector:
         plt.title(f'Loop cover percentage in whole chromosome with max length = {self._mxlen}')
         IOUtil().save_figure(
             f'figures/mcloop/loop_cover_{self}.png')
+
+
+class CoverLoops:
+    def __init__(self, loops: Loops):
+        nucs = Nucleosome(loops._chr)
+        
+        self._nuc_cover = nucs.get_nuc_regions()
+        self._loop_cover = loops.get_loop_cover(loops._loop_df)
+
+    def in_loop_nuc(self) -> float:
+        return (self._loop_cover & self._nuc_cover).mean()
+    
+    def in_loop_linker(self) -> float: 
+        return (self._loop_cover & ~self._nuc_cover).mean()
+    
+    def in_non_loop_nuc(self) -> float:
+        return (~self._loop_cover & self._nuc_cover).mean()
+    
+    def in_non_loop_linker(self) -> float:
+        return (~self._loop_cover & ~self._nuc_cover).mean()
+
+
+class MultiChrmCoverLoopsCollector:
+    def __init__(self, chrmids: tuple[ChrId] = ChrIdList, mxlen: int | None = None):
+        self._chrmids = chrmids
+        self._mxlen = mxlen
+
+        chrms = pd.Series(list(map(lambda chrm_id: Chromosome(chrm_id), chrmids)))
+        mcloops = chrms.apply(lambda chrm: Loops(chrm, mxlen))
+        self._mccloops = mcloops.apply(lambda loops: CoverLoops(loops))
+    
+    def get_cover_stat(self) -> pd.DataFrame:
+        collector_df = pd.DataFrame({'ChrID': self._chrmids})
+        
+        collector_df['loop_nuc'] = self._mccloops.apply(
+            lambda cloops: cloops.in_loop_nuc()
+        )
+
+        collector_df['loop_linker'] = self._mccloops.apply(
+            lambda cloops: cloops.in_loop_linker()
+        )
+
+        collector_df['non_loop_nuc'] = self._mccloops.apply(
+            lambda cloops: cloops.in_non_loop_nuc()
+        )
+
+        collector_df['non_loop_linker'] = self._mccloops.apply(
+            lambda cloops: cloops.in_non_loop_linker()
+        )
+        save_path_str = f'data/generated_data/mcloop/multichr_cover_stat_{self._mxlen}.tsv'
+        IOUtil().append_tsv(collector_df, save_path_str)
+        return collector_df, save_path_str
+    
+    def plot_cover_stat(self) -> str:
+        labels = ['loop_nuc', 'loop_linker', 'non_loop_nuc', 'non_loop_linker']
+        colt_df = self.get_cover_stat()[0]
+        colt_arr = colt_df[labels].values
+        mpl.rcParams.update({'font.size': 12})
+        PlotUtil().plot_stacked_bar(colt_arr.transpose() * 100, labels, 
+            colt_df['ChrID'].tolist(), show_values=True, value_format="{:.1f}", 
+            y_label='Coverage (%)')
+        
+        plt.gca().legend(loc='upper center', bbox_to_anchor=(0.5, 1.1),
+          ncol=4, fancybox=False, shadow=False)
+
+        plt.xlabel('Chromosome')
+        plt.title('Coverage by nucleosomes and linkers in loop and' 
+            f'non-loop region with max loop length = {self._mxlen}',
+            pad=35)
+        fig_path_str = f'figures/mcloop/nuc_linker_cover_mxl_{self._mxlen}.png'
+
+        IOUtil().save_figure(fig_path_str)
+        return fig_path_str
