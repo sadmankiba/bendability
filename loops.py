@@ -435,6 +435,12 @@ class MultiChrmMeanLoopsCollector:
         self._mcmloops = mcloops.apply(lambda loops: MeanLoops(loops))
         self._mcnucs = self._chrs.apply(lambda chrm: Nucleosome(chrm))
         self._mxlen = mxlen
+    
+    def __str__(self):
+        ext = 'with_vl' if 'VL' in self._mcloop_df['ChrID'].tolist() \
+                else 'without_vl'
+        
+        return f'md_{self._prediction}_mx_{self._mxlen}_{ext}'
 
     def _get_chromosomes(self) -> pd.Series:
         """Create a Pandas Series of Chromosomes"""
@@ -553,11 +559,14 @@ class MultiChrmMeanLoopsCollector:
 
     def save_avg_c0_stat(self,
                          mean_methods: list[int] | None = None,
-                         subtract_chrm=True) -> None:
+                         subtract_chrm=True) -> str:
         """
         Args:
             mean_methods: A list of int. Between 0-11 (inclusive)
             subtract_chrm: Whether to subtract chrm c0
+        
+        Returns:
+            The path where dataframe is saved
         """
         method_map = {
             0: self._add_chrm_mean,
@@ -586,10 +595,12 @@ class MultiChrmMeanLoopsCollector:
         self._mcloop_df['model'] = np.full((len(self._mcloop_df), ),
                                            str(self._prediction))
 
+        save_df_path = f'data/generated_data/mcloop/multichr_avg_c0_stat_{self}.tsv'
         IOUtil().append_tsv(
             self._mcloop_df,
-            f'data/generated_data/loop/multichr_avg_c0_stat_m_{self._prediction}.tsv'
+            save_df_path
         )
+        return save_df_path
 
     def plot_loop_nuc_linker_mean(self):
         self.save_avg_c0_stat([3, 4, 5, 6], subtract_chrm=False)
@@ -602,6 +613,7 @@ class MultiChrmMeanLoopsCollector:
         for i in range(arr.shape[1]):
             plt.scatter(x, arr[:, i], marker=markers[i], label=labels[i])
 
+        plt.grid()
         plt.xticks(x, self._mcloop_df['ChrID'])
         plt.xlabel('Chromosome')
         plt.ylabel('Mean C0')
@@ -611,4 +623,17 @@ class MultiChrmMeanLoopsCollector:
         plt.legend()
 
         IOUtil().save_figure(
-            f'figures/mcloop/nuc_linker_mean_md_{self._prediction}_mx_{self._mxlen}.png')
+            f'figures/mcloop/nuc_linker_mean_{self}.png')
+    
+    def plot_loop_cover_frac(self):
+        self.save_avg_c0_stat([2], subtract_chrm=False)
+        cv_frac = self._mcloop_df['cover'].to_numpy() * 100
+        x = np.arange(cv_frac.size)
+        plt.bar(x, cv_frac)
+        plt.grid()
+        plt.xticks(x, self._mcloop_df['ChrID'])
+        plt.xlabel('Chromosome')
+        plt.ylabel('Loop cover (%)')
+        plt.title(f'Loop cover percentage in whole chromosome with max length = {self._mxlen}')
+        IOUtil().save_figure(
+            f'figures/mcloop/loop_cover_{self}.png')

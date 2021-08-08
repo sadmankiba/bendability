@@ -70,25 +70,25 @@ class TestLoops(unittest.TestCase):
 
 class TestMeanLoops:
     def test_in_complete_loop(self):
-        mean = MeanLoops(Chromosome('VL', None)).in_complete_loop()
+        mean = MeanLoops(Loops(Chromosome('VL', None))).in_complete_loop()
         print(mean)
         assert mean < 0
         assert mean > -0.3
 
     def test_in_quartile_by_pos(self):
-        arr = MeanLoops(Chromosome('VL',
-                                   None)).in_quartile_by_pos()
+        arr = MeanLoops(Loops(Chromosome('VL',
+                                   None))).in_quartile_by_pos()
         print(arr)
         assert arr.shape == (4, )
 
     def test_around_anc(self):
-        avg = MeanLoops(Chromosome('VL',
-                                   None)).around_anc('start', 500)
+        avg = MeanLoops(Loops(Chromosome('VL',
+                                   None))).around_anc('start', 500)
         assert avg > -1
         assert avg < 1
 
     def test_in_nuc_linker(self):
-        mloops = MeanLoops(Chromosome('VL', None))
+        mloops = MeanLoops(Loops(Chromosome('VL', None)))
         na, la = mloops.in_nuc_linker()
         assert -1 < na < 0
         assert -1 < la < 0
@@ -97,20 +97,23 @@ class TestMeanLoops:
 
 class TestMultiChrmMeanLoopsCollector:
     def test_save_stat_all_methods(self):
-        MultiChrmMeanLoopsCollector(
-            None, ('VL', )).save_avg_c0_stat()
-        path = Path('data/generated_data/loop/multichr_avg_c0_stat_m_None.tsv')
+        path = Path(MultiChrmMeanLoopsCollector(
+            None, ('VL', )).save_avg_c0_stat())
         assert path.is_file()
 
         collector_df = pd.read_csv(path, sep='\t')
         assert np.isnan(collector_df.iloc[0].drop(['ChrID', 'model']).astype(float)).any() == False
 
     def test_save_stat_partial_call(self):
-        MultiChrmMeanLoopsCollector(None, ('VL', )).save_avg_c0_stat([0, 1, 3, 5],
-                                                               True)
-        path = Path('data/generated_data/loop/multichr_avg_c0_stat_m_None.tsv')
+        path = Path(MultiChrmMeanLoopsCollector(None, ('VL', )).save_avg_c0_stat([0, 1, 3, 5],
+                                                               True))
         assert path.is_file()
 
         collector_df = pd.read_csv(path, sep='\t')
         cols = ['chromosome', 'chrm_nuc', 'chrm_linker', 'loop', 'non_loop']
-        assert np.isnan(collector_df[cols].iloc[0]).any() == False        
+        assert np.isnan(collector_df[cols].iloc[0]).any() == False   
+
+    def test_plot_loop_cover_frac(self):
+        MultiChrmMeanLoopsCollector(None, ('VL', )).plot_loop_cover_frac()
+        fig_path = Path('figures/mcloop/loop_cover_md_None_mx_None.png')
+        assert fig_path.is_file()
