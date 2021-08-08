@@ -434,6 +434,7 @@ class MultiChrmMeanLoopsCollector:
         mcloops = self._chrs.apply(lambda chrm: Loops(chrm, mxlen))
         self._mcmloops = mcloops.apply(lambda loops: MeanLoops(loops))
         self._mcnucs = self._chrs.apply(lambda chrm: Nucleosome(chrm))
+        self._mxlen = mxlen
 
     def _get_chromosomes(self) -> pd.Series:
         """Create a Pandas Series of Chromosomes"""
@@ -555,7 +556,7 @@ class MultiChrmMeanLoopsCollector:
                          subtract_chrm=True) -> None:
         """
         Args:
-            mean_methods: A list of int. Between 0-6 (inclusive)
+            mean_methods: A list of int. Between 0-11 (inclusive)
             subtract_chrm: Whether to subtract chrm c0
         """
         method_map = {
@@ -591,7 +592,7 @@ class MultiChrmMeanLoopsCollector:
         )
 
     def plot_loop_nuc_linker_mean(self):
-        self.save_avg_c0_stat([2, 3, 4, 5], subtract_chrm=False)
+        self.save_avg_c0_stat([3, 4, 5, 6], subtract_chrm=False)
         labels = [ 'loop', 'loop_nuc', 'loop_linker', 
             'non_loop', 'non_loop_nuc', 'non_loop_linker']
 
@@ -605,9 +606,9 @@ class MultiChrmMeanLoopsCollector:
         plt.xlabel('Chromosome')
         plt.ylabel('Mean C0')
         plt.title(
-            'Comparison of mean C0 in nucleosome and linker region in loops vs. total chromosome'
+            'Comparison of mean C0 in nucleosome and linker region in loop vs. non-loop'
         )
         plt.legend()
 
         IOUtil().save_figure(
-            f'figures/mcloop/nuc_linker_mean_{self._prediction}.png')
+            f'figures/mcloop/nuc_linker_mean_md_{self._prediction}_mx_{self._mxlen}.png')

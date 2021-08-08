@@ -6,4 +6,4 @@ from loops import Loops, MultiChrmMeanLoopsCollector
 import itertools
 
 if __name__ == '__main__':
-    MultiChrmMeanLoopsCollector(6, [ChrIdList]).plot_loop_nuc_linker_mean()
+    MultiChrmMeanLoopsCollector(Prediction(30), ChrIdList).plot_loop_nuc_linker_mean()
