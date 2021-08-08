@@ -1,3 +1,4 @@
+from constants import CHRV_TOTAL_BP
 from loops import Loops, MeanLoops, MultiChrmMeanLoopsCollector
 from chromosome import Chromosome
 
@@ -19,6 +20,25 @@ class TestLoops(unittest.TestCase):
         # Count number of lines in bedpe file
         s = subprocess.check_output(["wc", "-l", loop._loop_file])
         assert len(df) == int(s.split()[0]) - 2
+
+    def test_exclude_above_len(self):
+        bf_loops = Loops(Chromosome('VL', None))
+        bf_len = len(bf_loops._loop_df)
+        bf_arr = bf_loops.get_loop_cover()
+
+        af_loops = Loops(Chromosome('VL', None), 100000)
+        af_len = len(af_loops._loop_df)
+        af_arr = af_loops.get_loop_cover()
+        
+        assert bf_len >= af_len
+        assert bf_arr.sum() >= af_arr.sum()
+
+    def test_get_loop_cover(self):
+        loops = Loops(Chromosome('VL', None))
+        chrm_arr = loops.get_loop_cover()
+        assert chrm_arr.shape == (CHRV_TOTAL_BP, )
+        perc = chrm_arr.sum() / CHRV_TOTAL_BP * 100
+        assert 10 < perc < 90
 
     def test_plot_mean_c0_across_loops(self):
         chr = Chromosome('VL', None)

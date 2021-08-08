@@ -154,7 +154,8 @@ class Nucleosome:
             .to_csv(saved_data, sep='\t', index=False)
 
         return nuc_occ
-
+    
+    # TODO: Change name to get_nuc_cover
     def get_nuc_regions(self, nuc_half: int = 73) -> np.ndarray:
         """
         Args:

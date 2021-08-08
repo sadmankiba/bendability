@@ -24,10 +24,12 @@ class Loops:
     """
     Abstraction of collection of loops in a single chromosome
     """
-    def __init__(self, chr: Chromosome):
-        self._loop_file = f'data/input_data/loops/merged_loops_res_500_chr{chr._chr_num}.bedpe'
-        self._chr = chr
+    def __init__(self, chrm: Chromosome, mxlen: int = None):
+        self._loop_file = f'data/input_data/loops/merged_loops_res_500_chr{chrm._chr_num}.bedpe'
+        self._chr = chrm
         self._loop_df = self._read_loops()
+        if mxlen:
+            self._loop_df = self._exclude_above_len(mxlen)
 
     def _read_loops(self) -> pd.DataFrame:
         """
@@ -51,8 +53,7 @@ class Loops:
                         [['res', 'start', 'end']].astype(int)
 
         return _use_centroids().assign(len=lambda df: df['end'] - df['start'])
-
-    # ** #
+    
     def stat_loops(self) -> None:
         """Prints statistics of loops"""
         loop_df = self._loop_df
@@ -76,7 +77,18 @@ class Loops:
             f'{fig_dir}/loop_highres_hist_maxlen_{max_loop_length}.png',
             dpi=200)
 
-    # ** #
+    def _exclude_above_len(self, mxlen: int) -> pd.DataFrame:
+        return self._loop_df.loc[self._loop_df['len'] <= mxlen]
+
+    def get_loop_cover(self) -> np.ndarray:
+        loop_array = np.full((self._chr._total_bp, ), False)
+        
+        def _set_bp(start, end) -> None:
+            loop_array[start : end] = True
+
+        self._loop_df.apply(lambda loop: _set_bp(loop['start'] - 1, loop['end']), axis=1)
+        return loop_array 
+    
     def plot_c0_in_individual_loop(self):
         loop_df = self._loop_df
 
@@ -194,8 +206,7 @@ class Loops:
         IOUtil().save_figure(
             f'figures/loop/mean_{val_type}_p_{total_perc}_mxl_{max_loop_length}_{self._chr}.png'
         )
-
-    # *** #
+    
     def plot_mean_c0_across_loops(self, total_perc=150) -> None:
         """
         Plot mean C0 across total loop in found loops in chr V
@@ -204,8 +215,7 @@ class Loops:
             total_perc: Total percentage of loop length to consider 
         """
         self._plot_mean_across_loops(total_perc, self._chr.get_spread(), 'c0')
-
-    # ** #
+    
     def plot_c0_around_individual_anchor(self, lim=500):
         loop_df = self._loop_df
 
@@ -226,7 +236,6 @@ class Loops:
                 IOUtil().save_figure(
                     f'figures/loop_anchor/{self._chr}/{col}_{a}.png')
 
-    # *** #
     def plot_c0_around_anchor(self, lim=500):
         """Plot C0 around loop anchor points"""
         # TODO: Distance from loop anchor : percentage
@@ -307,6 +316,10 @@ class MeanLoops:
                     lambda idx: chrv_c0_spread[loop_df.iloc[idx][
                         'start'] - 1:loop_df.iloc[idx]['end']].mean(),
                     range(len(loop_df)))) / len(loop_df), 3)
+
+    def in_complete_non_loop(self) -> float:
+        
+        pass
 
     def in_quartile_by_len(self) -> list[float]:
         """Find average c0 of collection of loops by dividing them into
