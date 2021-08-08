@@ -206,7 +206,7 @@ class IOUtil:
         path = Path(path_str)
         if path.is_file():
             target_df = pd.read_csv(path, sep='\t')
-            pd.merge(df, target_df, how='outer')\
+            pd.concat([df, target_df], join='outer', ignore_index=True)\
                 .to_csv(path, sep='\t', index=False, float_format='%3f')
             return
 

@@ -49,18 +49,19 @@ class TestUtil(unittest.TestCase):
 
 class TestIOUtil:
     def test_append_tsv(self):
-        sample_df = pd.DataFrame({'a': [1, 2], 'b': [11, 12]})
+        sample_df = pd.DataFrame({'a': [1, 2], 'b': [11, 12], 'c': [21,25]})
         path = Path('data/generated_data/test_append.tsv')
 
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
 
         sample_df.to_csv(path, sep='\t', index=False)
-        other_df = pd.DataFrame({'a': [3], 'b': [13]})
+        other_df = pd.DataFrame({'a': [3], 'b': [13], 'd': [31]})
 
         IOUtil().append_tsv(other_df, path)
         append_df = pd.read_csv(path, sep='\t')
         assert len(append_df) == 3
+        assert len(append_df.columns) == 4
         os.remove(path)
 
 
