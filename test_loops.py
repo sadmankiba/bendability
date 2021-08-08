@@ -71,9 +71,21 @@ class TestLoops(unittest.TestCase):
 class TestMeanLoops:
     def test_in_complete_loop(self):
         mean = MeanLoops(Loops(Chromosome('VL', None))).in_complete_loop()
-        print(mean)
-        assert mean < 0
-        assert mean > -0.3
+        assert -0.3 < mean < 0
+
+    def test_in_complete_non_loop(self):
+        mean = MeanLoops(Loops(Chromosome('VL', None))).in_complete_non_loop()
+        assert -0.4 < mean < 0
+
+    def test_validate_complete_loop_non_loop(self):
+        chrm = Chromosome('VL', None)
+        chrm_mean = chrm.get_spread().mean()
+        
+        mloops = MeanLoops(Loops(chrm))
+        loop_mean = mloops.in_complete_loop()
+        non_loop_mean = mloops.in_complete_non_loop()
+        assert (loop_mean < chrm_mean < non_loop_mean) or \
+            (loop_mean > chrm_mean > non_loop_mean)
 
     def test_in_quartile_by_pos(self):
         arr = MeanLoops(Loops(Chromosome('VL',

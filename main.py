@@ -1,9 +1,6 @@
 from prediction import Prediction
-from chromosome import ChrIdList, Chromosome, YeastChrNumList
-from nucleosome import Nucleosome
-from loops import Loops, MultiChrmMeanLoopsCollector
-
-import itertools
+from chromosome import ChrIdList, YeastChrNumList
+from loops import MultiChrmMeanLoopsCollector
 
 if __name__ == '__main__':
-    MultiChrmMeanLoopsCollector(Prediction(30), ChrIdList).plot_loop_nuc_linker_mean()
+    MultiChrmMeanLoopsCollector(Prediction(30), ('VL',)).plot_loop_cover_frac()
