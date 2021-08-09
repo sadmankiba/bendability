@@ -307,7 +307,7 @@ class Loops:
         plt.close()
         plt.clf()
 
-        PlotUtil().show_grid_below()
+        PlotUtil().show_grid()
 
         x = np.arange(mean_arr.shape[0])
         for i in range(mean_arr.shape[1]):

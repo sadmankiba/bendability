@@ -321,7 +321,7 @@ class PlotUtil:
                             value_format.format(h), ha="center", 
                             va="center")
                 
-    def show_grid_below(self) -> None:
+    def show_grid(self) -> None:
         """Invoke this function before plotting to show grid below"""
-        #TODO: include plotting grid
         plt.rc('axes', axisbelow=True)
+        plt.grid()
