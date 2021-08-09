@@ -3,7 +3,7 @@ from __future__ import annotations
 from prediction import Prediction
 from reader import DNASequenceReader
 from constants import CHRVL, SEQ_LEN
-from custom_types import ChrId, YeastChrNum
+from custom_types import ChrId, YeastChrNum, PositiveInt
 from util import IOUtil, ChromosomeUtil
 
 import matplotlib.pyplot as plt
@@ -299,6 +299,7 @@ class Chromosome:
             start: Start position in the chromosome 
             end: End position in the chromosome
         """
+        # TODO: Use spread
         df_sel = self.read_chr_lib_segment(start, end)
 
         plt.close()
@@ -336,7 +337,6 @@ class Chromosome:
         plt.legend()
         plt.grid()
 
-    # *** #
     def plot_c0(self, start: int, end: int) -> None:
         """Plot C0, moving avg., nuc. centers of a segment in chromosome
         and add appropriate labels.   
@@ -367,3 +367,21 @@ class Chromosome:
 
     def predict_model_no(self) -> int:
         return self._prediction._model_no if self._chr_id != 'VL' else None
+
+    def mean_c0_around_bps(self, 
+                            bps: np.ndarray | list[int] | pd.Series, 
+                            neg_lim: PositiveInt, 
+                            pos_lim: PositiveInt) -> np.ndarray:
+        """
+        Aggregate mean c0 in each bp of some equal-length segments. 
+        
+        Segments are defined by limits from positions in input `bps` array.
+
+        Args:
+            bps: An 1D Numpy array of bp to define segment. (1-indexed)  
+        """
+        assert neg_lim > 0 and pos_lim > 0
+        return np.array(
+                list(
+                    map(lambda bp: self.get_spread()[bp - 1 - neg_lim:bp + pos_lim],
+                        np.array(bps)))).mean(axis=0)
