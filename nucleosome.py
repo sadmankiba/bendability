@@ -19,6 +19,9 @@ class Nucleosome:
     """
     def __init__(self, chr: Chromosome):
         self._chr = chr
+
+        # TODO: Remove redundant _centers. Get single chromosome dyads when
+        # reading
         self._nuc_df = DNASequenceReader().read_nuc_center()
         self._centers = self._get_nuc_centers()
 
@@ -187,3 +190,20 @@ class Nucleosome:
         nuc_avg = spread_c0[nuc_regions].mean()
         linker_avg = spread_c0[~nuc_regions].mean()
         return (nuc_avg, linker_avg)
+
+    def dyads_between(self, start: int, end: int, strand: Literal[1, -1] = 1) -> np.ndarray:
+        """
+        Get nuc dyads between start and end position (inclusive) 
+
+        Args: 
+            start: 1-indexed end: 1-indexed 
+            strand: Whether Watson or Crick strand. Dyads are returned 
+            in reverse order when strand = -1
+
+        Returns: 
+            A numpy 1D array of dyad positions. (1-indexed)
+        """
+        dyad_arr = np.array(self._centers)
+        in_between = dyad_arr[(dyad_arr >= start) & (dyad_arr <= end)]
+
+        return in_between[::-1] if strand == -1 else in_between

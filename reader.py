@@ -80,7 +80,9 @@ class DNASequenceReader:
             LIBL: libl_df
         }
 
-    # TODO: nuc_center in separate class
+    # TODO: 
+    # nuc_center in separate class
+    # should take chromosome number as argument
     def read_nuc_center(self) -> pd.DataFrame:
         """
         Read nucleosome center position data. 
