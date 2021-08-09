@@ -96,6 +96,15 @@ class TestGeneReader:
             chrm_df = DNASequenceReader().read_yeast_genome(chrm_num)
             chrm_total_bp = ChromosomeUtil().get_total_bp(len(chrm_df))
             assert gene_df['end'].max() <= chrm_total_bp
+    
+    def test_read_transcription_regions_of(self):
+        for chrm_num in YeastChrNumList:
+            trns_df = GeneReader().read_transcription_regions_of(chrm_num)
+            assert set(trns_df.columns) == set(['start', 'end', 'strand'])
+
+            chrm_df = DNASequenceReader().read_yeast_genome(chrm_num)
+            chrm_total_bp = ChromosomeUtil().get_total_bp(len(chrm_df))
+            assert trns_df['end'].max() <= chrm_total_bp
 
 
 if __name__ == '__main__':
