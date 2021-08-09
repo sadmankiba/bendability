@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from prediction import Prediction
 from reader import DNASequenceReader
-from constants import CHRVL, SEQ_LEN, CHRV_TOTAL_BP, CHRVL_LEN
+from constants import CHRVL, SEQ_LEN
 from custom_types import ChrId, YeastChrNum
-from util import IOUtil, PlotUtil
+from util import IOUtil, ChromosomeUtil
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,35 +28,6 @@ class Region:
     def center(self) -> float:
         return (self.start + self.end) / 2
 
-
-class ChromosomeUtil:
-    def calc_moving_avg(self, arr: np.ndarray, k: int) -> np.ndarray:
-        """
-        Calculate moving average of k data points
-
-        Returns: 
-            A 1D numpy array 
-        """
-        assert len(arr.shape) == 1
-
-        # Find first MA
-        ma = np.array([arr[:k].mean()])
-
-        # Iteratively find next MAs
-        for i in range(arr.size - k):
-            ma = np.append(ma, ma[-1] + (arr[i + k] - arr[i]) / k)
-
-        return ma
-
-    def get_total_bp(self, num_seq: int):
-        return (num_seq - 1) * 7 + SEQ_LEN
-
-    def plot_horizontal_line(self, y: float) -> None:
-        """
-        Plot a horizontal red line denoting avg
-        """
-        PlotUtil().plot_horizontal_line(y, 'r', 'avg')
-        
 
 SpreadType = Literal['mean7', 'mean_cover', 'weighted', 'single']
 
@@ -228,12 +199,6 @@ class Spread:
             return self._weighted_covering_seq()
         elif spread_str == 'single':
             return self._from_single_seq()
-
-
-YeastChrNumList = ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
-                   'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI')
-
-ChrIdList = YeastChrNumList + ('VL', )
 
 
 class Chromosome:

@@ -1,3 +1,9 @@
+# Chromosome Numbers
+YeastChrNumList = ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
+                   'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI')
+
+ChrIdList = YeastChrNumList + ('VL', )
+
 # Library names
 CNL = 'cnl'
 RL = 'rl'

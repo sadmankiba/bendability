@@ -5,8 +5,8 @@ from typing import IO
 from custom_types import ChrId
 from prediction import Prediction
 from reader import DNASequenceReader
-from constants import CHRVL, CHRV_TOTAL_BP
-from chromosome import Chromosome, ChrIdList
+from constants import ChrIdList
+from chromosome import Chromosome 
 from util import IOUtil, PlotUtil
 
 import matplotlib.pyplot as plt

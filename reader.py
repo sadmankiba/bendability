@@ -80,6 +80,7 @@ class DNASequenceReader:
             LIBL: libl_df
         }
 
+    # TODO: nuc_center in separate class
     def read_nuc_center(self) -> pd.DataFrame:
         """
         Read nucleosome center position data. 
@@ -97,6 +98,7 @@ class DNASequenceReader:
                                  'NCP score/noise'
                              ])
 
+    # TODO: read_genome_sequence_of
     def read_yeast_genome(self, chr_num: YeastChrNum) -> pd.DataFrame:
         """
         Read reference sequence of a yeast chromosome. Transforms it into 50-bp
@@ -130,3 +132,19 @@ class DNASequenceReader:
             'Sequence #': np.arange(num_50bp_seqs) + 1,
             'Sequence': seqs_50bp
         })
+
+
+class GeneReader:
+    def read_genes_of(self, chrm_num: YeastChrNum) -> pd.DataFrame:
+        genes_file = 'data/input_data/gene/yeast_genes.tsv'
+        rename_map = {
+            'Gene.length': 'length',
+            'Gene.chromosome.primaryIdentifier': 'chrm',
+            'Gene.chromosomeLocation.start': 'start',
+            'Gene.chromosomeLocation.end': 'end',
+            'Gene.chromosomeLocation.strand': 'strand'
+        }
+        gene_df = pd.read_csv(genes_file, sep='\t')[list(rename_map.keys())]\
+            .rename(columns=rename_map)
+
+        return gene_df.loc[gene_df['chrm'] == f'chr{chrm_num}'].drop(columns='chrm')

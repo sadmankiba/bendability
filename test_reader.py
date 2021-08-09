@@ -1,7 +1,9 @@
-from constants import CHRVL
-from reader import DNASequenceReader
+from constants import CHRVL, YeastChrNumList
+from reader import DNASequenceReader, GeneReader
+from util import ChromosomeUtil
 
 import pandas as pd
+import numpy as np
 
 import unittest
 import random
@@ -83,6 +85,17 @@ class TestReader(unittest.TestCase):
         self.assertListEqual(
             chrv_df.iloc[sample_idx]['Sequence'].tolist(),
             chrv_genome_read_df.iloc[sample_idx]['Sequence'].tolist())
+
+
+class TestGeneReader:
+    def test_read_genes_of(self):
+        for chrm_num in YeastChrNumList:
+            gene_df = GeneReader().read_genes_of(chrm_num)
+            assert set(gene_df.columns.tolist()) == set(['start', 'end', 'strand', 'length'])
+            
+            chrm_df = DNASequenceReader().read_yeast_genome(chrm_num)
+            chrm_total_bp = ChromosomeUtil().get_total_bp(len(chrm_df))
+            assert gene_df['end'].max() <= chrm_total_bp
 
 
 if __name__ == '__main__':
