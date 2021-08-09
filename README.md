@@ -12,6 +12,8 @@ This repository contains various utility tools to analyze DNA Bendability.
 
 4. Reference genome sequence of S. Cerevisiae downloaded from [Saccharomyces Genome Database (SGD)](https://www.yeastgenome.org/)
 
+5. Yeast gene locations and UTRs from [YeastMine](https://yeastmine.yeastgenome.org/yeastmine/begin.do) in Saccharomyces Genome Database. 
+
 
 ## Using Code 
 
