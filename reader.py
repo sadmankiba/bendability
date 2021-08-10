@@ -159,7 +159,8 @@ class GeneReader:
         regions (UTR) upstream and downstream of it. 
 
         Returns: 
-            A Pandas dataframe with columns ['start', 'end', 'strand']
+            A Pandas dataframe with columns ['start', 'end', 'strand'].
+            'start' is lower bp, 'end' is higher bp irrespective of 'strand'
         """
         gene_utrs_file = 'data/input_data/gene/yeast_gene_utrs.tsv'
         rename_map = {

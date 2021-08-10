@@ -191,7 +191,8 @@ class Nucleosome:
         Get nuc dyads between start and end position (inclusive) 
 
         Args: 
-            start: 1-indexed end: 1-indexed 
+            start: 1-indexed 
+            end: 1-indexed 
             strand: Whether Watson or Crick strand. Dyads are returned 
             in reverse order when strand = -1
 
