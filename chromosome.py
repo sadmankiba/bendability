@@ -375,7 +375,7 @@ class Chromosome:
                         np.array(bps)))).mean(axis=0)
         
     
-    def get_cvr_mask(self, bps: np.ndarray | list[int], neg_lim: PositiveInt, pos_lim: PositiveInt) -> np.ndarray:
+    def get_cvr_mask(self, bps: np.ndarray | list[int] | pd.Series, neg_lim: PositiveInt, pos_lim: PositiveInt) -> np.ndarray:
         cvr_arr = np.full((self._total_bp, ), False)
         for bp in bps:
             cvr_arr[bp - 1 - neg_lim:bp + pos_lim] = True
