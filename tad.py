@@ -215,6 +215,8 @@ class MultiChrmHicExplBoundaries:
             lambda chrm_id: Chromosome(chrm_id, self._prediction), self._chrids)))
         
     def plot_scatter_mean_c0(self) -> Path:
+        """Draw scatter plot of mean c0 at boundaries and domains of
+        chromosomes"""
         chrms = self._get_chrms()
         chrm_means = chrms.apply(lambda chrm: chrm.get_spread().mean())
         
@@ -229,9 +231,12 @@ class MultiChrmHicExplBoundaries:
         
         PlotUtil().show_grid()
         x = np.arange(len(self._chrids))
-        markers = ['o', 's', 'p']
-        labels = ['chromosome', 'boundaries', 'domains']
-        for i, y in enumerate((chrm_means, mc_bndrs_c0, mc_dmns_c0)):
+        markers = ['o', 's', 'p', 'P', '*']
+        labels = ['chromosome', 'promoter bndrs', 
+            'non-promoter bndrs', 'boundaries', 'domains']
+        
+        for i, y in enumerate((chrm_means, mc_prmtr_bndrs_c0, 
+                mc_non_prmtr_bndrs_c0, mc_bndrs_c0, mc_dmns_c0)):
             plt.scatter(x, y, marker=markers[i], label=labels[i])
 
         plt.xticks(x, self._chrids)
