@@ -1,10 +1,11 @@
-from tad import Boundary
+from chromosome import Chromosome
+from tad import FancBoundary, HicExplBoundaries
 from custom_types import YeastChrNum
 
 
-class TestTad:
+class TestFancBoundary:
     def test_get_boundaries(self):
-        boundaries = Boundary()._get_all_boundaries()
+        boundaries = FancBoundary()._get_all_boundaries()
         assert len(boundaries) > 0
         chrm, region = boundaries[0].split(":")
         assert chrm in YeastChrNum
@@ -13,7 +14,7 @@ class TestTad:
         assert int(resolution_end) >= 0
 
     def test_get_boundaries_in(self):
-        regions = Boundary().get_boundaries_in('XIII')
+        regions = FancBoundary().get_boundaries_in('XIII')
         assert len(regions) > 0
         a_region = regions[0]
         assert a_region.score > 0
@@ -22,3 +23,10 @@ class TestTad:
         assert a_region.start > 0
         assert a_region.end > 0
         assert a_region.center > 0
+
+
+class TestHicExplBoundaries:
+    def test_read_boundaries_of(self):
+        bndrs = HicExplBoundaries(Chromosome('VIII'))
+        assert set(bndrs._bndrs_df.columns) == set(['chromosome', 'left', 'right', 'id', 'score', 'middle'])
+        assert len(bndrs._bndrs_df) == 65

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from util import IOUtil
 from custom_types import ChrId, YeastChrNum
-from chromosome import ChrIdList, Chromosome
+from chromosome import Chromosome
 from prediction import Prediction
+from constants import ChrIdList
 
 import fanc
 import fanc.plotting as fancplot
@@ -21,7 +22,7 @@ This module requires hic-matrix data that can be found here: https://www.ncbi.nl
 '''
 
 
-class Boundary:
+class FancBoundary:
     def __init__(self, resolution: int = 500, window_size: int = 1000):
         self._hic_file = fanc.load(
             f"hic/data/GSE151553_A364_merged.juicer.hic@{resolution}")
@@ -117,7 +118,7 @@ class Boundary:
             'data/generated_data/hic/boundary_octiles.tsv')
 
 
-class BoundaryAnalysis:
+class FancBoundaryAnalysis:
     def __init__(self) -> None:
         self._boundary = Boundary()
 
@@ -155,3 +156,18 @@ class BoundaryAnalysis:
     def find_c0_at_octiles(self, lim: int = 250):
         for chrm_id in ChrIdList:
             self._find_c0_at_octiles_of(chrm_id, lim)
+
+
+class HicExplBoundaries:
+    def __init__(self, chrm: Chromosome):
+        self._chrm = chrm
+        self._bndrs_df = self._read_boundaries()
+
+    def _read_boundaries(self) -> pd.DataFrame:
+        return pd.read_table(f'data/input_data/boundaries/'
+            f'{self._chrm._chr_num}_res_400_hicexpl_boundaries.bed',
+            delim_whitespace=True,
+            header=None,
+            names=['chromosome', 'left', 'right', 'id', 'score', '_'])\
+            .assign(middle=lambda df: (df['left'] + df['right']) / 2)\
+                .drop(columns='_')
