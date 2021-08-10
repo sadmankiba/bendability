@@ -77,3 +77,7 @@ class TestChromosome:
         chrm = Chromosome('XI', Prediction())
         mean = chrm.mean_c0_around_bps([5000, 10000, 12000], 60, 40)
         assert mean.shape == (60 + 40 + 1, )
+    
+    def test_mean_c0_of_segments(self):
+        mn = Chromosome('VL').mean_c0_of_segments([5000, 8000], 100, 50)
+        assert -2 < mn < 2

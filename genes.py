@@ -51,7 +51,7 @@ class Genes:
 
         return IOUtil().save_figure(f'figures/gene/dist_p1_dyad_{self._chrm}.png')
 
-    def in_promoter(self, bps: np.ndarray | list[int] | pd.Series) -> np.array:
+    def in_promoter(self, bps: np.ndarray | list[int] | pd.Series) -> np.ndarray:
         """
         Find whether some bps lies in promoter
         

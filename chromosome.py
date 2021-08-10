@@ -369,15 +369,33 @@ class Chromosome:
             bps: An 1D Numpy array of bp to define segment. (1-indexed)  
         """
         assert neg_lim > 0 and pos_lim > 0
-        return np.array(
+        result = np.array(
                 list(
                     map(lambda bp: self.get_spread()[bp - 1 - neg_lim:bp + pos_lim],
                         np.array(bps)))).mean(axis=0)
+        assert result.shape == (neg_lim + pos_lim + 1, )
+        return result
         
-    
     def get_cvr_mask(self, bps: np.ndarray | list[int] | pd.Series, neg_lim: PositiveInt, pos_lim: PositiveInt) -> np.ndarray:
+        """
+        Create a mask to cover segments that are defined by a bp and two
+        limits.
+        """
         cvr_arr = np.full((self._total_bp, ), False)
         for bp in bps:
             cvr_arr[bp - 1 - neg_lim:bp + pos_lim] = True
 
         return cvr_arr 
+
+    def mean_c0_of_segments(self, 
+                            bps: np.ndarray | list[int] | pd.Series, 
+                            neg_lim: PositiveInt, 
+                            pos_lim: PositiveInt) -> float:
+        """
+        Find single mean c0 of covered region by segments.
+
+        Segments are defined by a bp and two limits
+        """
+        cvr = self.get_cvr_mask(bps, neg_lim, pos_lim)
+        result = self.get_spread()[cvr].mean()
+        return result
