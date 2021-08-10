@@ -246,3 +246,21 @@ class MultiChrmHicExplBoundaries:
         plt.legend()
 
         return IOUtil().save_figure(f'figures/mcdomains/bndrs_dmns_c0_{self}.png')
+    
+    def plot_bar_perc_in_prmtrs(self) -> Path:
+        chrms = self._get_chrms()
+        mc_bndrs = chrms.apply(lambda chrm: HicExplBoundaries(chrm, self._res))
+        perc_in_prmtrs = mc_bndrs.apply(
+            lambda bndrs: Genes(bndrs._chrm)
+                .in_promoter(bndrs._bndrs_df['middle']).mean() * 100)
+        
+        PlotUtil().show_grid()
+        x = np.arange(len(self._chrids))
+        plt.bar(x, perc_in_prmtrs)
+        plt.xticks(x, self._chrids)
+        plt.xlabel('Chromosome')
+        plt.ylabel('Boundaries in promoters (%)')
+        plt.title(f'Percentage of boundaries in promoters in chromosomes')
+        plt.legend()
+        return IOUtil().save_figure(f'figures/mcdomains/perc_bndrs_in_promoters_{self}.png')
+         

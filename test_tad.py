@@ -65,3 +65,9 @@ class TestMultiChrmHicExplBoundaries:
         mcbndrs = MultiChrmHicExplBoundaries(Prediction(), ('VII','XII','XIII'))
         path = mcbndrs.plot_scatter_mean_c0()
         assert path.is_file()
+    
+    def test_plot_bar_perc_in_prmtrs(self):
+        mcbndrs = MultiChrmHicExplBoundaries(Prediction(), ('VII','XII','XIII'))
+        path = mcbndrs.plot_bar_perc_in_prmtrs()
+        assert path.is_file()
+    
