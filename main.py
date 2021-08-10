@@ -1,7 +1,8 @@
+from tad import MultiChrmHicExplBoundaries
 from prediction import Prediction
-from chromosome import Chromosome, YeastChrNumList
-from loops import Loops
+from constants import YeastChrNumList
+from chromosome import Chromosome
+from genes import Genes
 
 if __name__ == '__main__':
-    for chr_id in YeastChrNumList:
-        Loops(Chromosome(chr_id, Prediction(30))).plot_scatter_mean_c0_nuc_linker_individual_loop()
+    MultiChrmHicExplBoundaries(Prediction(30), YeastChrNumList).plot_bar_perc_in_prmtrs() 
