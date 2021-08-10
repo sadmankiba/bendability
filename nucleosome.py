@@ -1,5 +1,5 @@
 from __future__ import annotations
-from chromosome import Chromosome, Region
+from chromosome import Chromosome
 from reader import DNASequenceReader
 from util import IOUtil
 
@@ -169,14 +169,9 @@ class Nucleosome:
             denote nucleosome regions. An element is set to True if it 
             is within +-nuc_half bp of nucleosome dyad. 
         """
-        centers = self._get_nuc_centers()
         self._filter_at_least_depth(nuc_half)
-        nuc_array = np.full((self._chr._total_bp, ), False)
-        for c in centers:
-            nuc_array[c - 1 - nuc_half:c + nuc_half] = True
-
-        return nuc_array
-
+        return self._chr.get_cvr_mask(self._centers, nuc_half, nuc_half)
+        
     def find_avg_nuc_linker_c0(self,
                                nuc_half: int = 73) -> tuple[float, float]:
         """

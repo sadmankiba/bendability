@@ -15,18 +15,6 @@ import math
 from pathlib import Path
 import time
 from typing import IO, Literal, Union
-from dataclasses import dataclass
-
-
-@dataclass
-class Region:
-    """Class for representing a region in genome"""
-    chromosome: YeastChrNum
-    start: int
-    end: int
-
-    def center(self) -> float:
-        return (self.start + self.end) / 2
 
 
 SpreadType = Literal['mean7', 'mean_cover', 'weighted', 'single']
@@ -385,3 +373,11 @@ class Chromosome:
                 list(
                     map(lambda bp: self.get_spread()[bp - 1 - neg_lim:bp + pos_lim],
                         np.array(bps)))).mean(axis=0)
+        
+    
+    def get_cvr_mask(self, bps: np.ndarray | list[int], neg_lim: PositiveInt, pos_lim: PositiveInt) -> np.ndarray:
+        cvr_arr = np.full((self._total_bp, ), False)
+        for bp in bps:
+            cvr_arr[bp - 1 - neg_lim:bp + pos_lim] = True
+
+        return cvr_arr 

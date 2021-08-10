@@ -25,3 +25,8 @@ class TestNucleosome:
         
         rev_dyad_arr = nucs.dyads_between(50000, 100000, -1)
         assert list(rev_dyad_arr) == list(dyad_arr[::-1])
+
+    def test_get_nuc_regions(self):
+        nucs = Nucleosome(Chromosome('X', Prediction()))
+        nucs_cvr = nucs.get_nuc_regions()
+        assert nucs_cvr.shape == (745746, )
