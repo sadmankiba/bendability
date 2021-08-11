@@ -20,10 +20,9 @@ class TestHicExplBoundaries:
         assert dmns_df.iloc[9]['start'] == bndrs.bndrs_df.iloc[9]['right']
         assert dmns_df.iloc[9]['end'] == bndrs.bndrs_df.iloc[10]['left']
 
-    def test_each_bndry_mean_c0(self):
+    def test_add_mean_c0_col(self):
         bndrs = HicExplBoundaries(Chromosome('X', Prediction(30)))
-        mn = bndrs.each_bndry_mean_c0()
-        assert mn.shape == (len(bndrs.bndrs_df), )
+        mn = bndrs.add_mean_c0_col()['mean_c0']
         assert np.all((mn > -0.7) & (mn < 0.2))
 
     def test_bndry_domain_mean_c0(self):

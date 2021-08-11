@@ -43,8 +43,9 @@ class HicExplBoundaries:
             'end': self.bndrs_df['left'].tolist()[1:]})
         return dmns_df.assign(len=lambda df: df['end'] - df['start'])
 
-    def each_bndry_mean_c0(self) -> np.ndarray:
-        return self._chrm.mean_c0_at_bps(self.bndrs_df['middle'], self._lim, self._lim)
+    def add_mean_c0_col(self) -> pd.DataFrame:
+        return self.bndrs_df.assign(mean_c0=lambda df:
+            self._chrm.mean_c0_at_bps(df['middle'], self._lim, self._lim))
         
     def bndry_domain_mean_c0(self) -> tuple[float, float]:
         """
