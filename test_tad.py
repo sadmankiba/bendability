@@ -9,12 +9,12 @@ import numpy as np
 
 class TestHicExplBoundaries:
     def test_read_boundaries_of(self):
-        bndrs = HicExplBoundaries(Chromosome('VIII'), res=500)
+        bndrs = HicExplBoundaries(Chromosome('VIII', Prediction(30)), res=500)
         assert set(bndrs.bndrs_df.columns) == set(['chromosome', 'left', 'right', 'id', 'score', 'middle'])
         assert len(bndrs.bndrs_df) == 53
     
     def test_get_domains(self):
-        bndrs = HicExplBoundaries(Chromosome('XV'))
+        bndrs = HicExplBoundaries(Chromosome('XV', Prediction(30)))
         dmns_df = bndrs.get_domains()
         assert len(dmns_df) == len(bndrs.bndrs_df) - 1
         assert dmns_df.iloc[9]['start'] == bndrs.bndrs_df.iloc[9]['right']
@@ -22,13 +22,11 @@ class TestHicExplBoundaries:
 
     def test_add_mean_c0_col(self):
         bndrs = HicExplBoundaries(Chromosome('X', Prediction(30)))
-        bndrs.add_mean_c0_col()
         mn = bndrs.bndrs_df['mean_c0']
         assert np.all((mn > -0.7) & (mn < 0.2))
 
     def test_add_in_promoter_col(self):
         bndrs = HicExplBoundaries(Chromosome('X', Prediction(30)))
-        bndrs.add_in_promoter_col()
         assert len(bndrs.bndrs_df.query('in_promoter')) > len(bndrs.bndrs_df.query('not in_promoter'))
 
     def test_bndry_domain_mean_c0(self):

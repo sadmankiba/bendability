@@ -28,6 +28,8 @@ class HicExplBoundaries:
         self._res = res
         self.bndrs_df = self._read_boundaries()
         self._lim = lim 
+        self._add_mean_c0_col()
+        self._add_in_promoter_col()
 
     def _read_boundaries(self) -> pd.DataFrame:
         return pd.read_table(f'data/input_data/domains/'
@@ -43,14 +45,12 @@ class HicExplBoundaries:
             'end': self.bndrs_df['left'].tolist()[1:]})
         return dmns_df.assign(len=lambda df: df['end'] - df['start'])
 
-    def add_mean_c0_col(self) -> None:
-        if 'mean_c0' not in self.bndrs_df.columns.tolist():
-            self.bndrs_df = self.bndrs_df.assign(mean_c0=lambda df:
-                self._chrm.mean_c0_at_bps(df['middle'], self._lim, self._lim))
+    def _add_mean_c0_col(self) -> None:
+        self.bndrs_df = self.bndrs_df.assign(mean_c0=lambda df:
+            self._chrm.mean_c0_at_bps(df['middle'], self._lim, self._lim))
 
-    def add_in_promoter_col(self) -> None:
-        if 'in_promoter' not in self.bndrs_df.columns.tolist():
-            self.bndrs_df = self.bndrs_df.assign(in_promoter=lambda df: 
+    def _add_in_promoter_col(self) -> None:
+        self.bndrs_df = self.bndrs_df.assign(in_promoter=lambda df: 
                 Genes(self._chrm).in_promoter(df['middle']))
 
     def bndry_domain_mean_c0(self) -> tuple[float, float]:
@@ -68,30 +68,23 @@ class HicExplBoundaries:
         return self._bndrs_mean_c0, self._dmns_mean_c0 
 
     def prmtr_bndrs_mean_c0(self) -> float:
-        self.add_in_promoter_col()
         return self._chrm.mean_c0_of_segments(
-            self._bndrs_df.iloc[self._bndrs_df['in_promoter'].to_numpy()]
+            self.bndrs_df.iloc[self.bndrs_df['in_promoter'].to_numpy()]
                 ['middle'], self._lim, self._lim)
         
     def non_prmtr_bndrs_mean_c0(self) -> float: 
-        self.add_in_promoter_col()
         return self._chrm.mean_c0_of_segments(
             self.bndrs_df.iloc[~(self.bndrs_df['in_promoter'].to_numpy())]['middle'], self._lim, self._lim)
 
     def num_bndry_mean_c0_greater_than_dmn(self) -> PositiveInt:
-        self.add_mean_c0_col()
         _, dmns_mean_c0 = self.bndry_domain_mean_c0()
         return (self.bndrs_df['mean_c0'] > dmns_mean_c0).sum()
 
     def num_prmtr_bndry_mean_c0_greater_than_dmn(self) -> float:
-        self.add_mean_c0_col()
-        self.add_in_promoter_col()
         _, dmns_mean_c0 = self.bndry_domain_mean_c0()
         return (self.bndrs_df.query('in_promoter')['mean_c0'] > dmns_mean_c0).sum()
     
     def num_non_prmtr_bndry_mean_c0_greater_than_dmns(self) -> float:
-        self.add_mean_c0_col()
-        self.add_in_promoter_col()
         _, dmns_mean_c0 = self.bndry_domain_mean_c0()
         return (self.bndrs_df.query('not in_promoter')['mean_c0'] > dmns_mean_c0).sum()
 
@@ -190,6 +183,27 @@ class MultiChrmHicExplBoundaries:
     
     def individual_bndry_stat(self) -> None: 
         mc_bndrs = self._get_mc_bndrs()
-        bndrs_df = mc_bndrs
-        mc_bndrs.apply()
+        num_mc_bndrs_gt = mc_bndrs.apply(
+            lambda bndrs: HicExplBoundaries.num_bndry_mean_c0_greater_than_dmn(bndrs)).sum()
+        print('num_mc_bndrs_gt', num_mc_bndrs_gt)
+        num_mc_prmtr_bndrs_gt = mc_bndrs.apply(
+            lambda bndrs: HicExplBoundaries.num_prmtr_bndry_mean_c0_greater_than_dmn(bndrs)).sum()
+        print('num_mc_prmtr_bndrs_gt', num_mc_prmtr_bndrs_gt)
+
+        num_mc_non_prmtr_bndrs_gt = mc_bndrs.apply(
+            lambda bndrs: HicExplBoundaries.num_prmtr_bndry_mean_c0_greater_than_dmn(bndrs)).sum()
+        print('num_mc_non_prmtr_bndrs_gt', num_mc_non_prmtr_bndrs_gt)
+
+        num_mc_prmtr_bndrs = mc_bndrs.apply(
+            lambda bndrs: len(bndrs.bndrs_df.query('in_promoter'))
+        ).sum()
+        print('num_mc_prmtr_bndrs', num_mc_prmtr_bndrs)
+
+        num_mc_non_prmtr_bndrs = mc_bndrs.apply(
+            lambda bndrs: len(bndrs.bndrs_df.query('not in_promoter'))
+        ).sum()
+        print('num_mc_non_prmtr_bndrs', num_mc_non_prmtr_bndrs)
+        
+
+
         
