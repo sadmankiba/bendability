@@ -141,5 +141,5 @@ class TestMultiChrmCoverLoopsCollector:
             == ['ChrID', 'loop_nuc', 'loop_linker', 'non_loop_nuc', 'non_loop_linker'] 
 
     def test_plot_cover_stat(self):
-        path_str = MultiChrmCoverLoopsCollector(('VL',), 100000).plot_cover_stat()
+        path_str = MultiChrmCoverLoopsCollector(('VL',), 100000).plot_bar_cover_stat()
         assert Path(path_str).is_file()

@@ -73,7 +73,7 @@ class TestReader(unittest.TestCase):
     def test_read_yeast_genome(self):
         reader = DNASequenceReader()
         chrv_df = reader.get_processed_data()[CHRVL]
-        chrv_genome_read_df = reader.read_yeast_genome(5)
+        chrv_genome_read_df = reader.read_yeast_genome('V')
 
         self.assertEqual(len(chrv_df), len(chrv_genome_read_df))
 

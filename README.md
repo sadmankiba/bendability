@@ -14,7 +14,7 @@ git submodule update --init
 pip install -r requirements.txt
 ```
 
-3. Run `pytest` to check all functions are running ok. This should finish under 15 minutes. All tests should pass. 
+3. Run `pytest` to check all functions are running ok. This should finish under 15 minutes. Ideally, all tests should pass. But, currenly tests of some of my old code (`test_helsep.py`, `test_organizer.py`) is failing. Still, tests of all active codes (loops, domains, chromosome etc.) are passing. 
 
 ```sh
 python3 -m pytest
