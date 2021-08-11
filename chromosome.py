@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from prediction import Prediction
 from reader import DNASequenceReader
-from constants import CHRVL, SEQ_LEN, CHRV_TOTAL_BP, CHRVL_LEN
-from custom_types import ChrId, YeastChrNum
-from util import IOUtil, PlotUtil
+from constants import CHRVL, SEQ_LEN
+from custom_types import ChrId, YeastChrNum, PositiveInt
+from util import IOUtil, ChromosomeUtil
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,48 +15,7 @@ import math
 from pathlib import Path
 import time
 from typing import IO, Literal, Union
-from dataclasses import dataclass
 
-
-@dataclass
-class Region:
-    """Class for representing a region in genome"""
-    chromosome: YeastChrNum
-    start: int
-    end: int
-
-    def center(self) -> float:
-        return (self.start + self.end) / 2
-
-
-class ChromosomeUtil:
-    def calc_moving_avg(self, arr: np.ndarray, k: int) -> np.ndarray:
-        """
-        Calculate moving average of k data points
-
-        Returns: 
-            A 1D numpy array 
-        """
-        assert len(arr.shape) == 1
-
-        # Find first MA
-        ma = np.array([arr[:k].mean()])
-
-        # Iteratively find next MAs
-        for i in range(arr.size - k):
-            ma = np.append(ma, ma[-1] + (arr[i + k] - arr[i]) / k)
-
-        return ma
-
-    def get_total_bp(self, num_seq: int):
-        return (num_seq - 1) * 7 + SEQ_LEN
-
-    def plot_horizontal_line(self, y: float) -> None:
-        """
-        Plot a horizontal red line denoting avg
-        """
-        PlotUtil().plot_horizontal_line(y, 'r', 'avg')
-        
 
 SpreadType = Literal['mean7', 'mean_cover', 'weighted', 'single']
 
@@ -230,12 +189,6 @@ class Spread:
             return self._from_single_seq()
 
 
-YeastChrNumList = ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
-                   'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI')
-
-ChrIdList = YeastChrNumList + ('VL', )
-
-
 class Chromosome:
     "Analysis of Chromosome in yeast"
 
@@ -334,6 +287,7 @@ class Chromosome:
             start: Start position in the chromosome 
             end: End position in the chromosome
         """
+        # TODO: Use spread
         df_sel = self.read_chr_lib_segment(start, end)
 
         plt.close()
@@ -371,7 +325,6 @@ class Chromosome:
         plt.legend()
         plt.grid()
 
-    # *** #
     def plot_c0(self, start: int, end: int) -> None:
         """Plot C0, moving avg., nuc. centers of a segment in chromosome
         and add appropriate labels.   
@@ -402,3 +355,47 @@ class Chromosome:
 
     def predict_model_no(self) -> int:
         return self._prediction._model_no if self._chr_id != 'VL' else None
+
+    def mean_c0_around_bps(self, 
+                            bps: np.ndarray | list[int] | pd.Series, 
+                            neg_lim: PositiveInt, 
+                            pos_lim: PositiveInt) -> np.ndarray:
+        """
+        Aggregate mean c0 in each bp of some equal-length segments. 
+        
+        Segments are defined by limits from positions in input `bps` array.
+
+        Args:
+            bps: An 1D Numpy array of bp to define segment. (1-indexed)  
+        """
+        assert neg_lim > 0 and pos_lim > 0
+        result = np.array(
+                list(
+                    map(lambda bp: self.get_spread()[bp - 1 - neg_lim:bp + pos_lim],
+                        np.array(bps)))).mean(axis=0)
+        assert result.shape == (neg_lim + pos_lim + 1, )
+        return result
+        
+    def get_cvr_mask(self, bps: np.ndarray | list[int] | pd.Series, neg_lim: PositiveInt, pos_lim: PositiveInt) -> np.ndarray:
+        """
+        Create a mask to cover segments that are defined by a bp and two
+        limits.
+        """
+        cvr_arr = np.full((self._total_bp, ), False)
+        for bp in bps:
+            cvr_arr[bp - 1 - neg_lim:bp + pos_lim] = True
+
+        return cvr_arr 
+
+    def mean_c0_of_segments(self, 
+                            bps: np.ndarray | list[int] | pd.Series, 
+                            neg_lim: PositiveInt, 
+                            pos_lim: PositiveInt) -> float:
+        """
+        Find single mean c0 of covered region by segments.
+
+        Segments are defined by a bp and two limits
+        """
+        cvr = self.get_cvr_mask(bps, neg_lim, pos_lim)
+        result = self.get_spread()[cvr].mean()
+        return result

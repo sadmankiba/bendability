@@ -1,5 +1,6 @@
 from __future__ import annotations
 from custom_types import YeastChrNum
+from constants import SEQ_LEN
 
 import pandas as pd
 import numpy as np
@@ -182,6 +183,35 @@ def roman_to_num(chr_num: YeastChrNum) -> int:
     return rom_num_map[chr_num]
 
 
+class ChromosomeUtil:
+    def calc_moving_avg(self, arr: np.ndarray, k: int) -> np.ndarray:
+        """
+        Calculate moving average of k data points
+
+        Returns: 
+            A 1D numpy array 
+        """
+        assert len(arr.shape) == 1
+
+        # Find first MA
+        ma = np.array([arr[:k].mean()])
+
+        # Iteratively find next MAs
+        for i in range(arr.size - k):
+            ma = np.append(ma, ma[-1] + (arr[i + k] - arr[i]) / k)
+
+        return ma
+
+    def get_total_bp(self, num_seq: int):
+        return (num_seq - 1) * 7 + SEQ_LEN
+
+    def plot_horizontal_line(self, y: float) -> None:
+        """
+        Plot a horizontal red line denoting avg
+        """
+        PlotUtil().plot_horizontal_line(y, 'r', 'avg')
+        
+
 class IOUtil:
     # TODO: Change name - SaveUtil
     def save_figure(self, path_str: str | Path) -> Path:
@@ -217,6 +247,7 @@ class IOUtil:
             return
 
         self.save_tsv(df, path_str)
+
 
 class PlotUtil:
     def plot_horizontal_line(self, y: float, color: str, text: str):
@@ -290,7 +321,7 @@ class PlotUtil:
                             value_format.format(h), ha="center", 
                             va="center")
                 
-    def show_grid_below(self) -> None:
+    def show_grid(self) -> None:
         """Invoke this function before plotting to show grid below"""
-        #TODO: include plotting grid
         plt.rc('axes', axisbelow=True)
+        plt.grid()

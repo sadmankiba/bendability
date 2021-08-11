@@ -5,8 +5,8 @@ from typing import IO
 from custom_types import ChrId
 from prediction import Prediction
 from reader import DNASequenceReader
-from constants import CHRVL, CHRV_TOTAL_BP
-from chromosome import Chromosome, ChrIdList
+from constants import ChrIdList
+from chromosome import Chromosome 
 from util import IOUtil, PlotUtil
 
 import matplotlib.pyplot as plt
@@ -243,24 +243,16 @@ class Loops:
 
     def plot_c0_around_anchor(self, lim=500):
         """Plot C0 around loop anchor points"""
-        # TODO: Distance from loop anchor : percentage
+        # TODO: Distance from loop anchor : percentage. Not required?
         loop_df = self._loop_df
-
-        chrv_c0_spread = self._chr.get_spread()
-
-        def mean_around_anchors(anchors: np.ndarray) -> np.ndarray:
-            """Calculate mean C0 at bp-resolution around anchors"""
-            return np.array(
-                list(
-                    map(lambda a: chrv_c0_spread[a - 1 - lim:a + lim],
-                        anchors))).mean(axis=0)
 
         anchors = np.concatenate(
             (loop_df['start'].to_numpy(), loop_df['end'].to_numpy()))
-        mean_c0_start = mean_around_anchors(loop_df['start'].to_numpy())
-        mean_c0_end = mean_around_anchors(loop_df['end'].to_numpy())
-        mean_c0_all = mean_around_anchors(anchors)
-
+        
+        mean_c0_start = self._chr.mean_c0_around_bps(loop_df['start'], lim, lim)
+        mean_c0_end = self._chr.mean_c0_around_bps(loop_df['end'], lim, lim)
+        mean_c0_all = self._chr.mean_c0_around_bps(anchors, lim, lim)
+        
         plt.close()
         plt.clf()
 
@@ -315,7 +307,7 @@ class Loops:
         plt.close()
         plt.clf()
 
-        PlotUtil().show_grid_below()
+        PlotUtil().show_grid()
 
         x = np.arange(mean_arr.shape[0])
         for i in range(mean_arr.shape[1]):

@@ -23,7 +23,7 @@ hicConvertFormat --matrices data/GSE151553_A364_merged.hic --outFileName data/GS
 **Find TADs**
 
 ```sh
-hicFindTADs -m data/GSE151553_A364_merged.mcool::/resolutions/500 --outPrefix data/generated_data/chrIX_min2000_max5000_step1000_thres0.05_delta0.01_fdr --chromosomes IX --minDepth 2000 --maxDepth 5000 --step 1000 --thresholdComparisons 0.05  --delta 0.01 --correctForMultipleTesting fdr -p 64
+hicFindTADs -m data/GSE151553_A364_merged.mcool::/resolutions/500 --outPrefix data/generated_data/IX_res_500_min2000_max5000_step1000_thres0.05_delta0.01_fdr --chromosomes IX --minDepth 2000 --maxDepth 5000 --step 1000 --thresholdComparisons 0.05  --delta 0.01 --correctForMultipleTesting fdr -p 64
 ```
 
 This will divide whole chromosome into regions(domains). So, there are no non-domain region.
