@@ -19,7 +19,7 @@ class HicExplBoundaries:
 
     Note: Here domains are also determined by boundaries
     """
-    def __init__(self, chrm: Chromosome, res: PositiveInt = 400, lim: PositiveInt = 200):
+    def __init__(self, chrm: Chromosome, res: PositiveInt = 500, lim: PositiveInt = 250):
         """
         Args:
             lim: Limit around boundary middle bp to include in boundary
@@ -43,7 +43,9 @@ class HicExplBoundaries:
             'end': self.bndrs_df['left'].tolist()[1:]})
         return dmns_df.assign(len=lambda df: df['end'] - df['start'])
 
-
+    def each_bndry_mean_c0(self) -> np.ndarray:
+        return self._chrm.mean_c0_at_bps(self.bndrs_df['middle'], self._lim, self._lim)
+        
     def bndry_domain_mean_c0(self) -> tuple[float, float]:
         """
         Returns:

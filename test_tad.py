@@ -4,13 +4,14 @@ from tad import HicExplBoundaries, MultiChrmHicExplBoundaries
 from genes import Genes
 
 from numpy.testing import assert_almost_equal
+import numpy as np
 
 
 class TestHicExplBoundaries:
     def test_read_boundaries_of(self):
-        bndrs = HicExplBoundaries(Chromosome('VIII'))
+        bndrs = HicExplBoundaries(Chromosome('VIII'), res=500)
         assert set(bndrs.bndrs_df.columns) == set(['chromosome', 'left', 'right', 'id', 'score', 'middle'])
-        assert len(bndrs.bndrs_df) == 65
+        assert len(bndrs.bndrs_df) == 53
     
     def test_get_domains(self):
         bndrs = HicExplBoundaries(Chromosome('XV'))
@@ -19,12 +20,17 @@ class TestHicExplBoundaries:
         assert dmns_df.iloc[9]['start'] == bndrs.bndrs_df.iloc[9]['right']
         assert dmns_df.iloc[9]['end'] == bndrs.bndrs_df.iloc[10]['left']
 
+    def test_each_bndry_mean_c0(self):
+        bndrs = HicExplBoundaries(Chromosome('X', Prediction(30)))
+        mn = bndrs.each_bndry_mean_c0()
+        assert mn.shape == (len(bndrs.bndrs_df), )
+        assert np.all((mn > -0.7) & (mn < 0.2))
+
     def test_bndry_domain_mean_c0(self):
         bndrs = HicExplBoundaries(Chromosome('VL'))
         bndry_c0, dmn_c0 = bndrs.bndry_domain_mean_c0()
         assert -0.3 < bndry_c0 < 0
         assert -0.3 < dmn_c0 < 0
-        assert bndry_c0 > dmn_c0
     
     def test_prmtr_non_prmtr_mean(self):
         chrm = Chromosome('VI', Prediction(30))
