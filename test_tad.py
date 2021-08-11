@@ -18,7 +18,7 @@ class TestHicExplBoundaries:
         assert len(dmns_df) == len(bndrs.bndrs_df) - 1
         assert dmns_df.iloc[9]['start'] == bndrs.bndrs_df.iloc[9]['right']
         assert dmns_df.iloc[9]['end'] == bndrs.bndrs_df.iloc[10]['left']
-        
+
     def test_bndry_domain_mean_c0(self):
         bndrs = HicExplBoundaries(Chromosome('VL'))
         bndry_c0, dmn_c0 = bndrs.bndry_domain_mean_c0()
@@ -51,7 +51,22 @@ class TestMultiChrmHicExplBoundaries:
         assert path.is_file()
     
     def test_plot_bar_perc_in_prmtrs(self):
-        mcbndrs = MultiChrmHicExplBoundaries(Prediction(), ('VII','XII','XIII'))
+        mcbndrs = MultiChrmHicExplBoundaries(Prediction(30), ('VII','XII','XIII'))
         path = mcbndrs.plot_bar_perc_in_prmtrs()
         assert path.is_file()
+    
+    def test_mean_dmn_len(self):
+        """
+        Test 
+            * If two mean boundaries are withing +-10%. 
+            * mean_dmn is within 7000 - 12000bp
+        """
+        mcbndrs_xi_ii = MultiChrmHicExplBoundaries(Prediction(30), ('XI', 'II'))
+        mcbndrs_vii = MultiChrmHicExplBoundaries(Prediction(30), ('VII'))
+        xi_ii_mean_dmn = mcbndrs_xi_ii.mean_dmn_len()
+        vii_mean_dmn = mcbndrs_vii.mean_dmn_len()
+        assert xi_ii_mean_dmn > vii_mean_dmn * 0.9
+        assert xi_ii_mean_dmn < vii_mean_dmn * 1.1
+        assert xi_ii_mean_dmn > 7000
+        assert xi_ii_mean_dmn < 12000
     
