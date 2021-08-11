@@ -45,6 +45,7 @@ class Prediction:
             return (nn_model6, 'meuseum_mod/parameter1.txt',
                     'meuseum_mod/model_weights/w6.h5_archived')
         elif self._model_no == 30:
+            # TODO: Should save the parameter file
             return (
                 nn_model30,
                 'DNABendabilityModels/meuseum_modifications/parameter1.txt',
