@@ -1,0 +1,3 @@
+[submodule "DNABendabilityModels"]
+	path = DNABendabilityModels
+	url = https://github.com/SaminRK/DNABendabilityModels

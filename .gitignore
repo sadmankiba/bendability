@@ -8,7 +8,7 @@ __pycache__/
 
 data/generated_data/
 data/downloaded_data/
-DNABendabilityModels/
+BendabilityModels/
 unused/
 
 meuseum_mod/predictions/*.[tc]sv
