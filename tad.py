@@ -16,6 +16,8 @@ from pathlib import Path
 class HicExplBoundaries:
     """
     Represenation of boundaries in a chromosome
+
+    Note: Here domains are also determined by boundaries
     """
     def __init__(self, chrm: Chromosome, res: PositiveInt = 400, lim: PositiveInt = 200):
         """
@@ -24,7 +26,7 @@ class HicExplBoundaries:
         """
         self._chrm = chrm
         self._res = res
-        self._bndrs_df = self._read_boundaries()
+        self.bndrs_df = self._read_boundaries()
         self._lim = lim 
 
     def _read_boundaries(self) -> pd.DataFrame:
@@ -43,18 +45,18 @@ class HicExplBoundaries:
         """
         c0_spread = self._chrm.get_spread()
         bndry_cvr = self._chrm.get_cvr_mask(
-            self._bndrs_df['middle'], self._lim, self._lim)
+            self.bndrs_df['middle'], self._lim, self._lim)
         return c0_spread[bndry_cvr].mean(), c0_spread[~bndry_cvr].mean()
 
     def prmtr_bndrs_mean_c0(self) -> float:
-        prmtr_bndrs_indices = Genes(self._chrm).in_promoter(self._bndrs_df['middle'])
+        prmtr_bndrs_indices = Genes(self._chrm).in_promoter(self.bndrs_df['middle'])
         return self._chrm.mean_c0_of_segments(
-            self._bndrs_df.iloc[prmtr_bndrs_indices]['middle'], self._lim, self._lim)
+            self.bndrs_df.iloc[prmtr_bndrs_indices]['middle'], self._lim, self._lim)
         
     def non_prmtr_bndrs_mean_c0(self) -> float: 
-        non_prmtr_bndrs_indices = ~(Genes(self._chrm).in_promoter(self._bndrs_df['middle']))
+        non_prmtr_bndrs_indices = ~(Genes(self._chrm).in_promoter(self.bndrs_df['middle']))
         return self._chrm.mean_c0_of_segments(
-            self._bndrs_df.iloc[non_prmtr_bndrs_indices]['middle'], self._lim, self._lim)
+            self.bndrs_df.iloc[non_prmtr_bndrs_indices]['middle'], self._lim, self._lim)
         
 # TODO: Create common MultiChrm Class for loops and boundaries
 class MultiChrmHicExplBoundaries:
@@ -70,7 +72,10 @@ class MultiChrmHicExplBoundaries:
     def _get_chrms(self) -> pd.Series:
         return pd.Series(list(map(
             lambda chrm_id: Chromosome(chrm_id, self._prediction), self._chrids)))
-        
+
+    def _get_mc_bndrs(self) -> pd.Series:
+        return self._get_chrms().apply(lambda chrm: HicExplBoundaries(chrm, self._res))
+
     def plot_scatter_mean_c0(self) -> Path:
         """Draw scatter plot of mean c0 at boundaries and domains of
         chromosomes"""
@@ -109,7 +114,7 @@ class MultiChrmHicExplBoundaries:
         mc_bndrs = chrms.apply(lambda chrm: HicExplBoundaries(chrm, self._res))
         perc_in_prmtrs = mc_bndrs.apply(
             lambda bndrs: Genes(bndrs._chrm)
-                .in_promoter(bndrs._bndrs_df['middle']).mean() * 100)
+                .in_promoter(bndrs.bndrs_df['middle']).mean() * 100)
         
         PlotUtil().show_grid()
         x = np.arange(len(self._chrids))
@@ -120,4 +125,7 @@ class MultiChrmHicExplBoundaries:
         plt.title(f'Percentage of boundaries in promoters in chromosomes')
         plt.legend()
         return IOUtil().save_figure(f'figures/mcdomains/perc_bndrs_in_promoters_{self}.png')
-         
+    
+    def num_bndrs_dmns(self) -> tuple[float, float]: 
+        mc_bndrs = self._get_mc_bndrs()
+        num_bndrs = mc_bndrs.apply(lambda bndrs: None)
