@@ -38,6 +38,10 @@ class HicExplBoundaries:
             .assign(middle=lambda df: (df['left'] + df['right']) // 2)\
                 .drop(columns='_')
 
+    def get_domains(self) -> pd.DataFrame:
+        return pd.DataFrame({'start': self.bndrs_df['right'].tolist()[:-1], 
+            'end': self.bndrs_df['left'].tolist()[1:]})
+
     def bndry_domain_mean_c0(self) -> tuple[float, float]:
         """
         Returns:
@@ -131,3 +135,7 @@ class MultiChrmHicExplBoundaries:
         num_bndrs = mc_bndrs.apply(lambda bndrs: len(bndrs.bndrs_df)).sum()
         num_dmns = num_bndrs - len(self._chrids)
         return num_bndrs, num_dmns
+    
+    def mean_dmn_len(self) -> float: 
+        mc_bndrs = self._get_mc_bndrs()
+        

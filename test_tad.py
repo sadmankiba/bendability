@@ -9,9 +9,16 @@ from numpy.testing import assert_almost_equal
 class TestHicExplBoundaries:
     def test_read_boundaries_of(self):
         bndrs = HicExplBoundaries(Chromosome('VIII'))
-        assert set(bndrs._bndrs_df.columns) == set(['chromosome', 'left', 'right', 'id', 'score', 'middle'])
-        assert len(bndrs._bndrs_df) == 65
+        assert set(bndrs.bndrs_df.columns) == set(['chromosome', 'left', 'right', 'id', 'score', 'middle'])
+        assert len(bndrs.bndrs_df) == 65
     
+    def test_get_domains(self):
+        bndrs = HicExplBoundaries(Chromosome('XV'))
+        dmns_df = bndrs.get_domains()
+        assert len(dmns_df) == len(bndrs.bndrs_df) - 1
+        assert dmns_df.iloc[9]['start'] == bndrs.bndrs_df.iloc[9]['right']
+        assert dmns_df.iloc[9]['end'] == bndrs.bndrs_df.iloc[10]['left']
+        
     def test_bndry_domain_mean_c0(self):
         bndrs = HicExplBoundaries(Chromosome('VL'))
         bndry_c0, dmn_c0 = bndrs.bndry_domain_mean_c0()
@@ -30,10 +37,10 @@ class TestHicExplBoundaries:
 
         # Check mathematically if two groups make up total boundaries mean
         bndrs_c0, _ = bndrs.bndry_domain_mean_c0()
-        num_prmtr_bndrs = Genes(chrm).in_promoter(bndrs._bndrs_df['middle']).sum()
-        num_non_prmtr_bndrs = len(bndrs._bndrs_df) - num_prmtr_bndrs
+        num_prmtr_bndrs = Genes(chrm).in_promoter(bndrs.bndrs_df['middle']).sum()
+        num_non_prmtr_bndrs = len(bndrs.bndrs_df) - num_prmtr_bndrs
         assert_almost_equal(bndrs_c0, (prmtr_bndry_c0 * num_prmtr_bndrs 
-            + non_prmtr_bndry_c0 * num_non_prmtr_bndrs) / len(bndrs._bndrs_df),
+            + non_prmtr_bndry_c0 * num_non_prmtr_bndrs) / len(bndrs.bndrs_df),
             decimal=6)
 
 
