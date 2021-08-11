@@ -14,7 +14,7 @@ git submodule update --init
 pip install -r requirements.txt
 ```
 
-3. Run `pytest` to check all functions are running ok. All tests should pass. This may take a while to complete. 
+3. Run `pytest` to check all functions are running ok. This should finish under 15 minutes. All tests should pass. 
 
 ```sh
 python3 -m pytest
