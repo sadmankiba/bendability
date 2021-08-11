@@ -46,7 +46,11 @@ class HicExplBoundaries:
     def add_mean_c0_col(self) -> pd.DataFrame:
         return self.bndrs_df.assign(mean_c0=lambda df:
             self._chrm.mean_c0_at_bps(df['middle'], self._lim, self._lim))
-        
+
+    def add_in_promoter_col(self) -> pd.DataFrame:
+        return self.bndrs_df.assign(in_promoter=lambda df: 
+            Genes(self._chrm).in_promoter(df['middle']))
+
     def bndry_domain_mean_c0(self) -> tuple[float, float]:
         """
         Returns:
@@ -58,14 +62,15 @@ class HicExplBoundaries:
         return c0_spread[bndry_cvr].mean(), c0_spread[~bndry_cvr].mean()
 
     def prmtr_bndrs_mean_c0(self) -> float:
-        prmtr_bndrs_indices = Genes(self._chrm).in_promoter(self.bndrs_df['middle'])
+        bndrs_df = self.add_in_promoter_col()
         return self._chrm.mean_c0_of_segments(
-            self.bndrs_df.iloc[prmtr_bndrs_indices]['middle'], self._lim, self._lim)
+            bndrs_df.iloc[bndrs_df['in_promoter'].to_numpy()]
+                ['middle'], self._lim, self._lim)
         
     def non_prmtr_bndrs_mean_c0(self) -> float: 
-        non_prmtr_bndrs_indices = ~(Genes(self._chrm).in_promoter(self.bndrs_df['middle']))
+        bndrs_df = self.add_in_promoter_col()
         return self._chrm.mean_c0_of_segments(
-            self.bndrs_df.iloc[non_prmtr_bndrs_indices]['middle'], self._lim, self._lim)
+            bndrs_df.iloc[~(bndrs_df['in_promoter'].to_numpy())]['middle'], self._lim, self._lim)
         
 # TODO: Create common MultiChrm Class for loops and boundaries
 class MultiChrmHicExplBoundaries:
