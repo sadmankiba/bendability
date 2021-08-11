@@ -14,7 +14,10 @@ import pandas as pd
 from pathlib import Path
 
 class HicExplBoundaries:
-    def __init__(self, chrm: Chromosome, res: PositiveInt = 400, lim: PositiveInt = 250):
+    """
+    Represenation of boundaries in a chromosome
+    """
+    def __init__(self, chrm: Chromosome, res: PositiveInt = 400, lim: PositiveInt = 200):
         """
         Args:
             lim: Limit around boundary middle bp to include in boundary
@@ -25,7 +28,7 @@ class HicExplBoundaries:
         self._lim = lim 
 
     def _read_boundaries(self) -> pd.DataFrame:
-        return pd.read_table(f'data/input_data/boundaries/'
+        return pd.read_table(f'data/input_data/domains/'
             f'{self._chrm._chr_num}_res_{self._res}_hicexpl_boundaries.bed',
             delim_whitespace=True,
             header=None,
