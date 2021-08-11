@@ -43,35 +43,60 @@ class HicExplBoundaries:
             'end': self.bndrs_df['left'].tolist()[1:]})
         return dmns_df.assign(len=lambda df: df['end'] - df['start'])
 
-    def add_mean_c0_col(self) -> pd.DataFrame:
-        return self.bndrs_df.assign(mean_c0=lambda df:
-            self._chrm.mean_c0_at_bps(df['middle'], self._lim, self._lim))
+    def add_mean_c0_col(self) -> None:
+        if 'mean_c0' not in self.bndrs_df.columns.tolist():
+            self.bndrs_df = self.bndrs_df.assign(mean_c0=lambda df:
+                self._chrm.mean_c0_at_bps(df['middle'], self._lim, self._lim))
 
-    def add_in_promoter_col(self) -> pd.DataFrame:
-        return self.bndrs_df.assign(in_promoter=lambda df: 
-            Genes(self._chrm).in_promoter(df['middle']))
+    def add_in_promoter_col(self) -> None:
+        if 'in_promoter' not in self.bndrs_df.columns.tolist():
+            self.bndrs_df = self.bndrs_df.assign(in_promoter=lambda df: 
+                Genes(self._chrm).in_promoter(df['middle']))
 
     def bndry_domain_mean_c0(self) -> tuple[float, float]:
         """
         Returns:
             A tuple: bndry cvr mean, domain cvr mean
         """
-        c0_spread = self._chrm.get_spread()
-        bndry_cvr = self._chrm.get_cvr_mask(
-            self.bndrs_df['middle'], self._lim, self._lim)
-        return c0_spread[bndry_cvr].mean(), c0_spread[~bndry_cvr].mean()
+        if not(hasattr(self, '_bndrs_mean_c0') or hasattr(self, '_dmns_mean_c0')):
+            c0_spread = self._chrm.get_spread()
+            bndry_cvr = self._chrm.get_cvr_mask(
+                self.bndrs_df['middle'], self._lim, self._lim)
+            self._bndrs_mean_c0, self._dmns_mean_c0 = \
+                c0_spread[bndry_cvr].mean(), c0_spread[~bndry_cvr].mean()
+        
+        return self._bndrs_mean_c0, self._dmns_mean_c0 
 
     def prmtr_bndrs_mean_c0(self) -> float:
-        bndrs_df = self.add_in_promoter_col()
+        self.add_in_promoter_col()
         return self._chrm.mean_c0_of_segments(
-            bndrs_df.iloc[bndrs_df['in_promoter'].to_numpy()]
+            self._bndrs_df.iloc[self._bndrs_df['in_promoter'].to_numpy()]
                 ['middle'], self._lim, self._lim)
         
     def non_prmtr_bndrs_mean_c0(self) -> float: 
-        bndrs_df = self.add_in_promoter_col()
+        self.add_in_promoter_col()
         return self._chrm.mean_c0_of_segments(
-            bndrs_df.iloc[~(bndrs_df['in_promoter'].to_numpy())]['middle'], self._lim, self._lim)
-        
+            self.bndrs_df.iloc[~(self.bndrs_df['in_promoter'].to_numpy())]['middle'], self._lim, self._lim)
+
+    def num_bndry_mean_c0_greater_than_dmn(self) -> PositiveInt:
+        self.add_mean_c0_col()
+        _, dmns_mean_c0 = self.bndry_domain_mean_c0()
+        return (self.bndrs_df['mean_c0'] > dmns_mean_c0).sum()
+
+    def num_prmtr_bndry_mean_c0_greater_than_dmn(self) -> float:
+        self.add_mean_c0_col()
+        self.add_in_promoter_col()
+        _, dmns_mean_c0 = self.bndry_domain_mean_c0()
+        return (self.bndrs_df.query('in_promoter')['mean_c0'] > dmns_mean_c0).sum()
+    
+    def num_non_prmtr_bndry_mean_c0_greater_than_dmns(self) -> float:
+        self.add_mean_c0_col()
+        self.add_in_promoter_col()
+        _, dmns_mean_c0 = self.bndry_domain_mean_c0()
+        return (self.bndrs_df.query('not in_promoter')['mean_c0'] > dmns_mean_c0).sum()
+
+
+
 # TODO: Create common MultiChrm Class for loops and boundaries
 class MultiChrmHicExplBoundaries:
     def __init__(self, 
@@ -162,4 +187,9 @@ class MultiChrmHicExplBoundaries:
         return mc_bndrs.apply(
             lambda bndrs: bndrs.get_domains()['len'].sum()).sum()\
                 / self.num_bndrs_dmns()[1]
+    
+    def individual_bndry_stat(self) -> None: 
+        mc_bndrs = self._get_mc_bndrs()
+        bndrs_df = mc_bndrs
+        mc_bndrs.apply()
         

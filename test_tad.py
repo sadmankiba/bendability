@@ -22,8 +22,14 @@ class TestHicExplBoundaries:
 
     def test_add_mean_c0_col(self):
         bndrs = HicExplBoundaries(Chromosome('X', Prediction(30)))
-        mn = bndrs.add_mean_c0_col()['mean_c0']
+        bndrs.add_mean_c0_col()
+        mn = bndrs.bndrs_df['mean_c0']
         assert np.all((mn > -0.7) & (mn < 0.2))
+
+    def test_add_in_promoter_col(self):
+        bndrs = HicExplBoundaries(Chromosome('X', Prediction(30)))
+        bndrs.add_in_promoter_col()
+        assert len(bndrs.bndrs_df.query('in_promoter')) > len(bndrs.bndrs_df.query('not in_promoter'))
 
     def test_bndry_domain_mean_c0(self):
         bndrs = HicExplBoundaries(Chromosome('VL'))
@@ -48,6 +54,12 @@ class TestHicExplBoundaries:
             + non_prmtr_bndry_c0 * num_non_prmtr_bndrs) / len(bndrs.bndrs_df),
             decimal=6)
 
+    def test_num_greater_than_dmns(self):
+        bndrs = HicExplBoundaries(Chromosome('VI', Prediction(30)))
+        bndrs_gt = bndrs.num_bndry_mean_c0_greater_than_dmn()
+        prmtr_bndrs_gt = bndrs.num_prmtr_bndry_mean_c0_greater_than_dmn()
+        non_prmtr_bndrs_gt = bndrs.num_non_prmtr_bndry_mean_c0_greater_than_dmns()
+        assert bndrs_gt == prmtr_bndrs_gt + non_prmtr_bndrs_gt
 
 class TestMultiChrmHicExplBoundaries:
     def test_plot_scatter_mean_c0(self):
