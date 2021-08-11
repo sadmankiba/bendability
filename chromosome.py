@@ -399,3 +399,17 @@ class Chromosome:
         cvr = self.get_cvr_mask(bps, neg_lim, pos_lim)
         result = self.get_spread()[cvr].mean()
         return result
+    
+    def mean_c0_at_bps(self, 
+                        bps: np.ndarray | list[int] | pd.Series, 
+                        neg_lim: PositiveInt, 
+                        pos_lim: PositiveInt) -> float:
+        """
+        Find mean c0 of each segment defined by bps
+        """        
+        result = np.array(list(map(lambda bp: 
+            self.get_spread()[bp - 1 - neg_lim: bp + pos_lim].mean(), 
+            np.array(bps))))
+        
+        assert result.shape == (len(bps), )
+        return result 

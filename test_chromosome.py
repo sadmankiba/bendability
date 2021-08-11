@@ -81,3 +81,10 @@ class TestChromosome:
     def test_mean_c0_of_segments(self):
         mn = Chromosome('VL').mean_c0_of_segments([5000, 8000], 100, 50)
         assert -2 < mn < 2
+    
+    def test_mean_c0_at_bps(self):
+        mn = Chromosome('IX', Prediction(30)).mean_c0_at_bps([12000, 20000], 200, 200)
+        assert mn[0] > -1
+        assert mn[0] < 1
+        assert mn[1] > -1
+        assert mn[1] < 1
