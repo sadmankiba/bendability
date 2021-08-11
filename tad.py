@@ -101,6 +101,12 @@ class MultiChrmHicExplBoundaries:
         mc_bndrs_dmns_c0 = mc_bndrs.apply(lambda bndrs: bndrs.bndry_domain_mean_c0())
         mc_bndrs_c0 = np.array(mc_bndrs_dmns_c0.tolist())[:,0]
         mc_dmns_c0 = np.array(mc_bndrs_dmns_c0.tolist())[:,1]
+
+        # Print comparison
+        print('bndrs > dmns:', (mc_bndrs_c0 > mc_dmns_c0).sum())
+        print('prmtr bndrs > dmns:', (mc_prmtr_bndrs_c0 > mc_dmns_c0).sum())
+        print('non prmtr bndrs > dmns:', (mc_non_prmtr_bndrs_c0 > mc_dmns_c0).sum())
+        print('chrms > dmns:', (chrm_means.to_numpy() > mc_dmns_c0).sum())
         
         PlotUtil().show_grid()
         x = np.arange(len(self._chrids))
