@@ -126,6 +126,8 @@ class MultiChrmHicExplBoundaries:
         plt.legend()
         return IOUtil().save_figure(f'figures/mcdomains/perc_bndrs_in_promoters_{self}.png')
     
-    def num_bndrs_dmns(self) -> tuple[float, float]: 
+    def num_bndrs_dmns(self) -> tuple[float, float]:  
         mc_bndrs = self._get_mc_bndrs()
-        num_bndrs = mc_bndrs.apply(lambda bndrs: None)
+        num_bndrs = mc_bndrs.apply(lambda bndrs: len(bndrs.bndrs_df)).sum()
+        num_dmns = num_bndrs - len(self._chrids)
+        return num_bndrs, num_dmns
