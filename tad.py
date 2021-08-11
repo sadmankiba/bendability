@@ -66,21 +66,26 @@ class HicExplBoundaries:
         
 # TODO: Create common MultiChrm Class for loops and boundaries
 class MultiChrmHicExplBoundaries:
-    def __init__(self, prediction: Prediction, chrids: tuple[ChrId] = ChrIdList, res: PositiveInt = 400):
+    def __init__(self, 
+                prediction: Prediction, 
+                chrids: tuple[ChrId] = ChrIdList, 
+                res: PositiveInt = 400,
+                lim: PositiveInt = 200):
         self._prediction = prediction
         self._chrids = chrids
         self._res = res
-         
+        self._lim = lim
+
     def __str__(self):
         ext = 'with_vl' if 'VL' in self._chrids else 'without_vl'
-        return f'res_{self._res}_md_{self._prediction}_{ext}'
+        return f'res_{self._res}_lim_{self._lim}_md_{self._prediction}_{ext}'
 
     def _get_chrms(self) -> pd.Series:
         return pd.Series(list(map(
             lambda chrm_id: Chromosome(chrm_id, self._prediction), self._chrids)))
 
     def _get_mc_bndrs(self) -> pd.Series:
-        return self._get_chrms().apply(lambda chrm: HicExplBoundaries(chrm, self._res))
+        return self._get_chrms().apply(lambda chrm: HicExplBoundaries(chrm, self._res, self._lim))
 
     def plot_scatter_mean_c0(self) -> Path:
         """Draw scatter plot of mean c0 at boundaries and domains of
@@ -88,7 +93,7 @@ class MultiChrmHicExplBoundaries:
         chrms = self._get_chrms()
         chrm_means = chrms.apply(lambda chrm: chrm.get_spread().mean())
         
-        mc_bndrs = chrms.apply(lambda chrm: HicExplBoundaries(chrm, self._res))
+        mc_bndrs = self._get_mc_bndrs()
         mc_prmtr_bndrs_c0 = mc_bndrs.apply(lambda bndrs: bndrs.prmtr_bndrs_mean_c0())
         mc_non_prmtr_bndrs_c0 = mc_bndrs.apply(
             lambda bndrs: bndrs.non_prmtr_bndrs_mean_c0())
