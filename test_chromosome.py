@@ -94,8 +94,9 @@ class TestChromosome:
         t = time.time()
         sp_one = chrm.get_spread()
         dr_one = time.time() - t
+        assert hasattr(chrm, '_c0_spread')
         
         t = time.time()
         sp_two = chrm.get_spread()
         dr_two = time.time() - t
-        assert dr_two < dr_one * 0.1
+        assert dr_two < dr_one * 0.01

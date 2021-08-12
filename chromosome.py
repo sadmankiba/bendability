@@ -350,8 +350,7 @@ class Chromosome:
         plt.show()
 
     def get_spread(self) -> np.ndarray:
-        # TODO *: Save spread as attribute of object
-        if not hasattr(self, 'c0_spread'):
+        if not hasattr(self, '_c0_spread'):
             self._c0_spread = Spread(self._df['C0'].values, self._chr_id,
                       self.predict_model_no()).get_spread(self.spread_str)
         

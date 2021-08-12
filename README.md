@@ -14,7 +14,7 @@ git submodule update --init
 pip install -r requirements.txt
 ```
 
-3. Run `pytest` to check all functions are running ok. This should finish under 15 minutes. Ideally, all tests should pass. But, currenly tests of some of my old code (`test_helsep.py`, `test_organizer.py`) is failing. Still, tests of all active codes (loops, domains, chromosome etc.) are passing. 
+3. Run `pytest` to check all functions are running ok. All tests should pass. First time running this might take about 30 minutes to 1 hour. From next on, test suite should complete faster. 
 
 ```sh
 python3 -m pytest
@@ -22,26 +22,21 @@ python3 -m pytest
 
 ## Running Code 
 
-Now, you are ready to run. Invoking functionalities is simple. In `main.py`, create proper objects and call it's public functions. As an example, paste the following code in `main.py` and run it. 
+Now, you are ready to run. Invoking functionalities is simple. In `main.py`, create proper objects and call it's public functions. As an example, for plotting average intrinsic cyclizability around nucleosome dyads in chromosome V, paste the following code in `main.py`. 
 
 ```py
-from tad import MultiChrmHicExplBoundaries
-from prediction import Prediction
-from constants import YeastChrNumList
+from chromosome import Chromosome
+from nucleosome import Nucleosome
 
 if __name__ == '__main__':
-    MultiChrmHicExplBoundaries(Prediction(30), YeastChrNumList).plot_bar_perc_in_prmtrs()
+    Nucleosome(Chromosome('VL')).plot_c0_vs_dist_from_dyad_spread()    
 ```
 
-Then, run `main.py`. 
+Then, run: `python3 main.py`. 
 
-```sh
-python3 main.py
-```
+It should create a plot in `figures/nucleosome` directory.
 
-It should create a plot in `figures/mcdomains` directory.
-
-The test files, docstrings and function annotations should guide you about how to use source code. 
+To initialize an object, invoke a function or understand the expected behavior, take a look at corresponding test files, docstrings and function annotations. 
 
 ## Directory structure
 
