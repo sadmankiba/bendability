@@ -1,13 +1,13 @@
-from chromosome import Chromosome, ChromosomeUtil, Spread
-
-import numpy as np
-import pytest
-
 import unittest
 from pathlib import Path
+import time
 
+import numpy as np
+
+from chromosome import Chromosome, ChromosomeUtil, Spread
 from constants import CHRVL_LEN, CHRV_TOTAL_BP
 from prediction import Prediction
+
 
 
 class TestChromosomeUtil(unittest.TestCase):
@@ -88,3 +88,14 @@ class TestChromosome:
         assert mn[0] < 1
         assert mn[1] > -1
         assert mn[1] < 1
+    
+    def test_get_spread_saving(self):
+        chrm = Chromosome('VIII', Prediction(6))
+        t = time.time()
+        sp_one = chrm.get_spread()
+        dr_one = time.time() - t
+        
+        t = time.time()
+        sp_two = chrm.get_spread()
+        dr_two = time.time() - t
+        assert dr_two < dr_one * 0.1
