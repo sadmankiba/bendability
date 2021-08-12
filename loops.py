@@ -284,21 +284,20 @@ class Loops:
         loops_cover = self.get_loop_cover()
         c0_spread = self._chr.get_spread()
         sorted_loop_df = self._loop_df.sort_values('len', ignore_index=True)
-        
-        mean_in_loop = []
 
-        def _store_mean_of(loop: pd.Series) -> None:
-            """Find mean c0 of whole, nucs and linkers of a loop and store it"""
+        def _mean_of(loop: pd.Series) -> pd.Series:
+            """Find mean c0 of full, nucs and linkers of a loop and store it"""
             loop_cover = np.full((self._chr._total_bp,), False)
             loop_cover[loop['start'] - 1 : loop['end']] = True 
             loop_mean = c0_spread[loop_cover].mean()
             loop_nuc_mean = c0_spread[loop_cover & nucs_cover].mean()
             loop_linker_mean = c0_spread[loop_cover & ~nucs_cover].mean()
-            mean_in_loop.append([loop_mean, loop_nuc_mean, loop_linker_mean])
+            return pd.Series([loop_mean, loop_nuc_mean, loop_linker_mean])
         
         # Find mean C0 of nuc, linker in individual loops
-        sorted_loop_df.apply(_store_mean_of, axis=1)
-        mean_arr = np.array(mean_in_loop)
+        mean_cols = ['mean_c0_full', 'mean_c0_nuc', 'mean_c0_linker']
+        sorted_loop_df[mean_cols] = \
+            sorted_loop_df.apply(_mean_of, axis=1)
 
         # Plot scatter for mean C0 of nuc, linker
         markers = ['o', 's', 'p']
@@ -310,9 +309,9 @@ class Loops:
 
         PlotUtil().show_grid()
 
-        x = np.arange(mean_arr.shape[0])
-        for i in range(mean_arr.shape[1]):
-            plt.scatter(x, mean_arr[:, i], marker=markers[i], label=labels[i], color=colors[i])
+        x = np.arange(len(sorted_loop_df))
+        for i, col in enumerate(sorted_loop_df[mean_cols]):
+            plt.scatter(x, sorted_loop_df[col], marker=markers[i], label=labels[i], color=colors[i])
         
         # Plot horizontal lines for mean C0 of non-loop nuc, linker 
         non_loop_colors = ['tab:red', 'tab:purple', 'tab:brown']

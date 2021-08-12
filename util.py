@@ -13,7 +13,9 @@ import string
 import re as bre  # built-in re
 import itertools as it
 from pathlib import Path
+import logging
 
+logging.basicConfig(level=logging.INFO)
 
 def reverse_compliment_of(seq: str):
     # Define replacements
@@ -225,6 +227,7 @@ class IOUtil:
         # Save
         plt.savefig(path, dpi=200)
         
+        logging.info(f'Figure saved at: {path.relative_to("./")}')
         return path 
 
     def save_tsv(self, df: pd.DataFrame, path_str: str | Path) -> None:
