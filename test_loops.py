@@ -22,14 +22,22 @@ class TestLoops(unittest.TestCase):
         s = subprocess.check_output(["wc", "-l", loop._loop_file])
         assert len(df) == int(s.split()[0]) - 2
 
-    def test_add_mean_c0(self):
+    def test_add_mean_c0_val(self):
         """Assert mean C0 is: linker < full < nuc"""
         loops = Loops(Chromosome('VL'))
         mean_cols = loops.add_mean_c0()
         assert all(list(map(lambda col: col in loops._loop_df.columns, mean_cols)))
         assert loops._loop_df[mean_cols[2]].mean() < loops._loop_df[mean_cols[0]].mean()
         assert loops._loop_df[mean_cols[1]].mean() > loops._loop_df[mean_cols[0]].mean()
-          
+
+    def test_add_mean_c0_type_conserve(self):
+        loops = Loops(Chromosome('VL'))
+        loops.add_mean_c0()
+        dtypes = loops._loop_df.dtypes
+        assert dtypes['start'] == int 
+        assert dtypes['end'] == int 
+        assert dtypes['len'] == int 
+
     def test_exclude_above_len(self):
         bf_loops = Loops(Chromosome('VL', None))
         bf_len = len(bf_loops._loop_df)
@@ -117,8 +125,24 @@ class TestMeanLoops:
         assert -1 < la < 0
         assert na > la
 
+# TODO: Check loading tensorflow is slowing down unit tests 
 
 class TestMultiChrmMeanLoopsCollector:
+    def test_add_non_loop_mean(self):
+        coll = MultiChrmMeanLoopsCollector(Prediction(30), ('VI', 'IV'))
+        nl_col = coll._add_non_loop_mean()
+        assert nl_col in coll._mcloop_df.columns 
+        assert all(coll._mcloop_df[nl_col] > -0.5)
+        assert all(coll._mcloop_df[nl_col] < 0)
+
+    def test_add_num_loops_gt_non_loop(self):
+        coll = MultiChrmMeanLoopsCollector(Prediction(30), ('VI', 'IV'))
+        num_col = coll._add_num_loops()
+        lt_col = coll._add_num_loops_lt_non_loop()
+        assert lt_col in coll._mcloop_df.columns 
+        assert all(coll._mcloop_df[lt_col] > coll._mcloop_df[num_col] * 0.3)
+        assert all(coll._mcloop_df[lt_col] < coll._mcloop_df[num_col])
+        
     def test_save_stat_all_methods(self):
         path = Path(MultiChrmMeanLoopsCollector(
             None, ('VL', )).save_avg_c0_stat())

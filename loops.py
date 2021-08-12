@@ -88,14 +88,13 @@ class Loops:
 
         loop_array = np.full((self._chr._total_bp, ), False)
         
-        def _set_bp(start, end) -> None:
-            loop_array[start : end] = True
+        def _set_bp(start: float, end: float) -> None:
+            loop_array[int(start) : int(end)] = True
 
         loop_df.apply(lambda loop: _set_bp(loop['start'] - 1, loop['end']), axis=1)
         return loop_array 
     
-    def add_mean_c0(self) -> list[Literal['mean_c0_full'], 
-                Literal['mean_c0_nuc'], Literal['mean_c0_linker']]:
+    def add_mean_c0(self) -> pd.Series:
         """Find mean c0 of full, nucs and linkers of each loop and store it
         
         Returns: 
@@ -122,7 +121,7 @@ class Loops:
         self._loop_df[mean_cols] = \
             self._loop_df.apply(_mean_of, axis=1)
         
-        return mean_cols
+        return pd.Series(mean_cols)
         
     def plot_c0_in_individual_loop(self):
         loop_df = self._loop_df
@@ -558,9 +557,12 @@ class MultiChrmMeanLoopsCollector:
             self._create_multiple_col(MeanLoops.in_nuc_linker),
             columns=loop_nuc_linker_cols)
 
-    def _add_non_loop_mean(self) -> None:
-        self._mcloop_df['non_loop'] = self._mcmloops.apply(
-            lambda mloops: mloops.in_complete_non_loop())
+    def _add_non_loop_mean(self) -> Literal['non_loop']:
+        if 'non_loop' not in self._mcloop_df.columns: 
+            self._mcloop_df['non_loop'] = self._mcmloops.apply(
+                lambda mloops: mloops.in_complete_non_loop())
+        
+        return 'non_loop' 
     
     def _add_non_loop_nuc_linker_mean(self) -> None: 
         non_loop_nuc_linker_cols = ['non_loop_nuc', 'non_loop_linker']
@@ -630,6 +632,31 @@ class MultiChrmMeanLoopsCollector:
         self._mcloop_df[self._mcloop_df.drop(columns=exclude_cols).columns] = \
             self._mcloop_df.drop(columns=exclude_cols).apply(lambda col: col - self._mcloop_df['chromosome'])
 
+    def _add_num_loops(self) -> Literal['num_loops']:
+        # TODO: Use wrapper hof, check cols 
+        self._mcloop_df['num_loops'] = self._mcmloops.apply(
+            lambda mloops: len(mloops._loops._loop_df))
+        
+        return 'num_loops'
+    
+    def _add_num_loops_lt_non_loop(self) -> Literal['num_loops_lt_nl']:
+        num_loops_lt_nl_col = 'num_loops_lt_nl'
+        
+        if num_loops_lt_nl_col in self._mcloop_df.columns:
+            return num_loops_lt_nl_col
+        
+        mean_cols = self._mcmloops.apply(lambda mloops: mloops._loops.add_mean_c0()).iloc[0]
+        non_loop_col = self._add_non_loop_mean()
+
+        mcmloops = pd.Series(self._mcmloops, name='mcmloops')
+        self._mcloop_df[num_loops_lt_nl_col] = pd.DataFrame(mcmloops).apply(
+            lambda mloops: (mloops['mcmloops']._loops._loop_df[mean_cols[0]] 
+                < self._mcloop_df.iloc[mloops.name][non_loop_col]).sum(),
+            axis=1
+        )
+
+        return num_loops_lt_nl_col
+
     def save_avg_c0_stat(self,
                          mean_methods: list[int] | None = None,
                          subtract_chrm=True) -> str:
@@ -654,8 +681,11 @@ class MultiChrmMeanLoopsCollector:
             9: self._add_quartile_by_len_pos,
             10: self._add_anchor_center_bp,
             11: self._add_quartile_len_anchor_center_bp,
+            12: self._add_num_loops,
+            13: self._add_num_loops_gt_non_loop
         }
 
+        # Select all
         if mean_methods is None:
             mean_methods = list(method_map.keys())
 
