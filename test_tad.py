@@ -10,7 +10,8 @@ import numpy as np
 class TestHicExplBoundaries:
     def test_read_boundaries_of(self):
         bndrs = HicExplBoundaries(Chromosome('VIII', Prediction(30)), res=500)
-        assert set(bndrs.bndrs_df.columns) == set(['chromosome', 'left', 'right', 'id', 'score', 'middle'])
+        assert set(bndrs.bndrs_df.columns) == set(['chromosome', 'left', 
+            'right', 'id', 'score', 'middle', 'in_promoter', 'mean_c0'])
         assert len(bndrs.bndrs_df) == 53
     
     def test_get_domains(self):
