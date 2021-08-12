@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from util import get_possible_seq, gen_random_sequences
+from util import IOUtil, get_possible_seq, gen_random_sequences
 
 import pandas as pd
 import numpy as np
@@ -21,7 +21,7 @@ NUM_DISTANCES = 48  # Possible distances between two dinucleotides
 
 class HelicalSeparationCounter:
     """
-    Functions for counting helical separation
+    Helper class for counting helical separation
     """
     def __init__(self):
         self._expected_dist_file = 'data/generated_data/helical_separation/expected_p.tsv'
@@ -154,7 +154,7 @@ class HelicalSeparationCounter:
         # Save a dataframe of 136 rows x 49 columns
         df = pd.DataFrame(mean_pair_dist, columns=np.arange(48) + 1)
         df['Pair'] = list(map(lambda p: f'{p[0]}-{p[1]}', self._dinc_pairs))
-        df.to_csv(self._expected_dist_file, sep='\t', index=False)
+        IOUtil().save_tsv(df, self._expected_dist_file)
         return df
 
     def find_helical_separation(self, df: pd.DataFrame) -> pd.DataFrame:

@@ -70,6 +70,3 @@ class TestHelicalSeparationCounter(unittest.TestCase):
         # Needs to be normalized
         # self.assertListEqual(df_hel['GC-TT'].tolist(), [-2, -1])
 
-
-if __name__ == "__main__":
-    unittest.main()

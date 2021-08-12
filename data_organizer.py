@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from util import cut_sequence
+from util import IOUtil, cut_sequence
 from helsep import HelicalSeparationCounter
 from occurence import Occurence
 from shape import run_dna_shape_r_wrapper
@@ -391,13 +391,9 @@ class DataOrganizer:
             [str(int(val * 100)) for val in self._options['range_split']])
         file_name = f'{name}_{self._libraries["seq_start_pos"]}_{self._libraries["seq_end_pos"]}_kmercount_{k_list_str}_{classify_str}'
 
-        df.sort_values('C0').to_csv(
-            f'data/generated_data/classification/{file_name}.tsv',
-            sep='\t',
-            index=False)
+        IOUtil().save_tsv(df.sort_values('C0'), f'data/generated_data/classification/{file_name}.tsv')
         df = df.drop(columns=['Sequence #', 'Sequence'])
-        df.groupby('C0').mean().sort_values('C0')\
-            .to_csv(f'data/generated_data/kmer_count/{file_name}_mean.tsv', sep='\t', index=False)
+        IOUtil().save_tsv(df.groupby('C0').mean().sort_values('C0'), f'data/generated_data/kmer_count/{file_name}_mean.tsv')
 
     def _get_helical_sep(self) -> dict[str, list[pd.DataFrame]]:
         """
@@ -426,8 +422,7 @@ class DataOrganizer:
             print(
                 f'Helical separation count time: {(time.time() - t) / 60} min')
 
-            df_hel.to_csv(saved_helical_sep_file, sep='\t', index=False)
-
+            IOUtil().save_tsv(df_hel, saved_helical_sep_file)
             return df_hel
 
         keys = ['train', 'test', 'train_test']
@@ -469,9 +464,7 @@ class DataOrganizer:
                     df_one_kmer = Occurence().find_occurence_individual(
                         df, [k])
                     print(f'{k}-mer count time: {(time.time() - t) / 60} min')
-                    df_one_kmer.to_csv(saved_kmer_count_file,
-                                       sep='\t',
-                                       index=False)
+                    IOUtil().save_tsv(df_one_kmer, saved_kmer_count_file)
 
                 df_kmer = df_kmer.merge(df_one_kmer,
                                         on=['Sequence #', 'Sequence', 'C0'])
