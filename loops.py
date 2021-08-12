@@ -93,7 +93,37 @@ class Loops:
 
         loop_df.apply(lambda loop: _set_bp(loop['start'] - 1, loop['end']), axis=1)
         return loop_array 
+    
+    def add_mean_c0(self) -> list[Literal['mean_c0_full'], 
+                Literal['mean_c0_nuc'], Literal['mean_c0_linker']]:
+        """Find mean c0 of full, nucs and linkers of each loop and store it
+        
+        Returns: 
+            A tuple: Name of columns appended to dataframe 
+        """
+        mean_cols = ['mean_c0_full', 'mean_c0_nuc', 'mean_c0_linker']
+        
+        if all(list(map(lambda col : col in self._loop_df.columns, mean_cols))):
+            return mean_cols
 
+        c0_spread = self._chr.get_spread()
+        nucs = Nucleosome(self._chr)
+        nucs_cover = nucs.get_nuc_regions()
+
+        def _mean_of(loop: pd.Series) -> pd.Series:
+            """Find mean c0 of full, nucs and linkers of a loop"""
+            loop_cover = np.full((self._chr._total_bp,), False)
+            loop_cover[loop['start'] - 1 : loop['end']] = True 
+            loop_mean = c0_spread[loop_cover].mean()
+            loop_nuc_mean = c0_spread[loop_cover & nucs_cover].mean()
+            loop_linker_mean = c0_spread[loop_cover & ~nucs_cover].mean()
+            return pd.Series([loop_mean, loop_nuc_mean, loop_linker_mean])
+        
+        self._loop_df[mean_cols] = \
+            self._loop_df.apply(_mean_of, axis=1)
+        
+        return mean_cols
+        
     def plot_c0_in_individual_loop(self):
         loop_df = self._loop_df
 
@@ -283,21 +313,9 @@ class Loops:
         nucs_cover = nucs.get_nuc_regions()
         loops_cover = self.get_loop_cover()
         c0_spread = self._chr.get_spread()
-        sorted_loop_df = self._loop_df.sort_values('len', ignore_index=True)
-
-        def _mean_of(loop: pd.Series) -> pd.Series:
-            """Find mean c0 of full, nucs and linkers of a loop and store it"""
-            loop_cover = np.full((self._chr._total_bp,), False)
-            loop_cover[loop['start'] - 1 : loop['end']] = True 
-            loop_mean = c0_spread[loop_cover].mean()
-            loop_nuc_mean = c0_spread[loop_cover & nucs_cover].mean()
-            loop_linker_mean = c0_spread[loop_cover & ~nucs_cover].mean()
-            return pd.Series([loop_mean, loop_nuc_mean, loop_linker_mean])
         
-        # Find mean C0 of nuc, linker in individual loops
-        mean_cols = ['mean_c0_full', 'mean_c0_nuc', 'mean_c0_linker']
-        sorted_loop_df[mean_cols] = \
-            sorted_loop_df.apply(_mean_of, axis=1)
+        mean_cols = self.add_mean_c0()
+        sorted_loop_df = self._loop_df.sort_values('len', ignore_index=True)
 
         # Plot scatter for mean C0 of nuc, linker
         markers = ['o', 's', 'p']

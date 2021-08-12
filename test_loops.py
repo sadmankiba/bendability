@@ -22,6 +22,14 @@ class TestLoops(unittest.TestCase):
         s = subprocess.check_output(["wc", "-l", loop._loop_file])
         assert len(df) == int(s.split()[0]) - 2
 
+    def test_add_mean_c0(self):
+        """Assert mean C0 is: linker < full < nuc"""
+        loops = Loops(Chromosome('VL'))
+        mean_cols = loops.add_mean_c0()
+        assert all(list(map(lambda col: col in loops._loop_df.columns, mean_cols)))
+        assert loops._loop_df[mean_cols[2]].mean() < loops._loop_df[mean_cols[0]].mean()
+        assert loops._loop_df[mean_cols[1]].mean() > loops._loop_df[mean_cols[0]].mean()
+          
     def test_exclude_above_len(self):
         bf_loops = Loops(Chromosome('VL', None))
         bf_len = len(bf_loops._loop_df)
