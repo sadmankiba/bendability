@@ -38,7 +38,7 @@ class Loops:
         Reads loop positions from .bedpe file
 
         Returns: 
-            A dataframe with three columns: [res, start, end]
+            A dataframe with three columns: [res, start, end, len]
         """
         df = pd.read_table(self._loop_file, skiprows=[1])
 
@@ -287,7 +287,8 @@ class Loops:
         
         mean_in_loop = []
 
-        def _append_mean_of(loop: pd.Series) -> None:
+        def _store_mean_of(loop: pd.Series) -> None:
+            """Find mean c0 of whole, nucs and linkers of a loop and store it"""
             loop_cover = np.full((self._chr._total_bp,), False)
             loop_cover[loop['start'] - 1 : loop['end']] = True 
             loop_mean = c0_spread[loop_cover].mean()
@@ -296,7 +297,7 @@ class Loops:
             mean_in_loop.append([loop_mean, loop_nuc_mean, loop_linker_mean])
         
         # Find mean C0 of nuc, linker in individual loops
-        sorted_loop_df.apply(_append_mean_of, axis=1)
+        sorted_loop_df.apply(_store_mean_of, axis=1)
         mean_arr = np.array(mean_in_loop)
 
         # Plot scatter for mean C0 of nuc, linker
@@ -367,7 +368,8 @@ class MeanLoops:
         return round(self._loops._chr.get_spread()[self._loops.get_loop_cover(loop_df)].mean(), 3)
         
     def in_complete_non_loop(self) -> float:
-        return round(self._loops._chr.get_spread()[~self._loops.get_loop_cover(self._loops._loop_df)].mean(), 3)
+        return round(self._loops._chr.get_spread()[
+            ~self._loops.get_loop_cover(self._loops._loop_df)].mean(), 3)
         
     def in_quartile_by_len(self) -> list[float]:
         """Find average c0 of collection of loops by dividing them into

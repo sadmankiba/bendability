@@ -399,6 +399,7 @@ class Chromosome:
 
         Segments are defined by a bp and two limits
         """
+        # TODO: Support one limit
         cvr = self.get_cvr_mask(bps, neg_lim, pos_lim)
         result = self.get_spread()[cvr].mean()
         return result

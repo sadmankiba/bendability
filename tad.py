@@ -53,6 +53,8 @@ class HicExplBoundaries:
         self.bndrs_df = self.bndrs_df.assign(in_promoter=lambda df: 
                 Genes(self._chrm).in_promoter(df['middle']))
 
+    # TODO: Remove bndry, prmtr, non-prmtr bndrs mean c0 method
+    # TODO: domain_mean_c0 property?
     def bndry_domain_mean_c0(self) -> tuple[float, float]:
         """
         Returns:
@@ -90,7 +92,8 @@ class HicExplBoundaries:
 
 
 
-# TODO: Create common MultiChrm Class for loops and boundaries
+# TODO: 
+# Create common MultiChrm Class for loops and boundaries. Factory? Composition?
 class MultiChrmHicExplBoundaries:
     def __init__(self, 
                 prediction: Prediction, 
@@ -182,6 +185,7 @@ class MultiChrmHicExplBoundaries:
                 / self.num_bndrs_dmns()[1]
     
     def individual_bndry_stat(self) -> None: 
+        # TODO: Reduce function calls. Access index with .name if needed.  
         mc_bndrs = self._get_mc_bndrs()
         num_mc_bndrs_gt = mc_bndrs.apply(
             lambda bndrs: HicExplBoundaries.num_bndry_mean_c0_greater_than_dmn(bndrs)).sum()
