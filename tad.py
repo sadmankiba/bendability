@@ -191,7 +191,7 @@ class MultiChrmHicExplBoundaries:
         print('num_mc_prmtr_bndrs_gt', num_mc_prmtr_bndrs_gt)
 
         num_mc_non_prmtr_bndrs_gt = mc_bndrs.apply(
-            lambda bndrs: HicExplBoundaries.num_prmtr_bndry_mean_c0_greater_than_dmn(bndrs)).sum()
+            lambda bndrs: HicExplBoundaries.num_non_prmtr_bndry_mean_c0_greater_than_dmns(bndrs)).sum()
         print('num_mc_non_prmtr_bndrs_gt', num_mc_non_prmtr_bndrs_gt)
 
         num_mc_prmtr_bndrs = mc_bndrs.apply(
