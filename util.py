@@ -230,26 +230,30 @@ class IOUtil:
         logging.info(f'Figure saved at: {path.relative_to("./")}')
         return path 
 
-    def save_tsv(self, df: pd.DataFrame, path_str: str | Path) -> None:
+    def save_tsv(self, df: pd.DataFrame, path_str: str | Path) -> Path:
         """Save a dataframe in tsv format"""
-        self.make_parent_dirs(path_str)
-        df.to_csv(path_str, sep='\t', index=False, float_format='%.3f')
+        path = Path(path_str)
+        self.make_parent_dirs(path)
+        df.to_csv(path, sep='\t', index=False, float_format='%.3f')
+        
+        logging.info(f'TSV file saved at: {path.relative_to("./")}')
+        return path
 
     def make_parent_dirs(self, path_str: str | Path) -> None:
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
 
-    def append_tsv(self, df: pd.DataFrame, path_str: str | Path) -> None:
+    def append_tsv(self, df: pd.DataFrame, path_str: str | Path) -> Path:
         """Append a dataframe to a tsv if it exists, otherwise create"""
         path = Path(path_str)
         if path.is_file():
             target_df = pd.read_csv(path, sep='\t')
             pd.concat([df, target_df], join='outer', ignore_index=True)\
                 .to_csv(path, sep='\t', index=False, float_format='%3f')
-            return
+            return path
 
-        self.save_tsv(df, path_str)
+        return self.save_tsv(df, path_str)
 
 
 class PlotUtil:

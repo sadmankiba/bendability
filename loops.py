@@ -657,6 +657,11 @@ class MultiChrmMeanLoopsCollector:
 
         return num_loops_lt_nl_col
 
+    def get_col(self, func_id: int):
+        col_map = {
+            12: 'num_loops'
+        }
+        
     def save_avg_c0_stat(self,
                          mean_methods: list[int] | None = None,
                          subtract_chrm=True) -> str:
@@ -682,7 +687,7 @@ class MultiChrmMeanLoopsCollector:
             10: self._add_anchor_center_bp,
             11: self._add_quartile_len_anchor_center_bp,
             12: self._add_num_loops,
-            13: self._add_num_loops_gt_non_loop
+            13: self._add_num_loops_lt_non_loop
         }
 
         # Select all
@@ -698,7 +703,7 @@ class MultiChrmMeanLoopsCollector:
         self._mcloop_df['model'] = np.full((len(self._mcloop_df), ),
                                            str(self._prediction))
 
-        save_df_path = f'data/generated_data/mcloop/multichr_avg_c0_stat_{self}.tsv'
+        save_df_path = f'data/generated_data/mcloops/multichr_avg_c0_stat_{self}.tsv'
         IOUtil().append_tsv(
             self._mcloop_df,
             save_df_path
@@ -745,6 +750,24 @@ class MultiChrmMeanLoopsCollector:
         IOUtil().save_figure(
             f'figures/mcloop/loop_cover_{self}.png')
 
+
+class MultiChrmMeanLoopsAggregator:
+    def __init__(self, coll: MultiChrmMeanLoopsCollector):
+        self._coll = coll
+        self._agg_df = pd.DataFrame({'ChrIDs': [coll._mcloop_df['ChrID'].tolist()] })
+
+    def _loop_lt_nl(self):
+        self._coll.save_avg_c0_stat([12, 13], False)
+        lp_lt_nl = self._coll._mcloop_df['num_loops_lt_nl'].sum() \
+            / self._coll._mcloop_df['num_loops'].sum()
+        self._agg_df['loop_lt_nl'] = lp_lt_nl * 100
+
+    def save_stat(self) -> Path:
+        self._loop_lt_nl()
+
+        save_df_path = f'data/generated_data/mcloops/agg_stat_{self._coll}.tsv'
+        return IOUtil().append_tsv(self._agg_df, save_df_path)
+        
 
 class CoverLoops:
     def __init__(self, loops: Loops):
