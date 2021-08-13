@@ -719,7 +719,7 @@ class MultiChrmMeanLoopsCollector:
 
     def save_avg_c0_stat(self,
                          mean_methods: list[int] | None = None,
-                         subtract_chrm=True) -> str:
+                         subtract_chrm=True) -> Path:
         """
         Args:
             mean_methods: A list of int. Between 0-11 (inclusive)

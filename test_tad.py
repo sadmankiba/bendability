@@ -60,7 +60,11 @@ class TestHicExplBoundaries:
         non_prmtr_bndrs_gt = bndrs.num_non_prmtr_bndry_mean_c0_greater_than_dmns()
         assert bndrs_gt == prmtr_bndrs_gt + non_prmtr_bndrs_gt
 
-
+    def test_plot_scatter_mean_c0_each_bndry(self):
+        bndrs = HicExplBoundaries(Chromosome('VL'))
+        path = bndrs.plot_scatter_mean_c0_each_bndry()
+        assert path.is_file()
+        
 class TestMultiChrmHicExplBoundariesCollector:
     def test_add_dmns_mean(self):
         coll = MultiChrmHicExplBoundariesCollector(Prediction(30), ('VI', 'VII'))

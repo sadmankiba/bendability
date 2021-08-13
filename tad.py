@@ -31,7 +31,10 @@ class HicExplBoundaries:
         self._lim = lim 
         self._add_mean_c0_col()
         self._add_in_promoter_col()
-
+    
+    def __str__(self):
+        return f'res_{self._res}_lim_{self._lim}_{self._chrm}'
+    
     def _read_boundaries(self) -> pd.DataFrame:
         return pd.read_table(f'data/input_data/domains/'
             f'{self._chrm._chr_num}_res_{self._res}_hicexpl_boundaries.bed',
@@ -91,6 +94,41 @@ class HicExplBoundaries:
     def num_non_prmtr_bndry_mean_c0_greater_than_dmns(self) -> float:
         _, dmns_mean_c0 = self.bndry_domain_mean_c0()
         return (self.bndrs_df.query('not in_promoter')['mean_c0'] > dmns_mean_c0).sum()
+
+    def plot_scatter_mean_c0_each_bndry(self) -> Path:
+        markers = ['o', 's']
+        labels = [ 'promoter', 'non-promoter']
+        colors = ['tab:blue', 'tab:orange']
+        
+        plt.close()
+        plt.clf()
+
+        PlotUtil().show_grid()
+
+        p_x = self.bndrs_df.query('in_promoter')['middle']
+        np_x = self.bndrs_df.query('not in_promoter')['middle']
+        plt.scatter(p_x, self.bndrs_df.query('in_promoter')['mean_c0'], marker=markers[0], label=labels[0], color=colors[0])
+        plt.scatter(np_x, self.bndrs_df.query('not in_promoter')['mean_c0'], marker=markers[1], label=labels[1], color=colors[1])
+        
+        # Plot horizontal lines for mean C0 of non-loop nuc, linker 
+        horiz_colors = ['tab:green', 'tab:red', 'tab:purple']
+        bndrs_mean_c0, dmns_mean_c0 = self.bndry_domain_mean_c0()
+        chrm_mean_c0 = self._chrm.get_spread().mean()
+        PlotUtil().plot_horizontal_line(dmns_mean_c0, horiz_colors[0], 'domains')
+        PlotUtil().plot_horizontal_line(chrm_mean_c0, horiz_colors[1], 'chromosome')
+        PlotUtil().plot_horizontal_line(bndrs_mean_c0, horiz_colors[2], 'boundaries')
+
+        # Decorate
+        plt.xlabel('Position along chromosome (bp)')
+        plt.ylabel('Mean C0')
+        plt.title(
+            f'Comparison of mean {self._chrm._c0_type} C0 among boundaries'
+            f' in chromosome {self._chrm._chr_num}'
+        )
+        plt.legend() 
+        
+        return IOUtil().save_figure(
+            f'figures/domains/mean_c0_scatter_{self}.png')
 
 
 
@@ -363,6 +401,12 @@ class MultiChrmHicExplBoundariesAggregator:
         self._agg_df['np_b_gt_d'] = self._coll._coll_df[self._coll.col_for(6)].sum() \
             / self._coll._coll_df[self._coll.col_for(8)].sum() * 100
     
+    def _num_bndrs(self):
+        self._coll.save_stat([0, 7, 8])
+        self._agg_df['num_b'] = self._coll._coll_df[self._coll.col_for(0)].sum()
+        self._agg_df['num_p_b'] = self._coll._coll_df[self._coll.col_for(7)].sum()
+        self._agg_df['num_np_b'] = self._coll._coll_df[self._coll.col_for(8)].sum()
+
     def save_stat(self):
         self._bndrs_gt_dmns()
         self._p_bndrs_gt_dmns()
