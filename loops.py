@@ -103,7 +103,7 @@ class Loops:
         mean_cols = ['mean_c0_full', 'mean_c0_nuc', 'mean_c0_linker']
         
         if all(list(map(lambda col : col in self._loop_df.columns, mean_cols))):
-            return mean_cols
+            return pd.Series(mean_cols)
 
         c0_spread = self._chr.get_spread()
         nucs = Nucleosome(self._chr)
@@ -569,6 +569,7 @@ class MultiChrmMeanLoopsCollector:
         self._mcloop_df[non_loop_nuc_linker_cols] = pd.DataFrame(
             self._create_multiple_col(MeanLoops.in_non_loop_nuc_linker),
             columns=non_loop_nuc_linker_cols)
+        return non_loop_nuc_linker_cols
 
     def _add_quartile_by_len(self) -> None:
         quart_len_cols = [
@@ -640,14 +641,19 @@ class MultiChrmMeanLoopsCollector:
         return 'num_loops'
     
     def _add_num_loops_lt_non_loop(self) -> Literal['num_loops_lt_nl']:
+        # TODO: Use func id and col_for 
         num_loops_lt_nl_col = 'num_loops_lt_nl'
         
         if num_loops_lt_nl_col in self._mcloop_df.columns:
             return num_loops_lt_nl_col
         
+        # Add mean c0 in each loop in loops object 
         mean_cols = self._mcmloops.apply(lambda mloops: mloops._loops.add_mean_c0()).iloc[0]
+        
+        # Add non loop mean of each chromosome to this object 
         non_loop_col = self._add_non_loop_mean()
 
+        # Compare mean c0 of whole loop and non loop
         mcmloops = pd.Series(self._mcmloops, name='mcmloops')
         self._mcloop_df[num_loops_lt_nl_col] = pd.DataFrame(mcmloops).apply(
             lambda mloops: (mloops['mcmloops']._loops._loop_df[mean_cols[0]] 
@@ -657,11 +663,35 @@ class MultiChrmMeanLoopsCollector:
 
         return num_loops_lt_nl_col
 
-    def get_col(self, func_id: int):
-        col_map = {
-            12: 'num_loops'
-        }
+    def _add_num_loops_l_lt_nll(self) -> Literal['num_loops_l_lt_nll']:
+        func_id = 14
+        if self.col_for(func_id) in self._mcloop_df.columns:
+            return self.col_for(func_id)
         
+        # Add mean c0 in each loop in loops object 
+        mean_cols = self._mcmloops.apply(lambda mloops: mloops._loops.add_mean_c0()).iloc[0]
+        
+        # Add non loop linker mean of each chromosome to this object 
+        _, nl_l_col = self._add_non_loop_nuc_linker_mean()
+
+        # Compare mean c0 of linkers in loop and non loop linkers
+        mcmloops = pd.Series(self._mcmloops, name='mcmloops')
+        self._mcloop_df[self.col_for(func_id)] = pd.DataFrame(mcmloops).apply(
+            lambda mloops: (mloops['mcmloops']._loops._loop_df[mean_cols[2]] 
+                < self._mcloop_df.iloc[mloops.name][nl_l_col]).sum(),
+            axis=1
+        )
+
+        return self.col_for(func_id)
+
+    def col_for(self, func_id: int):
+        col_map = {
+            12: 'num_loops',
+            13: 'num_loops_lt_nl', 
+            14: 'num_loops_l_lt_nll'
+        }
+        return col_map[func_id]
+
     def save_avg_c0_stat(self,
                          mean_methods: list[int] | None = None,
                          subtract_chrm=True) -> str:
@@ -687,7 +717,8 @@ class MultiChrmMeanLoopsCollector:
             10: self._add_anchor_center_bp,
             11: self._add_quartile_len_anchor_center_bp,
             12: self._add_num_loops,
-            13: self._add_num_loops_lt_non_loop
+            13: self._add_num_loops_lt_non_loop,
+            14: self._add_num_loops_l_lt_nll
         }
 
         # Select all
@@ -758,12 +789,23 @@ class MultiChrmMeanLoopsAggregator:
 
     def _loop_lt_nl(self):
         self._coll.save_avg_c0_stat([12, 13], False)
-        lp_lt_nl = self._coll._mcloop_df['num_loops_lt_nl'].sum() \
-            / self._coll._mcloop_df['num_loops'].sum()
+        lp_lt_nl = self._coll._mcloop_df[self._coll.col_for(13)].sum() \
+            / self._coll._mcloop_df[self._coll.col_for(12)].sum()
         self._agg_df['loop_lt_nl'] = lp_lt_nl * 100
+    
+    def _loop_l_lt_nll(self):
+        self._coll.save_avg_c0_stat([12, 14], False)
+        self._agg_df['loop_l_lt_nll'] = self._coll._mcloop_df[self._coll.col_for(14)].sum() \
+            / self._coll._mcloop_df[self._coll.col_for(12)].sum() * 100
 
-    def save_stat(self) -> Path:
-        self._loop_lt_nl()
+    def save_stat(self, methods : list[int]) -> Path:
+        method_map = {
+            0: self._loop_lt_nl,
+            1: self._loop_l_lt_nll
+        }
+
+        for m in methods:
+            method_map[m]()
 
         save_df_path = f'data/generated_data/mcloops/agg_stat_{self._coll}.tsv'
         return IOUtil().append_tsv(self._agg_df, save_df_path)

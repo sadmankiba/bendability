@@ -166,6 +166,11 @@ class TestMultiChrmMeanLoopsCollector:
         assert fig_path.is_file()
 
 class TestMultiChrmMeanLoopsAggregator:
+    def test_loop_l_lt_nll(self):
+        aggr = MultiChrmMeanLoopsAggregator(MultiChrmMeanLoopsCollector(Prediction(30), ('X', 'XI')))
+        aggr._loop_l_lt_nll()
+        assert 'loop_l_lt_nll' in aggr._agg_df.columns.tolist()
+
     def test_save_stat(self):
         aggr = MultiChrmMeanLoopsAggregator(
                 MultiChrmMeanLoopsCollector(
