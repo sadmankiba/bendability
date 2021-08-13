@@ -151,7 +151,7 @@ class MultiChrmHicExplBoundariesCollector:
             self._coll_df[c0_dmns_col] = self._mc_bndrs.apply(lambda bndrs: bndrs.bndry_domain_mean_c0()[1])
         
         return c0_dmns_col
-        
+
     def _add_num_bndrs_gt_dmns(self) -> str:
         num_bndrs_gt_dmns_col = 'num_bndrs_gt_dmns'
         if not num_bndrs_gt_dmns_col in self._coll_df.columns:
@@ -166,11 +166,82 @@ class MultiChrmHicExplBoundariesCollector:
             )
         
         return num_bndrs_gt_dmns_col
+    
+    def _add_num_prmtr_bndrs_gt_dmns(self) -> str:
+        method_id = 5
+        if not self.col_for(method_id) in self._coll_df.columns:
+            c0_dmns_col = self._add_dmns_mean()
 
-            
+            # Compare mean C0 of each prmtr bndry and dmns
+            mc_bndrs = pd.Series(self._mc_bndrs, name='mc_bndrs')
+            self._coll_df[self.col_for(method_id)] = pd.DataFrame(mc_bndrs).apply(
+                lambda bndrs: (bndrs['mc_bndrs'].bndrs_df.query('in_promoter')['mean_c0']
+                    > self._coll_df.iloc[bndrs.name][c0_dmns_col]).sum(),
+                axis=1
+            )
+        
+        return self.col_for(method_id)
+    
+    def _add_num_non_prmtr_bndrs_gt_dmns(self) -> str:
+        method_id = 6
+        if not self.col_for(method_id) in self._coll_df.columns:
+            c0_dmns_col = self._add_dmns_mean()
+
+            # Compare mean C0 of each prmtr bndry and dmns
+            mc_bndrs = pd.Series(self._mc_bndrs, name='mc_bndrs')
+            self._coll_df[self.col_for(method_id)] = pd.DataFrame(mc_bndrs).apply(
+                lambda bndrs: (bndrs['mc_bndrs'].bndrs_df.query('not in_promoter')['mean_c0']
+                    > self._coll_df.iloc[bndrs.name][c0_dmns_col]).sum(),
+                axis=1
+            )
+        
+        return self.col_for(method_id)
+
+    def _add_num_prmtr_bndrs(self) -> Literal['num_p_b']:
+        method_id = 7
+        if not self.col_for(method_id) in self._coll_df.columns:
+            self._coll_df[self.col_for(method_id)] = self._mc_bndrs.apply(
+                lambda mc_bndrs: len(mc_bndrs.bndrs_df.query('in_promoter')))
+        
+        return self.col_for(method_id)
+    
+    def _add_num_non_prmtr_bndrs(self) -> Literal['num_np_b']:
+        method_id = 8
+        if not self.col_for(method_id) in self._coll_df.columns:
+            self._coll_df[self.col_for(method_id)] = self._mc_bndrs.apply(
+                lambda mc_bndrs: len(mc_bndrs.bndrs_df.query('not in_promoter')))
+        
+        return self.col_for(method_id)
+
+    def col_for(self, method_id: int) -> str:
+        col_map = {
+            0: 'num_bndrs',
+            1: 'num_dmns', 
+            2: 'c0_bndrs',
+            3: 'c0_dmns',
+            4: 'num_bndrs_gt_dmns',
+            5: 'num_p_b_gt_d',
+            6: 'num_np_b_gt_d',
+            7: 'num_p_b',
+            8: 'num_np_b'
+        }
+        return col_map[method_id]
+
     def save_stat(self, methods: list[int] = None) -> Path:
-        self._add_num_dmns()
-        self._add_num_bndrs()
+        method_map = {
+            0: self._add_num_bndrs,
+            1: self._add_num_dmns,
+            2: self._add_bndrs_mean,
+            3: self._add_dmns_mean,
+            4: self._add_num_bndrs_gt_dmns, 
+            5: self._add_num_prmtr_bndrs_gt_dmns,
+            6: self._add_num_non_prmtr_bndrs_gt_dmns, 
+            7: self._add_num_prmtr_bndrs,
+            8: self._add_num_non_prmtr_bndrs
+        }
+        for m in methods:
+            method_map[m]()
+
         self._coll_df['res'] = np.full((len(self._coll_df), ), self._res)
         self._coll_df['lim'] = np.full((len(self._coll_df), ), self._lim)
         self._coll_df['model'] = np.full((len(self._coll_df), ), str(self._prediction))
@@ -272,5 +343,32 @@ class MultiChrmHicExplBoundariesCollector:
         print('num_mc_non_prmtr_bndrs', num_mc_non_prmtr_bndrs)
         
 
+class MultiChrmHicExplBoundariesAggregator:
+    def __init__(self, coll: MultiChrmHicExplBoundariesCollector):
+        self._coll = coll
+        self._agg_df = pd.DataFrame({'ChrIDs': [coll._coll_df['ChrID'].tolist()]})
 
-        
+    def _bndrs_gt_dmns(self):
+        self._coll.save_stat([0,4])
+        self._agg_df['b_gt_d'] = self._coll._coll_df[self._coll.col_for(4)].sum() \
+            / self._coll._coll_df[self._coll.col_for(0)].sum() * 100
+    
+    def _p_bndrs_gt_dmns(self):
+        self._coll.save_stat([7,5])
+        self._agg_df['p_b_gt_d'] = self._coll._coll_df[self._coll.col_for(5)].sum() \
+            / self._coll._coll_df[self._coll.col_for(7)].sum() * 100
+    
+    def _np_bndrs_gt_dmns(self):
+        self._coll.save_stat([8,6])
+        self._agg_df['np_b_gt_d'] = self._coll._coll_df[self._coll.col_for(6)].sum() \
+            / self._coll._coll_df[self._coll.col_for(8)].sum() * 100
+    
+    def save_stat(self):
+        self._bndrs_gt_dmns()
+        self._p_bndrs_gt_dmns()
+        self._np_bndrs_gt_dmns()
+        self._agg_df['res'] = np.full((len(self._agg_df), ), self._coll._res)
+        self._agg_df['lim'] = np.full((len(self._agg_df), ), self._coll._lim)
+        self._agg_df['model'] = np.full((len(self._agg_df), ), str(self._coll._prediction))
+
+        return IOUtil().append_tsv(self._agg_df, f'data/generated_data/mcdomains/aggr_mcdmns_stat.tsv')

@@ -1,6 +1,6 @@
 from prediction import Prediction
 from chromosome import Chromosome
-from tad import HicExplBoundaries, MultiChrmHicExplBoundariesCollector
+from tad import HicExplBoundaries, MultiChrmHicExplBoundariesAggregator, MultiChrmHicExplBoundariesCollector
 from genes import Genes
 
 from numpy.testing import assert_almost_equal
@@ -79,7 +79,7 @@ class TestMultiChrmHicExplBoundariesCollector:
     def test_save_stat(self):
         # TODO *: Use default prediction 30
         coll = MultiChrmHicExplBoundariesCollector(Prediction(30), ('VII', 'X'))
-        path = coll.save_stat()
+        path = coll.save_stat([0,3,4])
         assert path.is_file()
 
     def test_plot_scatter_mean_c0(self):
@@ -107,3 +107,8 @@ class TestMultiChrmHicExplBoundariesCollector:
         assert xi_ii_mean_dmn > 7000
         assert xi_ii_mean_dmn < 12000
     
+class TestMultiChrmHicExplBoundariesAggregator:
+    def test_save_stat(self):
+        aggr = MultiChrmHicExplBoundariesAggregator(MultiChrmHicExplBoundariesCollector(Prediction(30), ('IX', 'XIV')))
+        path = aggr.save_stat()
+        assert path.is_file()
