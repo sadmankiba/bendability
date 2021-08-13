@@ -60,13 +60,28 @@ class TestHicExplBoundaries:
         non_prmtr_bndrs_gt = bndrs.num_non_prmtr_bndry_mean_c0_greater_than_dmns()
         assert bndrs_gt == prmtr_bndrs_gt + non_prmtr_bndrs_gt
 
+
 class TestMultiChrmHicExplBoundariesCollector:
+    def test_add_dmns_mean(self):
+        coll = MultiChrmHicExplBoundariesCollector(Prediction(30), ('VI', 'VII'))
+        c0_dmns_col = coll._add_dmns_mean()
+        assert c0_dmns_col in coll._coll_df.columns
+        assert all(coll._coll_df[c0_dmns_col] > -0.4)
+        assert all(coll._coll_df[c0_dmns_col] < -0.1)
+        
+    def test_add_num_bndrs_gt_dmns(self):
+        coll = MultiChrmHicExplBoundariesCollector(Prediction(30), ('VI', 'VII'))
+        num_bndrs_gt_dmns_col = coll._add_num_bndrs_gt_dmns()
+        assert num_bndrs_gt_dmns_col in coll._coll_df.columns
+        assert all(coll._coll_df[num_bndrs_gt_dmns_col] > 10)
+        assert all(coll._coll_df[num_bndrs_gt_dmns_col] < 200)
+
     def test_save_stat(self):
         # TODO *: Use default prediction 30
         coll = MultiChrmHicExplBoundariesCollector(Prediction(30), ('VII', 'X'))
         path = coll.save_stat()
         assert path.is_file()
-        
+
     def test_plot_scatter_mean_c0(self):
         mcbndrs = MultiChrmHicExplBoundariesCollector(Prediction(), ('VII','XII','XIII'))
         path = mcbndrs.plot_scatter_mean_c0()

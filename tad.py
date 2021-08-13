@@ -47,6 +47,7 @@ class HicExplBoundaries:
         return dmns_df.assign(len=lambda df: df['end'] - df['start'])
 
     def _add_mean_c0_col(self) -> None:
+        """Add mean c0 of each bndry"""
         self.bndrs_df = self.bndrs_df.assign(mean_c0=lambda df:
             self._chrm.mean_c0_at_bps(df['middle'], self._lim, self._lim))
 
@@ -94,7 +95,8 @@ class HicExplBoundaries:
 
 
 # TODO: 
-# Create common MultiChrm Class for loops and boundaries. Factory? Composition?
+# - Create common MultiChrm Class for loops and boundaries. Factory? Composition?
+# - Have smaller name
 class MultiChrmHicExplBoundariesCollector:
     def __init__(self, 
                 prediction: Prediction, 
@@ -117,7 +119,7 @@ class MultiChrmHicExplBoundariesCollector:
         return pd.Series(list(map(
             lambda chrm_id: Chromosome(chrm_id, self._prediction), self._chrids)))
 
-    def _get_mc_bndrs(self) -> pd.Series:
+    def _get_mc_bndrs(self) -> pd.Series[HicExplBoundaries]:
         return self._chrms.apply(lambda chrm: HicExplBoundaries(chrm, self._res, self._lim))
 
     def _add_num_bndrs(self) -> Literal['num_bndrs']:
@@ -136,6 +138,36 @@ class MultiChrmHicExplBoundariesCollector:
 
         return num_dmns_col
     
+    def _add_bndrs_mean(self) -> Literal['c0_bndrs']:
+        c0_bndrs_col = 'c0_bndrs'
+        if not c0_bndrs_col in self._coll_df.columns:
+            self._coll_df['c0_bndrs'] = self._mc_bndrs.apply(lambda bndrs: bndrs.bndry_domain_mean_c0()[0])
+        
+        return c0_bndrs_col
+    
+    def _add_dmns_mean(self) -> Literal['c0_dmns']:
+        c0_dmns_col = 'c0_dmns'
+        if not c0_dmns_col in self._coll_df.columns:
+            self._coll_df[c0_dmns_col] = self._mc_bndrs.apply(lambda bndrs: bndrs.bndry_domain_mean_c0()[1])
+        
+        return c0_dmns_col
+        
+    def _add_num_bndrs_gt_dmns(self) -> str:
+        num_bndrs_gt_dmns_col = 'num_bndrs_gt_dmns'
+        if not num_bndrs_gt_dmns_col in self._coll_df.columns:
+            c0_dmns_col = self._add_dmns_mean()
+
+            # Compare mean C0 of each bndry and dmns
+            mc_bndrs = pd.Series(self._mc_bndrs, name='mc_bndrs')
+            self._coll_df[num_bndrs_gt_dmns_col] = pd.DataFrame(mc_bndrs).apply(
+                lambda bndrs: (bndrs['mc_bndrs'].bndrs_df['mean_c0']
+                    > self._coll_df.iloc[bndrs.name][c0_dmns_col]).sum(),
+                axis=1
+            )
+        
+        return num_bndrs_gt_dmns_col
+
+            
     def save_stat(self, methods: list[int] = None) -> Path:
         self._add_num_dmns()
         self._add_num_bndrs()
