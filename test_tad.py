@@ -1,6 +1,6 @@
 from prediction import Prediction
 from chromosome import Chromosome
-from tad import HicExplBoundaries, MultiChrmHicExplBoundaries
+from tad import HicExplBoundaries, MultiChrmHicExplBoundariesCollector
 from genes import Genes
 
 from numpy.testing import assert_almost_equal
@@ -60,14 +60,14 @@ class TestHicExplBoundaries:
         non_prmtr_bndrs_gt = bndrs.num_non_prmtr_bndry_mean_c0_greater_than_dmns()
         assert bndrs_gt == prmtr_bndrs_gt + non_prmtr_bndrs_gt
 
-class TestMultiChrmHicExplBoundaries:
+class TestMultiChrmHicExplBoundariesCollector:
     def test_plot_scatter_mean_c0(self):
-        mcbndrs = MultiChrmHicExplBoundaries(Prediction(), ('VII','XII','XIII'))
+        mcbndrs = MultiChrmHicExplBoundariesCollector(Prediction(), ('VII','XII','XIII'))
         path = mcbndrs.plot_scatter_mean_c0()
         assert path.is_file()
     
     def test_plot_bar_perc_in_prmtrs(self):
-        mcbndrs = MultiChrmHicExplBoundaries(Prediction(30), ('VII','XII','XIII'))
+        mcbndrs = MultiChrmHicExplBoundariesCollector(Prediction(30), ('VII','XII','XIII'))
         path = mcbndrs.plot_bar_perc_in_prmtrs()
         assert path.is_file()
     
@@ -77,8 +77,8 @@ class TestMultiChrmHicExplBoundaries:
             * If two mean boundaries are withing +-10%. 
             * mean_dmn is within 7000 - 12000bp
         """
-        mcbndrs_xi_ii = MultiChrmHicExplBoundaries(Prediction(30), ('XI', 'II'))
-        mcbndrs_vii = MultiChrmHicExplBoundaries(Prediction(30), ('VII'))
+        mcbndrs_xi_ii = MultiChrmHicExplBoundariesCollector(Prediction(30), ('XI', 'II'))
+        mcbndrs_vii = MultiChrmHicExplBoundariesCollector(Prediction(30), ('VII'))
         xi_ii_mean_dmn = mcbndrs_xi_ii.mean_dmn_len()
         vii_mean_dmn = mcbndrs_vii.mean_dmn_len()
         assert xi_ii_mean_dmn > vii_mean_dmn * 0.9

@@ -94,7 +94,7 @@ class HicExplBoundaries:
 
 # TODO: 
 # Create common MultiChrm Class for loops and boundaries. Factory? Composition?
-class MultiChrmHicExplBoundaries:
+class MultiChrmHicExplBoundariesCollector:
     def __init__(self, 
                 prediction: Prediction, 
                 chrids: tuple[ChrId] = ChrIdList, 
@@ -104,6 +104,7 @@ class MultiChrmHicExplBoundaries:
         self._chrids = chrids
         self._res = res
         self._lim = lim
+        self._coll_df = None
 
     def __str__(self):
         ext = 'with_vl' if 'VL' in self._chrids else 'without_vl'
