@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 
 from pathlib import Path
+from typing import Literal
 
 class HicExplBoundaries:
     """
@@ -98,13 +99,15 @@ class MultiChrmHicExplBoundariesCollector:
     def __init__(self, 
                 prediction: Prediction, 
                 chrids: tuple[ChrId] = ChrIdList, 
-                res: PositiveInt = 400,
-                lim: PositiveInt = 200):
+                res: PositiveInt = 500,
+                lim: PositiveInt = 250):
         self._prediction = prediction
         self._chrids = chrids
         self._res = res
         self._lim = lim
-        self._coll_df = None
+        self._coll_df = pd.DataFrame({'ChrID': chrids})
+        self._chrms = self._get_chrms()
+        self._mc_bndrs = self._get_mc_bndrs()
 
     def __str__(self):
         ext = 'with_vl' if 'VL' in self._chrids else 'without_vl'
@@ -115,15 +118,42 @@ class MultiChrmHicExplBoundariesCollector:
             lambda chrm_id: Chromosome(chrm_id, self._prediction), self._chrids)))
 
     def _get_mc_bndrs(self) -> pd.Series:
-        return self._get_chrms().apply(lambda chrm: HicExplBoundaries(chrm, self._res, self._lim))
+        return self._chrms.apply(lambda chrm: HicExplBoundaries(chrm, self._res, self._lim))
+
+    def _add_num_bndrs(self) -> Literal['num_bndrs']:
+        num_bndrs_col = 'num_bndrs'
+        if not num_bndrs_col in self._coll_df.columns:
+            self._coll_df[num_bndrs_col] = self._mc_bndrs.apply(
+                lambda mc_bndrs: len(mc_bndrs.bndrs_df))
+        
+        return num_bndrs_col
+    
+    def _add_num_dmns(self) -> str: 
+        num_dmns_col = 'num_dmns'
+        if not num_dmns_col in self._coll_df.columns:
+            num_bndrs_col = self._add_num_bndrs()
+            self._coll_df[num_dmns_col] = self._coll_df[num_bndrs_col] - 1
+
+        return num_dmns_col
+    
+    def save_stat(self, methods: list[int] = None) -> Path:
+        self._add_num_dmns()
+        self._add_num_bndrs()
+        self._coll_df['res'] = np.full((len(self._coll_df), ), self._res)
+        self._coll_df['lim'] = np.full((len(self._coll_df), ), self._lim)
+        self._coll_df['model'] = np.full((len(self._coll_df), ), str(self._prediction))
+
+        return IOUtil().append_tsv(self._coll_df,
+            f'data/generated_data/mcdomains/mcdmns_stat.tsv'
+        )
 
     def plot_scatter_mean_c0(self) -> Path:
         """Draw scatter plot of mean c0 at boundaries and domains of
         chromosomes"""
-        chrms = self._get_chrms()
+        chrms = self._chrms
         chrm_means = chrms.apply(lambda chrm: chrm.get_spread().mean())
         
-        mc_bndrs = self._get_mc_bndrs()
+        mc_bndrs = self._mc_bndrs
         mc_prmtr_bndrs_c0 = mc_bndrs.apply(lambda bndrs: bndrs.prmtr_bndrs_mean_c0())
         mc_non_prmtr_bndrs_c0 = mc_bndrs.apply(
             lambda bndrs: bndrs.non_prmtr_bndrs_mean_c0())
@@ -157,7 +187,7 @@ class MultiChrmHicExplBoundariesCollector:
         return IOUtil().save_figure(f'figures/mcdomains/bndrs_dmns_c0_{self}.png')
     
     def plot_bar_perc_in_prmtrs(self) -> Path:
-        chrms = self._get_chrms()
+        chrms = self._chrms
         mc_bndrs = chrms.apply(lambda chrm: HicExplBoundaries(chrm, self._res))
         perc_in_prmtrs = mc_bndrs.apply(
             lambda bndrs: Genes(bndrs._chrm)
@@ -174,20 +204,20 @@ class MultiChrmHicExplBoundariesCollector:
         return IOUtil().save_figure(f'figures/mcdomains/perc_bndrs_in_promoters_{self}.png')
     
     def num_bndrs_dmns(self) -> tuple[float, float]:  
-        mc_bndrs = self._get_mc_bndrs()
+        mc_bndrs = self._mc_bndrs
         num_bndrs = mc_bndrs.apply(lambda bndrs: len(bndrs.bndrs_df)).sum()
         num_dmns = num_bndrs - len(self._chrids)
         return num_bndrs, num_dmns
     
     def mean_dmn_len(self) -> float: 
-        mc_bndrs = self._get_mc_bndrs()
+        mc_bndrs = self._mc_bndrs
         return mc_bndrs.apply(
             lambda bndrs: bndrs.get_domains()['len'].sum()).sum()\
                 / self.num_bndrs_dmns()[1]
     
     def individual_bndry_stat(self) -> None: 
         # TODO: Reduce function calls. Access index with .name if needed.  
-        mc_bndrs = self._get_mc_bndrs()
+        mc_bndrs = self._mc_bndrs
         num_mc_bndrs_gt = mc_bndrs.apply(
             lambda bndrs: HicExplBoundaries.num_bndry_mean_c0_greater_than_dmn(bndrs)).sum()
         print('num_mc_bndrs_gt', num_mc_bndrs_gt)
