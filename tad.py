@@ -408,6 +408,7 @@ class MultiChrmHicExplBoundariesAggregator:
         self._agg_df['num_np_b'] = self._coll._coll_df[self._coll.col_for(8)].sum()
 
     def save_stat(self):
+        self._num_bndrs()
         self._bndrs_gt_dmns()
         self._p_bndrs_gt_dmns()
         self._np_bndrs_gt_dmns()

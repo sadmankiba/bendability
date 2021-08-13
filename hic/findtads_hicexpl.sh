@@ -4,7 +4,7 @@ time_dir="`date +%H_%M`"
 bndry_dir=./data/generated_data/boundaries/$date_dir/$time_dir
 mkdir -p $bndry_dir
 
-min_depth=2000
+min_depth=1000
 max_depth=10000
 step=1000
 thres_comparison=0.05
@@ -19,7 +19,7 @@ echo "thres_comparison=${thres_comparison}" >> $config_file
 echo "delta=${delta}" >> $config_file 
 echo "correct_for_multiple_testing=${correct_for_multiple_testing}" >> $config_file
 
-res=500
+res=200
 
 for chrm in I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI
 do
