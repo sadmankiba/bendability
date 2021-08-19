@@ -19,6 +19,8 @@ import math
 from pathlib import Path
 import itertools
 from typing import Literal
+import functools
+import operator
 
 
 class MeanLoops:
@@ -176,7 +178,6 @@ class MultiChrmMeanLoopsCollector:
     OP_NUM_LOOPS_LT_NON_LOOP = 13 
     OP_NUM_LOOPS_L_LT_NLL = 14 
     OP_NUM_LOOPS_N_LT_NLN = 15
-    OP_LOOPS_DATA = 16
 
     def __init__(self, 
                 prediction : Prediction, 
@@ -391,25 +392,12 @@ class MultiChrmMeanLoopsCollector:
 
         return self.col_for(func_id)
 
-    def _add_loops_data(self) -> Literal['loops_data']:
-        func_id = self.OP_LOOPS_DATA
-        if self.col_for(func_id) in self._mcloop_df.columns:
-            return self.col_for(func_id)
-
-        self._mcloops.apply(lambda loops: loops.add_mean_c0())
-        self._mcloop_df[self.col_for(func_id)] = self._mcloops.apply(
-            lambda loops: [loops[i] for i in range(len(loops))]
-        )
-
-        return self.col_for(func_id)
-
     def col_for(self, func_id: int):
         col_map = {
             self.OP_NUM_LOOPS: 'num_loops',
             self.OP_NUM_LOOPS_LT_NON_LOOP: 'num_loops_lt_nl', 
             self.OP_NUM_LOOPS_L_LT_NLL: 'num_loops_l_lt_nll',
-            self.OP_NUM_LOOPS_N_LT_NLN: 'num_loops_n_lt_nln',
-            self.OP_LOOPS_DATA: 'loops_data'
+            self.OP_NUM_LOOPS_N_LT_NLN: 'num_loops_n_lt_nln'
         }
         return col_map[func_id]
 
@@ -503,6 +491,14 @@ class MultiChrmMeanLoopsCollector:
         IOUtil().save_figure(
             f'figures/mcloop/loop_cover_{self}.png')
 
+    def get_loops_data(self) -> list[pd.Series]:
+        """Get list of individual loops"""
+        self._mcloops.apply(lambda loops: loops.add_mean_c0())
+        all_loops_data = self._mcloops.apply(
+            lambda loops: [loops[i] for i in range(len(loops))]
+        )
+
+        return functools.reduce(operator.add, all_loops_data.tolist())
 
 class MultiChrmMeanLoopsAggregator:
     """
@@ -540,7 +536,9 @@ class MultiChrmMeanLoopsAggregator:
 
         save_df_path = f'data/generated_data/mcloops/agg_stat_{self._coll}.tsv'
         return IOUtil().append_tsv(self._agg_df, save_df_path)
-        
+
+    def plot_c0_vs_loop_size(self) -> Path: 
+        self._coll.get_loops_data()       
 
 class CoverLoops:
     def __init__(self, loops: Loops):

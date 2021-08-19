@@ -75,11 +75,10 @@ class TestMultiChrmMeanLoopsCollector:
         collector_df = pd.read_csv(path, sep='\t')
         assert np.isnan(collector_df.iloc[0].drop(['ChrID', 'model']).astype(float)).any() == False
 
-    def test_add_loops_data(self):
+    def test_get_loops_data(self):
         coll = MultiChrmMeanLoopsCollector(Prediction(30), ('VL', 'VII'))
-        col_loops_data = coll._add_loops_data()
-        assert len(coll._mcloop_df[col_loops_data][0]) == len((coll._mcloops)[0])
-        assert len(coll._mcloop_df[col_loops_data][1]) == len((coll._mcloops)[1])
+        all_loops = coll.get_loops_data()
+        assert len(all_loops) == len((coll._mcloops)[0]) + len((coll._mcloops)[1])
         
     def test_save_stat_partial_call(self):
         path = Path(MultiChrmMeanLoopsCollector(None, ('VL', )).save_avg_c0_stat([0, 1, 3, 5],
