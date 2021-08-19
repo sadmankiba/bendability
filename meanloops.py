@@ -176,6 +176,7 @@ class MultiChrmMeanLoopsCollector:
     OP_NUM_LOOPS_LT_NON_LOOP = 13 
     OP_NUM_LOOPS_L_LT_NLL = 14 
     OP_NUM_LOOPS_N_LT_NLN = 15
+    OP_LOOPS_DATA = 16
 
     def __init__(self, 
                 prediction : Prediction, 
@@ -370,7 +371,7 @@ class MultiChrmMeanLoopsCollector:
 
     def _add_num_loops_n_lt_nln(self) -> Literal['num_loops_n_lt_nln']:
         # TODO: Refactor -> reduce duplicate code  
-        func_id = 15
+        func_id = self.OP_NUM_LOOPS_N_LT_NLN
         if self.col_for(func_id) in self._mcloop_df.columns:
             return self.col_for(func_id)
         
@@ -390,12 +391,25 @@ class MultiChrmMeanLoopsCollector:
 
         return self.col_for(func_id)
 
+    def _add_loops_data(self) -> Literal['loops_data']:
+        func_id = self.OP_LOOPS_DATA
+        if self.col_for(func_id) in self._mcloop_df.columns:
+            return self.col_for(func_id)
+
+        self._mcloops.apply(lambda loops: loops.add_mean_c0())
+        self._mcloop_df[self.col_for(func_id)] = self._mcloops.apply(
+            lambda loops: [loops[i] for i in range(len(loops))]
+        )
+
+        return self.col_for(func_id)
+
     def col_for(self, func_id: int):
         col_map = {
             self.OP_NUM_LOOPS: 'num_loops',
             self.OP_NUM_LOOPS_LT_NON_LOOP: 'num_loops_lt_nl', 
             self.OP_NUM_LOOPS_L_LT_NLL: 'num_loops_l_lt_nll',
-            self.OP_NUM_LOOPS_N_LT_NLN: 'num_loops_n_lt_nln'
+            self.OP_NUM_LOOPS_N_LT_NLN: 'num_loops_n_lt_nln',
+            self.OP_LOOPS_DATA: 'loops_data'
         }
         return col_map[func_id]
 
@@ -488,9 +502,6 @@ class MultiChrmMeanLoopsCollector:
         plt.title(f'Loop cover percentage in whole chromosome with max length = {self._mxlen}')
         IOUtil().save_figure(
             f'figures/mcloop/loop_cover_{self}.png')
-
-    def plot_c0_loop_size(self):
-        pass
 
 
 class MultiChrmMeanLoopsAggregator:
