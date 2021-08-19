@@ -1,6 +1,5 @@
 from __future__ import annotations
 from nucleosome import Nucleosome
-from typing import IO
 
 from custom_types import ChrId
 from prediction import Prediction
@@ -492,9 +491,28 @@ class MeanLoops:
 
 class MultiChrmMeanLoopsCollector:
     """
-    Class to accumulate various mean functions in loops in a dataframe for
-    side-by-side comparison. 
+    Class to accumulate various mean operations in loops in each chromosome.
+    
+    Result is stored in a dataframe for side-by-side comparison. The dataframe 
+    contains a row for each chromosome.
     """
+    OP_CHRM_MEAN = 0
+    OP_CHRM_NUC_LINKER_MEAN = 1
+    OP_LOOP_COVER_FRAC = 2
+    OP_LOOP_MEAN = 3
+    OP_LOOP_NUC_LINKER_MEAN = 4
+    OP_NON_LOOP_MEAN = 5
+    OP_NON_LOOP_NUC_LINKER_MEAN = 6
+    OP_QUARTILE_BY_LEN = 7
+    OP_QUARTILE_BY_POS = 8
+    OP_QUARTILE_BY_LEN_POS = 9
+    OP_ANCHOR_CENTER_BP = 10 
+    OP_QUARTILE_LEN_ANCHOR_CENTER_BP = 11
+    OP_NUM_LOOPS = 12 
+    OP_NUM_LOOPS_LT_NON_LOOP = 13 
+    OP_NUM_LOOPS_L_LT_NLL = 14 
+    OP_NUM_LOOPS_N_LT_NLN = 15
+
     def __init__(self, 
                 prediction : Prediction, 
                 chrids: tuple[ChrId] = ChrIdList, 
@@ -504,8 +522,8 @@ class MultiChrmMeanLoopsCollector:
         self._prediction = prediction
         self._chrs = self._get_chromosomes()
         
-        mcloops = self._chrs.apply(lambda chrm: Loops(chrm, mxlen))
-        self._mcmloops = mcloops.apply(lambda loops: MeanLoops(loops))
+        self._mcloops = self._chrs.apply(lambda chrm: Loops(chrm, mxlen))
+        self._mcmloops = self._mcloops.apply(lambda loops: MeanLoops(loops))
         self._mcnucs = self._chrs.apply(lambda chrm: Nucleosome(chrm))
         self._mxlen = mxlen
     
@@ -710,10 +728,10 @@ class MultiChrmMeanLoopsCollector:
 
     def col_for(self, func_id: int):
         col_map = {
-            12: 'num_loops',
-            13: 'num_loops_lt_nl', 
-            14: 'num_loops_l_lt_nll',
-            15: 'num_loops_n_lt_nln'
+            self.OP_NUM_LOOPS: 'num_loops',
+            self.OP_NUM_LOOPS_LT_NON_LOOP: 'num_loops_lt_nl', 
+            self.OP_NUM_LOOPS_L_LT_NLL: 'num_loops_l_lt_nll',
+            self.OP_NUM_LOOPS_N_LT_NLN: 'num_loops_n_lt_nln'
         }
         return col_map[func_id]
 
@@ -729,22 +747,22 @@ class MultiChrmMeanLoopsCollector:
             The path where dataframe is saved
         """
         method_map = {
-            0: self._add_chrm_mean,
-            1: self._add_chrm_nuc_linker_mean,
-            2: self._add_loop_cover_frac,
-            3: self._add_loop_mean,
-            4: self._add_loop_nuc_linker_mean,
-            5: self._add_non_loop_mean,
-            6: self._add_non_loop_nuc_linker_mean,
-            7: self._add_quartile_by_len,
-            8: self._add_quartile_by_pos,
-            9: self._add_quartile_by_len_pos,
-            10: self._add_anchor_center_bp,
-            11: self._add_quartile_len_anchor_center_bp,
-            12: self._add_num_loops,
-            13: self._add_num_loops_lt_non_loop,
-            14: self._add_num_loops_l_lt_nll, 
-            15: self._add_num_loops_n_lt_nln
+            self.OP_CHRM_MEAN: self._add_chrm_mean,
+            self.OP_CHRM_NUC_LINKER_MEAN: self._add_chrm_nuc_linker_mean,
+            self.OP_LOOP_COVER_FRAC: self._add_loop_cover_frac,
+            self.OP_LOOP_MEAN: self._add_loop_mean,
+            self.OP_LOOP_NUC_LINKER_MEAN: self._add_loop_nuc_linker_mean,
+            self.OP_NON_LOOP_MEAN: self._add_non_loop_mean,
+            self.OP_NON_LOOP_NUC_LINKER_MEAN: self._add_non_loop_nuc_linker_mean,
+            self.OP_QUARTILE_BY_LEN: self._add_quartile_by_len,
+            self.OP_QUARTILE_BY_POS: self._add_quartile_by_pos,
+            self.OP_QUARTILE_BY_LEN_POS: self._add_quartile_by_len_pos,
+            self.OP_ANCHOR_CENTER_BP: self._add_anchor_center_bp,
+            self.OP_QUARTILE_LEN_ANCHOR_CENTER_BP: self._add_quartile_len_anchor_center_bp,
+            self.OP_NUM_LOOPS: self._add_num_loops,
+            self.OP_NUM_LOOPS_LT_NON_LOOP: self._add_num_loops_lt_non_loop,
+            self.OP_NUM_LOOPS_L_LT_NLL: self._add_num_loops_l_lt_nll, 
+            self.OP_NUM_LOOPS_N_LT_NLN: self._add_num_loops_n_lt_nln
         }
 
         # Select all
@@ -807,27 +825,33 @@ class MultiChrmMeanLoopsCollector:
         IOUtil().save_figure(
             f'figures/mcloop/loop_cover_{self}.png')
 
+    def plot_c0_loop_size(self):
+        pass
+
 
 class MultiChrmMeanLoopsAggregator:
+    """
+    Class to find aggregated statistics of loops in all chromosomes
+    """
     def __init__(self, coll: MultiChrmMeanLoopsCollector):
         self._coll = coll
         self._agg_df = pd.DataFrame({'ChrIDs': [coll._mcloop_df['ChrID'].tolist()] })
 
     def _loop_lt_nl(self):
-        self._coll.save_avg_c0_stat([12, 13], False)
-        lp_lt_nl = self._coll._mcloop_df[self._coll.col_for(13)].sum() \
-            / self._coll._mcloop_df[self._coll.col_for(12)].sum()
+        self._coll.save_avg_c0_stat([self._coll.OP_NUM_LOOPS, self._coll.OP_NUM_LOOPS_LT_NON_LOOP], False)
+        lp_lt_nl = self._coll._mcloop_df[self._coll.col_for(self._coll.OP_NUM_LOOPS_LT_NON_LOOP)].sum() \
+            / self._coll._mcloop_df[self._coll.col_for(self._coll.OP_NUM_LOOPS)].sum()
         self._agg_df['loop_lt_nl'] = lp_lt_nl * 100
     
     def _loop_l_lt_nll(self):
-        self._coll.save_avg_c0_stat([12, 14], False)
-        self._agg_df['loop_l_lt_nll'] = self._coll._mcloop_df[self._coll.col_for(14)].sum() \
-            / self._coll._mcloop_df[self._coll.col_for(12)].sum() * 100
+        self._coll.save_avg_c0_stat([self._coll.OP_NUM_LOOPS, self._coll.OP_NUM_LOOPS_L_LT_NLL], False)
+        self._agg_df['loop_l_lt_nll'] = self._coll._mcloop_df[self._coll.col_for(self._coll.OP_NUM_LOOPS_L_LT_NLL)].sum() \
+            / self._coll._mcloop_df[self._coll.col_for(self._coll.OP_NUM_LOOPS)].sum() * 100
     
     def _loop_l_lt_nln(self):
-        self._coll.save_avg_c0_stat([12, 15], False)
-        self._agg_df['loop_n_lt_nln'] = self._coll._mcloop_df[self._coll.col_for(15)].sum() \
-            / self._coll._mcloop_df[self._coll.col_for(12)].sum() * 100
+        self._coll.save_avg_c0_stat([self._coll.OP_NUM_LOOPS, self._coll.OP_NUM_LOOPS_N_LT_NLN], False)
+        self._agg_df['loop_n_lt_nln'] = self._coll._mcloop_df[self._coll.col_for(self._coll.OP_NUM_LOOPS_N_LT_NLN)].sum() \
+            / self._coll._mcloop_df[self._coll.col_for(self._coll.OP_NUM_LOOPS)].sum() * 100
 
     def save_stat(self, methods : list[int]) -> Path:
         method_map = {

@@ -176,7 +176,7 @@ class TestMultiChrmMeanLoopsAggregator:
                 MultiChrmMeanLoopsCollector(
                     Prediction(30), ('XIII', 'III', 'IX')))
         
-        path = aggr.save_stat()
+        path = aggr.save_stat([0])
         assert path.is_file()
 
 
