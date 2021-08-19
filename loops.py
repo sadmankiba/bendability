@@ -1,4 +1,5 @@
 from __future__ import annotations
+from custom_types import NonNegativeInt
 
 from nucleosome import Nucleosome
 from chromosome import Chromosome 
@@ -16,6 +17,10 @@ class Loops:
     """
     Abstraction of collection of loops in a single chromosome
     """
+    COL_MEAN_C0_FULL = 'mean_c0_full'
+    COL_MEAN_C0_NUC = 'mean_c0_nuc'
+    COL_MEAN_C0_LINKER = 'mean_c0_linker'
+
     def __init__(self, chrm: Chromosome, mxlen: int = None):
         self._loop_file = f'data/input_data/loops/merged_loops_res_500_chr{chrm._chr_num}.bedpe'
         # TODO: Make _chr, _loop_df public. Used in MeanLoops
@@ -23,6 +28,13 @@ class Loops:
         self._loop_df = self._read_loops()
         if mxlen:
             self.exclude_above_len(mxlen)
+
+    def __len__(self) -> int:
+        return len(self._loop_df)
+
+    def __getitem__(self, key: NonNegativeInt) -> pd.Series:
+        assert key < len(self)
+        return self._loop_df.iloc[key]
 
     def _read_loops(self) -> pd.DataFrame:
         """
@@ -92,7 +104,7 @@ class Loops:
             A tuple: Name of columns appended to dataframe 
         """
         # TODO: Save columns as class attribute
-        mean_cols = ['mean_c0_full', 'mean_c0_nuc', 'mean_c0_linker']
+        mean_cols = [self.COL_MEAN_C0_FULL, self.COL_MEAN_C0_NUC, self.COL_MEAN_C0_LINKER]
         
         if all(list(map(lambda col : col in self._loop_df.columns, mean_cols))):
             return pd.Series(mean_cols)

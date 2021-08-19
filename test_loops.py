@@ -10,6 +10,14 @@ from prediction import Prediction
 
 
 class TestLoops(unittest.TestCase):
+    def test_len(self):
+        loops = Loops(Chromosome('VL', None))
+        assert len(loops) == len(loops._loop_df)
+    
+    def test_getitem(self): 
+        loops = Loops(Chromosome('VL', None))
+        assert loops[10].tolist() == loops._loop_df.iloc[10].tolist()
+
     def test_read_loops(self):
         loop = Loops(Chromosome('VL', None))
         df = loop._read_loops()
