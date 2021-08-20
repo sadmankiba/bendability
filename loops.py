@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+from typing import Iterable, NamedTuple, Literal
 from custom_types import NonNegativeInt
 
 from nucleosome import Nucleosome
@@ -40,6 +42,12 @@ class Loops:
         assert key < len(self)
         return self._loop_df.iloc[key]
 
+    def __iter__(self) -> Iterable[tuple[int, pd.Series]]:
+        return self._loop_df.iterrows()
+
+    def __str__(self):
+        return str(self._chr)
+
     def _read_loops(self) -> pd.DataFrame:
         """
         Reads loop positions from .bedpe file
@@ -62,7 +70,7 @@ class Loops:
                         [['res', 'start', 'end']].astype(int)
 
         return _use_centroids().assign(len=lambda df: df['end'] - df['start'])
-    
+
     def stat_loops(self) -> None:
         """Prints statistics of loops"""
         loop_df = self._loop_df
@@ -131,24 +139,6 @@ class Loops:
         
         return pd.Series(mean_cols)
         
-    def plot_c0_in_individual_loop(self):
-        loop_df = self._loop_df
-
-        for i in range(len(loop_df)):
-            row = loop_df.iloc[i]
-            # TODO: -150% to +150% of loop. Vertical line = loop anchor
-            self._chr.plot_moving_avg(row['start'], row['end'])
-            plt.ylim(-0.7, 0.7)
-            plt.xlabel(f'Position along Chromosome {self._chr._chr_num}')
-            plt.ylabel('Intrinsic Cyclizability')
-            plt.title(
-                f'C0 in loop between {row["start"]}-{row["end"]}. Found with resolution: {row["res"]}.'
-            )
-
-            IOUtil().save_figure(
-                f'figures/loop/{self._chr._chr_id}/{row["start"]}_{row["end"]}.png'
-            )
-
     def _plot_mean_across_loops(self, total_perc: int, chr_spread: np.ndarray,
                                 val_type: str) -> None:
         """
@@ -309,7 +299,6 @@ class Loops:
 
         IOUtil().save_figure(f'figures/loop_anchor/dist_{lim}_{self._chr}.png')
 
-    # TODO: Create separate plotter class that take Loop class
     def plot_mean_nuc_occupancy_across_loops(self, total_perc=150) -> None:
         self._plot_mean_across_loops(
             total_perc,
@@ -365,3 +354,26 @@ class Loops:
 
 
 
+class PlotLoops:
+    def __init__(self, chrm: Chromosome):
+        self._chrm = chrm
+        self._loops = Loops(self._chrm) 
+
+    def plot_c0_in_individual_loop(self) -> list[Path]:
+        paths = []
+        
+        for _, loop in self._loops:
+            # TODO: -150% to +150% of loop. Vertical line = loop anchor
+            self._chrm.plot_moving_avg(loop[Loops.COL_START], loop[Loops.COL_END])
+            plt.ylim(-0.7, 0.7)
+            plt.xlabel(f'Position along Chromosome {self._chrm._chr_num}')
+            plt.ylabel('Intrinsic Cyclizability')
+            plt.title(
+                f'C0 in loop between {loop[Loops.COL_START]}-{loop[Loops.COL_END]}. Found with resolution: {loop[Loops.COL_RES]}.'
+            )
+
+            paths.append(IOUtil().save_figure(
+                f'figures/loops/{self._chrm._chr_id}/individual_mean_c0_{loop[Loops.COL_START]}_{loop[Loops.COL_END]}_{self._loops}.png'
+            ))
+
+        return paths 

@@ -1,5 +1,5 @@
 from constants import CHRV_TOTAL_BP
-from loops import Loops
+from loops import Loops, PlotLoops
 from chromosome import Chromosome
 
 import unittest
@@ -69,11 +69,6 @@ class TestLoops(unittest.TestCase):
         path = Path(f'figures/loop/mean_c0_p_150_mxl_100000_{chr}.png')
         assert path.is_file()
 
-    def test_plot_c0_in_individual_loop(self):
-        loop = Loops(Chromosome('VL', None))
-        loop.plot_c0_in_individual_loop()
-        assert Path(f'figures/loop/VL').is_dir()
-
     def test_plot_c0_around_anchor(self):
         chr = Chromosome('VL', None)
         loop = Loops(chr)
@@ -91,3 +86,11 @@ class TestLoops(unittest.TestCase):
     def test_plot_scatter_mean_c0_nuc_linker_individual_loop(self):
         path = Loops(Chromosome('VL')).plot_scatter_mean_c0_nuc_linker_individual_loop()
         assert path.is_file()
+
+
+class TestPlotLoops:
+    def test_plot_c0_in_individual_loop(self):
+        ploops = PlotLoops(Chromosome('VL'))
+        paths = ploops.plot_c0_in_individual_loop()
+        for path in paths: 
+            assert path.is_file()
