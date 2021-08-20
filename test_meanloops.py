@@ -77,8 +77,8 @@ class TestMultiChrmMeanLoopsCollector:
 
     def test_get_loops_data(self):
         coll = MultiChrmMeanLoopsCollector(Prediction(30), ('VL', 'VII'))
-        all_loops = coll.get_loops_data()
-        assert len(all_loops) == len((coll._mcloops)[0]) + len((coll._mcloops)[1])
+        all_loops_df = coll.get_loops_data()
+        assert len(all_loops_df) == len((coll._mcloops)[0]) + len((coll._mcloops)[1])
         
     def test_save_stat_partial_call(self):
         path = Path(MultiChrmMeanLoopsCollector(None, ('VL', )).save_avg_c0_stat([0, 1, 3, 5],
@@ -107,7 +107,11 @@ class TestMultiChrmMeanLoopsAggregator:
         
         path = aggr.save_stat([0])
         assert path.is_file()
-
+    
+    def test_plot_c0_vs_loop_size(self): 
+        aggr = MultiChrmMeanLoopsAggregator(MultiChrmMeanLoopsCollector(Prediction(30), ('X', 'XI')))
+        path = aggr.plot_c0_vs_loop_size()
+        assert path.is_file()
 
 class TestMultiChrmCoverLoopsCollector:
     def test_get_cover_stat(self):

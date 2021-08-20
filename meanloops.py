@@ -392,8 +392,9 @@ class MultiChrmMeanLoopsCollector:
 
         return self.col_for(func_id)
 
-    def col_for(self, func_id: int):
+    def col_for(self, func_id: int) -> str | list[str]:
         col_map = {
+            self.OP_NON_LOOP_NUC_LINKER_MEAN: ['non_loop_nuc', 'non_loop_linker'],
             self.OP_NUM_LOOPS: 'num_loops',
             self.OP_NUM_LOOPS_LT_NON_LOOP: 'num_loops_lt_nl', 
             self.OP_NUM_LOOPS_L_LT_NLL: 'num_loops_l_lt_nll',
@@ -491,14 +492,14 @@ class MultiChrmMeanLoopsCollector:
         IOUtil().save_figure(
             f'figures/mcloop/loop_cover_{self}.png')
 
-    def get_loops_data(self) -> list[pd.Series]:
-        """Get list of individual loops"""
+    def get_loops_data(self) -> pd.DataFrame:
+        """Get data of all loops"""
         self._mcloops.apply(lambda loops: loops.add_mean_c0())
         all_loops_data = self._mcloops.apply(
             lambda loops: [loops[i] for i in range(len(loops))]
         )
 
-        return functools.reduce(operator.add, all_loops_data.tolist())
+        return pd.DataFrame(functools.reduce(operator.add, all_loops_data.tolist()))
 
 class MultiChrmMeanLoopsAggregator:
     """
@@ -538,7 +539,19 @@ class MultiChrmMeanLoopsAggregator:
         return IOUtil().append_tsv(self._agg_df, save_df_path)
 
     def plot_c0_vs_loop_size(self) -> Path: 
-        self._coll.get_loops_data()       
+        all_loops_df = self._coll.get_loops_data()
+        x = all_loops_df[Loops.COL_LEN]
+        y = all_loops_df[Loops.COL_MEAN_C0_FULL]
+        PlotUtil().show_grid()
+        plt.scatter(x, y)
+        plt.xscale('log')
+
+        plt.xlabel('Loop length in bp (logarithmic)')
+        plt.ylabel('Mean C0')
+        plt.title('Mean C0 vs Loop Size')
+        return IOUtil().save_figure(f'figures/mcloops/c0_vs_loop_size_{self._coll}.png')
+
+
 
 class CoverLoops:
     def __init__(self, loops: Loops):

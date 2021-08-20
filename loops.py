@@ -17,6 +17,10 @@ class Loops:
     """
     Abstraction of collection of loops in a single chromosome
     """
+    COL_RES = 'res'
+    COL_START = 'start'
+    COL_END = 'end'
+    COL_LEN = 'len'
     COL_MEAN_C0_FULL = 'mean_c0_full'
     COL_MEAN_C0_NUC = 'mean_c0_nuc'
     COL_MEAN_C0_LINKER = 'mean_c0_linker'

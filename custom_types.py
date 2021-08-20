@@ -1,6 +1,7 @@
 from typing import Literal, Union, NewType
 
 PositiveInt = NewType('PositiveInt', int)
+NonNegativeInt = NewType('NonNegativeInt', int)
 
 LIBRARY_NAMES = Literal['cnl', 'rl', 'tl', 'chrvl', 'libl']
 
