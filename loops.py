@@ -107,7 +107,7 @@ class Loops:
         def _set_bp(start: float, end: float) -> None:
             loop_array[int(start) : int(end)] = True
 
-        loop_df.apply(lambda loop: _set_bp(loop['start'] - 1, loop['end']), axis=1)
+        loop_df.apply(lambda loop: _set_bp(loop[Loops.COL_START] - 1, loop[Loops.COL_END]), axis=1)
         return loop_array 
     
     def add_mean_c0(self) -> pd.Series:
@@ -140,39 +140,8 @@ class Loops:
         
         return pd.Series(mean_cols)
         
-
-    def plot_c0_around_anchor(self, lim=500):
-        """Plot C0 around loop anchor points"""
-        # TODO: Distance from loop anchor : percentage. Not required?
-        loop_df = self._loop_df
-
-        anchors = np.concatenate(
-            (loop_df['start'].to_numpy(), loop_df['end'].to_numpy()))
-        
-        mean_c0_start = self._chr.mean_c0_around_bps(loop_df['start'], lim, lim)
-        mean_c0_end = self._chr.mean_c0_around_bps(loop_df['end'], lim, lim)
-        mean_c0_all = self._chr.mean_c0_around_bps(anchors, lim, lim)
-        
-        plt.close()
-        plt.clf()
-
-        x = np.arange(2 * lim + 1) - lim
-        plt.plot(x, mean_c0_start, color='tab:green', label='start')
-        plt.plot(x, mean_c0_end, color='tab:orange', label='end')
-        plt.plot(x, mean_c0_all, color='tab:blue', label='all')
-        self._chr.plot_avg()
-
-        plt.legend()
-        plt.grid()
-        plt.xlabel('Distance from loop anchor(bp)')
-        plt.ylabel('C0')
-        plt.title(
-            f'Mean {self._chr._c0_type} C0 around anchor points. Considering start, end and all anchors.'
-        )
-
-        IOUtil().save_figure(f'figures/loop_anchor/dist_{lim}_{self._chr}.png')
-
     def plot_scatter_mean_c0_nuc_linker_individual_loop(self) -> Path:
+        #TODO: Move this function to plotloops
         nucs = Nucleosome(self._chr)
         nucs_cover = nucs.get_nuc_regions()
         loops_cover = self.get_loop_cover()
@@ -259,6 +228,36 @@ class PlotLoops:
         return self._plot_mean_across_loops(
             total_perc,
             Nucleosome(self._chrm).get_nucleosome_occupancy(), 'nuc_occ')
+
+    def plot_c0_around_anchor(self, lim=500):
+        """Plot C0 around loop anchor points"""
+        # TODO: Distance from loop anchor : percentage. Not required?
+        loops_start = pd.Series(loop['start'] for _, loop in self._loops)
+        loops_end = pd.Series(loop['end'] for _, loop in self._loops)
+        anchors = pd.concat([loops_start, loops_end], ignore_index=True)
+        
+        mean_c0_start = self._chrm.mean_c0_around_bps(loops_start, lim, lim)
+        mean_c0_end = self._chrm.mean_c0_around_bps(loops_end, lim, lim)
+        mean_c0_all = self._chrm.mean_c0_around_bps(anchors, lim, lim)
+        
+        plt.close()
+        plt.clf()
+
+        x = np.arange(2 * lim + 1) - lim
+        plt.plot(x, mean_c0_start, color='tab:green', label='start')
+        plt.plot(x, mean_c0_end, color='tab:orange', label='end')
+        plt.plot(x, mean_c0_all, color='tab:blue', label='all')
+        self._chrm.plot_avg()
+
+        plt.legend()
+        PlotUtil().show_grid()
+        plt.xlabel('Distance from loop anchor(bp)')
+        plt.ylabel('C0')
+        plt.title(
+            f'Mean {self._chrm._c0_type} C0 around anchor points. Considering start, end and all anchors.'
+        )
+
+        return IOUtil().save_figure(f'figures/loops/mean_c0_anchor_dist_{lim}_{self._loops}.png')
 
     def plot_c0_around_individual_anchors(self, lim=500) -> list[Path]:
         paths = []

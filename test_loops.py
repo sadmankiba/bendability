@@ -62,13 +62,6 @@ class TestLoops(unittest.TestCase):
         perc = chrm_arr.sum() / CHRV_TOTAL_BP * 100
         assert 10 < perc < 90
 
-    def test_plot_c0_around_anchor(self):
-        chr = Chromosome('VL', None)
-        loop = Loops(chr)
-        loop.plot_c0_around_anchor(500)
-        path = Path(f'figures/loop_anchor/dist_500_{chr}.png')
-        assert path.is_file()
-
     def test_plot_scatter_mean_c0_nuc_linker_individual_loop(self):
         path = Loops(Chromosome('VL')).plot_scatter_mean_c0_nuc_linker_individual_loop()
         assert path.is_file()
@@ -93,6 +86,11 @@ class TestPlotLoops:
         path = ploops.plot_mean_nuc_occupancy_across_loops()
         assert path.is_file()
     
+    def test_plot_c0_around_anchor(self):
+        ploops = PlotLoops(Chromosome('VL'))
+        path = ploops.plot_c0_around_anchor(500)
+        assert path.is_file()
+
     def test_plot_c0_around_individual_anchors(self):
         ploops = PlotLoops(Chromosome('VL'))
         paths = ploops.plot_c0_around_individual_anchors()
