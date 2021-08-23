@@ -19,6 +19,7 @@ from typing import IO, Literal, Union
 
 SpreadType = Literal['mean7', 'mean_cover', 'weighted', 'single']
 
+# TODO: Tell story top-down following newspaper metaphor
 
 class Spread:
     """Spread C0 at each bp from C0 of 50-bp sequences at 7-bp resolution"""

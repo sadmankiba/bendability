@@ -32,8 +32,9 @@ class Loops:
         # TODO: Make _chr, _loop_df public. Used in MeanLoops
         self._chr = chrm
         self._loop_df = self._read_loops()
+        self._mxlen = mxlen
         if mxlen:
-            self.exclude_above_len(mxlen)
+            self._exclude_above_len(mxlen)
 
     def __len__(self) -> int:
         return len(self._loop_df)
@@ -94,8 +95,8 @@ class Loops:
             f'{fig_dir}/loop_highres_hist_maxlen_{max_loop_length}.png',
             dpi=200)
 
-    def exclude_above_len(self, mxlen: int) -> pd.DataFrame:
-        self._loop_df = self._loop_df.loc[self._loop_df['len'] <= mxlen]
+    def _exclude_above_len(self, mxlen: int) -> pd.DataFrame:
+        self._loop_df = self._loop_df.loc[self._loop_df['len'] <= mxlen].reset_index()
 
     def get_loop_cover(self, loop_df : pd.DataFrame | None = None) -> np.ndarray:
         if loop_df is None: 
@@ -140,7 +141,7 @@ class Loops:
         return pd.Series(mean_cols)
         
     def _plot_mean_across_loops(self, total_perc: int, chr_spread: np.ndarray,
-                                val_type: str) -> None:
+                                val_type: str) -> Path:
         """
         Underlying plotter to plot mean across loops
         
@@ -148,12 +149,10 @@ class Loops:
         """
         loop_df = self._loop_df
 
-        # Filter loops by length
         max_loop_length = 100000
-        loop_df = loop_df.loc[
-            loop_df['end'] - loop_df['start'] < max_loop_length].reset_index()
+        self._exclude_above_len(max_loop_length)
 
-        def _find_value_in_loop(row: pd.Series) -> np.ndarray:
+        def _find_value_in_loop(loop: pd.Series) -> np.ndarray:
             """
             Find value from start to end considering total percentage. 
             
@@ -161,13 +160,13 @@ class Loops:
                 A 1D numpy array. If value can't be calculated for whole total percentage 
                 an empty array of size 0 is returned. 
             """
-            start_pos = int(row['start'] + (row['end'] - row['start']) *
+            start_pos = int(loop['start'] + (loop['end'] - loop['start']) *
                             (1 - total_perc / 100) / 2)
-            end_pos = int(row['end'] + (row['end'] - row['start']) *
+            end_pos = int(loop['end'] + (loop['end'] - loop['start']) *
                           (total_perc / 100 - 1) / 2)
 
             if start_pos < 0 or end_pos > self._chr._total_bp - 1:
-                print(f'Excluding loop: ({row["start"]}-{row["end"]})!')
+                print(f'Excluding loop: ({loop["start"]}-{loop["end"]})!')
                 return np.empty((0, ))
 
             return chr_spread[start_pos:end_pos]
@@ -185,7 +184,6 @@ class Loops:
         value_in_loops: pd.Series = loop_df.apply(_find_value_in_loop, axis=1)
         value_in_loops = pd.Series(
             list(filter(lambda arr: arr.size != 0, value_in_loops)))
-
         resize_multiple = 10
         value_in_loops = pd.Series(
             list(
@@ -206,47 +204,31 @@ class Loops:
         self._chr.plot_horizontal_line(chr_spread.mean())
         plt.grid()
 
-        y_lim = plt.gca().get_ylim()
-
-        # Plot anchor lines
         if total_perc >= 100:
             for pos in [0, 100]:
-                plt.axvline(x=pos, color='tab:green', linestyle='--')
-                plt.text(pos,
-                         y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75,
-                         'anchor',
-                         color='tab:green',
-                         ha='left',
-                         va='center')
-
-        # Plot center line
-        plt.axvline(x=50, color='tab:orange', linestyle='--')
-        plt.text(50,
-                 y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75,
-                 'center',
-                 color='tab:orange',
-                 ha='left',
-                 va='center')
-
-        # Label plot
+                PlotUtil().plot_vertical_line(pos, 'tab:green', 'anchor')
+                
+        center = 50
+        PlotUtil().plot_vertical_line(center, 'tab:orange', 'center')
+        
         plt.xlabel('Position along loop (percentage)')
         plt.ylabel(val_type)
         plt.title(
             f'Mean {self._chr._c0_type} {val_type} along chromosome {self._chr._chr_num} loop ({x[0]}% to {x[-1]}% of loop length)'
         )
 
-        IOUtil().save_figure(
-            f'figures/loop/mean_{val_type}_p_{total_perc}_mxl_{max_loop_length}_{self._chr}.png'
+        return IOUtil().save_figure(
+            f'figures/loops/mean_{val_type}_p_{total_perc}_mxl_{max_loop_length}_{self}.png'
         )
     
-    def plot_mean_c0_across_loops(self, total_perc=150) -> None:
+    def plot_mean_c0_across_loops(self, total_perc=150) -> Path:
         """
         Plot mean C0 across total loop in found loops in chr V
 
         Args: 
             total_perc: Total percentage of loop length to consider 
         """
-        self._plot_mean_across_loops(total_perc, self._chr.get_spread(), 'c0')
+        return self._plot_mean_across_loops(total_perc, self._chr.get_spread(), 'c0')
     
     def plot_c0_around_individual_anchor(self, lim=500):
         loop_df = self._loop_df

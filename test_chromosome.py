@@ -8,6 +8,7 @@ from chromosome import Chromosome, ChromosomeUtil, Spread
 from constants import CHRVL_LEN, CHRV_TOTAL_BP
 from prediction import Prediction
 
+# TODO *: Create separate src and tests directory
 
 
 class TestChromosomeUtil(unittest.TestCase):

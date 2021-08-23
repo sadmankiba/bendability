@@ -65,8 +65,7 @@ class TestLoops(unittest.TestCase):
     def test_plot_mean_c0_across_loops(self):
         chr = Chromosome('VL', None)
         loop = Loops(chr)
-        loop.plot_mean_c0_across_loops(150)
-        path = Path(f'figures/loop/mean_c0_p_150_mxl_100000_{chr}.png')
+        path = loop.plot_mean_c0_across_loops(150)
         assert path.is_file()
 
     def test_plot_c0_around_anchor(self):

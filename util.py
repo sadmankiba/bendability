@@ -267,6 +267,16 @@ class PlotUtil:
                  ha='center',
                  va='bottom')
 
+    def plot_vertical_line(self, x: float, color: str, text: str):
+        plt.axvline(x=x, color=color, linestyle='--')
+        y_lim = plt.gca().get_ylim()
+        plt.text(x,
+            y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75,
+            text,
+            color=color,
+            ha='left',
+            va='center')
+
     def plot_stacked_bar(self, data, series_labels, category_labels=None, 
                      show_values=False, value_format="{}", y_label=None, 
                      colors=None, grid=False, reverse=False):
