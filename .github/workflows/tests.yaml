@@ -20,10 +20,10 @@ jobs:
         python3 -m pip install --upgrade pip
         pip3 install -r requirements.txt
 
-      name: Install source code as package
+    - name: Install source code as package
       run: |
         cd src/ && pip install .
 
     - name: Test with pytest
       run: |
-        cd tests && pytest --verbose
+        cd tests/ && pytest --verbose
