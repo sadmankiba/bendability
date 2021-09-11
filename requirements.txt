@@ -1,6 +1,8 @@
+Boruta==0.3
 yapf
 fanc
 pytest
+pytest-github-actions-annotate-failures
 biopython
 seaborn
 logomaker
