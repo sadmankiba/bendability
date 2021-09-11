@@ -22,7 +22,7 @@ jobs:
 
     - name: Install source code as package
       run: |
-        cd src/ && pip install .
+        cd src/ && pip install -e .
 
     - name: Test with pytest
       run: |
