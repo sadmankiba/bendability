@@ -1,5 +1,7 @@
 # DNA Bendability Analysis
 
+[![Tests](https://github.com/saadsakib/bendability/actions/workflows/tests.yaml/badge.svg)](https://github.com/saadsakib/bendability/actions/workflows/tests.yaml)
+
 This repository contains various utility tools to analyze DNA Bendability. 
 
 ## Setup Repository 
