@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from util import gen_random_sequences, sorted_split, cut_sequence
-from occurence import Occurence
-from reader import DNASequenceReader
-from shape import run_dna_shape_r_wrapper, SHAPE_FULL_FORM
+from util.util import gen_random_sequences, sorted_split, cut_sequence
+from .occurence import Occurence
+from util.reader import DNASequenceReader
+from .shape import run_dna_shape_r_wrapper, SHAPE_FULL_FORM
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches

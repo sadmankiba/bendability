@@ -1,4 +1,4 @@
-from occurence import Occurence
+from feature_model.occurence import Occurence
 
 import pandas as pd
 

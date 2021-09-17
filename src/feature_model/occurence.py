@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from util import get_possible_seq, gen_random_sequences, sorted_split, \
+from util.util import get_possible_seq, gen_random_sequences, sorted_split, \
     append_reverse_compliment
-from reader import DNASequenceReader
-from constants import RL
+from util.reader import DNASequenceReader
+from util.constants import RL
 
 import pandas as pd
 import numpy as np

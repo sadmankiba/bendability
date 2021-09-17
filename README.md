@@ -61,16 +61,12 @@ To initialize an object, invoke a function or understand the expected behavior, 
 The structure of this repository is very flat. The modules can be clustered as following:
 
 **Feature Extraction and ML Model Training**
-- `bq.py`
 - `analysis.ipynb`
 - `correlation.py`
 - `data_organizer.py`
-- `feat_selector.py`
 - `helsep.py`
 - `libstat.py`
 - `model.py`
-- `occurence.py`
-- `shape.py`
 
 **Chromosome, Nucleosome, Hi-C Analysis and Prediction by CNN Model**
 - `chromosome.py`
@@ -82,13 +78,6 @@ The structure of this repository is very flat. The modules can be clustered as f
 - `hic/`
 - `meuseum_mod/`
 - `dna_shape_model/`
-
-**Utility Modules**
-- `constants.py`
-- `custom_types.py`
-- `main.py`
-- `reader.py`
-- `util.py`
 
 **Testing**
 - `conftest.py`

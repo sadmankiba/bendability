@@ -19,9 +19,12 @@ CHRVL_FILE = '41586_2020_3052_MOESM9_ESM.txt'
 LIBL_FILE = '41586_2020_3052_MOESM11_ESM.txt'
 
 def get_data_dir() -> str:
-    # Get current directory of this module in runtime. With this, we can
-    # create correct path even when this module is called from modules in
-    # other directories. (e.g. child directory)
+    """
+    Get data directory of this module in runtime. 
+
+    With this, we can create correct path even when this module is called from
+    modules in other directories. (e.g. child directory)
+    """
     parent_dir = Path(inspect.getabsfile(inspect.currentframe())).parent
     return f'{parent_dir.parent.parent}/data'
 

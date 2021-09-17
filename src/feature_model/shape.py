@@ -1,10 +1,12 @@
-from util import get_possible_seq, get_random_string
+from util.util import get_possible_seq, get_random_string
 
 import numpy as np
 import pandas as pd
 
 import subprocess
 import os
+from pathlib import Path
+import inspect 
 
 SHAPE_NAMES = ['EP', 'HelT', 'MGW', 'ProT', "Roll"]
 SHAPE_FULL_FORM = {
@@ -63,10 +65,9 @@ def run_dna_shape_r_wrapper(df, prune_na):
 
     df['Sequence'].to_csv(sequence_file, sep=' ', index=False, header=False)
     subprocess.run([
-        "Rscript", "./dna_shape_model/R/R/shape.r",
-        f"/home/sakib/playground/machine_learning/bendability/{sequence_file}"
-    ],
-                   capture_output=True)
+        "Rscript", "./shape.r",
+        f"{Path(inspect.getabsfile(inspect.currentframe())).parent}/{sequence_file}"
+    ], capture_output=True)
     os.remove(sequence_file)
 
     shape_arr_map = {}
