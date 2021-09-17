@@ -14,6 +14,7 @@ import re as bre  # built-in re
 import itertools as it
 from pathlib import Path
 import logging
+import inspect 
 
 logging.basicConfig(level=logging.INFO)
 
@@ -213,6 +214,16 @@ class ChromosomeUtil:
         """
         PlotUtil().plot_horizontal_line(y, 'r', 'avg')
         
+class ReadUtil:
+    def get_data_dir(self) -> str:
+        """
+        Get data directory in runtime. 
+
+        With this, we can create correct path even when this module is called from
+        modules in other directories. (e.g. child directory)
+        """
+        parent_dir = Path(inspect.getabsfile(inspect.currentframe())).parent
+        return f'{parent_dir.parent.parent}/data'
 
 class IOUtil:
     # TODO: Change name - SaveUtil
@@ -236,7 +247,7 @@ class IOUtil:
         self.make_parent_dirs(path)
         df.to_csv(path, sep='\t', index=False, float_format='%.3f')
         
-        logging.info(f'TSV file saved at: {path.relative_to("./")}')
+        logging.info(f'TSV file saved at: {path}')
         return path
 
     def make_parent_dirs(self, path_str: str | Path) -> None:

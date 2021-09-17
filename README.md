@@ -60,14 +60,6 @@ To initialize an object, invoke a function or understand the expected behavior, 
 
 The structure of this repository is very flat. The modules can be clustered as following:
 
-**Feature Extraction and ML Model Training**
-- `analysis.ipynb`
-- `correlation.py`
-- `data_organizer.py`
-- `helsep.py`
-- `libstat.py`
-- `model.py`
-
 **Chromosome, Nucleosome, Hi-C Analysis and Prediction by CNN Model**
 - `chromosome.py`
 - `genes.py`

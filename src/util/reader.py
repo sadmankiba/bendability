@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from util.constants import CNL, RL, SEQ_LEN, TL, CHRVL, LIBL
 from util.custom_types import YeastChrNum
-from util.util import roman_to_num
+from util.util import roman_to_num, ReadUtil
 
 import pandas as pd
 from Bio import SeqIO
@@ -18,23 +18,13 @@ TL_FILE = '41586_2020_3052_MOESM8_ESM.txt'
 CHRVL_FILE = '41586_2020_3052_MOESM9_ESM.txt'
 LIBL_FILE = '41586_2020_3052_MOESM11_ESM.txt'
 
-def get_data_dir() -> str:
-    """
-    Get data directory of this module in runtime. 
-
-    With this, we can create correct path even when this module is called from
-    modules in other directories. (e.g. child directory)
-    """
-    parent_dir = Path(inspect.getabsfile(inspect.currentframe())).parent
-    return f'{parent_dir.parent.parent}/data'
-
 class DNASequenceReader:
     """
     Reads and returns processed DNA sequence libraries
     """
     def __init__(self):
-        self._bendability_data_dir = f'{get_data_dir()}/input_data/bendability'
-        self._nuc_center_file = f'{get_data_dir()}/input_data/nucleosome_position/41586_2012_BFnature11142_MOESM263_ESM.txt'
+        self._bendability_data_dir = f'{ReadUtil().get_data_dir()}/input_data/bendability'
+        self._nuc_center_file = f'{ReadUtil().get_data_dir()}/input_data/nucleosome_position/41586_2012_BFnature11142_MOESM263_ESM.txt'
 
     def _get_raw_data(self):
         cnl_df_raw = pd.read_table(f'{self._bendability_data_dir}/{CNL_FILE}',
@@ -118,7 +108,7 @@ class DNASequenceReader:
 
         # Read file
         genome_file = open(
-            f"{get_data_dir()}/input_data/yeast_genome/S288C_reference_sequence_R64-3-1_20210421.fsa"
+            f"{ReadUtil().get_data_dir()}/input_data/yeast_genome/S288C_reference_sequence_R64-3-1_20210421.fsa"
         )
         fasta_sequences = SeqIO.parse(genome_file, 'fasta')
 
@@ -142,7 +132,7 @@ class DNASequenceReader:
 
 class GeneReader:
     def read_genes_of(self, chrm_num: YeastChrNum) -> pd.DataFrame:
-        genes_file = f'{get_data_dir()}/input_data/gene/yeast_genes.tsv'
+        genes_file = f'{ReadUtil().get_data_dir()}/input_data/gene/yeast_genes.tsv'
         rename_map = {
             'Gene.length': 'length',
             'Gene.chromosome.primaryIdentifier': 'chrm',
@@ -166,7 +156,7 @@ class GeneReader:
             A Pandas dataframe with columns ['start', 'end', 'strand'].
             'start' is lower bp, 'end' is higher bp irrespective of 'strand'
         """
-        gene_utrs_file = f'{get_data_dir()}/input_data/gene/yeast_gene_utrs.tsv'
+        gene_utrs_file = f'{ReadUtil().get_data_dir()}/input_data/gene/yeast_gene_utrs.tsv'
         rename_map = {
             'Gene.secondaryIdentifier': 'gene_id',
             'Gene.transcripts.chromosome.primaryIdentifier': 'chrm',
