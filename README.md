@@ -4,6 +4,22 @@
 
 This repository contains various utility tools to analyze DNA Bendability. 
 
+## Setup Source Code 
+
+1. Install source code as package in editable mode. You need to do this everytime you activate virtual environment. 
+
+```sh
+cd src/
+pip install -e .
+```
+
+## Run tests
+
+```sh
+cd tests/
+python3 -m pytest
+```
+
 ## Setup Repository 
  
 1. First initialize `SaminRK/DNABendability` submodule.  
