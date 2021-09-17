@@ -1,4 +1,4 @@
-from util import PlotUtil, get_possible_seq, cut_sequence, \
+from util.util import PlotUtil, get_possible_seq, cut_sequence, \
         reverse_compliment_of, append_reverse_compliment, IOUtil
 
 import pandas as pd

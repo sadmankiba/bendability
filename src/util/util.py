@@ -1,6 +1,6 @@
 from __future__ import annotations
-from custom_types import YeastChrNum
-from constants import SEQ_LEN
+from .custom_types import YeastChrNum
+from .constants import SEQ_LEN
 
 import pandas as pd
 import numpy as np
