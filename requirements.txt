@@ -1,9 +1,9 @@
 Boruta==0.3
+regex
 yapf
 fanc
 pytest
 pytest-github-actions-annotate-failures
-biopython
 seaborn
 logomaker
 plotnine
