@@ -1,6 +1,6 @@
-from constants import CHRVL, YeastChrNumList
-from reader import DNASequenceReader, GeneReader
-from util import ChromosomeUtil
+from util.constants import CHRVL, YeastChrNumList
+from util.reader import DNASequenceReader, GeneReader
+from util.util import ChromosomeUtil
 
 import pandas as pd
 import numpy as np
