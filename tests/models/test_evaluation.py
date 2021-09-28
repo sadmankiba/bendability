@@ -1,17 +1,6 @@
-from evaluation import Evaluation
-
-# Import from parent directory
-import sys
-import os
-
-from reader import DNASequenceReader
-
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
-from constants import CNL
-
-from pathlib import Path
-
+from models.evaluation import Evaluation
+from util.reader import DNASequenceReader
+from util.constants import CNL
 
 class TestEvaluation:
     def test_check_performance(self):

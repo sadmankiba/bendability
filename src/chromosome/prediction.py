@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from meuseum_mod.model6 import nn_model as nn_model6
-from DNABendabilityModels.meuseum_modifications.models.model30 import nn_model as nn_model30
-from meuseum_mod.data_preprocess import Preprocess
-from custom_types import LIBRARY_NAMES
-from reader import DNASequenceReader
-from util import IOUtil
+from models.model6 import nn_model as nn_model6
+from models.model30 import nn_model as nn_model30
+from models.data_preprocess import Preprocess
+from util.custom_types import LIBRARY_NAMES
+from util.reader import DNASequenceReader
+from util.util import IOUtil
 
 import keras
 import pandas as pd

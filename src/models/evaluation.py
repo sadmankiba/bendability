@@ -1,13 +1,7 @@
-# Import from parent directory
-import sys
-import os
-
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
-from constants import CNL
-from reader import DNASequenceReader
-from meuseum_mod.model6 import nn_model
-from meuseum_mod.data_preprocess import Preprocess
+from util.constants import CNL
+from util.reader import DNASequenceReader
+from .model6 import nn_model
+from .data_preprocess import Preprocess
 
 import keras
 from contextlib import suppress

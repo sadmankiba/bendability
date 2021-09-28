@@ -1,13 +1,6 @@
-from data_preprocess import Preprocess
-# TODO: Try making parent directory a package: https://stackoverflow.com/a/50194143/7283201
-# Import from parent directory
-import sys
-import os
-
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-from constants import CHRVL, CHRVL_LEN, RL, RL_LEN
-from reader import DNASequenceReader
-
+from models.data_preprocess import Preprocess
+from util.constants import CHRVL, CHRVL_LEN, RL, RL_LEN
+from util.reader import DNASequenceReader
 
 class TestPreprocess:
     def test_get_sequences_target(self):

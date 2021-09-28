@@ -1,16 +1,7 @@
 from __future__ import annotations
 
-# Import from parent directory
-import sys
-import os
+from .dinucleotide import mono_to_dinucleotide, dinucleotide_one_hot_encode
 
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-
-from reader import DNASequenceReader
-from custom_types import LIBRARY_NAMES
-from meuseum_mod.dinucleotide import mono_to_dinucleotide, dinucleotide_one_hot_encode
-
-import sys
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import pandas as pd

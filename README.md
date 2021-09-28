@@ -65,7 +65,6 @@ The structure of this repository is very flat. The modules can be clustered as f
 - `genes.py`
 - `loops.py`
 - `nucleosome.py`
-- `prediction.py`
 - `tad.py`
 - `hic/`
 - `meuseum_mod/`
