@@ -1,4 +1,4 @@
-from feat_selector import BorutaFeatureSelector, ManualFeatureSelector, \
+from feature_model.feat_selector import BorutaFeatureSelector, ManualFeatureSelector, \
     CorrelationFeatureSelector
 
 import unittest
