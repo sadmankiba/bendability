@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .prediction import Prediction
+from models.prediction import Prediction
 from util.reader import DNASequenceReader
 from util.constants import CHRVL, SEQ_LEN
 from util.custom_types import ChrId, YeastChrNum, PositiveInt

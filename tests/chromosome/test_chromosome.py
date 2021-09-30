@@ -5,7 +5,7 @@ import numpy as np
 
 from chromosome.chromosome import Chromosome, ChromosomeUtil, Spread
 from util.constants import CHRVL_LEN, CHRV_TOTAL_BP
-from chromosome.prediction import Prediction
+from models.prediction import Prediction
 
 class TestChromosomeUtil(unittest.TestCase):
     def test_moving_avg(self):

@@ -1,18 +1,16 @@
 from __future__ import annotations
 
-from models.model6 import nn_model as nn_model6
-from models.model30 import nn_model as nn_model30
-from models.data_preprocess import Preprocess
+from .model6 import nn_model as nn_model6
+from .model30 import nn_model as nn_model30
+from .data_preprocess import Preprocess
 from util.custom_types import LIBRARY_NAMES
 from util.reader import DNASequenceReader
-from util.util import IOUtil
+from util.util import IOUtil, ReadUtil
 
 import keras
 import pandas as pd
 from sklearn.metrics import r2_score
 from scipy.stats import pearsonr, spearmanr
-
-from pathlib import Path
 import inspect
 
 
@@ -41,21 +39,19 @@ class Prediction:
         return str(self._model_no)
 
     def _select_model(self) -> tuple[nn_model6, str, str]:
+        parent_dir = ReadUtil.get_parent_dir(inspect.currentframe())
+
         if self._model_no == 6:
-            return (nn_model6, 'meuseum_mod/parameter1.txt',
-                    'meuseum_mod/model_weights/w6.h5_archived')
+            return (nn_model6, f'{parent_dir}/parameter_model6.txt',
+                    f'{parent_dir}/model_weights/w6.h5_archived')
         elif self._model_no == 30:
-            # TODO: Should save the parameter file
             return (
                 nn_model30,
-                'DNABendabilityModels/meuseum_modifications/parameter1.txt',
-                'DNABendabilityModels/meuseum_modifications/model_weights/w30.h5'
+                f'{parent_dir}/parameter_model30.txt',
+                f'{parent_dir}/model_weights/w30.h5'
             )
 
     def _load_model(self) -> keras.Model:
-        # Find parent directory path dynamically
-        parent_dir = Path(inspect.getabsfile(inspect.currentframe())).parent
-
         nn_model, parameter_file, weight_file = self._select_model()
 
         params = get_parameters(parameter_file)
@@ -96,7 +92,7 @@ class Prediction:
             DNASequenceReader().get_processed_data()[lib])
         IOUtil().save_tsv(
             predict_df,
-            f'data/generated_data/predictions/{lib}_pred_m_{self._model_no}.tsv'
+            f'{ReadUtil().get_data_dir()}/generated_data/predictions/{lib}_pred_m_{self._model_no}.tsv'
         )
         return predict_df
 
@@ -114,5 +110,5 @@ class Prediction:
         })
         IOUtil().append_tsv(
             metrics_df,
-            f'data/generated_data/prediction_metrics/pred_m_{self._model_no}.tsv'
+            f'{ReadUtil().get_data_dir()}/generated_data/prediction_metrics/pred_m_{self._model_no}.tsv'
         )

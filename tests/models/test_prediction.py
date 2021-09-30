@@ -1,7 +1,7 @@
 from numpy.testing._private.utils import assert_almost_equal
-from chromosome.prediction import Prediction
-from constants import RL, CNL
-from reader import DNASequenceReader
+from models.prediction import Prediction
+from util.constants import RL, CNL
+from util.reader import DNASequenceReader
 
 import keras
 import numpy as np

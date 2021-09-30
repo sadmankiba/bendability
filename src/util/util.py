@@ -1,4 +1,5 @@
 from __future__ import annotations
+from types import FrameType
 from .custom_types import YeastChrNum
 from .constants import SEQ_LEN
 
@@ -215,6 +216,11 @@ class ChromosomeUtil:
         PlotUtil().plot_horizontal_line(y, 'r', 'avg')
         
 class ReadUtil:
+    @staticmethod
+    def get_parent_dir(currentframe: FrameType) -> Path:
+        '''Find parent directory path dynamically'''
+        return Path(inspect.getabsfile(currentframe)).parent
+    
     def get_data_dir(self) -> str:
         """
         Get data directory in runtime. 
