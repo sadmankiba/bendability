@@ -1,14 +1,14 @@
 from __future__ import annotations
 from pathlib import Path
 
-from util import IOUtil, PlotUtil
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from chromosome import Chromosome
-from reader import GeneReader
-from nucleosome import Nucleosome
+from .chromosome import Chromosome
+from util.reader import GeneReader
+from util.util import IOUtil, PlotUtil
+from .nucleosome import Nucleosome
 
 class Genes:
     def __init__(self, chrm: Chromosome):

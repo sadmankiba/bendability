@@ -1,6 +1,6 @@
-from prediction import Prediction
-from nucleosome import Nucleosome
-from chromosome import Chromosome
+from models.prediction import Prediction
+from chromosome.nucleosome import Nucleosome
+from chromosome.chromosome import Chromosome
 
 from pathlib import Path
 

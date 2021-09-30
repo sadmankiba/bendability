@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from typing import Iterable, NamedTuple, Literal
-from custom_types import NonNegativeInt
+from util.custom_types import NonNegativeInt
 
-from nucleosome import Nucleosome
-from chromosome import Chromosome 
-from util import IOUtil, PlotUtil
+from chromosome.nucleosome import Nucleosome
+from chromosome.chromosome import Chromosome 
+from util.util import IOUtil, PlotUtil
 
 import matplotlib.pyplot as plt
 import pandas as pd

@@ -1,14 +1,14 @@
-from constants import CHRV_TOTAL_BP
-from loops import Loops
-from meanloops import MeanLoops, MultiChrmCoverLoopsCollector, MultiChrmMeanLoopsAggregator, MultiChrmMeanLoopsCollector
-from chromosome import Chromosome
+from util.constants import CHRV_TOTAL_BP
+from conformation.loops import Loops
+from conformation.meanloops import MeanLoops, MultiChrmCoverLoopsCollector, MultiChrmMeanLoopsAggregator, MultiChrmMeanLoopsCollector
+from chromosome.chromosome import Chromosome
 
 import pandas as pd
 import numpy as np
 
 from pathlib import Path
 
-from prediction import Prediction
+from models.prediction import Prediction
 
 
 class TestMeanLoops:

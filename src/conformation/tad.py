@@ -1,11 +1,11 @@
 from __future__ import annotations
-from genes import Genes
+from chromosome.genes import Genes
 
-from util import IOUtil, PlotUtil
-from custom_types import ChrId, PositiveInt, YeastChrNum
-from chromosome import Chromosome
-from prediction import Prediction
-from constants import ChrIdList
+from util.util import IOUtil, PlotUtil
+from util.custom_types import ChrId, PositiveInt, YeastChrNum
+from chromosome.chromosome import Chromosome
+from models.prediction import Prediction
+from util.constants import ChrIdList
 
 import matplotlib.pyplot as plt
 import numpy as np

@@ -1,7 +1,7 @@
-from prediction import Prediction
-from chromosome import Chromosome
-from tad import HicExplBoundaries, MultiChrmHicExplBoundariesAggregator, MultiChrmHicExplBoundariesCollector
-from genes import Genes
+from models.prediction import Prediction
+from chromosome.chromosome import Chromosome
+from conformation.tad import HicExplBoundaries, MultiChrmHicExplBoundariesAggregator, MultiChrmHicExplBoundariesCollector
+from chromosome.genes import Genes
 
 from numpy.testing import assert_almost_equal
 import numpy as np

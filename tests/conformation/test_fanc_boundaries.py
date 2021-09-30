@@ -1,8 +1,8 @@
 import pytest
 fanc = pytest.importorskip("fanc")
 
-from fanc_boundaries import FancBoundary
-from constants import YeastChrNumList
+from conformation.fanc_boundaries import FancBoundary
+from util.constants import YeastChrNumList
 
 class TestFancBoundary:
     def test_get_boundaries(self):

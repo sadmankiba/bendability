@@ -1,12 +1,12 @@
-from constants import CHRV_TOTAL_BP
-from loops import Loops, PlotLoops
-from chromosome import Chromosome
+from util.constants import CHRV_TOTAL_BP
+from conformation.loops import Loops, PlotLoops
+from chromosome.chromosome import Chromosome
 
 import unittest
 import subprocess
 from pathlib import Path
 
-from prediction import Prediction
+from models.prediction import Prediction
 
 
 class TestLoops(unittest.TestCase):

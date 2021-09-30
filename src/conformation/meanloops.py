@@ -1,12 +1,12 @@
 from __future__ import annotations
-from nucleosome import Nucleosome
+from chromosome.nucleosome import Nucleosome
 
-from custom_types import ChrId
-from prediction import Prediction
-from reader import DNASequenceReader
-from constants import ChrIdList
-from chromosome import Chromosome 
-from util import IOUtil, PlotUtil
+from util.custom_types import ChrId
+from models.prediction import Prediction
+from util.reader import DNASequenceReader
+from util.constants import ChrIdList
+from chromosome.chromosome import Chromosome 
+from util.util import IOUtil, PlotUtil
 from loops import Loops
 
 import matplotlib.pyplot as plt

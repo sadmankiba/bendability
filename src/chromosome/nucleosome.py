@@ -1,7 +1,7 @@
 from __future__ import annotations
-from chromosome import Chromosome
-from reader import DNASequenceReader
-from util import IOUtil
+from .chromosome import Chromosome
+from util.reader import DNASequenceReader
+from util.util import IOUtil
 
 import numpy as np
 import matplotlib.pyplot as plt

@@ -1,9 +1,9 @@
 from __future__ import annotations
-from custom_types import ChrId, YeastChrNum
-from util import IOUtil
-from chromosome import Chromosome
-from prediction import Prediction
-from constants import ChrIdList
+from util.custom_types import ChrId, YeastChrNum
+from util.util import IOUtil
+from chromosome.chromosome import Chromosome
+from models.prediction import Prediction
+from util.constants import ChrIdList
 
 import fanc
 import fanc.plotting as fancplot

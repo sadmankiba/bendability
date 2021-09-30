@@ -1,7 +1,7 @@
 import numpy as np 
 
-from chromosome import Chromosome
-from genes import Genes
+from chromosome.chromosome import Chromosome
+from chromosome.genes import Genes
 
 class TestGenes:
     def test_plot_mean_c0_vs_dist_from_dyad(self):
