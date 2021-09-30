@@ -61,13 +61,11 @@ To initialize an object, invoke a function or understand the expected behavior, 
 The structure of this repository is very flat. The modules can be clustered as following:
 
 **Chromosome, Nucleosome, Hi-C Analysis and Prediction by CNN Model**
-- `chromosome.py`
 - `genes.py`
 - `loops.py`
 - `nucleosome.py`
 - `tad.py`
 - `hic/`
-- `meuseum_mod/`
 - `dna_shape_model/`
 
 **Testing**
