@@ -1,6 +1,6 @@
 from __future__ import annotations
 from util.custom_types import ChrId, YeastChrNum
-from util.util import IOUtil
+from util.util import IOUtil, ReadUtil 
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
 from util.constants import ChrIdList
@@ -18,6 +18,12 @@ logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s %(levelname)s %(message)s")
 
 class FancBoundary:
+    """
+    Finding boundary with fanc 
+
+    To use this class, you'll need to install `hdf5` library and `fanc` package.
+    Check here - https://vaquerizaslab.github.io/fanc/getting_started.html
+    """
     def __init__(self, resolution: int = 500, window_size: int = 1000):
         self._hic_file = fanc.load(
             f"hic/data/GSE151553_A364_merged.juicer.hic@{resolution}")
@@ -35,10 +41,10 @@ class FancBoundary:
         if start > 0 and end > 0:
             fig, axes = f.plot(
                 f'{chrm_num}:{int(start / 1000)}kb-{int(end / 1000)}kb')
-            IOUtil().save_figure('figures/hic/xii_100kb_300kb.png')
+            IOUtil().save_figure(f'{ReadUtil().get_figure_dir()}/hic/xii_100kb_300kb.png')
         else:
             fig, axes = f.plot(f'{chrm_num}')
-            IOUtil().save_figure(f'figures/hic/{chrm_num}_boundaries.png')
+            IOUtil().save_figure(f'{ReadUtil().get_figure_dir()}/hic/{chrm_num}_boundaries.png')
 
     def _get_insulation(self) -> fanc.InsulationScores:
         insulation_output_path = f"data/generated_data/hic/insulation_fanc_res_{self._resolution}"

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from .chromosome import Chromosome
 from util.reader import DNASequenceReader
-from util.util import IOUtil
+from util.util import IOUtil, ReadUtil
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -61,7 +61,7 @@ class Nucleosome:
         plt.title(f'C0 of +-{dist} bp from nuclesome dyad')
 
         IOUtil().save_figure(
-            f'figures/nucleosome/dist_{dist}_s_{spread_str}_m_{self._chr.predict_model_no()}_{self._chr._chr_id}.png'
+            f'{ReadUtil().get_figure_dir()}/nucleosome/dist_{dist}_s_{spread_str}_m_{self._chr.predict_model_no()}_{self._chr._chr_id}.png'
         )
 
     def _get_nuc_centers(self) -> list[int]:

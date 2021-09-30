@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from util.util import gen_random_sequences, sorted_split, cut_sequence
+from util.util import gen_random_sequences, sorted_split, cut_sequence, ReadUtil
 from .occurence import Occurence
 from util.reader import DNASequenceReader
 from .shape import run_dna_shape_r_wrapper, SHAPE_FULL_FORM
@@ -111,7 +111,7 @@ def plot_bq():
     plt.bar(x, y)
     plt.ylabel('Bendability quotient')
     plt.setp(ax.get_xticklabels(), rotation=90, va='top')
-    plt.savefig('figures/cnl_bq_5.png')
+    plt.savefig(f'{ReadUtil().get_figure_dir()}/cnl_bq_5.png')
 
     plt.show()
 
@@ -195,5 +195,5 @@ def plot_indirect_shape_seq_bq():
                 plt.ylabel(SHAPE_FULL_FORM[shape_name])
 
                 plt.savefig(
-                    f'figures/shape_seq/{df_name}_{seq_start_pos}_{seq_end_pos}_{shape_name}_{shape_arr.shape[1]}_{TOP_N}_seq_impact.png'
+                    f'{ReadUtil().get_figure_dir()}/shape_seq/{df_name}_{seq_start_pos}_{seq_end_pos}_{shape_name}_{shape_arr.shape[1]}_{TOP_N}_seq_impact.png'
                 )

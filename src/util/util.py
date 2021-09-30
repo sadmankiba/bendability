@@ -214,22 +214,35 @@ class ChromosomeUtil:
         Plot a horizontal red line denoting avg
         """
         PlotUtil().plot_horizontal_line(y, 'r', 'avg')
-        
+
+# TODO: Name it PathUtil?      
 class ReadUtil:
-    @staticmethod
-    def get_parent_dir(currentframe: FrameType) -> Path:
-        '''Find parent directory path dynamically'''
+    """
+    Class to get path in runtime
+    
+    With this, we can create correct path even when this module is called from
+    modules in other directories. (e.g. child directory)
+    """
+    
+    def get_parent_dir(self, currentframe: FrameType) -> Path:
+        '''Find parent directory path in runtime'''
         return Path(inspect.getabsfile(currentframe)).parent
     
+    
+    def get_figure_dir(self) -> str:
+        """
+        Get figure directory in runtime.
+        """
+        parent_dir = self.get_parent_dir(inspect.currentframe())
+        return f'{parent_dir.parent.parent}/figures'
+
     def get_data_dir(self) -> str:
         """
         Get data directory in runtime. 
-
-        With this, we can create correct path even when this module is called from
-        modules in other directories. (e.g. child directory)
         """
-        parent_dir = Path(inspect.getabsfile(inspect.currentframe())).parent
+        parent_dir = self.get_parent_dir(inspect.currentframe())
         return f'{parent_dir.parent.parent}/data'
+
 
 class IOUtil:
     # TODO: Change name - SaveUtil
@@ -244,7 +257,7 @@ class IOUtil:
         # Save
         plt.savefig(path, dpi=200)
         
-        logging.info(f'Figure saved at: {path.relative_to("./")}')
+        logging.info(f'Figure saved at: {path}')
         return path 
 
     def save_tsv(self, df: pd.DataFrame, path_str: str | Path) -> Path:

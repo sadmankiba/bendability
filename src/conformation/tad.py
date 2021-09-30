@@ -1,7 +1,7 @@
 from __future__ import annotations
 from chromosome.genes import Genes
 
-from util.util import IOUtil, PlotUtil
+from util.util import IOUtil, PlotUtil, ReadUtil 
 from util.custom_types import ChrId, PositiveInt, YeastChrNum
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
@@ -128,7 +128,7 @@ class HicExplBoundaries:
         plt.legend() 
         
         return IOUtil().save_figure(
-            f'figures/domains/mean_c0_scatter_{self}.png')
+            f'{ReadUtil().get_figure_dir()}/domains/mean_c0_scatter_{self}.png')
 
 
 
@@ -325,7 +325,7 @@ class MultiChrmHicExplBoundariesCollector:
         plt.title(f'Comparison of mean C0 in boundaries vs. domains')
         plt.legend()
 
-        return IOUtil().save_figure(f'figures/mcdomains/bndrs_dmns_c0_{self}.png')
+        return IOUtil().save_figure(f'{ReadUtil().get_figure_dir()}/mcdomains/bndrs_dmns_c0_{self}.png')
     
     def plot_bar_perc_in_prmtrs(self) -> Path:
         chrms = self._chrms
@@ -342,7 +342,7 @@ class MultiChrmHicExplBoundariesCollector:
         plt.ylabel('Boundaries in promoters (%)')
         plt.title(f'Percentage of boundaries in promoters in chromosomes')
         plt.legend()
-        return IOUtil().save_figure(f'figures/mcdomains/perc_bndrs_in_promoters_{self}.png')
+        return IOUtil().save_figure(f'{ReadUtil().get_figure_dir()}/mcdomains/perc_bndrs_in_promoters_{self}.png')
     
     def num_bndrs_dmns(self) -> tuple[float, float]:  
         mc_bndrs = self._mc_bndrs

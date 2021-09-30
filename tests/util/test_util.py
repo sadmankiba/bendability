@@ -1,5 +1,6 @@
 from util.util import PlotUtil, get_possible_seq, cut_sequence, \
-        reverse_compliment_of, append_reverse_compliment, IOUtil
+        reverse_compliment_of, append_reverse_compliment, IOUtil, \
+            ReadUtil
 
 import pandas as pd
 
@@ -83,7 +84,7 @@ class TestPlotUtil:
             colors=['tab:orange', 'tab:green'],
             y_label="Quantity (units)"
         )
-        IOUtil().save_figure('figures/test/stacked_bar.png')
+        IOUtil().save_figure(f'{ReadUtil().get_figure_dir()}/test/stacked_bar.png')
         assert True
 
 

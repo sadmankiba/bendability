@@ -1,5 +1,6 @@
 from util.constants import CNL
 from util.reader import DNASequenceReader
+from util.util import ReadUtil
 from .model6 import nn_model
 from .data_preprocess import Preprocess
 
@@ -145,7 +146,7 @@ class Evaluation:
             ggplot(data=df, mapping=aes(x='True Value', y='Predicted Value')) +
             stat_bin_2d(bins=150) + xlim(-2.75, 2.75) + ylim(-2.75, 2.75))
 
-        with open(f'figures/scatter.png', 'w') as f:
+        with open(f'{ReadUtil().get_figure_dir()}/scatter.png', 'w') as f:
             print(p, file=f)
 
     def check_performance(self, df: pd.DataFrame) -> None:

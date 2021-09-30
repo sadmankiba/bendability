@@ -207,5 +207,5 @@ class HelicalSeparationCounter:
             plt.xlabel('Position (bp)')
             plt.ylabel('p(i)')
             plt.title(pair_str)
-            plt.savefig(f'figures/distances/{library_name}/{pair_str}.png',
+            plt.savefig(f'{ReadUtil().get_figure_dir()}/distances/{library_name}/{pair_str}.png',
                         bbox_inches="tight")

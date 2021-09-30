@@ -341,7 +341,7 @@ class Chromosome:
 
         # Save figure
         plt.gcf().set_size_inches(12, 6)
-        ma_fig_dir = f'figures/chromosome/{self._chr_id}'
+        ma_fig_dir = f'{ReadUtil().get_figure_dir()}/chromosome/{self._chr_id}'
         if not Path(ma_fig_dir).is_dir():
             Path(ma_fig_dir).mkdir(parents=True, exist_ok=True)
 

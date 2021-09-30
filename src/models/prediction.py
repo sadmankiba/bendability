@@ -39,7 +39,7 @@ class Prediction:
         return str(self._model_no)
 
     def _select_model(self) -> tuple[nn_model6, str, str]:
-        parent_dir = ReadUtil.get_parent_dir(inspect.currentframe())
+        parent_dir = ReadUtil().get_parent_dir(inspect.currentframe())
 
         if self._model_no == 6:
             return (nn_model6, f'{parent_dir}/parameter_model6.txt',

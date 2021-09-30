@@ -5,7 +5,7 @@ from util.custom_types import NonNegativeInt
 
 from chromosome.nucleosome import Nucleosome
 from chromosome.chromosome import Chromosome 
-from util.util import IOUtil, PlotUtil
+from util.util import IOUtil, PlotUtil, ReadUtil 
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -86,7 +86,7 @@ class Loops:
         )
 
         # TODO: Encapsulate saving figure logic in a function
-        fig_dir = 'figures/chrv/loops'
+        fig_dir = f'{ReadUtil().get_figure_dir()}/chrv/loops'
         if not Path(fig_dir).is_dir():
             Path(fig_dir).mkdir(parents=True, exist_ok=True)
 
@@ -187,7 +187,7 @@ class Loops:
         plt.legend() 
         
         return IOUtil().save_figure(
-            f'figures/loops/individual_scatter_nuc_linker_{self._chr}.png')
+            f'{ReadUtil().get_figure_dir()}/loops/individual_scatter_nuc_linker_{self._chr}.png')
 
 
 
@@ -210,7 +210,7 @@ class PlotLoops:
             )
 
             paths.append(IOUtil().save_figure(
-                f'figures/loops/{self._chrm._chr_id}/individual_mean_c0_{loop[Loops.COL_START]}_{loop[Loops.COL_END]}_{self._loops}.png'
+                f'{ReadUtil().get_figure_dir()}/loops/{self._chrm._chr_id}/individual_mean_c0_{loop[Loops.COL_START]}_{loop[Loops.COL_END]}_{self._loops}.png'
             ))
 
         return paths 
@@ -257,7 +257,7 @@ class PlotLoops:
             f'Mean {self._chrm._c0_type} C0 around anchor points. Considering start, end and all anchors.'
         )
 
-        return IOUtil().save_figure(f'figures/loops/mean_c0_anchor_dist_{lim}_{self._loops}.png')
+        return IOUtil().save_figure(f'{ReadUtil().get_figure_dir()}/loops/mean_c0_anchor_dist_{lim}_{self._loops}.png')
 
     def plot_c0_around_individual_anchors(self, lim=500) -> list[Path]:
         paths = []
@@ -275,7 +275,7 @@ class PlotLoops:
                 )
 
                 path = IOUtil().save_figure(
-                    f'figures/loops/{self._chrm._chr_id}/individual_anchor_{col}_{pos}.png')
+                    f'{ReadUtil().get_figure_dir()}/loops/{self._chrm._chr_id}/individual_anchor_{col}_{pos}.png')
                 paths.append(path)
         
         return paths 
@@ -361,5 +361,5 @@ class PlotLoops:
         )
 
         return IOUtil().save_figure(
-            f'figures/loops/mean_{val_type}_p_{total_perc}_mxl_{max_loop_length}_{self._loops}.png'
+            f'{ReadUtil().get_figure_dir()}/loops/mean_{val_type}_p_{total_perc}_mxl_{max_loop_length}_{self._loops}.png'
         )
