@@ -215,8 +215,8 @@ class ChromosomeUtil:
         """
         PlotUtil().plot_horizontal_line(y, 'r', 'avg')
 
-# TODO: Name it PathUtil?      
-class ReadUtil:
+      
+class PathUtil:
     """
     Class to get path in runtime
     
@@ -224,11 +224,13 @@ class ReadUtil:
     modules in other directories. (e.g. child directory)
     """
     
+    
+    @classmethod
     def get_parent_dir(self, currentframe: FrameType) -> Path:
         '''Find parent directory path in runtime'''
         return Path(inspect.getabsfile(currentframe)).parent
     
-    
+    @classmethod
     def get_figure_dir(self) -> str:
         """
         Get figure directory in runtime.
@@ -236,12 +238,19 @@ class ReadUtil:
         parent_dir = self.get_parent_dir(inspect.currentframe())
         return f'{parent_dir.parent.parent}/figures'
 
+    @classmethod
     def get_data_dir(self) -> str:
         """
         Get data directory in runtime. 
         """
         parent_dir = self.get_parent_dir(inspect.currentframe())
         return f'{parent_dir.parent.parent}/data'
+    
+    @classmethod
+    def get_hic_data_dir(self) -> str: 
+        # TODO: DRY parent_dir
+        parent_dir = self.get_parent_dir(inspect.currentframe())
+        return f'{parent_dir.parent.parent}/hic/data'
 
 
 class IOUtil:

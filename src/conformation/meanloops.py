@@ -6,8 +6,8 @@ from models.prediction import Prediction
 from util.reader import DNASequenceReader
 from util.constants import ChrIdList
 from chromosome.chromosome import Chromosome 
-from util.util import IOUtil, PlotUtil, ReadUtil 
-from loops import Loops
+from util.util import IOUtil, PlotUtil, PathUtil 
+from conformation.loops import Loops
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -445,7 +445,7 @@ class MultiChrmMeanLoopsCollector:
         self._mcloop_df['model'] = np.full((len(self._mcloop_df), ),
                                            str(self._prediction))
 
-        save_df_path = f'data/generated_data/mcloops/multichr_avg_c0_stat_{self}.tsv'
+        save_df_path = f'{PathUtil.get_data_dir()}/generated_data/mcloops/multichr_avg_c0_stat_{self}.tsv'
         IOUtil().append_tsv(
             self._mcloop_df,
             save_df_path
@@ -477,7 +477,7 @@ class MultiChrmMeanLoopsCollector:
         plt.legend()
 
         IOUtil().save_figure(
-            f'{ReadUtil().get_figure_dir()}/mcloop/nuc_linker_mean_{self}.png')
+            f'{PathUtil.get_figure_dir()}/mcloop/nuc_linker_mean_{self}.png')
     
     def plot_loop_cover_frac(self):
         self.save_avg_c0_stat([2], subtract_chrm=False)
@@ -490,7 +490,7 @@ class MultiChrmMeanLoopsCollector:
         plt.ylabel('Loop cover (%)')
         plt.title(f'Loop cover percentage in whole chromosome with max length = {self._mxlen}')
         IOUtil().save_figure(
-            f'{ReadUtil().get_figure_dir()}/mcloop/loop_cover_{self}.png')
+            f'{PathUtil.get_figure_dir()}/mcloop/loop_cover_{self}.png')
 
     def get_loops_data(self) -> pd.DataFrame:
         """Get data of all loops"""
@@ -535,7 +535,7 @@ class MultiChrmMeanLoopsAggregator:
         for m in methods:
             method_map[m]()
 
-        save_df_path = f'data/generated_data/mcloops/agg_stat_{self._coll}.tsv'
+        save_df_path = f'{PathUtil.get_data_dir()}/generated_data/mcloops/agg_stat_{self._coll}.tsv'
         return IOUtil().append_tsv(self._agg_df, save_df_path)
 
     def plot_c0_vs_loop_size(self) -> Path: 
@@ -549,7 +549,7 @@ class MultiChrmMeanLoopsAggregator:
         plt.xlabel('Loop length in bp (logarithmic)')
         plt.ylabel('Mean C0')
         plt.title('Mean C0 vs Loop Size')
-        return IOUtil().save_figure(f'{ReadUtil().get_figure_dir()}/mcloops/c0_vs_loop_size_{self._coll}.png')
+        return IOUtil().save_figure(f'{PathUtil.get_figure_dir()}/mcloops/c0_vs_loop_size_{self._coll}.png')
 
 
 
@@ -600,7 +600,7 @@ class MultiChrmCoverLoopsCollector:
         collector_df['non_loop_linker'] = self._mccloops.apply(
             lambda cloops: cloops.in_non_loop_linker()
         )
-        save_path_str = f'data/generated_data/mcloop/multichr_cover_stat_{self._mxlen}.tsv'
+        save_path_str = f'{PathUtil.get_data_dir()}/generated_data/mcloop/multichr_cover_stat_{self._mxlen}.tsv'
         IOUtil().append_tsv(collector_df, save_path_str)
         return collector_df, save_path_str
     
@@ -620,7 +620,7 @@ class MultiChrmCoverLoopsCollector:
         plt.title('Coverage by nucleosomes and linkers in loop and' 
             f'non-loop region with max loop length = {self._mxlen}',
             pad=35)
-        fig_path_str = f'{ReadUtil().get_figure_dir()}/mcloop/nuc_linker_cover_mxl_{self._mxlen}.png'
+        fig_path_str = f'{PathUtil.get_figure_dir()}/mcloop/nuc_linker_cover_mxl_{self._mxlen}.png'
 
         IOUtil().save_figure(fig_path_str)
         return fig_path_str

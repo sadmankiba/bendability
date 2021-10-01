@@ -1,6 +1,6 @@
 from __future__ import annotations
 from util.custom_types import ChrId, YeastChrNum
-from util.util import IOUtil, ReadUtil 
+from util.util import IOUtil, PathUtil 
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
 from util.constants import ChrIdList
@@ -26,7 +26,7 @@ class FancBoundary:
     """
     def __init__(self, resolution: int = 500, window_size: int = 1000):
         self._hic_file = fanc.load(
-            f"hic/data/GSE151553_A364_merged.juicer.hic@{resolution}")
+            f"{PathUtil.get_hic_data_dir()}/GSE151553_A364_merged.juicer.hic@{resolution}")
         self._window_size = window_size
         self._resolution = resolution
         self.boundaries = self._get_all_boundaries()
@@ -41,13 +41,13 @@ class FancBoundary:
         if start > 0 and end > 0:
             fig, axes = f.plot(
                 f'{chrm_num}:{int(start / 1000)}kb-{int(end / 1000)}kb')
-            IOUtil().save_figure(f'{ReadUtil().get_figure_dir()}/hic/xii_100kb_300kb.png')
+            IOUtil().save_figure(f'{PathUtil.get_figure_dir()}/hic/xii_100kb_300kb.png')
         else:
             fig, axes = f.plot(f'{chrm_num}')
-            IOUtil().save_figure(f'{ReadUtil().get_figure_dir()}/hic/{chrm_num}_boundaries.png')
+            IOUtil().save_figure(f'{PathUtil.get_figure_dir()}/hic/{chrm_num}_boundaries.png')
 
     def _get_insulation(self) -> fanc.InsulationScores:
-        insulation_output_path = f"data/generated_data/hic/insulation_fanc_res_{self._resolution}"
+        insulation_output_path = f"{PathUtil.get_data_dir()}/generated_data/hic/insulation_fanc_res_{self._resolution}"
         if Path(insulation_output_path).is_file():
             return fanc.load(insulation_output_path)
 
@@ -58,7 +58,7 @@ class FancBoundary:
                                               file_name=insulation_output_path)
 
     def _get_all_boundaries(self) -> fanc.architecture.domains.Boundaries:
-        boundary_file_path = f'data/generated_data/hic/boundaries_fanc_res_{self._resolution}_w_{self._window_size}'
+        boundary_file_path = f'{PathUtil.get_data_dir()}/generated_data/hic/boundaries_fanc_res_{self._resolution}_w_{self._window_size}'
         if Path(boundary_file_path).is_file():
             return fanc.load(boundary_file_path)
 
@@ -81,7 +81,7 @@ class FancBoundary:
         })
         IOUtil().save_tsv(
             df,
-            f'data/generated_data/hic/boundaries_w_{self._window_size}_res_{self._resolution}.tsv'
+            f'{PathUtil.get_data_dir()}/generated_data/hic/boundaries_w_{self._window_size}_res_{self._resolution}.tsv'
         )
 
     def get_boundaries_in(self,
@@ -116,7 +116,7 @@ class FancBoundary:
         oct_cols = [f'octile_{num}' for num in range(9)]
         IOUtil().save_tsv(
             pd.DataFrame(octiles.reshape((1, 9)), columns=oct_cols),
-            'data/generated_data/hic/boundary_octiles.tsv')
+            f'{PathUtil.get_data_dir()}/generated_data/hic/boundary_octiles.tsv')
 
 
 class FancBoundaryAnalysis:
@@ -152,7 +152,7 @@ class FancBoundaryAnalysis:
         cols = ['avg', 'lim'] + [f'eighth_{num}' for num in range(1, 9)]
         vals = np.concatenate(([c0_spread.mean(), lim], one_eighth_means))
         IOUtil().append_tsv(pd.DataFrame(vals.reshape((1, -1)), columns=cols),
-                            'data/generated_data/hic/mean_at_boundaries.tsv')
+                            f'{PathUtil.get_data_dir()}/generated_data/hic/mean_at_boundaries.tsv')
 
     def find_c0_at_octiles(self, lim: int = 250):
         for chrm_id in ChrIdList:

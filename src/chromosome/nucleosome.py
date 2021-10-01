@@ -1,7 +1,7 @@
 from __future__ import annotations
 from .chromosome import Chromosome
 from util.reader import DNASequenceReader
-from util.util import IOUtil, ReadUtil
+from util.util import IOUtil, PathUtil
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -61,7 +61,7 @@ class Nucleosome:
         plt.title(f'C0 of +-{dist} bp from nuclesome dyad')
 
         IOUtil().save_figure(
-            f'{ReadUtil().get_figure_dir()}/nucleosome/dist_{dist}_s_{spread_str}_m_{self._chr.predict_model_no()}_{self._chr._chr_id}.png'
+            f'{PathUtil.get_figure_dir()}/nucleosome/dist_{dist}_s_{spread_str}_m_{self._chr.predict_model_no()}_{self._chr._chr_id}.png'
         )
 
     def _get_nuc_centers(self) -> list[int]:
@@ -133,7 +133,7 @@ class Nucleosome:
         of 101 bp for each nucleosome.
         """
         saved_data = Path(
-            f'data/generated_data/nucleosome/nuc_occ_{self._chr._chr_id}.tsv')
+            f'{PathUtil.get_data_dir()}/generated_data/nucleosome/nuc_occ_{self._chr._chr_id}.tsv')
         if saved_data.is_file():
             return pd.read_csv(saved_data,
                                sep='\t')['nuc_occupancy'].to_numpy()

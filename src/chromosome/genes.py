@@ -7,7 +7,7 @@ import pandas as pd
 
 from .chromosome import Chromosome
 from util.reader import GeneReader
-from util.util import IOUtil, PlotUtil, ReadUtil
+from util.util import IOUtil, PlotUtil, PathUtil
 from .nucleosome import Nucleosome
 
 class Genes:
@@ -49,7 +49,7 @@ class Genes:
         plt.title(f'{self._chrm._c0_type} Mean C0 around +1 dyad'
                 f' in chromosome {self._chrm._chr_num}')
 
-        return IOUtil().save_figure(f'{ReadUtil().get_figure_dir()}/gene/dist_p1_dyad_{self._chrm}.png')
+        return IOUtil().save_figure(f'{PathUtil.get_figure_dir()}/gene/dist_p1_dyad_{self._chrm}.png')
 
     def in_promoter(self, bps: np.ndarray | list[int] | pd.Series) -> np.ndarray:
         """
