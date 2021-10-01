@@ -5,7 +5,7 @@ from .model30 import nn_model as nn_model30
 from .data_preprocess import Preprocess
 from util.custom_types import LIBRARY_NAMES
 from util.reader import DNASequenceReader
-from util.util import IOUtil, ReadUtil
+from util.util import IOUtil, PathUtil
 
 import keras
 import pandas as pd
@@ -39,7 +39,7 @@ class Prediction:
         return str(self._model_no)
 
     def _select_model(self) -> tuple[nn_model6, str, str]:
-        parent_dir = ReadUtil().get_parent_dir(inspect.currentframe())
+        parent_dir = PathUtil.get_parent_dir(inspect.currentframe())
 
         if self._model_no == 6:
             return (nn_model6, f'{parent_dir}/parameter_model6.txt',
@@ -92,7 +92,7 @@ class Prediction:
             DNASequenceReader().get_processed_data()[lib])
         IOUtil().save_tsv(
             predict_df,
-            f'{ReadUtil().get_data_dir()}/generated_data/predictions/{lib}_pred_m_{self._model_no}.tsv'
+            f'{PathUtil.get_data_dir()}/generated_data/predictions/{lib}_pred_m_{self._model_no}.tsv'
         )
         return predict_df
 
@@ -110,5 +110,5 @@ class Prediction:
         })
         IOUtil().append_tsv(
             metrics_df,
-            f'{ReadUtil().get_data_dir()}/generated_data/prediction_metrics/pred_m_{self._model_no}.tsv'
+            f'{PathUtil.get_data_dir()}/generated_data/prediction_metrics/pred_m_{self._model_no}.tsv'
         )

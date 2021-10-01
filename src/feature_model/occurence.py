@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from util.util import get_possible_seq, gen_random_sequences, sorted_split, \
-    append_reverse_compliment, ReadUtil
+    append_reverse_compliment, PathUtil
 from util.reader import DNASequenceReader
 from util.constants import RL
 
@@ -143,7 +143,7 @@ class Occurence:
         plt.colorbar()
         plt.yticks(ticks=np.arange(len(sorted_occur)),
                    labels=[pair[0] for pair in sorted_occur])
-        plt.savefig(f'{ReadUtil().get_figure_dir()}/seq_occur/{df_name}_bidir_heatmap.png')
+        plt.savefig(f'{PathUtil.get_figure_dir()}/seq_occur/{df_name}_bidir_heatmap.png')
         norm_seq_occur_map = self.normalize_bin_occurence(
             seq_occur_map, len(sorted_dfs[0]))
 
@@ -161,7 +161,7 @@ class Occurence:
         plt.colorbar()
         plt.yticks(ticks=np.arange(len(sorted_occur)),
                    labels=[pair[0] for pair in sorted_occur])
-        plt.savefig(f'{ReadUtil().get_figure_dir()}/seq_occur/{df_name}_bidir_norm_heatmap.png')
+        plt.savefig(f'{PathUtil.get_figure_dir()}/seq_occur/{df_name}_bidir_norm_heatmap.png')
 
     def plot_boxplot(self, df: pd.DataFrame, library_name: str):
         """
@@ -209,7 +209,7 @@ class Occurence:
             axs[i // 4, i % 4].boxplot(dnc_occur_map[dnc], showfliers=False)
 
         fig.tight_layout()
-        plt.savefig(f'{ReadUtil().get_figure_dir()}/seq_occur/{library_name}_boxplot_serial.png')
+        plt.savefig(f'{PathUtil.get_figure_dir()}/seq_occur/{library_name}_boxplot_serial.png')
         plt.show()
 
         # Sort by occurence in first bin in descending order

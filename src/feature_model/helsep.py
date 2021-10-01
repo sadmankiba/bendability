@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from util.util import IOUtil, ReadUtil, get_possible_seq, gen_random_sequences
+from util.util import IOUtil, PathUtil, get_possible_seq, gen_random_sequences
 
 import pandas as pd
 import numpy as np
@@ -24,7 +24,7 @@ class HelicalSeparationCounter:
     Helper class for counting helical separation
     """
     def __init__(self):
-        self._expected_dist_file = f'{ReadUtil().get_data_dir()}/generated_data/helical_separation/expected_p.tsv'
+        self._expected_dist_file = f'{PathUtil.get_data_dir()}/generated_data/helical_separation/expected_p.tsv'
         self._dinc_pairs = self._get_dinc_pairs()
 
     def _get_dinc_pairs(self) -> list[tuple[str, str]]:
@@ -207,5 +207,5 @@ class HelicalSeparationCounter:
             plt.xlabel('Position (bp)')
             plt.ylabel('p(i)')
             plt.title(pair_str)
-            plt.savefig(f'{ReadUtil().get_figure_dir()}/distances/{library_name}/{pair_str}.png',
+            plt.savefig(f'{PathUtil.get_figure_dir()}/distances/{library_name}/{pair_str}.png',
                         bbox_inches="tight")

@@ -1,5 +1,5 @@
 from util.constants import CHRV_TOTAL_BP
-from util.util import ReadUtil
+from util.util import PathUtil
 from conformation.loops import Loops
 from conformation.meanloops import MeanLoops, MultiChrmCoverLoopsCollector, MultiChrmMeanLoopsAggregator, MultiChrmMeanLoopsCollector
 from chromosome.chromosome import Chromosome
@@ -92,7 +92,7 @@ class TestMultiChrmMeanLoopsCollector:
 
     def test_plot_loop_cover_frac(self):
         MultiChrmMeanLoopsCollector(None, ('VL', )).plot_loop_cover_frac()
-        fig_path = Path(f'{ReadUtil().get_figure_dir()}/mcloop/loop_cover_md_None_mx_None.png')
+        fig_path = Path(f'{PathUtil.get_figure_dir()}/mcloop/loop_cover_md_None_mx_None.png')
         assert fig_path.is_file()
 
 class TestMultiChrmMeanLoopsAggregator:
