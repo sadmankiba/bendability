@@ -5,6 +5,7 @@ regex
 yapf
 fanc
 pytest
+pytest-testmon
 pytest-github-actions-annotate-failures
 seaborn
 logomaker

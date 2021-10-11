@@ -4,9 +4,68 @@ This directory contains some commands and scripts to analyze Hi-C data. The data
 
 ## Data
 
-Hi-C matrix data is downloaded from [here](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE151553) 
+Hi-C matrix data is downloaded from [here](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE151553). We are using `GSE151553_A364_merged.hic` file.
 
+## Juicer 
 
-## Additional Information 
-Hiccups algorithm of Juicer tools require GPU. So, Google Colab was used to run this algorithm. The notebook can be found [here](https://colab.research.google.com/drive/1D4lRnORwSygnOBksHkx6PXHz0a5nHEer?usp=sharing).
+Juicer is a pipeline for processing Hi-C datasets. It consists of a set of tools. We are using the following tools:
+- `Juicer Tools`: To extract data from .hic file, e.g. geting contact density matrix.
+- `Juicebox`: To visualize Hi-C maps. 
+- `Hiccups`: To find chromatin loops.
+
+To know more, check out [Juicer Wiki](https://github.com/aidenlab/juicer/wiki).
+
+### Juicer Tools
+
+**Install**
+
+Download Juicer Tools `.jar` from [here](https://github.com/aidenlab/juicer/wiki/Download)
+
+**Use**
+
+- Generate contact density matrix from `.hic` file.
+
+```sh
+java -jar juicer_tools.jar dump <options> <data> <generated_data>
+java -jar juicer_tools.jar dump observed VC  data/GSE151553_A364_merged.hic VII VII BP 10000 vii.txt 
+```
+
+The file vii.txt will contain the observed matrix of chromosome VII with VC normalization at 10kb resolution. The .txt file has three columns. Example:
+
+```
+40000	40000	18284.73
+0	    50000	944.62305
+10000	50000	1104.2627
+```
+
+First and second defines position. Third defines contact density. 
+
+Ref: 
+
+- [Juicer Tools Quick Start](https://github.com/aidenlab/juicer/wiki/Juicer-Tools-Quick-Start)
+- [Data Extraction - Juicer Wiki](https://github.com/aidenlab/juicer/wiki/Data-Extraction)
+
+### Juicebox 
+
+**Install**
+
+Download Juicebox jar from [here](https://github.com/aidenlab/Juicebox/wiki/Download).
+
+**Use**
+
+- Launch Juicebox
+
+```sh
+java -Xms512m -Xmx2048m -jar Juicebox.jar
+```
+
+- Once you've successfully launched Juicebox, click File -> Open to load a new Hi-C dataset.
+
+Ref: [Juicebox Wiki](https://github.com/aidenlab/Juicebox/wiki)
+
+### HiCCUPS
+
+**Use**
+ 
+HiCCUPS CPU version failed to run on my pc. Main Hiccups algorithm of Juicer tools require GPU. So, I used Google Colab to run this algorithm. The notebook can be found [here](https://colab.research.google.com/drive/1D4lRnORwSygnOBksHkx6PXHz0a5nHEer?usp=sharing). 
 
