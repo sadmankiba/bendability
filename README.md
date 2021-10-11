@@ -49,10 +49,11 @@ Tests are useful for for making sure that everything is working fine. Apart from
 
 ```sh 
 cd tests/
-python3 -m pytest                          # Runs whole test suite; ~30 mins
-python3 -m pytest util/test_reader.py      # Runs a single test module
+python3 -m pytest                          # Run whole test suite; ~30 mins
+python3 -m pytest --testmon                # Run only tests affected by recent changes
+python3 -m pytest util/test_reader.py      # Run a single test module
 python3 -m pytest conformation/test_loops.py -k multichrm 
-                                           # Runs tests in test_loops.py module that contains substring 'multichrm' 
+                                           # Run tests in test_loops.py module containing substring 'multichrm' 
 ```
 
 Following Test Driven Development(TDD) principle, tests should be written whenever new capabilities are added. 

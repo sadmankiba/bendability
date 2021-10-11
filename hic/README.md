@@ -61,7 +61,9 @@ java -Xms512m -Xmx2048m -jar Juicebox.jar
 
 - Once you've successfully launched Juicebox, click File -> Open to load a new Hi-C dataset.
 
-Ref: [Juicebox Wiki](https://github.com/aidenlab/Juicebox/wiki)
+Ref: 
+
+- [Juicebox Wiki](https://github.com/aidenlab/Juicebox/wiki)
 
 ### HiCCUPS
 
@@ -69,3 +71,6 @@ Ref: [Juicebox Wiki](https://github.com/aidenlab/Juicebox/wiki)
  
 HiCCUPS CPU version failed to run on my pc. Main Hiccups algorithm of Juicer tools require GPU. So, I used Google Colab to run this algorithm. The notebook can be found [here](https://colab.research.google.com/drive/1D4lRnORwSygnOBksHkx6PXHz0a5nHEer?usp=sharing). 
 
+Ref:
+
+- [HiCCUPS - Juicer Wiki](https://github.com/aidenlab/juicer/wiki/HiCCUPS)

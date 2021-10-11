@@ -9,8 +9,6 @@ __pycache__/
 
 data/generated_data/
 data/downloaded_data/
-BendabilityModels/
-unused/
 
 meuseum_mod/predictions/*.[tc]sv
 !meuseum_mod/predictions/6_9.csv 
