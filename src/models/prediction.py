@@ -72,16 +72,7 @@ class Prediction:
         dim_num = (-1, 50, 4)
 
         print('Initializing nn_model object...')
-        nn = nn_model(dim_num=dim_num,
-                      filters=params["filters"],
-                      kernel_size=params["kernel_size"],
-                      pool_type=params["pool_type"],
-                      regularizer=params["regularizer"],
-                      activation_type=params["activation_type"],
-                      epochs=params["epochs"],
-                      batch_size=params["batch_size"],
-                      loss_func=params["loss_func"],
-                      optimizer=params["optimizer"])
+        nn = nn_model(dim_num=dim_num, **params)
 
         print('Creating Keras model...')
         model = nn.create_model()
