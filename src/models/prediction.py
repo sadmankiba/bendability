@@ -1,4 +1,11 @@
 from __future__ import annotations
+import inspect
+from typing import TypedDict
+
+import keras
+import pandas as pd
+from sklearn.metrics import r2_score
+from scipy.stats import pearsonr, spearmanr
 
 from .model6 import nn_model as nn_model6
 from .model30 import nn_model as nn_model30
@@ -7,15 +14,21 @@ from util.custom_types import LIBRARY_NAMES
 from util.reader import DNASequenceReader
 from util.util import IOUtil, PathUtil
 
-import keras
-import pandas as pd
-from sklearn.metrics import r2_score
-from scipy.stats import pearsonr, spearmanr
-import inspect
 
+class ModelParameters(TypedDict):
+    filters: int
+    kernel_size: int
+    pool_type: str
+    regularizer: str
+    activation_type: str
+    epochs: int
+    batch_size: int
+    loss_func: str
+    optimizer: str
 
-def get_parameters(file_name):
-    dict = {}
+# TODO: Use .ini for parameters
+def get_parameters(file_name: str) -> ModelParameters:
+    dict = ModelParameters()
     with open(file_name) as f:
         for line in f:
             (key, val) = line.split()
