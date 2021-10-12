@@ -81,6 +81,7 @@ class ConvolutionLayer(Conv1D):
         return outputs
 
 
+# Model 6 and 30 should be a specialized version of a general model
 class nn_model:
     def __init__(self, dim_num, filters, kernel_size, pool_type, regularizer,
                  activation_type, epochs, batch_size, loss_func, optimizer):

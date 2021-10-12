@@ -1,5 +1,8 @@
 from typing import Literal, Union, NewType
 
+DNASeq = str
+C0 = float
+
 PositiveInt = NewType('PositiveInt', int)
 NonNegativeInt = NewType('NonNegativeInt', int)
 

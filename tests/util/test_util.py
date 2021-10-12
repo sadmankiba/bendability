@@ -17,8 +17,7 @@ class TestUtil(unittest.TestCase):
 
     def test_reverse_compliment_of(self):
         res = reverse_compliment_of('ATGCTAAC')
-        # self.assertEqual(res, 'TACGATTG')
-        self.assertEqual(res, 'GTTAGCAT')
+        assert res == 'GTTAGCAT'
 
     def test_append_reverse_compliment(self):
         df = pd.DataFrame({'Sequence': ['ATGCCGT', 'GCGATGC'], 'Col2': [5, 6]})

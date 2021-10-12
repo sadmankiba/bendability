@@ -66,18 +66,11 @@ class Prediction:
 
     def _load_model(self) -> keras.Model:
         nn_model, parameter_file, weight_file = self._select_model()
-
         params = get_parameters(parameter_file)
-
         dim_num = (-1, 50, 4)
-
-        print('Initializing nn_model object...')
+        
         nn = nn_model(dim_num=dim_num, **params)
-
-        print('Creating Keras model...')
         model = nn.create_model()
-
-        print('Loading weights in model...')
         model.load_weights(weight_file)
         return model
 

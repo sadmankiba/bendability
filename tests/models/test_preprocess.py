@@ -1,3 +1,5 @@
+import pandas as pd 
+
 from models.data_preprocess import Preprocess
 from util.constants import CHRVL, CHRVL_LEN, RL, RL_LEN
 from util.reader import DNASequenceReader
@@ -13,8 +15,34 @@ class TestPreprocess:
         assert len(seq_target['target']) == CHRVL_LEN
 
     def test_one_hot_encode(self):
-        df = DNASequenceReader().get_processed_data()[RL]
+        df = pd.DataFrame({'Sequence': ['ACGGT', 'CATCG']})
         prep = Preprocess(df)
         data = prep.one_hot_encode()
-        assert data['forward'].shape == (RL_LEN, 50, 4)
-        assert data['reverse'].shape == (RL_LEN, 50, 4)
+        assert data['forward'].shape == (2, 5, 4)
+        assert data['forward'].tolist() == \
+            [[[1., 0., 0., 0.],
+            [0., 1., 0., 0.],
+            [0., 0., 1., 0.],
+            [0., 0., 1., 0.],
+            [0., 0., 0., 1.]],
+
+            [[0., 1., 0., 0.],
+            [1., 0., 0., 0.],
+            [0., 0., 0., 1.],
+            [0., 1., 0., 0.],
+            [0., 0., 1., 0.]]]
+        
+        
+        assert data['reverse'].shape == (2, 5, 4)
+        assert data['reverse'].tolist() == \
+            [[[1., 0., 0., 0.],
+            [0., 1., 0., 0.],
+            [0., 1., 0., 0.],
+            [0., 0., 1., 0.],
+            [0., 0., 0., 1.]],
+
+            [[0., 1., 0., 0.],
+            [0., 0., 1., 0.],
+            [1., 0., 0., 0.],
+            [0., 0., 0., 1.],
+            [0., 0., 1., 0.]]]

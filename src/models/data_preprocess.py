@@ -1,14 +1,23 @@
 from __future__ import annotations
-
-from .dinucleotide import mono_to_dinucleotide, dinucleotide_one_hot_encode
+from typing import Literal, TypedDict
 
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import pandas as pd
 
-import re
-from typing import Literal
+from .dinucleotide import mono_to_dinucleotide, dinucleotide_one_hot_encode
+from util.util import reverse_compliment_of
+from util.custom_types import DNASeq, C0
 
+
+class SeqTarget(TypedDict):
+    all_seqs: list[DNASeq] 
+    rc_seqs: list[DNASeq]
+    target: list[C0]
+
+class OheResult(TypedDict):
+    forward: np.ndarray
+    reverse: np.ndarray
 
 class Preprocess:
     def __init__(self, df: pd.DataFrame):
@@ -17,34 +26,9 @@ class Preprocess:
         """
         self._df = df
 
-    def _rc_comp2(self, seqn):
-        '''
-        Find reverse complement
-        '''
-        def reverse_compliment_of(seq: str):
-            # Define replacements
-            rep = {"A": "T", "T": "A", 'G': 'C', 'C': 'G'}
-
-            # Create regex pattern
-            rep = dict((re.escape(k), v) for k, v in rep.items())
-            pattern = re.compile("|".join(rep.keys()))
-
-            # Replace and return reverse sequence
-            return (pattern.sub(lambda m: rep[re.escape(m.group(0))],
-                                seq))[::-1]
-
-        all_sequences = []
-        for seq in range(len(seqn)):
-            all_sequences.append(reverse_compliment_of(seqn[seq]))
-
-        return all_sequences
-
-    def _get_sequences_target(
-            self) -> dict[Literal['all_seqs', 'target', 'rc_seqs'], list]:
+    def _get_sequences_target(self) -> SeqTarget:
         all_seqs = self._df['Sequence'].tolist()
-        rc_seqs = self._rc_comp2(all_seqs)
-
-        # Set target
+        rc_seqs = [ reverse_compliment_of(seq) for seq in all_seqs ] 
         target = self._df['C0'].tolist() if 'C0' in self._df else None
 
         return {"all_seqs": all_seqs, "target": target, "rc_seqs": rc_seqs}
@@ -65,7 +49,6 @@ class Preprocess:
         # each row corresponds to one possible value of each feature.
         one_hot_encoder = OneHotEncoder(categories='auto')
 
-        #dict = self.without_augment()
         seq_and_target = self._get_sequences_target()
         result = dict()
         result["target"] = np.asarray(seq_and_target['target'])
@@ -104,7 +87,6 @@ class Preprocess:
 
         features = np.stack(features)
         result["forward"] = np.asarray(features)
-        assert result["forward"][0].shape == (50, 4)
 
         # some sequences do not have entire 'ACGT'
         temp_seqs = []
@@ -137,8 +119,6 @@ class Preprocess:
 
         features = np.stack(features)
         result["reverse"] = np.asarray(features)
-        assert result["reverse"][0].shape == (50, 4)
-
         return result
 
     def dinucleotide_encode(self):
