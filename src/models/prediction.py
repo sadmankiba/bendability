@@ -1,6 +1,6 @@
 from __future__ import annotations
 import inspect
-from typing import TypedDict
+from typing import Union
 
 import keras
 import pandas as pd
@@ -17,9 +17,12 @@ from util.util import IOUtil, PathUtil
 
 
 class Prediction:
-    def __init__(self, model_no: int = 6):
-        self._model_no = model_no
-        self._model = self._load_model()
+    def __init__(self, model: Union[int, keras.Model] = 6):
+        if isinstance(model, int): 
+            self._model_no = model
+            self._model = self._load_model()
+        elif isinstance(model, keras.Model):
+            self._model = model
     
     def __str__(self):
         return str(self._model_no)
