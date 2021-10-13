@@ -59,6 +59,27 @@ class ConvolutionLayer(Conv1D):
         return outputs
 
 
+class Metrics:
+    @classmethod
+    def coeff_determination(self, y_true, y_pred):
+        SS_res = K.sum(K.square(y_true - y_pred))
+        SS_tot = K.sum(K.square(y_true - K.mean(y_true)))
+        return (1 - SS_res / (SS_tot + K.epsilon()))
+
+    @classmethod
+    def spearman_fn(self, y_true, y_pred):
+        return tf.py_function(
+            spearmanr,
+            [tf.cast(y_pred, tf.float32),
+                tf.cast(y_true, tf.float32)],
+            Tout=tf.float32)
+
+    @classmethod
+    def coeff_determination_loss(self, y_true, y_pred):
+        return 1 - Metrics.coeff_determination(y_true, y_pred)
+
+
+
 # TODO: Use Gradio
 
 # Model 6 and 30 should be a specialized version of a general model
@@ -76,19 +97,6 @@ class CNNModel6:
         self.batch_size = batch_size
         self.loss_func = loss_func
         self.optimizer = optimizer
-
-    # different metric functions
-    def _coeff_determination(self, y_true, y_pred):
-        SS_res = K.sum(K.square(y_true - y_pred))
-        SS_tot = K.sum(K.square(y_true - K.mean(y_true)))
-        return (1 - SS_res / (SS_tot + K.epsilon()))
-
-    def _spearman_fn(self, y_true, y_pred):
-        return tf.py_function(
-            spearmanr,
-            [tf.cast(y_pred, tf.float32),
-                tf.cast(y_true, tf.float32)],
-            Tout=tf.float32)
 
     def create_model(self) -> keras.Model:
         # building model
@@ -173,26 +181,26 @@ class CNNModel6:
         if self.loss_func == 'mse':
             model.compile(loss='mean_squared_error',
                           optimizer=self.optimizer,
-                          metrics=[self._coeff_determination, self._spearman_fn])
+                          metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
         elif self.loss_func == 'huber':
             loss_huber = keras.losses.Huber(delta=1)
             model.compile(loss=loss_huber,
                           optimizer=self.optimizer,
-                          metrics=[self._coeff_determination, self._spearman_fn])
+                          metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
         elif self.loss_func == 'mae':
             loss_mae = keras.losses.MeanAbsoluteError()
             model.compile(loss=loss_mae,
                           optimizer=self.optimizer,
-                          metrics=[self._coeff_determination, self._spearman_fn])
+                          metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
         elif self.loss_func == 'rank_mse':
             model.compile(loss='rank_mse',
                           optimizer=self.optimizer,
-                          metrics=[self._coeff_determination, self._spearman_fn])
+                          metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
         elif self.loss_func == 'poisson':
             loss_poisson = tf.keras.losses.Poisson()
             model.compile(loss=loss_poisson,
                           optimizer=self.optimizer,
-                          metrics=[self._coeff_determination, self._spearman_fn])
+                          metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
         else:
             raise NameError('Unrecognized Loss Function')
 
@@ -212,19 +220,6 @@ class CNNModel30:
         self.batch_size = batch_size
         self.loss_func = loss_func
         self.optimizer = optimizer
-
-    # different metric functions
-    def _coeff_determination(self, y_true, y_pred):
-        SS_res = K.sum(K.square(y_true-y_pred))
-        SS_tot = K.sum(K.square(y_true - K.mean(y_true)))
-        return (1 - SS_res/(SS_tot + K.epsilon()))
-
-    def _spearman_fn(self, y_true, y_pred):
-        return tf.py_function(spearmanr, [tf.cast(y_pred, tf.float32),
-                                            tf.cast(y_true, tf.float32)], Tout=tf.float32)
-    
-    def _coeff_determination_loss(self, y_true, y_pred):
-        return 1 - self._coeff_determination(y_true, y_pred)
 
     def create_model(self):
         
@@ -290,25 +285,25 @@ class CNNModel30:
 
         if self.loss_func == 'mse':
             model.compile(loss='mean_squared_error', optimizer=adam_optimizer, metrics=[
-                          self._coeff_determination, self._spearman_fn])
+                          Metrics.coeff_determination, Metrics.spearman_fn])
         elif self.loss_func == 'coeff_determination':
-            model.compile(loss=self._coeff_determination_loss, optimizer=adam_optimizer, metrics=[
-                          keras.metrics.mean_squared_error, self._coeff_determination, self._spearman_fn])
+            model.compile(loss=Metrics.coeff_determination_loss, optimizer=adam_optimizer, metrics=[
+                          keras.metrics.mean_squared_error, Metrics.coeff_determination, Metrics.spearman_fn])
         elif self.loss_func == 'huber':
             loss_huber = keras.losses.Huber(delta=1)
             model.compile(loss=loss_huber, optimizer=self.optimizer,
-                          metrics=[self._coeff_determination, self._spearman_fn])
+                          metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
         elif self.loss_func == 'mae':
             loss_mae = keras.losses.MeanAbsoluteError()
             model.compile(loss=loss_mae, optimizer=self.optimizer,
-                          metrics=[self._coeff_determination, self._spearman_fn])
+                          metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
         elif self.loss_func == 'rank_mse':
             model.compile(loss='rank_mse', optimizer=self.optimizer,
-                          metrics=[self._coeff_determination, self._spearman_fn])
+                          metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
         elif self.loss_func == 'poisson':
             loss_poisson = tf.keras.losses.Poisson()
             model.compile(loss=loss_poisson, optimizer=self.optimizer, metrics=[
-                          self._coeff_determination, self._spearman_fn])
+                          Metrics.coeff_determination, Metrics.spearman_fn])
         else:
             raise NameError('Unrecognized Loss Function')
 
