@@ -44,7 +44,7 @@ class Prediction:
         params = get_parameters(parameter_file)
         dim_num = (-1, 50, 4)
         
-        nn = nn_model(dim_num=dim_num, **params)
+        nn: CNNModel6 = nn_model(dim_num=dim_num, **params)
         model = nn.create_model()
         model.load_weights(weight_file)
         return model

@@ -256,6 +256,7 @@ class PathUtil:
 class IOUtil:
     # TODO: Change name - SaveUtil
     def save_figure(self, path_str: str | Path) -> Path:
+        # TODO: Get figure dir in here?
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)

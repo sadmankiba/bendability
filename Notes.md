@@ -4,23 +4,20 @@ Changed headers in each dataset to separate `Sequence #` from `Sequence` by tab.
 
 ## `DNABendabilityModels` Repository
 
+### Setup
 
-
-### Setup 
-
-- Install packages 
+- Install packages
 
 ```sh
 pip3 install opencv-python opencv-contrib-python
 ```
 
-### Run 
+### Run
 
-**Running `backprop_contribution5.py`** 
+**Running `backprop_contribution5.py`**
 
-Copy a few rows from bendability data to `DNABendabilityModels/data/dataset_4_test.txt`. Then `python3 backprop_contribution5.py`. 
+Copy a few rows from bendability data to `DNABendabilityModels/data/dataset_9_top.txt`. Then `python3 backprop_contribution5.py`.
 
- 
 ## Models
 
 ## Results
@@ -40,10 +37,10 @@ Copy a few rows from bendability data to `DNABendabilityModels/data/dataset_4_te
 
 ### NN with DNA Shape
 
-|Hidden Layer | Dataset | Shape Feature | Base Pair | Training acc. | Test Acc.|
-|-------------|---------|---------------|-----------|---------------|----------|
-|100 (d)      |    CNL  |  ProT         |   all (46)|    0.577      |   0.0    |
-|100 (d)      |    RL   |  ProT         |   all (46)|     0.663     |  -0.360  |
+| Hidden Layer | Dataset | Shape Feature | Base Pair | Training acc. | Test Acc. |
+| ------------ | ------- | ------------- | --------- | ------------- | --------- |
+| 100 (d)      | CNL     | ProT          | all (46)  | 0.577         | 0.0       |
+| 100 (d)      | RL      | ProT          | all (46)  | 0.663         | -0.360    |
 
 ### Classification of C0 with CNN on DNA Shape values
 
