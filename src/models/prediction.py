@@ -10,37 +10,10 @@ from scipy.stats import pearsonr, spearmanr
 from .model6 import nn_model as nn_model6
 from .model30 import nn_model as nn_model30
 from .data_preprocess import Preprocess
+from .parameters import get_parameters
 from util.custom_types import LIBRARY_NAMES
 from util.reader import DNASequenceReader
 from util.util import IOUtil, PathUtil
-
-
-class ModelParameters(TypedDict):
-    filters: int
-    kernel_size: int
-    pool_type: str
-    regularizer: str
-    activation_type: str
-    epochs: int
-    batch_size: int
-    loss_func: str
-    optimizer: str
-
-# TODO: Use .ini for parameters
-def get_parameters(file_name: str) -> ModelParameters:
-    dict = ModelParameters()
-    with open(file_name) as f:
-        for line in f:
-            (key, val) = line.split()
-            dict[key] = val
-
-    # change string values to integer values
-    dict["filters"] = int(dict["filters"])
-    dict["kernel_size"] = int(dict["kernel_size"])
-    dict["epochs"] = int(dict["epochs"])
-    dict["batch_size"] = int(dict["batch_size"])
-
-    return dict
 
 
 class Prediction:
@@ -74,14 +47,15 @@ class Prediction:
         model.load_weights(weight_file)
         return model
 
+    # TODO: Use CedricFR/dataenforce for DF type hints
     def predict(self, df: pd.DataFrame) -> pd.DataFrame:
         prep = Preprocess(df)
         data = prep.one_hot_encode()
 
-        x1 = data["forward"]
-        x2 = data["reverse"]
-
-        y_pred = self._model.predict({'forward': x1, 'reverse': x2}).flatten()
+        y_pred = self._model.predict({
+            'forward': data["forward"], 
+            'reverse': data["reverse"]
+        }).flatten()
         return df.assign(c0_predict=y_pred)
 
     def predict_lib(self, lib: LIBRARY_NAMES) -> pd.DataFrame:

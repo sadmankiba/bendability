@@ -23,6 +23,7 @@ class DNASequenceReader:
     Reads and returns processed DNA sequence libraries
     """
     def __init__(self):
+        # TODO: Move to class attribute 
         self._bendability_data_dir = f'{PathUtil.get_data_dir()}/input_data/bendability'
         self._nuc_center_file = f'{PathUtil.get_data_dir()}/input_data/nucleosome_position/41586_2012_BFnature11142_MOESM263_ESM.txt'
 
@@ -47,6 +48,7 @@ class DNASequenceReader:
 
         return df
 
+    # TODO: Make class method
     def get_processed_data(self) -> dict[str, pd.DataFrame]:
         """
         Get processed DNA sequence libraries
