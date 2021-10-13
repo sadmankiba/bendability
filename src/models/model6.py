@@ -16,6 +16,7 @@ from tensorflow.python.keras.layers.pooling import AvgPool1D
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
+# TODO: Use Gradio
 
 class ConvolutionLayer(Conv1D):
     def __init__(self,

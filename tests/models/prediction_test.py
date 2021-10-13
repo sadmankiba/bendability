@@ -20,6 +20,14 @@ class TestPrediction:
         df = DNASequenceReader().get_processed_data()[CNL].iloc[:100]
         result_df = Prediction().predict(df)
         assert 'c0_predict' in set(result_df.columns)
+    
+    def test_predict_model6(self):
+        df = DNASequenceReader().get_processed_data()[CNL].iloc[:10]
+        result_df = Prediction(6).predict(df)
+        
+        assert_almost_equal(np.round(result_df['c0_predict'], 3).tolist(), 
+            [ 0.122, -0.274,  0.606,  0.355,  0.106, 
+             -0.411, -0.993, -0.728, -0.461,  0.295], decimal=3)
 
     def test_predict_model30(self):
         df = DNASequenceReader().get_processed_data()[CNL].iloc[:10]
