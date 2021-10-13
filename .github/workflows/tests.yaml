@@ -26,4 +26,4 @@ jobs:
 
     - name: Test with pytest
       run: |
-        cd tests/ && pytest --verbose
+        cd tests/ && pytest feature_model/organizer_test.py -k get_helical_sep

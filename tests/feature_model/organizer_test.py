@@ -50,7 +50,7 @@ class TestDataOrganizer(unittest.TestCase):
     def test_get_helical_sep(self):
         libraries: TrainTestSequenceLibraries = {
             'train': [SequenceLibrary(name=CNL, quantity=CNL_LEN)],
-            'test': [SequenceLibrary(name=TL, quantity=TL_LEN)],
+            'test': [SequenceLibrary(name=RL, quantity=RL_LEN)],
             'train_test': [],
             'seq_start_pos': 1,
             'seq_end_pos': 50
