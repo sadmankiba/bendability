@@ -16,52 +16,37 @@ from util.reader import DNASequenceReader
 from util.util import PathUtil
 
 
-def train(save=False) -> tuple[keras.Model, History]:
-    # TODO: Use argparse to overwrite parameter config
-    train_lib = TL
-    val_lib = RL
-
+def train(save=False, train_lib = TL, val_lib = RL) -> tuple[keras.Model, History]:
+    # TODO: Use kwargs to overwrite parameter config
     # Reproducibility
     seed = random.randint(1, 1000)
     np.random.seed(seed)
     tf.random.set_seed(seed)
 
-    params = get_parameters(f'{PathUtil.get_parent_dir(inspect.currentframe())}/parameter_model6.txt')
+    params = get_parameters(
+        f'{PathUtil.get_parent_dir(inspect.currentframe())}/parameter_model6.txt')
 
-    nn = nn_model(dim_num=(-1, 50, 4), **params)
-    model = nn.create_model()
+    model = nn_model(dim_num=(-1, 50, 4), **params).create_model()
 
-    train_prep = Preprocess(DNASequenceReader().get_processed_data()[train_lib][:4000])
-    # if want mono-nucleotide sequences
-    train_data = train_prep.one_hot_encode()
-    # if want dinucleotide sequences
-    #dict = prep.dinucleotide_encode()
+    train_prep = Preprocess(DNASequenceReader().get_processed_data()[train_lib][:2000])
+    train_data = train_prep.one_hot_encode() # Mono-nucleotide seqs
+    #dict = prep.dinucleotide_encode()      # Di-nucleotide seqs
 
     val_prep = Preprocess(DNASequenceReader().get_processed_data()[val_lib][:1000])
-    # if want mono-nucleotide sequences
-    val_data = val_prep.one_hot_encode()
-    # if want dinucleotide sequences
-    #dict = prep.dinucleotide_encode()
+    val_data = val_prep.one_hot_encode()      # Mono-nucleotide sequences
+    #dict = prep.dinucleotide_encode()      # Di-nucleotide seqs
 
     np.set_printoptions(threshold=sys.maxsize)
 
-    # change from list to numpy array
-    y_train = train_data["target"]
-    x1_train = train_data["forward"]
-    x2_train = train_data["reverse"]
-
-    y_val = val_data["target"]
-    x1_val = val_data["forward"]
-    x2_val = val_data["reverse"]
-
     # Without early stopping
-    history = model.fit({'forward': x1_train, 'reverse': x2_train}, y_train,
+    history = model.fit({'forward': train_data["forward"], 'reverse': train_data["reverse"]}, 
+            train_data["target"],
             epochs=params["epochs"],
             batch_size=params["batch_size"],
             validation_data=({
-                'forward': x1_val,
-                'reverse': x2_val
-            }, y_val))
+                'forward': val_data["forward"],
+                'reverse': val_data["reverse"]
+            }, val_data["target"]))
 
     # Early stopping
     #callback = EarlyStopping(monitor='loss', min_delta=0.001, patience=3, verbose=0, mode='auto', baseline=None, restore_best_weights=False)
