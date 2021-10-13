@@ -1,11 +1,12 @@
-import time
+from __future__ import annotations
 import sys
 import random
 import inspect
-import keras
 
+import keras
 import numpy as np
 import tensorflow as tf
+from keras.callbacks import History
 
 from .data_preprocess import Preprocess
 from .model6 import nn_model
@@ -15,13 +16,11 @@ from util.reader import DNASequenceReader
 from util.util import PathUtil
 
 
-def train(save=False) -> keras.Model:
+def train(save=False) -> tuple[keras.Model, History]:
     # TODO: Use argparse to overwrite parameter config
     train_lib = TL
     val_lib = RL
 
-    # excute the code
-    start_time = time.time()
     # Reproducibility
     seed = random.randint(1, 1000)
     np.random.seed(seed)
@@ -29,20 +28,10 @@ def train(save=False) -> keras.Model:
 
     params = get_parameters(f'{PathUtil.get_parent_dir(inspect.currentframe())}/parameter_model6.txt')
 
-    dim_num = (-1, 50, 4)
-    nn = nn_model(dim_num=dim_num,
-                  filters=params["filters"],
-                  kernel_size=params["kernel_size"],
-                  pool_type=params["pool_type"],
-                  regularizer=params["regularizer"],
-                  activation_type=params["activation_type"],
-                  epochs=params["epochs"],
-                  batch_size=params["batch_size"],
-                  loss_func=params["loss_func"],
-                  optimizer=params["optimizer"])
+    nn = nn_model(dim_num=(-1, 50, 4), **params)
     model = nn.create_model()
 
-    train_prep = Preprocess(DNASequenceReader().get_processed_data()[train_lib][:1000])
+    train_prep = Preprocess(DNASequenceReader().get_processed_data()[train_lib][:4000])
     # if want mono-nucleotide sequences
     train_data = train_prep.one_hot_encode()
     # if want dinucleotide sequences
@@ -66,7 +55,7 @@ def train(save=False) -> keras.Model:
     x2_val = val_data["reverse"]
 
     # Without early stopping
-    model.fit({'forward': x1_train, 'reverse': x2_train}, y_train,
+    history = model.fit({'forward': x1_train, 'reverse': x2_train}, y_train,
             epochs=params["epochs"],
             batch_size=params["batch_size"],
             validation_data=({
@@ -84,6 +73,4 @@ def train(save=False) -> keras.Model:
     if save:
         model.save_weights('model_weights/w6.h5', save_format='h5')
 
-    # reports time consumed during execution (secs)
-    print("--- %s seconds ---" % (time.time() - start_time))
-    return model
+    return model, history
