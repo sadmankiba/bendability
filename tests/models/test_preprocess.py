@@ -15,7 +15,7 @@ class TestPreprocess:
         assert len(seq_target['target']) == CHRVL_LEN
 
     def test_one_hot_encode(self):
-        df = pd.DataFrame({'Sequence': ['ACGGT', 'CATCG']})
+        df = pd.DataFrame({'Sequence': ['ACGGT', 'CATCT']})
         prep = Preprocess(df)
         data = prep.one_hot_encode()
         assert data['forward'].shape == (2, 5, 4)
@@ -30,7 +30,7 @@ class TestPreprocess:
             [1., 0., 0., 0.],
             [0., 0., 0., 1.],
             [0., 1., 0., 0.],
-            [0., 0., 1., 0.]]]
+            [0., 0., 0., 1.]]]
         
         
         assert data['reverse'].shape == (2, 5, 4)
@@ -41,7 +41,7 @@ class TestPreprocess:
             [0., 0., 1., 0.],
             [0., 0., 0., 1.]],
 
-            [[0., 1., 0., 0.],
+            [[1., 0., 0., 0.],
             [0., 0., 1., 0.],
             [1., 0., 0., 0.],
             [0., 0., 0., 1.],

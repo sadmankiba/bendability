@@ -2,6 +2,7 @@ from numpy.testing._private.utils import assert_almost_equal
 from models.prediction import Prediction
 from util.constants import RL, CNL
 from util.reader import DNASequenceReader
+from util.util import PathUtil
 
 import keras
 import numpy as np
@@ -32,15 +33,15 @@ class TestPrediction:
     def test_predict_lib(self):
         Prediction().predict_lib(RL)
         assert Path(
-            f'data/generated_data/predictions/{RL}_pred_m_6.tsv').is_file()
+            f'{PathUtil.get_data_dir()}/generated_data/predictions/{RL}_pred_m_6.tsv').is_file()
 
     def test_predict_metrics_lib(self):
         Prediction().predict_metrics_lib(RL)
         assert Path(
-            f'data/generated_data/prediction_metrics/pred_m_6.tsv').is_file()
+            f'{PathUtil.get_data_dir()}/generated_data/prediction_metrics/pred_m_6.tsv').is_file()
 
     
     def test_predict_metrics_lib_m30(self):
         Prediction(model_no=30).predict_metrics_lib(RL)
         assert Path(
-            f'data/generated_data/prediction_metrics/pred_m_30.tsv').is_file()
+            f'{PathUtil.get_data_dir()}/generated_data/prediction_metrics/pred_m_30.tsv').is_file()
