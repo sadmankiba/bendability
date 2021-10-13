@@ -19,7 +19,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 # TODO: Use Gradio
 
 class ConvolutionLayer(Conv1D):
-    def __init__(self,
+    def __init__(self, alpha, beta,
                  filters,
                  kernel_size,
                  data_format,
@@ -37,6 +37,8 @@ class ConvolutionLayer(Conv1D):
                              kernel_initializer=kernel_initializer,
                              **kwargs)
         self.run_value = 1
+        self.alpha = alpha 
+        self.beta = beta 
 
     def call(self, inputs):
         if self.run_value > 2:
@@ -44,26 +46,26 @@ class ConvolutionLayer(Conv1D):
             x_tf = self.kernel  # x_tf after reshaping is a tensor and not a weight variable :(
             x_tf = tf.transpose(x_tf, [2, 0, 1])
 
-            alpha = 25
-            beta = 1 / alpha
+            # alpha = 25
+            # beta = 1 / alpha
             bkg = tf.constant([0.295, 0.205, 0.205, 0.295])
             bkg_tf = tf.cast(bkg, tf.float32)
             filt_list = tf.map_fn(
                 lambda x: tf.math.scalar_mul(
-                    beta,
+                    self.beta,
                     tf.subtract(
                         tf.subtract(
                             tf.subtract(
-                                tf.math.scalar_mul(alpha, x),
+                                tf.math.scalar_mul(self.alpha, x),
                                 tf.expand_dims(tf.math.reduce_max(
-                                    tf.math.scalar_mul(alpha, x), axis=1),
+                                    tf.math.scalar_mul(self.alpha, x), axis=1),
                                                axis=1)),
                             tf.expand_dims(tf.math.log(
                                 tf.math.reduce_sum(tf.math.exp(
                                     tf.subtract(
-                                        tf.math.scalar_mul(alpha, x),
+                                        tf.math.scalar_mul(self.alpha, x),
                                         tf.expand_dims(tf.math.reduce_max(
-                                            tf.math.scalar_mul(alpha, x),
+                                            tf.math.scalar_mul(self.alpha, x),
                                             axis=1),
                                                        axis=1))),
                                                    axis=1)),
@@ -120,7 +122,7 @@ class nn_model:
         reverse = keras.Input(shape=(self.dim_num[1], self.dim_num[2]),
                               name='reverse')
 
-        first_layer_1 = ConvolutionLayer(filters=64,
+        first_layer_1 = ConvolutionLayer(alpha=25.0, beta=1/25.0, filters=64,
                                          kernel_size=8,
                                          strides=1,
                                          data_format='channels_last',
