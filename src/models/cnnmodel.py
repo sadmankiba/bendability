@@ -74,11 +74,23 @@ class Metrics:
                 tf.cast(y_true, tf.float32)],
             Tout=tf.float32)
 
+
+class Loss:
+    def __init__(self):
+        self.param_map = {
+            'mse': 'mean_squared_error',
+            'coeff_determination': self.coeff_determination_loss,
+            'huber': keras.losses.Huber(delta=1),
+            'mae': keras.losses.MeanAbsoluteError(), 
+            'rank_mse': 'rank_mse',
+            'poisson': tf.keras.losses.Poisson()
+        }
+    
     @classmethod
     def coeff_determination_loss(self, y_true, y_pred):
         return 1 - Metrics.coeff_determination(y_true, y_pred)
 
-
+    
 
 # TODO: Use Gradio
 
@@ -177,32 +189,10 @@ class CNNModel6:
         model = keras.Model(inputs=[forward, reverse], outputs=outputs)
 
         # model.summary()
-
-        if self.loss_func == 'mse':
-            model.compile(loss='mean_squared_error',
-                          optimizer=self.optimizer,
-                          metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
-        elif self.loss_func == 'huber':
-            loss_huber = keras.losses.Huber(delta=1)
-            model.compile(loss=loss_huber,
-                          optimizer=self.optimizer,
-                          metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
-        elif self.loss_func == 'mae':
-            loss_mae = keras.losses.MeanAbsoluteError()
-            model.compile(loss=loss_mae,
-                          optimizer=self.optimizer,
-                          metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
-        elif self.loss_func == 'rank_mse':
-            model.compile(loss='rank_mse',
-                          optimizer=self.optimizer,
-                          metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
-        elif self.loss_func == 'poisson':
-            loss_poisson = tf.keras.losses.Poisson()
-            model.compile(loss=loss_poisson,
-                          optimizer=self.optimizer,
-                          metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
-        else:
-            raise NameError('Unrecognized Loss Function')
+        
+        model.compile(loss=Loss().param_map[self.loss_func],
+            optimizer=self.optimizer,
+            metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
 
         return model
 
@@ -283,28 +273,18 @@ class CNNModel30:
 
         adam_optimizer = keras.optimizers.Adam()
 
-        if self.loss_func == 'mse':
-            model.compile(loss='mean_squared_error', optimizer=adam_optimizer, metrics=[
-                          Metrics.coeff_determination, Metrics.spearman_fn])
-        elif self.loss_func == 'coeff_determination':
-            model.compile(loss=Metrics.coeff_determination_loss, optimizer=adam_optimizer, metrics=[
-                          keras.metrics.mean_squared_error, Metrics.coeff_determination, Metrics.spearman_fn])
-        elif self.loss_func == 'huber':
-            loss_huber = keras.losses.Huber(delta=1)
-            model.compile(loss=loss_huber, optimizer=self.optimizer,
-                          metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
-        elif self.loss_func == 'mae':
-            loss_mae = keras.losses.MeanAbsoluteError()
-            model.compile(loss=loss_mae, optimizer=self.optimizer,
-                          metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
-        elif self.loss_func == 'rank_mse':
-            model.compile(loss='rank_mse', optimizer=self.optimizer,
-                          metrics=[Metrics.coeff_determination, Metrics.spearman_fn])
-        elif self.loss_func == 'poisson':
-            loss_poisson = tf.keras.losses.Poisson()
-            model.compile(loss=loss_poisson, optimizer=self.optimizer, metrics=[
-                          Metrics.coeff_determination, Metrics.spearman_fn])
-        else:
-            raise NameError('Unrecognized Loss Function')
+        optimizer_map = {
+            'mse': adam_optimizer,
+            'coeff_determination': adam_optimizer,
+            'huber': self.optimizer,
+            'mae': self.optimizer, 
+            'rank_mse': self.optimizer,
+            'poisson': self.optimizer
+        }
+
+        model.compile(loss=Loss().param_map[self.loss_func],
+            optimizer=optimizer_map[self.loss_func],
+            metrics=[keras.metrics.mean_squared_error, Metrics.coeff_determination, 
+                Metrics.spearman_fn])
 
         return model
