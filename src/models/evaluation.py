@@ -1,7 +1,7 @@
 from util.constants import CNL
 from util.reader import DNASequenceReader
 from util.util import PathUtil
-from .model6 import nn_model
+from .cnnmodel import CNNModel6
 from .data_preprocess import Preprocess
 
 import keras
@@ -26,21 +26,7 @@ import shutil
 from pathlib import Path
 import inspect
 
-
-def get_parameters(file_name):
-    dict = {}
-    with open(file_name) as f:
-        for line in f:
-            (key, val) = line.split()
-            dict[key] = val
-
-    # change string values to integer values
-    dict["filters"] = int(dict["filters"])
-    dict["kernel_size"] = int(dict["kernel_size"])
-    dict["epochs"] = int(dict["epochs"])
-    dict["batch_size"] = int(dict["batch_size"])
-
-    return dict
+from .parameters import get_parameters
 
 
 def save_kernel_weights_logos(model):
@@ -110,16 +96,15 @@ class Evaluation:
         self._model = self._load_model()
 
     def _load_model(self) -> keras.Model:
-        # Find parent directory path dynamically
-        parent_dir = Path(inspect.getabsfile(inspect.currentframe())).parent
-
-        parameter_file = f'{parent_dir}/parameter1.txt'
+        parent_dir = PathUtil.get_parent_dir(inspect.currentframe())
+        
+        parameter_file = f'{parent_dir}/parameter_model6.txt'
 
         params = get_parameters(parameter_file)
 
         dim_num = (-1, 50, 4)
-        print('Initializing nn_model object...')
-        nn = nn_model(dim_num=dim_num,
+        print('Initializing CNNModel6 object...')
+        nn = CNNModel6(dim_num=dim_num,
                       filters=params["filters"],
                       kernel_size=params["kernel_size"],
                       pool_type=params["pool_type"],

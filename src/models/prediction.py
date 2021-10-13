@@ -7,8 +7,7 @@ import pandas as pd
 from sklearn.metrics import r2_score
 from scipy.stats import pearsonr, spearmanr
 
-from .model6 import nn_model as nn_model6
-from .model30 import nn_model as nn_model30
+from .cnnmodel import CNNModel6, CNNModel30
 from .data_preprocess import Preprocess
 from .parameters import get_parameters
 from util.custom_types import LIBRARY_NAMES
@@ -27,15 +26,15 @@ class Prediction:
     def __str__(self):
         return str(self._model_no)
 
-    def _select_model(self) -> tuple[nn_model6, str, str]:
+    def _select_model(self) -> tuple[CNNModel6, str, str]:
         parent_dir = PathUtil.get_parent_dir(inspect.currentframe())
 
         if self._model_no == 6:
-            return (nn_model6, f'{parent_dir}/parameter_model6.txt',
+            return (CNNModel6, f'{parent_dir}/parameter_model6.txt',
                     f'{parent_dir}/model_weights/w6.h5_archived')
         elif self._model_no == 30:
             return (
-                nn_model30,
+                CNNModel30,
                 f'{parent_dir}/parameter_model30.txt',
                 f'{parent_dir}/model_weights/w30.h5'
             )

@@ -50,6 +50,6 @@ class TestPrediction:
 
     
     def test_predict_metrics_lib_m30(self):
-        Prediction(model_no=30).predict_metrics_lib(RL)
+        Prediction(model=30).predict_metrics_lib(RL)
         assert Path(
             f'{PathUtil.get_data_dir()}/generated_data/prediction_metrics/pred_m_30.tsv').is_file()
