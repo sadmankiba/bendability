@@ -102,7 +102,7 @@ class Loops:
         if loop_df is None: 
             loop_df = self._loop_df
 
-        loop_array = np.full((self._chr._total_bp, ), False)
+        loop_array = np.full((self._chr.total_bp, ), False)
         
         def _set_bp(start: float, end: float) -> None:
             loop_array[int(start) : int(end)] = True
@@ -128,7 +128,7 @@ class Loops:
 
         def _mean_of(loop: pd.Series) -> pd.Series:
             """Find mean c0 of full, nucs and linkers of a loop"""
-            loop_cover = np.full((self._chr._total_bp,), False)
+            loop_cover = np.full((self._chr.total_bp,), False)
             loop_cover[loop['start'] - 1 : loop['end']] = True 
             loop_mean = c0_spread[loop_cover].mean()
             loop_nuc_mean = c0_spread[loop_cover & nucs_cover].mean()
@@ -309,7 +309,7 @@ class PlotLoops:
             end_pos = int(loop['end'] + (loop['end'] - loop['start']) *
                           (total_perc / 100 - 1) / 2)
 
-            if start_pos < 0 or end_pos > self._chrm._total_bp - 1:
+            if start_pos < 0 or end_pos > self._chrm.total_bp - 1:
                 print(f'Excluding loop: ({loop["start"]}-{loop["end"]})!')
                 return np.empty((0, ))
 

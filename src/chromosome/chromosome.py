@@ -35,7 +35,7 @@ class Spread:
             chr_id: Chromosome ID
         """
         self._seq_c0_res7 = seq_c0_res7
-        self._total_bp = ChrmCalc.total_bp(seq_c0_res7.size)
+        self.total_bp = ChrmCalc.total_bp(seq_c0_res7.size)
         self._chr_id = chr_id
         self._model_no = model_no
 
@@ -52,8 +52,8 @@ class Spread:
         """
         if pos < SEQ_LEN:  # 1, 2, ... , 50
             arr = np.arange((pos + 6) // 7) + 1
-        elif pos > self._total_bp - SEQ_LEN:  # For chr V, 576822, ..., 576871
-            arr = -(np.arange((self._total_bp - pos + 1 + 6) //
+        elif pos > self.total_bp - SEQ_LEN:  # For chr V, 576822, ..., 576871
+            arr = -(np.arange((self.total_bp - pos + 1 + 6) //
                               7)[::-1]) + self._seq_c0_res7.size
         elif pos % 7 == 1:  # For chr V, 50, 57, 64, ..., 576821
             arr = np.arange(8) + (pos - SEQ_LEN + 7) // 7
@@ -85,11 +85,11 @@ class Spread:
         full_spread = np.concatenate((np.full(
             (42, ),
             spread_mvavg[0]), spread_mvavg, np.full((43, ), spread_mvavg[-1])))
-        assert full_spread.shape == (self._total_bp, )
+        assert full_spread.shape == (self.total_bp, )
 
         IOUtil().save_tsv(
             pd.DataFrame({
-                'position': np.arange(self._total_bp) + 1,
+                'position': np.arange(self.total_bp) + 1,
                 'c0_mean7': full_spread
             }), saved_data)
         return full_spread
@@ -109,14 +109,14 @@ class Spread:
 
         t = time.time()
         res = np.array(list(map(balanced_c0_at,
-                                np.arange(self._total_bp) + 1)))
+                                np.arange(self.total_bp) + 1)))
         print('Calculation of spread c0 balanced:',
               time.time() - t, 'seconds.')
 
         # Save data
         if not saved_data.parents[0].is_dir():
             saved_data.parents[0].mkdir(parents=True, exist_ok=True)
-        pd.DataFrame({'position': np.arange(self._total_bp) + 1, 'c0_balanced': res})\
+        pd.DataFrame({'position': np.arange(self.total_bp) + 1, 'c0_balanced': res})\
             .to_csv(saved_data, sep='\t', index=False)
 
         return res
@@ -156,7 +156,7 @@ class Spread:
 
         t = time.time()
         res = np.array(list(map(weighted_c0_at,
-                                np.arange(self._total_bp) + 1)))
+                                np.arange(self.total_bp) + 1)))
         print(
             print('Calculation of spread c0 weighted:',
                   time.time() - t, 'seconds.'))
@@ -164,7 +164,7 @@ class Spread:
         # Save data
         if not saved_data.parents[0].is_dir():
             saved_data.parents[0].mkdir(parents=True, exist_ok=True)
-        pd.DataFrame({'position': np.arange(self._total_bp) + 1, 'c0_weighted': res})\
+        pd.DataFrame({'position': np.arange(self.total_bp) + 1, 'c0_weighted': res})\
             .to_csv(saved_data, sep='\t', index=False)
 
         return res
@@ -175,7 +175,7 @@ class Spread:
         spread = np.concatenate((np.full(
             (21, ), c0_arr[0]), np.vstack(
                 ([c0_arr] * 7)).ravel(order='F'), np.full((22, ), c0_arr[-1])))
-        # assert spread.size == self._total_bp
+        # assert spread.size == self.total_bp
 
         return spread
 
@@ -232,7 +232,6 @@ class Chromosome:
         """
         # TODO:
         # _c0_type in function
-        # total_bp in function
         self._chr_id = chr_id
 
         if chr_id == 'VL':
@@ -246,11 +245,14 @@ class Chromosome:
             self._c0_type = 'predicted'
             self._df = self._get_chrm_df()
 
-        self._total_bp = ChrmCalc.total_bp(len(self._df))
         self.spread_str = spread_str
-
+    
     def __str__(self):
         return f's_{self.spread_str}_m_{self.predict_model_no()}_{self._chr_id}'
+
+    @property 
+    def total_bp(self):
+        return ChrmCalc.total_bp(len(self._df))
 
     def _get_chrm_df(self) -> pd.DataFrame:
         """
@@ -409,7 +411,7 @@ class Chromosome:
         Create a mask to cover segments that are defined by a bp and two
         limits.
         """
-        cvr_arr = np.full((self._total_bp, ), False)
+        cvr_arr = np.full((self.total_bp, ), False)
         for bp in bps:
             cvr_arr[bp - 1 - neg_lim:bp + pos_lim] = True
 
