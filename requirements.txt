@@ -4,6 +4,7 @@ Boruta==0.3
 regex
 yapf
 biopython
+nptyping
 pytest
 pytest-testmon
 pytest-github-actions-annotate-failures
