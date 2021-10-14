@@ -29,23 +29,25 @@ class Contact:
         5200 5200 15
         """
         df = self._load_contact()
-        num_rows = num_cols = int(df[['row', 'col']].max().max() / self._res) + 1
-        mat = np.full((num_rows, num_cols), 0)
+        df[['row', 'col']] = df[['row', 'col']] / self._res
+        num_rows = num_cols = int(df[['row', 'col']].max().max()) + 1
+        mat: NDArray = np.full((num_rows, num_cols), 0)
         
         def _fill_upper_right_half_triangle():
             for i in range(len(df)):
-                mat[int(df.iloc[i].row / self._res)]\
-                    [int(df.iloc[i].col / self._res)] = df.iloc[i].intensity
+                elem = df.iloc[i]
+                mat[int(elem.row)][int(elem.col)] = elem.intensity
 
-        def _fill_lower_left_half_triangle():
+        def _fill_lower_left_half_triangle(mat):
+            ll = np.copy(mat.transpose())
             for i in range(num_rows):
-                for j in range(i):
-                    mat[i][j] = mat[j][i]
-        
-        _fill_upper_right_half_triangle()
-        _fill_lower_left_half_triangle()
+                ll[i][i] = 0
+            
+            mat += ll
+            return mat
 
-        return mat
+        _fill_upper_right_half_triangle()
+        return _fill_lower_left_half_triangle(mat)
 
     def _load_contact(self) -> pd.DataFrame:
         df = pd.read_table(f'{PathUtil.get_data_dir()}/input_data/contact/'
