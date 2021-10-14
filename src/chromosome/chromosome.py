@@ -21,6 +21,7 @@ SpreadType = Literal['mean7', 'mean_cover', 'weighted', 'single']
 
 # TODO: Tell story top-down following newspaper metaphor
 
+# TODO: Rename Spread to ChrmSpread
 class Spread:
     """Spread C0 at each bp from C0 of 50-bp sequences at 7-bp resolution"""
     def __init__(self,
@@ -378,6 +379,7 @@ class Chromosome:
             dpi=200)
         plt.show()
 
+    # TODO: Make spread, predict model no -> property
     def get_spread(self) -> np.ndarray:
         if not hasattr(self, '_c0_spread'):
             self._c0_spread = Spread(self._df['C0'].values, self._chr_id,
