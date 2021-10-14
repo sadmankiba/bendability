@@ -234,11 +234,9 @@ class Chromosome:
 
         if chr_id == 'VL':
             self._prediction = None
-            self._chr_num = 'V'
             self._df = DNASequenceReader().get_processed_data()[CHRVL]
         else:
             self._prediction = prediction
-            self._chr_num = chr_id
             self._df = self._get_chrm_df()
 
         self.spread_str = spread_str
@@ -254,18 +252,22 @@ class Chromosome:
     def c0_type(self):
         return 'actual' if self._chr_id == 'VL' else 'predicted'
     
+    @property
+    def number(self):
+        return 'V' if self._chr_id == 'VL' else self._chr_id
+    
     def _get_chrm_df(self) -> pd.DataFrame:
         """
         Read chromosome sequence. If prediction object is provided, predict C0 
         by a model
         """
-        df = DNASequenceReader().read_yeast_genome(self._chr_num)
+        df = DNASequenceReader().read_yeast_genome(self.number)
         
         if self._prediction is None:
             return df
 
         saved_predict_data = Path(
-            f'{PathUtil.get_data_dir()}/generated_data/predictions/chr{self._chr_num}_pred_m_{self._prediction._model_no}.tsv'
+            f'{PathUtil.get_data_dir()}/generated_data/predictions/chr{self.number}_pred_m_{self._prediction._model_no}.tsv'
         )
         if saved_predict_data.is_file():
             return pd.read_csv(saved_predict_data, sep='\t')
@@ -342,7 +344,7 @@ class Chromosome:
         # Find and plot nuc. centers
         nuc_df = DNASequenceReader().read_nuc_center()
         centers = nuc_df.loc[nuc_df['Chromosome ID'] ==
-                             f'chr{self._chr_num}']['Position'].to_numpy()
+                             f'chr{self.number}']['Position'].to_numpy()
         centers = centers[centers > start]
         centers = centers[centers < end]
 
@@ -359,10 +361,10 @@ class Chromosome:
         self.plot_moving_avg(start, end)
 
         plt.ylim(-0.8, 0.6)
-        plt.xlabel(f'Position along chromosome {self._chr_num}')
+        plt.xlabel(f'Position along chromosome {self.number}')
         plt.ylabel('Moving avg. of C0')
         plt.title(
-            f"C0, 10-bp moving avg. of C0 and nuclesome centers in Chr {self._chr_num} ({start}-{end})"
+            f"C0, 10-bp moving avg. of C0 and nuclesome centers in Chr {self.number} ({start}-{end})"
         )
 
         # Save figure

@@ -67,12 +67,12 @@ class Nucleosome:
     def _get_nuc_centers(self) -> list[int]:
         return self._nuc_df.loc[
             self._nuc_df['Chromosome ID'] ==
-            f'chr{self._chr._chr_num}']['Position'].tolist()
+            f'chr{self._chr.number}']['Position'].tolist()
 
     def _filter_at_least_depth(self, depth: int):
         """Remove center positions at each end that aren't in at least certain depth"""
         self._centers = list(
-            filter(lambda i: i > depth and i < self._chr._total_bp - depth,
+            filter(lambda i: i > depth and i < self._chr.total_bp - depth,
                    self._centers))
 
     def plot_c0_vs_dist_from_dyad_no_spread(self, dist=150) -> Path:
@@ -86,7 +86,7 @@ class Nucleosome:
         """
         centers = self._nuc_df.loc[
             self._nuc_df['Chromosome ID'] ==
-            f'chr{self._chr._chr_num}']['Position'].tolist()
+            f'chr{self._chr.number}']['Position'].tolist()
 
         # Read C0 of -dist to +dist sequences
         c0_at_nuc: list[list[float]] = list(
@@ -140,7 +140,7 @@ class Nucleosome:
 
         nuc_df = DNASequenceReader().read_nuc_center()
         centers = nuc_df.loc[nuc_df['Chromosome ID'] ==
-                             f'chr{self._chr._chr_num}']['Position'].tolist()
+                             f'chr{self._chr.number}']['Position'].tolist()
 
         t = time.time()
         nuc_occ = np.full((self._chr._total_bp, ), fill_value=0)

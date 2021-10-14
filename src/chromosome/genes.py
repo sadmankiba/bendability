@@ -13,7 +13,7 @@ from .nucleosome import Nucleosome
 class Genes:
     def __init__(self, chrm: Chromosome):
         self._chrm = chrm 
-        self._tr_df = GeneReader().read_transcription_regions_of(chrm._chr_num)
+        self._tr_df = GeneReader().read_transcription_regions_of(chrm.number)
         self._add_dyads_in_tr()
 
     def _add_dyads_in_tr(self) -> None:
@@ -47,7 +47,7 @@ class Genes:
         plt.xlabel('Distance from dyad (bp)')
         plt.ylabel('Mean C0')
         plt.title(f'{self._chrm.c0_type} Mean C0 around +1 dyad'
-                f' in chromosome {self._chrm._chr_num}')
+                f' in chromosome {self._chrm.number}')
 
         return IOUtil().save_figure(f'{PathUtil.get_figure_dir()}/gene/dist_p1_dyad_{self._chrm}.png')
 

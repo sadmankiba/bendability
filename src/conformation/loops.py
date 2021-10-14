@@ -28,7 +28,7 @@ class Loops:
     COL_MEAN_C0_LINKER = 'mean_c0_linker'
 
     def __init__(self, chrm: Chromosome, mxlen: int = None):
-        self._loop_file = f'{PathUtil.get_data_dir()}/input_data/loops/merged_loops_res_500_chr{chrm._chr_num}.bedpe'
+        self._loop_file = f'{PathUtil.get_data_dir()}/input_data/loops/merged_loops_res_500_chr{chrm.number}.bedpe'
         # TODO: Make _chr, _loop_df public. Used in MeanLoops
         self._chr = chrm
         self._loop_df = self._read_loops()
@@ -182,7 +182,7 @@ class Loops:
         plt.ylabel('Mean C0')
         plt.title(
             f'Comparison of mean {self._chr.c0_type} C0 among loops'
-            f' in chromosome {self._chr._chr_num}'
+            f' in chromosome {self._chr.number}'
         )
         plt.legend() 
         
@@ -203,7 +203,7 @@ class PlotLoops:
             # TODO: -150% to +150% of loop. Vertical line = loop anchor
             self._chrm.plot_moving_avg(loop[Loops.COL_START], loop[Loops.COL_END])
             plt.ylim(-0.7, 0.7)
-            plt.xlabel(f'Position along Chromosome {self._chrm._chr_num}')
+            plt.xlabel(f'Position along Chromosome {self._chrm.number}')
             plt.ylabel('Intrinsic Cyclizability')
             plt.title(
                 f'C0 in loop between {loop[Loops.COL_START]}-{loop[Loops.COL_END]}. Found with resolution: {loop[Loops.COL_RES]}.'
@@ -271,7 +271,7 @@ class PlotLoops:
                 plt.xlabel(f'Distance from loop anchor')
                 plt.ylabel('Intrinsic Cyclizability')
                 plt.title(
-                    f'C0 around chromosome {self._chrm._chr_num} loop {col} anchor at {pos}bp. Found with res {loop[Loops.COL_RES]}'
+                    f'C0 around chromosome {self._chrm.number} loop {col} anchor at {pos}bp. Found with res {loop[Loops.COL_RES]}'
                 )
 
                 path = IOUtil().save_figure(
@@ -357,7 +357,7 @@ class PlotLoops:
         plt.xlabel('Position along loop (percentage)')
         plt.ylabel(val_type)
         plt.title(
-            f'Mean {self._chrm.c0_type} {val_type} along chromosome {self._chrm._chr_num} loop ({x[0]}% to {x[-1]}% of loop length)'
+            f'Mean {self._chrm.c0_type} {val_type} along chromosome {self._chrm.number} loop ({x[0]}% to {x[-1]}% of loop length)'
         )
 
         return IOUtil().save_figure(

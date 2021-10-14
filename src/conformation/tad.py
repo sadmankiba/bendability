@@ -37,7 +37,7 @@ class HicExplBoundaries:
     
     def _read_boundaries(self) -> pd.DataFrame:
         return pd.read_table(f'{PathUtil.get_data_dir()}/input_data/domains/'
-            f'{self._chrm._chr_num}_res_{self._res}_hicexpl_boundaries.bed',
+            f'{self._chrm.number}_res_{self._res}_hicexpl_boundaries.bed',
             delim_whitespace=True,
             header=None,
             names=['chromosome', 'left', 'right', 'id', 'score', '_'])\
@@ -123,7 +123,7 @@ class HicExplBoundaries:
         plt.ylabel('Mean C0')
         plt.title(
             f'Comparison of mean {self._chrm.c0_type} C0 among boundaries'
-            f' in chromosome {self._chrm._chr_num}'
+            f' in chromosome {self._chrm.number}'
         )
         plt.legend() 
         

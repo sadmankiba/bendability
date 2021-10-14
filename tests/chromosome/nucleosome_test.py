@@ -10,7 +10,7 @@ class TestNucleosome:
     def test_get_nuc_occupancy(self):
         nuc = Nucleosome(Chromosome('VII'))
         nuc_occ = nuc.get_nucleosome_occupancy()
-        assert nuc_occ.shape == (nuc._chr._total_bp, )
+        assert nuc_occ.shape == (nuc._chr.total_bp, )
         assert any(nuc_occ)
 
     def test_plot_c0_vs_dist_from_dyad_spread(self):

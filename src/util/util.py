@@ -276,6 +276,7 @@ class PlotUtil:
         """
         self.plot_horizontal_line(y, 'r', 'avg')
 
+    @classmethod
     def plot_horizontal_line(self, y: float, color: str, text: str):
         plt.axhline(y=y, color=color, linestyle='-')
         x_lim = plt.gca().get_xlim()
