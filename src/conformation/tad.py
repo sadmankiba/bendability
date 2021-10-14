@@ -122,7 +122,7 @@ class HicExplBoundaries:
         plt.xlabel('Position along chromosome (bp)')
         plt.ylabel('Mean C0')
         plt.title(
-            f'Comparison of mean {self._chrm._c0_type} C0 among boundaries'
+            f'Comparison of mean {self._chrm.c0_type} C0 among boundaries'
             f' in chromosome {self._chrm._chr_num}'
         )
         plt.legend() 

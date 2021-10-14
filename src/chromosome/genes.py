@@ -46,7 +46,7 @@ class Genes:
 
         plt.xlabel('Distance from dyad (bp)')
         plt.ylabel('Mean C0')
-        plt.title(f'{self._chrm._c0_type} Mean C0 around +1 dyad'
+        plt.title(f'{self._chrm.c0_type} Mean C0 around +1 dyad'
                 f' in chromosome {self._chrm._chr_num}')
 
         return IOUtil().save_figure(f'{PathUtil.get_figure_dir()}/gene/dist_p1_dyad_{self._chrm}.png')

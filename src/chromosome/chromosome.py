@@ -230,30 +230,30 @@ class Chromosome:
                 chr V library of bendability data.
             spread_str: Which type of spread to use. 
         """
-        # TODO:
-        # _c0_type in function
         self._chr_id = chr_id
 
         if chr_id == 'VL':
             self._prediction = None
             self._chr_num = 'V'
-            self._c0_type = 'actual'
             self._df = DNASequenceReader().get_processed_data()[CHRVL]
         else:
             self._prediction = prediction
             self._chr_num = chr_id
-            self._c0_type = 'predicted'
             self._df = self._get_chrm_df()
 
         self.spread_str = spread_str
     
     def __str__(self):
         return f's_{self.spread_str}_m_{self.predict_model_no()}_{self._chr_id}'
-
+    
     @property 
     def total_bp(self):
         return ChrmCalc.total_bp(len(self._df))
-
+    
+    @property
+    def c0_type(self):
+        return 'actual' if self._chr_id == 'VL' else 'predicted'
+    
     def _get_chrm_df(self) -> pd.DataFrame:
         """
         Read chromosome sequence. If prediction object is provided, predict C0 

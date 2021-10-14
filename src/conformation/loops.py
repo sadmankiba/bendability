@@ -181,7 +181,7 @@ class Loops:
         plt.xlabel('Individual loops labeled with and sorted by length')
         plt.ylabel('Mean C0')
         plt.title(
-            f'Comparison of mean {self._chr._c0_type} C0 among loops'
+            f'Comparison of mean {self._chr.c0_type} C0 among loops'
             f' in chromosome {self._chr._chr_num}'
         )
         plt.legend() 
@@ -254,7 +254,7 @@ class PlotLoops:
         plt.xlabel('Distance from loop anchor(bp)')
         plt.ylabel('C0')
         plt.title(
-            f'Mean {self._chrm._c0_type} C0 around anchor points. Considering start, end and all anchors.'
+            f'Mean {self._chrm.c0_type} C0 around anchor points. Considering start, end and all anchors.'
         )
 
         return IOUtil().save_figure(f'{PathUtil.get_figure_dir()}/loops/mean_c0_anchor_dist_{lim}_{self._loops}.png')
@@ -357,7 +357,7 @@ class PlotLoops:
         plt.xlabel('Position along loop (percentage)')
         plt.ylabel(val_type)
         plt.title(
-            f'Mean {self._chrm._c0_type} {val_type} along chromosome {self._chrm._chr_num} loop ({x[0]}% to {x[-1]}% of loop length)'
+            f'Mean {self._chrm.c0_type} {val_type} along chromosome {self._chrm._chr_num} loop ({x[0]}% to {x[-1]}% of loop length)'
         )
 
         return IOUtil().save_figure(
