@@ -5,6 +5,7 @@ regex
 yapf
 biopython
 nptyping
+scikit-image
 pytest
 pytest-testmon
 pytest-github-actions-annotate-failures
