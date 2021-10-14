@@ -1,6 +1,6 @@
 from util.constants import CHRVL, YeastChrNumList
 from util.reader import DNASequenceReader, GeneReader
-from util.util import ChromosomeUtil
+from chromosome.chromosome import ChrmCalc
 
 import pandas as pd
 import numpy as np
@@ -94,7 +94,7 @@ class TestGeneReader:
             assert set(gene_df.columns.tolist()) == set(['start', 'end', 'strand', 'length'])
             
             chrm_df = DNASequenceReader().read_yeast_genome(chrm_num)
-            chrm_total_bp = ChromosomeUtil().get_total_bp(len(chrm_df))
+            chrm_total_bp = ChrmCalc.total_bp(len(chrm_df))
             assert gene_df['end'].max() <= chrm_total_bp
     
     def test_read_transcription_regions_of(self):
@@ -103,7 +103,7 @@ class TestGeneReader:
             assert set(trns_df.columns) == set(['start', 'end', 'strand'])
 
             chrm_df = DNASequenceReader().read_yeast_genome(chrm_num)
-            chrm_total_bp = ChromosomeUtil().get_total_bp(len(chrm_df))
+            chrm_total_bp = ChrmCalc.total_bp(len(chrm_df))
             assert trns_df['end'].max() <= chrm_total_bp
 
 
