@@ -1,13 +1,4 @@
 from __future__ import annotations
-from types import FrameType
-from .custom_types import YeastChrNum
-from .constants import SEQ_LEN
-
-import pandas as pd
-import numpy as np
-import regex as re
-import matplotlib.pyplot as plt
-
 import math
 import random
 import string
@@ -16,6 +7,17 @@ import itertools as it
 from pathlib import Path
 import logging
 import inspect 
+from types import FrameType
+from typing import Union, Any
+
+import pandas as pd
+import numpy as np
+import regex as re
+import matplotlib.pyplot as plt
+from nptyping import NDArray
+
+from .custom_types import YeastChrNum
+from .constants import SEQ_LEN
 
 logging.basicConfig(level=logging.INFO)
 
@@ -188,7 +190,7 @@ def roman_to_num(chr_num: YeastChrNum) -> int:
 
 
 class ChromosomeUtil:
-    def calc_moving_avg(self, arr: np.ndarray, k: int) -> np.ndarray:
+    def calc_moving_avg(self, arr: NDArray[(Any,)], k: int) -> str:
         """
         Calculate moving average of k data points
 
@@ -255,7 +257,7 @@ class PathUtil:
 
 class IOUtil:
     # TODO: Change name - SaveUtil
-    def save_figure(self, path_str: str | Path) -> Path:
+    def save_figure(self, path_str: Union[str, Path]) -> Path:
         # TODO: Get figure dir in here?
         path = Path(path_str)
         if not path.parent.is_dir():
@@ -270,7 +272,7 @@ class IOUtil:
         logging.info(f'Figure saved at: {path}')
         return path 
 
-    def save_tsv(self, df: pd.DataFrame, path_str: str | Path) -> Path:
+    def save_tsv(self, df: pd.DataFrame, path_str: Union[str, Path]) -> Path:
         """Save a dataframe in tsv format"""
         path = Path(path_str)
         self.make_parent_dirs(path)
@@ -279,12 +281,12 @@ class IOUtil:
         logging.info(f'TSV file saved at: {path}')
         return path
 
-    def make_parent_dirs(self, path_str: str | Path) -> None:
+    def make_parent_dirs(self, path_str: Union[str, Path]) -> None:
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
 
-    def append_tsv(self, df: pd.DataFrame, path_str: str | Path) -> Path:
+    def append_tsv(self, df: pd.DataFrame, path_str: Union[str, Path]) -> Path:
         """Append a dataframe to a tsv if it exists, otherwise create"""
         path = Path(path_str)
         if path.is_file():

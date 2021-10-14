@@ -3,6 +3,7 @@ imbalanced-learn
 Boruta==0.3
 regex
 yapf
+biopython
 pytest
 pytest-testmon
 pytest-github-actions-annotate-failures
