@@ -26,7 +26,7 @@ class Nucleosome:
         self._centers = self._get_nuc_centers()
 
     def _plot_c0_vs_dist_from_dyad(self, x: np.ndarray, y: np.ndarray,
-                                   dist: int, spread_str: str) -> None:
+                                   dist: int, spread_str: str) -> Path:
         """Underlying plotter of c0 vs dist from dyad"""
         plt.close()
         plt.clf()
@@ -60,7 +60,7 @@ class Nucleosome:
         plt.ylabel('C0')
         plt.title(f'C0 of +-{dist} bp from nuclesome dyad')
 
-        IOUtil().save_figure(
+        return IOUtil().save_figure(
             f'{PathUtil.get_figure_dir()}/nucleosome/dist_{dist}_s_{spread_str}_m_{self._chr.predict_model_no()}_{self._chr._chr_id}.png'
         )
 
@@ -75,7 +75,7 @@ class Nucleosome:
             filter(lambda i: i > depth and i < self._chr._total_bp - depth,
                    self._centers))
 
-    def plot_c0_vs_dist_from_dyad_no_spread(self, dist=150) -> None:
+    def plot_c0_vs_dist_from_dyad_no_spread(self, dist=150) -> Path:
         """
         Plot C0 vs. distance from dyad of nucleosomes in chromosome V from 50-bp sequence C0
 
@@ -102,9 +102,9 @@ class Nucleosome:
         mean_c0 = np.array(c0_at_nuc).mean(axis=0)
         x = (np.arange(mean_c0.size) - mean_c0.size / 2) * 7 + 1
 
-        self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, 'no_spread')
+        return self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, 'no_spread')
 
-    def plot_c0_vs_dist_from_dyad_spread(self, dist=150) -> None:
+    def plot_c0_vs_dist_from_dyad_spread(self, dist=150) -> Path:
         """
         Plot C0 vs. distance from dyad of nucleosomes in chromosome by
         spreading 50-bp sequence C0
@@ -124,7 +124,7 @@ class Nucleosome:
         x = np.arange(dist * 2 + 1) - dist
         mean_c0 = np.array(c0_at_nuc).mean(axis=0)
 
-        self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, self._chr.spread_str)
+        return self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, self._chr.spread_str)
 
     def get_nucleosome_occupancy(self) -> np.ndarray:
         """Returns estimated nucleosome occupancy across whole chromosome

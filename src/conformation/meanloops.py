@@ -479,7 +479,7 @@ class MultiChrmMeanLoopsCollector:
         IOUtil().save_figure(
             f'{PathUtil.get_figure_dir()}/mcloop/nuc_linker_mean_{self}.png')
     
-    def plot_loop_cover_frac(self):
+    def plot_loop_cover_frac(self) -> Path:
         self.save_avg_c0_stat([2], subtract_chrm=False)
         cv_frac = self._mcloop_df['cover'].to_numpy() * 100
         x = np.arange(cv_frac.size)
@@ -489,7 +489,7 @@ class MultiChrmMeanLoopsCollector:
         plt.xlabel('Chromosome')
         plt.ylabel('Loop cover (%)')
         plt.title(f'Loop cover percentage in whole chromosome with max length = {self._mxlen}')
-        IOUtil().save_figure(
+        return IOUtil().save_figure(
             f'{PathUtil.get_figure_dir()}/mcloop/loop_cover_{self}.png')
 
     def get_loops_data(self) -> pd.DataFrame:

@@ -103,7 +103,7 @@ class TestMultiChrmHicExplBoundariesCollector:
             * mean_dmn is within 7000 - 12000bp
         """
         mcbndrs_xi_ii = MultiChrmHicExplBoundariesCollector(Prediction(30), ('XI', 'II'))
-        mcbndrs_vii = MultiChrmHicExplBoundariesCollector(Prediction(30), ('VII'))
+        mcbndrs_vii = MultiChrmHicExplBoundariesCollector(Prediction(30), ('VII',))
         xi_ii_mean_dmn = mcbndrs_xi_ii.mean_dmn_len()
         vii_mean_dmn = mcbndrs_vii.mean_dmn_len()
         assert xi_ii_mean_dmn > vii_mean_dmn * 0.9

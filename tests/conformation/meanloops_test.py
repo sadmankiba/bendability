@@ -91,8 +91,7 @@ class TestMultiChrmMeanLoopsCollector:
         assert np.isnan(collector_df[cols].iloc[0]).any() == False   
 
     def test_plot_loop_cover_frac(self):
-        MultiChrmMeanLoopsCollector(None, ('VL', )).plot_loop_cover_frac()
-        fig_path = Path(f'{PathUtil.get_figure_dir()}/mcloop/loop_cover_md_None_mx_None.png')
+        fig_path = MultiChrmMeanLoopsCollector(None, ('VL', )).plot_loop_cover_frac()
         assert fig_path.is_file()
 
 class TestMultiChrmMeanLoopsAggregator:

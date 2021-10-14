@@ -15,8 +15,7 @@ class TestNucleosome:
 
     def test_plot_c0_vs_dist_from_dyad_spread(self):
         nuc = Nucleosome(Chromosome('VL'))
-        nuc.plot_c0_vs_dist_from_dyad_spread(150)
-        path = Path(f'{PathUtil.get_figure_dir()}/nucleosome/dist_150_balanced_VL.png')
+        path = nuc.plot_c0_vs_dist_from_dyad_spread(150)
         assert path.is_file()
     
     def test_dyads_between(self):

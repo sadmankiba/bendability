@@ -3,7 +3,6 @@ imbalanced-learn
 Boruta==0.3
 regex
 yapf
-fanc
 pytest
 pytest-testmon
 pytest-github-actions-annotate-failures

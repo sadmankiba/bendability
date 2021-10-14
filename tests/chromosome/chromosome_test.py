@@ -62,7 +62,7 @@ class TestSpread(unittest.TestCase):
 
 class TestChromosome:
     def test_get_chr_prediction(self):
-        chrm = Chromosome('IX', Prediction(model_no=6))
+        chrm = Chromosome('IX', Prediction(model=6))
         predict_df = chrm._get_chrm_df()
         assert predict_df.columns.tolist() == ['Sequence #', 'Sequence', 'C0']
     
