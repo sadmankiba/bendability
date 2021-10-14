@@ -3,19 +3,18 @@ import time
 
 import numpy as np
 
-from chromosome.chromosome import Chromosome, ChromosomeUtil, Spread
+from chromosome.chromosome import Chromosome, ChrmCalc, Spread
 from util.constants import CHRVL_LEN, CHRV_TOTAL_BP
 from models.prediction import Prediction
 
-class TestChromosomeUtil(unittest.TestCase):
+class TestChrmCalc(unittest.TestCase):
     def test_moving_avg(self):
-        chr_util = ChromosomeUtil()
         arr = np.array([4, 6, 1, -9, 2, 7, 3])
-        ma = chr_util.calc_moving_avg(arr, 4)
-        self.assertListEqual(ma.tolist(), [0.5, 0, 0.25, 0.75])
+        ma = ChrmCalc.moving_avg(arr, 4)
+        assert ma.tolist() == [0.5, 0, 0.25, 0.75]
 
     def test_get_total_bp(self):
-        assert ChromosomeUtil().get_total_bp(5) == 78
+        assert ChrmCalc.total_bp(5) == 78
 
 
 class TestSpread(unittest.TestCase):

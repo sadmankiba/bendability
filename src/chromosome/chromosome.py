@@ -1,20 +1,20 @@
 from __future__ import annotations
-
-from models.prediction import Prediction
-from util.reader import DNASequenceReader
-from util.constants import CHRVL, SEQ_LEN
-from util.custom_types import ChrId, YeastChrNum, PositiveInt
-from util.util import IOUtil, ChromosomeUtil, PathUtil
+import math
+from pathlib import Path
+import time
+from typing import IO, Literal, Union, Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.interpolate import make_interp_spline
+from nptyping import NDArray
 
-import math
-from pathlib import Path
-import time
-from typing import IO, Literal, Union
+from models.prediction import Prediction
+from util.reader import DNASequenceReader
+from util.constants import CHRVL, SEQ_LEN
+from util.custom_types import ChrId, YeastChrNum, PositiveInt
+from util.util import IOUtil, PathUtil, PlotUtil
 
 
 SpreadType = Literal['mean7', 'mean_cover', 'weighted', 'single']
@@ -35,7 +35,7 @@ class Spread:
             chr_id: Chromosome ID
         """
         self._seq_c0_res7 = seq_c0_res7
-        self._total_bp = ChromosomeUtil().get_total_bp(seq_c0_res7.size)
+        self._total_bp = ChrmCalc.total_bp(seq_c0_res7.size)
         self._chr_id = chr_id
         self._model_no = model_no
 
@@ -79,7 +79,7 @@ class Spread:
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep='\t')['c0_mean7'].to_numpy()
 
-        mvavg = ChromosomeUtil().calc_moving_avg(self._seq_c0_res7, 7)
+        mvavg = ChrmCalc.moving_avg(self._seq_c0_res7, 7)
         spread_mvavg = np.vstack(
             (mvavg, mvavg, mvavg, mvavg, mvavg, mvavg, mvavg)).ravel(order='F')
         full_spread = np.concatenate((np.full(
@@ -190,6 +190,31 @@ class Spread:
             return self._from_single_seq()
 
 
+class ChrmCalc:
+    @classmethod
+    def moving_avg(self, arr: NDArray[(Any,)], k: int) -> str:
+        """
+        Calculate moving average of k data points
+
+        Returns: 
+            A 1D numpy array 
+        """
+        assert len(arr.shape) == 1
+
+        # Find first MA
+        ma = np.array([arr[:k].mean()])
+
+        # Iteratively find next MAs
+        for i in range(arr.size - k):
+            ma = np.append(ma, ma[-1] + (arr[i + k] - arr[i]) / k)
+
+        return ma
+
+    @classmethod
+    def total_bp(self, num_seq: int):
+        return (num_seq - 1) * 7 + SEQ_LEN
+
+
 class Chromosome:
     "Analysis of Chromosome in yeast"
 
@@ -208,7 +233,6 @@ class Chromosome:
         # TODO:
         # _c0_type in function
         # total_bp in function
-        # Don't keep _chr_util attribute
         self._chr_id = chr_id
 
         if chr_id == 'VL':
@@ -222,8 +246,7 @@ class Chromosome:
             self._c0_type = 'predicted'
             self._df = self._get_chrm_df()
 
-        self._chr_util = ChromosomeUtil()
-        self._total_bp = self._chr_util.get_total_bp(len(self._df))
+        self._total_bp = ChrmCalc.total_bp(len(self._df))
         self.spread_str = spread_str
 
     def __str__(self):
@@ -267,7 +290,8 @@ class Chromosome:
                             & (self._df['Sequence #'] <= last_seq_num), :]
 
     def plot_horizontal_line(self, *args) -> None:
-        ChromosomeUtil().plot_horizontal_line(*args)
+        # TODO: Remove middle 
+        PlotUtil.plot_avg_horiz_line(*args)
 
     def plot_avg(self) -> None:
         """
@@ -275,7 +299,7 @@ class Chromosome:
 
         Best to draw after x limit is set.
         """
-        self._chr_util.plot_horizontal_line(self._df['C0'].mean())
+        PlotUtil.plot_avg_horiz_line(self._df['C0'].mean())
 
     def plot_moving_avg(self, start: int, end: int) -> None:
         """
@@ -304,7 +328,7 @@ class Chromosome:
         colors = ['green']  # , 'red', 'black']
         alpha = [0.7]  # , 0.8, 0.9]
         for p in zip(k, colors, alpha):
-            ma = self._chr_util.calc_moving_avg(y, p[0])
+            ma = ChrmCalc.moving_avg(y, p[0])
             plt.plot((x + ((p[0] - 1) * 7) // 2)[:ma.size],
                      ma,
                      color=p[1],

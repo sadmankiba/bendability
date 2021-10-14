@@ -8,13 +8,12 @@ from pathlib import Path
 import logging
 import inspect 
 from types import FrameType
-from typing import Union, Any
+from typing import Union
 
 import pandas as pd
 import numpy as np
 import regex as re
 import matplotlib.pyplot as plt
-from nptyping import NDArray
 
 from .custom_types import YeastChrNum
 from .constants import SEQ_LEN
@@ -188,35 +187,6 @@ def roman_to_num(chr_num: YeastChrNum) -> int:
     }
     return rom_num_map[chr_num]
 
-
-class ChromosomeUtil:
-    def calc_moving_avg(self, arr: NDArray[(Any,)], k: int) -> str:
-        """
-        Calculate moving average of k data points
-
-        Returns: 
-            A 1D numpy array 
-        """
-        assert len(arr.shape) == 1
-
-        # Find first MA
-        ma = np.array([arr[:k].mean()])
-
-        # Iteratively find next MAs
-        for i in range(arr.size - k):
-            ma = np.append(ma, ma[-1] + (arr[i + k] - arr[i]) / k)
-
-        return ma
-
-    def get_total_bp(self, num_seq: int):
-        return (num_seq - 1) * 7 + SEQ_LEN
-
-    def plot_horizontal_line(self, y: float) -> None:
-        """
-        Plot a horizontal red line denoting avg
-        """
-        PlotUtil().plot_horizontal_line(y, 'r', 'avg')
-
       
 class PathUtil:
     """
@@ -299,6 +269,13 @@ class IOUtil:
 
 
 class PlotUtil:
+    @classmethod
+    def plot_avg_horiz_line(self, y: float) -> None:
+        """
+        Plot a horizontal red line denoting avg
+        """
+        self.plot_horizontal_line(y, 'r', 'avg')
+
     def plot_horizontal_line(self, y: float, color: str, text: str):
         plt.axhline(y=y, color=color, linestyle='-')
         x_lim = plt.gca().get_xlim()
