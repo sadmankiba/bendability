@@ -19,4 +19,4 @@ Correlation between Intensity (400 bp) and Chr V actual C0
 | Intensity | Pearsons | Spearmans |
 |-----------|----------|-----------|
 | Own | 0.05 | 0.05 |
-| Adjacent | | |
+| Adjacent | 0.06 | 0.08 |

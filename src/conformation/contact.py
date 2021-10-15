@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pathlib import Path 
 from typing import Any, Literal, Union
 
@@ -12,6 +13,8 @@ from util.util import PathUtil, IOUtil
 
 # TODO: Rename conformation to threedim
 
+CorrelationType = Union[Literal['own'], Literal['adjacent'], Literal['all']]
+
 class Contact:
     def __init__(self, chrm: Chromosome):
         self._chrm = chrm 
@@ -19,14 +22,30 @@ class Contact:
         # TODO: Save matrix
         self._matrix = self._generate_mat()
     
-    def correlate_with_c0(self) -> None:
+    def correlate_with_c0(self, type : CorrelationType) -> tuple[float, float]:
         means = self._chrm.mean_c0_at_bps(400 * np.arange(1, len(self._matrix)), 199, 200)
-        intns_arr = self._intensity_arr(type='own')
+        intns_arr = self._intensity_arr(type)
         assert intns_arr.shape == means.shape
         
         pearsons = np.corrcoef(means, intns_arr)[0, 1]
         spearman = spearmanr(means, intns_arr).correlation
         return pearsons, spearman
+
+    def plot_correlation_with_c0(self, type: CorrelationType) -> Path:
+        means = self._chrm.mean_c0_at_bps(400 * np.arange(1, len(self._matrix)), 199, 200)
+        intns_arr = self._intensity_arr(type)
+        assert intns_arr.shape == means.shape
+        
+        plt.scatter(intns_arr, means)
+        plt.xscale('log')
+        plt.xlabel('Avg. contact intensity with adjacent 3 segments')
+        plt.ylabel('Mean C0 of segment')
+        plt.title(
+            f'Correlation between contact intensity at {self._res} resolution' 
+            f'and avg {self._chrm.c0_type} C0 in chromosome {self._chrm.number}'
+        )
+        return IOUtil().save_figure(
+            f'{PathUtil.get_figure_dir()}/contact/corr_{type}_{self._res}_{self._chrm}.png')
 
     def show(self) -> Path:
         # TODO: Image from single color. Not RGB.
@@ -40,12 +59,13 @@ class Contact:
         return IOUtil().save_figure(
             f'{PathUtil.get_figure_dir()}/contact/observed_vc_{self._res}_{self._chrm.number}.png')
         
-    def _intensity_arr(self, type: Union[Literal['own'], 
-            Literal['adjacent'], Literal['all']]) -> NDArray[(Any,)]:
+    def _intensity_arr(self, type: CorrelationType) -> NDArray[(Any,)]:
         if type == 'own':
             return self._matrix.diagonal()[1:]
         elif type == 'adjacent':
-            return None
+            return (self._matrix.diagonal(-1) 
+                + self._matrix.diagonal()[1:]
+                + np.append(self._matrix.diagonal(1)[1:], 0)) / 3
 
     def _generate_mat(self) -> NDArray[(Any, Any)]:
         """
