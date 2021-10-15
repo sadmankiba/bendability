@@ -20,5 +20,9 @@ Relation: Taekjip Ha group showed that promoter regions are more bendable. It is
 
 Out of 16 chromosomes, In all 16, promoter boundaries > domains. In 13, non-promoter boundaries > domains. [?]
 
+## Reference 
+
+[1] [Domains vs Boundaries C0 All Chromosomes](https://github.com/sadmankiba/bendability/blob/43d2bbf985832f2824f27e75b024b35bcac71b17/src/conformation/tad.py#L291)
+
 
 

@@ -477,7 +477,7 @@ class MultiChrmMeanLoopsCollector:
         plt.legend()
 
         IOUtil().save_figure(
-            f'{PathUtil.get_figure_dir()}/mcloop/nuc_linker_mean_{self}.png')
+            f'{PathUtil.get_figure_dir()}/mcloops/nuc_linker_mean_{self}.png')
     
     def plot_loop_cover_frac(self) -> Path:
         self.save_avg_c0_stat([2], subtract_chrm=False)
