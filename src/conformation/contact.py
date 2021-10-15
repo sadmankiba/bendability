@@ -110,8 +110,7 @@ class Contact:
         _fill_upper_right_half_triangle()
         mat = _fill_lower_left_half_triangle(mat)
         
-        np.save(saved_contact, mat)
-        return mat
+        return IOUtil().save_npy(mat, saved_contact)
 
     def _load_contact(self) -> pd.DataFrame:
         df = pd.read_table(f'{PathUtil.get_data_dir()}/input_data/contact/'

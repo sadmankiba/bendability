@@ -250,6 +250,14 @@ class IOUtil:
         
         logging.info(f'TSV file saved at: {path}')
         return path
+    
+    def save_npy(self, arr: np.ndarray, path_str: Union[str, Path]) -> Path:
+        path = Path(path_str)
+        self.make_parent_dirs(path)
+        np.save(path, arr)
+    
+        logging.info(f'.npy file saved at: {path}')
+        return path
 
     def make_parent_dirs(self, path_str: Union[str, Path]) -> None:
         path = Path(path_str)
