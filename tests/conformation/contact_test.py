@@ -5,6 +5,11 @@ from conformation.contact import Contact
 
 class TestContact:
     # TODO: Use fixture for Chromosome('VL')
+    def test_show(self):
+        contact = Contact(Chromosome('VL'))
+        fig_path = contact.show()
+        assert fig_path.is_file()
+        
     def test_generate_matrix(self):
         contact = Contact(Chromosome('VL'))
         mat = contact._generate_mat()
