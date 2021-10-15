@@ -1,10 +1,11 @@
-from typing import Any
 from pathlib import Path 
+from typing import Any, Literal, Union
 
 import pandas as pd 
 import numpy as np
 from nptyping import NDArray
 import matplotlib.pyplot as plt
+from scipy.stats import spearmanr
 
 from chromosome.chromosome import Chromosome
 from util.util import PathUtil, IOUtil
@@ -18,6 +19,15 @@ class Contact:
         # TODO: Save matrix
         self._matrix = self._generate_mat()
     
+    def correlate_with_c0(self) -> None:
+        means = self._chrm.mean_c0_at_bps(400 * np.arange(1, len(self._matrix)), 199, 200)
+        intns_arr = self._intensity_arr(type='own')
+        assert intns_arr.shape == means.shape
+        
+        pearsons = np.corrcoef(means, intns_arr)[0, 1]
+        spearman = spearmanr(means, intns_arr).correlation
+        return pearsons, spearman
+
     def show(self) -> Path:
         # TODO: Image from single color. Not RGB.
         img = np.zeros((self._matrix.shape[0], self._matrix.shape[1], 3))
@@ -30,6 +40,13 @@ class Contact:
         return IOUtil().save_figure(
             f'{PathUtil.get_figure_dir()}/contact/observed_vc_{self._res}_{self._chrm.number}.png')
         
+    def _intensity_arr(self, type: Union[Literal['own'], 
+            Literal['adjacent'], Literal['all']]) -> NDArray[(Any,)]:
+        if type == 'own':
+            return self._matrix.diagonal()[1:]
+        elif type == 'adjacent':
+            return None
+
     def _generate_mat(self) -> NDArray[(Any, Any)]:
         """
         Contact matrix is symmetric. Contact file is a triangular matrix file.

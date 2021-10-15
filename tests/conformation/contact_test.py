@@ -5,6 +5,14 @@ from conformation.contact import Contact
 
 class TestContact:
     # TODO: Use fixture for Chromosome('VL')
+    def test_correlation(self):
+        contact = Contact(Chromosome('VL'))
+        pearsons, spearmans = contact.correlate_with_c0()
+        assert -1 < pearsons < 1
+        assert -1 < spearmans < 1
+        print("Pearsons", pearsons)
+        print("Spearmans", spearmans)
+
     def test_show(self):
         contact = Contact(Chromosome('VL'))
         fig_path = contact.show()

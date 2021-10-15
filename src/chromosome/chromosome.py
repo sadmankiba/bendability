@@ -436,11 +436,14 @@ class Chromosome:
         return result
     
     def mean_c0_at_bps(self, 
-                        bps: np.ndarray | list[int] | pd.Series, 
+                        bps: NDArray[(Any,), int] | list[int] | pd.Series, 
                         neg_lim: PositiveInt, 
-                        pos_lim: PositiveInt) -> float:
+                        pos_lim: PositiveInt) -> NDArray[(Any,)]:
         """
         Find mean c0 of each segment defined by bps
+
+        bp = 1-idxed
+        segmnt len = neglim + poslim + 1
         """        
         result = np.array(list(map(lambda bp: 
             self.get_spread()[bp - 1 - neg_lim: bp + pos_lim].mean(), 
