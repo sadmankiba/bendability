@@ -143,7 +143,7 @@ class Nucleosome:
                              f'chr{self._chr.number}']['Position'].tolist()
 
         t = time.time()
-        nuc_occ = np.full((self._chr._total_bp, ), fill_value=0)
+        nuc_occ = np.full((self._chr.total_bp, ), fill_value=0)
         for c in centers:
             nuc_occ[c - 1 - 50:c + 50] = 1
 
@@ -153,7 +153,7 @@ class Nucleosome:
         # Save data
         if not saved_data.parents[0].is_dir():
             saved_data.parents[0].mkdir(parents=True, exist_ok=True)
-        pd.DataFrame({'position': np.arange(self._chr._total_bp) + 1, 'nuc_occupancy': nuc_occ})\
+        pd.DataFrame({'position': np.arange(self._chr.total_bp) + 1, 'nuc_occupancy': nuc_occ})\
             .to_csv(saved_data, sep='\t', index=False)
 
         return nuc_occ
