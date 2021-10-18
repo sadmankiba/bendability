@@ -36,21 +36,7 @@ class Loops:
         self._mxlen = mxlen
         if mxlen:
             self.exclude_above_len(mxlen)
-
-    def __len__(self) -> int:
-        return len(self._loop_df)
-
-    def __getitem__(self, key: NonNegativeInt) -> pd.Series:
-        assert key < len(self)
-        return self._loop_df.iloc[key]
-
-    def __iter__(self) -> Iterable[tuple[int, pd.Series]]:
-        # TODO: Return only series. yield?
-        return self._loop_df.iterrows()
-
-    def __str__(self):
-        return str(self._chr)
-
+    
     def _read_loops(self) -> pd.DataFrame:
         """
         Reads loop positions from .bedpe file
@@ -82,46 +68,19 @@ class Loops:
 
         return _use_centroids().assign(len=lambda df: df["end"] - df["start"])
 
-    def stat_loops(self) -> None:
-        """Prints statistics of loops"""
-        loop_df = self._loop_df
-        max_loop_length = 100000
-        loop_df = loop_df.loc[
-            loop_df["end"] - loop_df["start"] < max_loop_length
-        ].reset_index()
-        loop_df = loop_df.assign(length=lambda df: df["end"] - df["start"])
-        loop_df["length"].plot(kind="hist")
-        plt.xlabel("Loop length (bp)")
-        plt.title(
-            f'Histogram of loop length. Mean = {loop_df["length"].mean()}bp. Median = {loop_df["length"].median()}bp'
-        )
+    def __len__(self) -> int:
+        return len(self._loop_df)
 
-        # TODO: Encapsulate saving figure logic in a function
-        fig_dir = f"{PathObtain.figure_dir()}/chrv/loops"
-        if not Path(fig_dir).is_dir():
-            Path(fig_dir).mkdir(parents=True, exist_ok=True)
+    def __getitem__(self, key: NonNegativeInt) -> pd.Series:
+        assert key < len(self)
+        return self._loop_df.iloc[key]
 
-        plt.gcf().set_size_inches(12, 6)
-        plt.savefig(
-            f"{fig_dir}/loop_highres_hist_maxlen_{max_loop_length}.png", dpi=200
-        )
+    def __iter__(self) -> Iterable[tuple[int, pd.Series]]:
+        # TODO: Return only series. yield?
+        return self._loop_df.iterrows()
 
-    def exclude_above_len(self, mxlen: int) -> None:
-        self._loop_df = self._loop_df.loc[self._loop_df["len"] <= mxlen].reset_index()
-
-    def get_loop_cover(
-        self, loop_df: pd.DataFrame[COL_START:float, COL_END:float] | None = None
-    ) -> NDArray[(Any,), bool]:
-        if loop_df is None:
-            loop_df = self._loop_df
-
-        loop_array = np.full((self._chr.total_bp,), False)
-
-        def _set_bp(start: float, end: float) -> None:
-            loop_array[int(start) : int(end)] = True
-
-        loop_df.apply(lambda loop: _set_bp(loop[COL_START] - 1, loop[COL_END]), axis=1)
-        return loop_array
+    def __str__(self):
+        return str(self._chr)
 
     def add_mean_c0(self) -> pd.Series:
         """Find mean c0 of full, nucs and linkers of each loop and store it
@@ -154,6 +113,52 @@ class Loops:
         self._loop_df[mean_cols] = self._loop_df.apply(_mean_of, axis=1)
 
         return pd.Series(mean_cols)
+
+    def exclude_above_len(self, mxlen: int) -> None:
+        self._loop_df = self._loop_df.loc[self._loop_df["len"] <= mxlen].reset_index()
+
+    def get_nonloops(self):
+        nlcv = ~(self.get_loop_cover())
+        
+
+    def get_loop_cover(
+        self, loop_df: pd.DataFrame[COL_START:float, COL_END:float] | None = None
+    ) -> NDArray[(Any,), bool]:
+        if loop_df is None:
+            loop_df = self._loop_df
+
+        loop_array = np.full((self._chr.total_bp,), False)
+
+        def _set_bp(start: float, end: float) -> None:
+            loop_array[int(start) : int(end)] = True
+
+        loop_df.apply(lambda loop: _set_bp(loop[COL_START] - 1, loop[COL_END]), axis=1)
+        return loop_array
+
+    def stat_loops(self) -> None:
+        """Prints statistics of loops"""
+        loop_df = self._loop_df
+        max_loop_length = 100000
+        loop_df = loop_df.loc[
+            loop_df["end"] - loop_df["start"] < max_loop_length
+        ].reset_index()
+        loop_df = loop_df.assign(length=lambda df: df["end"] - df["start"])
+        loop_df["length"].plot(kind="hist")
+        plt.xlabel("Loop length (bp)")
+        plt.title(
+            f'Histogram of loop length. Mean = {loop_df["length"].mean()}bp. Median = {loop_df["length"].median()}bp'
+        )
+
+        # TODO: Encapsulate saving figure logic in a function
+        fig_dir = f"{PathObtain.figure_dir()}/chrv/loops"
+        if not Path(fig_dir).is_dir():
+            Path(fig_dir).mkdir(parents=True, exist_ok=True)
+
+        plt.gcf().set_size_inches(12, 6)
+        plt.savefig(
+            f"{fig_dir}/loop_highres_hist_maxlen_{max_loop_length}.png", dpi=200
+        )
+
 
 
 class PlotLoops:

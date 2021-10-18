@@ -1,4 +1,13 @@
+import unittest
+from pathlib import Path
+import os
+
+import pandas as pd
+import numpy as np
+
+from matplotlib import container
 from util.util import (
+    NumpyTool,
     PlotUtil,
     get_possible_seq,
     cut_sequence,
@@ -7,12 +16,6 @@ from util.util import (
     FileSave,
     PathObtain,
 )
-
-import pandas as pd
-
-import unittest
-from pathlib import Path
-import os
 
 # https://stackoverflow.com/a/31832447/7283201
 
@@ -107,6 +110,13 @@ class TestPlotUtil:
         FileSave.figure(f"{PathObtain.figure_dir()}/test/stacked_bar.png")
         assert True
 
+
+class TestNumpyTool:
+    def test_match_pattern(self):
+        container = np.array([True, True, False, False, True, False, True, True])
+        pattern = np.array([False, True])
+        starts = NumpyTool.match_pattern(container, pattern)
+        assert starts.tolist() == [3, 5]
 
 if __name__ == "__main__":
     unittest.main()

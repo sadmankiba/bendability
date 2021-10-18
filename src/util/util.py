@@ -8,12 +8,13 @@ from pathlib import Path
 import logging
 import inspect
 from types import FrameType
-from typing import Union
+from typing import Union, Any
 
 import pandas as pd
 import numpy as np
 import regex as re
 import matplotlib.pyplot as plt
+from nptyping import NDArray
 
 from .custom_types import YeastChrNum
 from .constants import SEQ_LEN
@@ -393,3 +394,12 @@ class PlotUtil:
         """Invoke this function before plotting to show grid below"""
         plt.rc("axes", axisbelow=True)
         plt.grid()
+
+
+class NumpyTool:
+    @classmethod
+    def match_pattern(self, container: NDArray[(Any,)], pattern: NDArray[(Any,)]) -> NDArray[(Any,)]: 
+        starts = [ i for i in range(len(container) - len(pattern) + 1)
+            if all(pattern == container[i:i + len(pattern)])]
+        
+        return np.array(starts)
