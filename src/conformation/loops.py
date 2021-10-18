@@ -1,18 +1,17 @@
 from __future__ import annotations
-
-from typing import Iterable, NamedTuple, Literal
+from pathlib import Path
+from typing import Iterable, Literal, Any
 from util.custom_types import NonNegativeInt
-
-from chromosome.nucleosome import Nucleosome
-from chromosome.chromosome import Chromosome 
-from util.util import IOUtil, PlotUtil, PathUtil 
 
 import matplotlib.pyplot as plt
 import pandas as pd
 from skimage.transform import resize
 import numpy as np
+from nptyping import NDArray
 
-from pathlib import Path
+from chromosome.nucleosome import Nucleosome
+from chromosome.chromosome import Chromosome 
+from util.util import IOUtil, PlotUtil, PathUtil 
 
 
 class Loops:
@@ -98,7 +97,8 @@ class Loops:
     def exclude_above_len(self, mxlen: int) -> None:
         self._loop_df = self._loop_df.loc[self._loop_df['len'] <= mxlen].reset_index()
 
-    def get_loop_cover(self, loop_df : pd.DataFrame | None = None) -> np.ndarray:
+    def get_loop_cover(self, 
+        loop_df : pd.DataFrame[COL_START: float, COL_END: float] | None = None)-> NDArray[(Any,), bool]:
         if loop_df is None: 
             loop_df = self._loop_df
 
@@ -189,6 +189,9 @@ class Loops:
         return IOUtil().save_figure(
             f'{PathUtil.get_figure_dir()}/loops/individual_scatter_nuc_linker_{self._chr}.png')
 
+
+COL_START = 'start'
+COL_END = 'end'
 
 
 class PlotLoops:

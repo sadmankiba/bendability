@@ -15,7 +15,7 @@ class SeqTarget(TypedDict):
     rc_seqs: list[DNASeq]
     target: Union[np.ndarray, None]
 
-# TODO: Use ramonhagenaars/nptyping for numpy typing
+
 class OheResult(TypedDict):
     forward: np.ndarray
     reverse: np.ndarray
