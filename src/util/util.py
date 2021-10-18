@@ -398,7 +398,7 @@ class PlotUtil:
 
 class NumpyTool:
     @classmethod
-    def match_pattern(self, container: NDArray[(Any,)], pattern: NDArray[(Any,)]) -> NDArray[(Any,)]: 
+    def match_pattern(self, container: NDArray[(Any,)], pattern: NDArray[(Any,)] | list) -> NDArray[(Any,)]: 
         starts = [ i for i in range(len(container) - len(pattern) + 1)
             if all(pattern == container[i:i + len(pattern)])]
         

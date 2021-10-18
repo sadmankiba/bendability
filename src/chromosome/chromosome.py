@@ -13,7 +13,7 @@ from nptyping import NDArray
 from models.prediction import Prediction
 from util.reader import DNASequenceReader
 from util.constants import CHRVL, SEQ_LEN
-from util.custom_types import ChrId, YeastChrNum, PositiveInt
+from util.custom_types import ChrId, OneIdxPos, YeastChrNum, PositiveInt
 from util.util import FileSave, PathObtain, PlotUtil
 
 
@@ -446,6 +446,9 @@ class Chromosome:
             cvr_arr[bp - 1 - neg_lim : bp + pos_lim] = True
 
         return cvr_arr
+
+    def mean_c0_segment(self, start: OneIdxPos, end: OneIdxPos) -> float: 
+        return self.get_spread()[start - 1 : end].mean()
 
     def mean_c0_of_segments(
         self,

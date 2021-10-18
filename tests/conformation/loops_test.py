@@ -1,11 +1,11 @@
+import unittest
+import subprocess
+
+import numpy as np
+
 from util.constants import CHRV_TOTAL_BP
 from conformation.loops import Loops, PlotLoops
 from chromosome.chromosome import Chromosome
-
-import unittest
-import subprocess
-from pathlib import Path
-
 from models.prediction import Prediction
 
 
@@ -43,6 +43,12 @@ class TestLoops(unittest.TestCase):
         assert dtypes["end"] == int
         assert dtypes["len"] == int
 
+    def test_nonloops_from_cover(self):
+        nlcv = np.array([True, True, False, False, True, False, True])
+        df = Loops(Chromosome('VL'))._nonloops_from_cover(nlcv)
+        assert df['start'].tolist() == [1, 5, 7]
+        assert df['end'].tolist() == [2, 5, 7]
+
     def test_exclude_above_len(self):
         bf_loops = Loops(Chromosome("VL", None))
         bf_len = len(bf_loops._loop_df)
@@ -68,7 +74,7 @@ class TestPlotLoops:
         ploops = PlotLoops(Chromosome('VL'))
         figpath = ploops.plot_histogram_c0()
         assert figpath.is_file()
-        
+
     def test_line_plot_mean_c0(self):
         ploops = PlotLoops(Chromosome("VL"))
         paths = ploops.line_plot_mean_c0()

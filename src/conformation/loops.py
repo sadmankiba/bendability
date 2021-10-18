@@ -1,4 +1,5 @@
 from __future__ import annotations
+from ast import Num
 from pathlib import Path
 from typing import Iterable, Literal, Any
 from util.custom_types import NonNegativeInt
@@ -11,7 +12,7 @@ from nptyping import NDArray
 
 from chromosome.nucleosome import Nucleosome
 from chromosome.chromosome import Chromosome
-from util.util import FileSave, PlotUtil, PathObtain
+from util.util import FileSave, PlotUtil, PathObtain, NumpyTool
 
 COL_RES = "res"
 COL_START = "start"
@@ -36,7 +37,7 @@ class Loops:
         self._mxlen = mxlen
         if mxlen:
             self.exclude_above_len(mxlen)
-    
+
     def _read_loops(self) -> pd.DataFrame:
         """
         Reads loop positions from .bedpe file
@@ -117,9 +118,34 @@ class Loops:
     def exclude_above_len(self, mxlen: int) -> None:
         self._loop_df = self._loop_df.loc[self._loop_df["len"] <= mxlen].reset_index()
 
-    def get_nonloops(self):
+    def nonloops_with_c0(
+        self,
+    ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:
+        nloops = self.nonloops()
+        nloops[COL_MEAN_C0_FULL] = [
+            self._chr.mean_c0_segment(*(nloop[COL_START, COL_END].tolist()))
+            for nloop in nloops
+        ]
+        return nloops
+
+    def nonloops(self) -> pd.DataFrame[COL_START:int, COL_END:int]:
         nlcv = ~(self.get_loop_cover())
-        
+        return self._nonloops_from_cover(nlcv)
+
+    def _nonloops_from_cover(
+        self, nlcv: NDArray[(Any,)]
+    ) -> pd.DataFrame[COL_START:int, COL_END:int]:
+        one_idx_start = 1
+        nlstarts = np.append(
+            [one_idx_start],
+            NumpyTool.match_pattern(nlcv, [False, True]) + 1 + one_idx_start,
+        )
+        nlends = np.append(
+            NumpyTool.match_pattern(nlcv, [True, False]) + one_idx_start, [len(nlcv)]
+        )
+
+        assert len(nlstarts) == len(nlends)
+        return pd.DataFrame({COL_START: nlstarts, COL_END: nlends})
 
     def get_loop_cover(
         self, loop_df: pd.DataFrame[COL_START:float, COL_END:float] | None = None
@@ -160,7 +186,6 @@ class Loops:
         )
 
 
-
 class PlotLoops:
     def __init__(self, chrm: Chromosome):
         self._chrm = chrm
@@ -171,7 +196,8 @@ class PlotLoops:
         mean_c0 = [m[1].get(COL_MEAN_C0_FULL) for m in self._loops]
 
         plt.hist(mean_c0)
-        return FileSave.figure_in_figdir(f'loops/hist_c0_{self._chrm}.png')
+        nloops = self._loops.nonloops()
+        return FileSave.figure_in_figdir(f"loops/hist_c0_{self._chrm}.png")
 
     def plot_mean_c0_across_loops(self, total_perc=150) -> Path:
         """
