@@ -15,7 +15,7 @@ from models.cnnmodel import CNNModel30
 from models.data_preprocess import Preprocess
 from keras import Model
 from util.reader import DNASequenceReader
-from util.util import FileSave, PathUtil
+from util.util import FileSave, PathObtain
 from util.constants import RL
 
 part_model = [None] * 20
@@ -133,7 +133,7 @@ def backprop_contribution5(argv=None):
     )
     model = nn.create_model()
     model.load_weights(
-        f"{PathUtil.get_parent_dir(inspect.currentframe())}/w30_train_9.h5"
+        f"{PathObtain.parent_dir(inspect.currentframe())}/w30_train_9.h5"
     )
 
     part_model[7] = Model(inputs=model.input, outputs=model.layers[7].output)
@@ -377,7 +377,7 @@ def backprop_contribution5(argv=None):
 
             # logo = lm.Logo(df)
             fig_path = FileSave.save_figure(
-                f"{PathUtil.get_figure_dir()}/contribution_patterns/model30_train_9_top/seq_"
+                f"{PathObtain.figure_dir()}/contribution_patterns/model30_train_9_top/seq_"
                 + str(batch_num * batch_size + seq_index)
                 + ".png"
             )
@@ -413,5 +413,5 @@ def backprop_contribution5(argv=None):
 
     for i in range(5):
         assert Path(
-            f"{PathUtil.get_figure_dir()}/contribution_patterns/model30_train_9_top/seq_{i}.png"
+            f"{PathObtain.figure_dir()}/contribution_patterns/model30_train_9_top/seq_{i}.png"
         ).is_file()

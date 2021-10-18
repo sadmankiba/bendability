@@ -13,7 +13,7 @@ from .cnnmodel import CNNModel6
 from .prediction import get_parameters
 from util.constants import TL, RL
 from util.reader import DNASequenceReader
-from util.util import PathUtil
+from util.util import PathObtain
 
 
 def train(save=False, train_lib=TL, val_lib=RL) -> tuple[keras.Model, History]:
@@ -24,7 +24,7 @@ def train(save=False, train_lib=TL, val_lib=RL) -> tuple[keras.Model, History]:
     tf.random.set_seed(seed)
 
     params = get_parameters(
-        f"{PathUtil.get_parent_dir(inspect.currentframe())}/parameter_model6.txt"
+        f"{PathObtain.parent_dir(inspect.currentframe())}/parameter_model6.txt"
     )
 
     model = CNNModel6(dim_num=(-1, 50, 4), **params).create_model()

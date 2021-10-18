@@ -5,7 +5,7 @@ from util.util import (
     reverse_compliment_of,
     append_reverse_compliment,
     FileSave,
-    PathUtil,
+    PathObtain,
 )
 
 import pandas as pd
@@ -104,7 +104,7 @@ class TestPlotUtil:
             colors=["tab:orange", "tab:green"],
             y_label="Quantity (units)",
         )
-        FileSave.save_figure(f"{PathUtil.get_figure_dir()}/test/stacked_bar.png")
+        FileSave.save_figure(f"{PathObtain.figure_dir()}/test/stacked_bar.png")
         assert True
 
 

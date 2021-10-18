@@ -1,7 +1,7 @@
 from __future__ import annotations
 from chromosome.genes import Genes
 
-from util.util import FileSave, PlotUtil, PathUtil
+from util.util import FileSave, PlotUtil, PathObtain
 from util.custom_types import ChrId, PositiveInt, YeastChrNum
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
@@ -42,7 +42,7 @@ class HicExplBoundaries:
     def _read_boundaries(self) -> pd.DataFrame:
         return (
             pd.read_table(
-                f"{PathUtil.get_data_dir()}/input_data/domains/"
+                f"{PathObtain.data_dir()}/input_data/domains/"
                 f"{self._chrm.number}_res_{self._res}_hicexpl_boundaries.bed",
                 delim_whitespace=True,
                 header=None,
@@ -164,7 +164,7 @@ class HicExplBoundaries:
         plt.legend()
 
         return FileSave.save_figure(
-            f"{PathUtil.get_figure_dir()}/domains/mean_c0_scatter_{self}.png"
+            f"{PathObtain.figure_dir()}/domains/mean_c0_scatter_{self}.png"
         )
 
 
@@ -342,7 +342,7 @@ class MultiChrmHicExplBoundariesCollector:
 
         return FileSave.append_tsv(
             self._coll_df,
-            f"{PathUtil.get_data_dir()}/generated_data/mcdomains/mcdmns_stat.tsv",
+            f"{PathObtain.data_dir()}/generated_data/mcdomains/mcdmns_stat.tsv",
         )
 
     def plot_scatter_mean_c0(self) -> Path:
@@ -396,7 +396,7 @@ class MultiChrmHicExplBoundariesCollector:
         plt.legend()
 
         return FileSave.save_figure(
-            f"{PathUtil.get_figure_dir()}/mcdomains/bndrs_dmns_c0_{self}.png"
+            f"{PathObtain.figure_dir()}/mcdomains/bndrs_dmns_c0_{self}.png"
         )
 
     def plot_bar_perc_in_prmtrs(self) -> Path:
@@ -418,7 +418,7 @@ class MultiChrmHicExplBoundariesCollector:
         plt.title(f"Percentage of boundaries in promoters in chromosomes")
         plt.legend()
         return FileSave.save_figure(
-            f"{PathUtil.get_figure_dir()}/mcdomains/perc_bndrs_in_promoters_{self}.png"
+            f"{PathObtain.figure_dir()}/mcdomains/perc_bndrs_in_promoters_{self}.png"
         )
 
     def num_bndrs_dmns(self) -> tuple[float, float]:
@@ -514,5 +514,5 @@ class MultiChrmHicExplBoundariesAggregator:
 
         return FileSave.append_tsv(
             self._agg_df,
-            f"{PathUtil.get_data_dir()}/generated_data/mcdomains/aggr_mcdmns_stat.tsv",
+            f"{PathObtain.data_dir()}/generated_data/mcdomains/aggr_mcdmns_stat.tsv",
         )

@@ -14,7 +14,7 @@ from models.prediction import Prediction
 from util.reader import DNASequenceReader
 from util.constants import CHRVL, SEQ_LEN
 from util.custom_types import ChrId, YeastChrNum, PositiveInt
-from util.util import FileSave, PathUtil, PlotUtil
+from util.util import FileSave, PathObtain, PlotUtil
 
 
 SpreadType = Literal["mean7", "mean_cover", "weighted", "single"]
@@ -75,7 +75,7 @@ class Spread:
         cover a bp, nearest 7-seq mean is used.
         """
         saved_data = Path(
-            f"{PathUtil.get_data_dir()}/generated_data/spread/spread_c0_mean7_{self._chr_id}_m_{self._model_no}.tsv"
+            f"{PathObtain.data_dir()}/generated_data/spread/spread_c0_mean7_{self._chr_id}_m_{self._model_no}.tsv"
         )
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep="\t")["c0_mean7"].to_numpy()
@@ -105,7 +105,7 @@ class Spread:
         """Determine C0 at each bp by average of covering 50-bp sequences around"""
         # TODO: HOF to wrap check and save data?
         saved_data = Path(
-            f"{PathUtil.get_data_dir()}/generated_data/spread/spread_c0_balanced_{self._chr_id}_m_{self._model_no}.tsv"
+            f"{PathObtain.data_dir()}/generated_data/spread/spread_c0_balanced_{self._chr_id}_m_{self._model_no}.tsv"
         )
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep="\t")["c0_balanced"].to_numpy()
@@ -130,7 +130,7 @@ class Spread:
     def _weighted_covering_seq(self) -> np.ndarray:
         """Determine C0 at each bp by weighted average of covering 50-bp sequences around"""
         saved_data = Path(
-            f"{PathUtil.get_data_dir()}/generated_data/spread/spread_c0_weighted_{self._chr_id}_m_{self._model_no}.tsv"
+            f"{PathObtain.data_dir()}/generated_data/spread/spread_c0_weighted_{self._chr_id}_m_{self._model_no}.tsv"
         )
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep="\t")["c0_weighted"].to_numpy()
@@ -276,7 +276,7 @@ class Chromosome:
             return df
 
         saved_predict_data = Path(
-            f"{PathUtil.get_data_dir()}/generated_data/predictions/chr{self.number}_pred_m_{self._prediction._model_no}.tsv"
+            f"{PathObtain.data_dir()}/generated_data/predictions/chr{self.number}_pred_m_{self._prediction._model_no}.tsv"
         )
         if saved_predict_data.is_file():
             return pd.read_csv(saved_predict_data, sep="\t")
@@ -383,7 +383,7 @@ class Chromosome:
 
         # Save figure
         plt.gcf().set_size_inches(12, 6)
-        ma_fig_dir = f"{PathUtil.get_figure_dir()}/chromosome/{self._chr_id}"
+        ma_fig_dir = f"{PathObtain.figure_dir()}/chromosome/{self._chr_id}"
         if not Path(ma_fig_dir).is_dir():
             Path(ma_fig_dir).mkdir(parents=True, exist_ok=True)
 

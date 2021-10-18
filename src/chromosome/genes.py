@@ -7,7 +7,7 @@ import pandas as pd
 
 from .chromosome import Chromosome
 from util.reader import GeneReader
-from util.util import FileSave, PlotUtil, PathUtil
+from util.util import FileSave, PlotUtil, PathObtain
 from .nucleosome import Nucleosome
 
 
@@ -54,7 +54,7 @@ class Genes:
         )
 
         return FileSave.save_figure(
-            f"{PathUtil.get_figure_dir()}/gene/dist_p1_dyad_{self._chrm}.png"
+            f"{PathObtain.figure_dir()}/gene/dist_p1_dyad_{self._chrm}.png"
         )
 
     def in_promoter(self, bps: np.ndarray | list[int] | pd.Series) -> np.ndarray:

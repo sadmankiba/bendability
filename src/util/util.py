@@ -184,7 +184,7 @@ def roman_to_num(chr_num: YeastChrNum) -> int:
     return rom_num_map[chr_num]
 
 
-class PathUtil:
+class PathObtain:
     """
     Class to obtain path in runtime dynamically.
 
@@ -193,37 +193,31 @@ class PathUtil:
     """
 
     @classmethod
-    def get_parent_dir(self, currentframe: FrameType) -> Path:
+    def parent_dir(self, currentframe: FrameType) -> Path:
         """Find parent directory path in runtime"""
         return Path(inspect.getabsfile(currentframe)).parent
 
     @classmethod
-    def get_figure_dir(self) -> str:
-        """
-        Get figure directory in runtime.
-        """
-        parent_dir = self.get_parent_dir(inspect.currentframe())
-        return f"{parent_dir.parent.parent}/figures"
+    def figure_dir(self) -> str:
+        return f"{self.root_dir()}/figures"
 
     @classmethod
-    def get_data_dir(self) -> str:
-        """
-        Get data directory in runtime.
-        """
-        parent_dir = self.get_parent_dir(inspect.currentframe())
-        return f"{parent_dir.parent.parent}/data"
+    def data_dir(self) -> str:
+        return f"{self.root_dir()}/data"
 
     @classmethod
-    def get_hic_data_dir(self) -> str:
-        # TODO: DRY parent_dir
-        parent_dir = self.get_parent_dir(inspect.currentframe())
-        return f"{parent_dir.parent.parent}/hic/data"
+    def hic_data_dir(self) -> str:
+        return f"{self.root_dir()}/hic/data"
+    
+    @classmethod
+    def root_dir(self) -> Path:
+        parent_dir = self.parent_dir(inspect.currentframe())
+        return parent_dir.parent.parent
 
 
 class FileSave:
     @classmethod
     def save_figure(self, path_str: Union[str, Path]) -> Path:
-        # TODO: Get figure dir in here?
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -236,7 +230,7 @@ class FileSave:
 
     @classmethod
     def figure_in_figdir(self, path_str: str | Path) -> Path: 
-        path = Path(PathUtil.get_figure_dir str(path_str))
+        path = Path(PathObtain.figure_dir str(path_str))
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
         

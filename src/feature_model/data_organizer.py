@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from util.util import FileSave, PathUtil, cut_sequence
+from util.util import FileSave, PathObtain, cut_sequence
 from .helsep import HelicalSeparationCounter
 from .occurence import Occurence
 from .shape import run_dna_shape_r_wrapper
@@ -92,7 +92,7 @@ class ShapeOrganizer:
             A numpy 2D array of integers
         """
         saved_shape_values_file = Path(
-            f"{PathUtil.get_data_dir()}/generated_data/{self.shape_str}_possib_values.tsv"
+            f"{PathObtain.data_dir()}/generated_data/{self.shape_str}_possib_values.tsv"
         )
         if saved_shape_values_file.is_file():
             with open(saved_shape_values_file, "r") as f:
@@ -191,7 +191,7 @@ class OheShapeEncoder(ShapeOrganizer):
         num_shape_encode = 12  # CHANGE HERE
 
         saved_shape_arr_file = Path(
-            f"{PathUtil.get_data_dir()}/generated_data/saved_arrays/{self._library['name']}_{self._library['seq_start_pos']}_{self._library['seq_end_pos']}_{self.shape_str}_ohe.npy"
+            f"{PathObtain.data_dir()}/generated_data/saved_arrays/{self._library['name']}_{self._library['seq_start_pos']}_{self._library['seq_end_pos']}_{self.shape_str}_ohe.npy"
         )
         if saved_shape_arr_file.is_file():
             # file exists
@@ -416,12 +416,12 @@ class DataOrganizer:
 
         FileSave.save_tsv(
             df.sort_values("C0"),
-            f"{PathUtil.get_data_dir()}/generated_data/classification/{file_name}.tsv",
+            f"{PathObtain.data_dir()}/generated_data/classification/{file_name}.tsv",
         )
         df = df.drop(columns=["Sequence #", "Sequence"])
         FileSave.save_tsv(
             df.groupby("C0").mean().sort_values("C0"),
-            f"{PathUtil.get_data_dir()}/generated_data/kmer_count/{file_name}_mean.tsv",
+            f"{PathObtain.data_dir()}/generated_data/kmer_count/{file_name}_mean.tsv",
         )
 
     def _get_helical_sep(self) -> dict[str, list[pd.DataFrame]]:
@@ -449,7 +449,7 @@ class DataOrganizer:
     def _get_helical_sep_of(self, library: SequenceLibrary) -> pd.DataFrame:
         cut_dfs = self._get_cut_dfs()
         saved_helical_sep_file = Path(
-            f"{PathUtil.get_data_dir()}/generated_data/helical_separation"
+            f"{PathObtain.data_dir()}/generated_data/helical_separation"
             f"/{library['name']}_{self._libraries['seq_start_pos']}_{self._libraries['seq_end_pos']}_hs.tsv"
         )
 
@@ -484,7 +484,7 @@ class DataOrganizer:
             for k in self._options["k_list"]:
                 # Check if k-mer count already saved
                 saved_kmer_count_file = Path(
-                    f"{PathUtil.get_data_dir()}/generated_data/kmer_count"
+                    f"{PathObtain.data_dir()}/generated_data/kmer_count"
                     f"/{library['name']}_{self._libraries['seq_start_pos']}"
                     f"_{self._libraries['seq_end_pos']}_kmercount_{k}.tsv"
                 )

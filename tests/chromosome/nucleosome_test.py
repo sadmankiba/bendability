@@ -1,7 +1,7 @@
 from models.prediction import Prediction
 from chromosome.nucleosome import Nucleosome
 from chromosome.chromosome import Chromosome
-from util.util import PathUtil
+from util.util import PathObtain
 
 from pathlib import Path
 

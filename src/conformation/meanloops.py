@@ -18,7 +18,7 @@ from models.prediction import Prediction
 from util.reader import DNASequenceReader
 from util.constants import ChrIdList
 from chromosome.chromosome import Chromosome
-from util.util import FileSave, PlotUtil, PathUtil
+from util.util import FileSave, PlotUtil, PathObtain
 from conformation.loops import Loops, COL_START, COL_END, COL_MEAN_C0_FULL, COL_LEN
 
 
@@ -499,7 +499,7 @@ class MultiChrmMeanLoopsCollector:
             (len(self._mcloop_df),), str(self._prediction)
         )
 
-        save_df_path = f"{PathUtil.get_data_dir()}/generated_data/mcloops/multichr_avg_c0_stat_{self}.tsv"
+        save_df_path = f"{PathObtain.data_dir()}/generated_data/mcloops/multichr_avg_c0_stat_{self}.tsv"
         FileSave.append_tsv(self._mcloop_df, save_df_path)
         return save_df_path
 
@@ -534,7 +534,7 @@ class MultiChrmMeanLoopsCollector:
         plt.legend()
 
         FileSave.save_figure(
-            f"{PathUtil.get_figure_dir()}/mcloops/nuc_linker_mean_{self}.png"
+            f"{PathObtain.figure_dir()}/mcloops/nuc_linker_mean_{self}.png"
         )
 
     def plot_loop_cover_frac(self) -> Path:
@@ -550,7 +550,7 @@ class MultiChrmMeanLoopsCollector:
             f"Loop cover percentage in whole chromosome with max length = {self._mxlen}"
         )
         return FileSave.save_figure(
-            f"{PathUtil.get_figure_dir()}/mcloop/loop_cover_{self}.png"
+            f"{PathObtain.figure_dir()}/mcloop/loop_cover_{self}.png"
         )
 
     def get_loops_data(self) -> pd.DataFrame:
@@ -618,7 +618,9 @@ class MultiChrmMeanLoopsAggregator:
         for m in methods:
             method_map[m]()
 
-        save_df_path = f"{PathUtil.get_data_dir()}/generated_data/mcloops/agg_stat_{self._coll}.tsv"
+        save_df_path = (
+            f"{PathObtain.data_dir()}/generated_data/mcloops/agg_stat_{self._coll}.tsv"
+        )
         return FileSave.append_tsv(self._agg_df, save_df_path)
 
     def plot_c0_vs_loop_size(self) -> Path:
@@ -633,7 +635,7 @@ class MultiChrmMeanLoopsAggregator:
         plt.ylabel("Mean C0")
         plt.title("Mean C0 vs Loop Size")
         return FileSave.save_figure(
-            f"{PathUtil.get_figure_dir()}/mcloops/c0_vs_loop_size_{self._coll}.png"
+            f"{PathObtain.figure_dir()}/mcloops/c0_vs_loop_size_{self._coll}.png"
         )
 
 
@@ -684,7 +686,7 @@ class MultiChrmCoverLoopsCollector:
         collector_df["non_loop_linker"] = self._mccloops.apply(
             lambda cloops: cloops.in_non_loop_linker()
         )
-        save_path_str = f"{PathUtil.get_data_dir()}/generated_data/mcloop/multichr_cover_stat_{self._mxlen}.tsv"
+        save_path_str = f"{PathObtain.data_dir()}/generated_data/mcloop/multichr_cover_stat_{self._mxlen}.tsv"
         FileSave.append_tsv(collector_df, save_path_str)
         return collector_df, save_path_str
 
@@ -717,7 +719,7 @@ class MultiChrmCoverLoopsCollector:
             pad=35,
         )
         fig_path_str = (
-            f"{PathUtil.get_figure_dir()}/mcloop/nuc_linker_cover_mxl_{self._mxlen}.png"
+            f"{PathObtain.figure_dir()}/mcloop/nuc_linker_cover_mxl_{self._mxlen}.png"
         )
 
         FileSave.save_figure(fig_path_str)

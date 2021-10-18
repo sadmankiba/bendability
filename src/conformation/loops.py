@@ -11,7 +11,7 @@ from nptyping import NDArray
 
 from chromosome.nucleosome import Nucleosome
 from chromosome.chromosome import Chromosome
-from util.util import FileSave, PlotUtil, PathUtil
+from util.util import FileSave, PlotUtil, PathObtain
 
 COL_RES = "res"
 COL_START = "start"
@@ -28,7 +28,7 @@ class Loops:
     """
 
     def __init__(self, chrm: Chromosome, mxlen: int = None):
-        self._loop_file = f"{PathUtil.get_data_dir()}/input_data/loops/merged_loops_res_500_chr{chrm.number}.bedpe"
+        self._loop_file = f"{PathObtain.data_dir()}/input_data/loops/merged_loops_res_500_chr{chrm.number}.bedpe"
         # TODO: Make _chr. Used in MeanLoops
         # TODO: Change all _loop_df usage to Loops
         self._chr = chrm
@@ -96,7 +96,7 @@ class Loops:
         )
 
         # TODO: Encapsulate saving figure logic in a function
-        fig_dir = f"{PathUtil.get_figure_dir()}/chrv/loops"
+        fig_dir = f"{PathObtain.figure_dir()}/chrv/loops"
         if not Path(fig_dir).is_dir():
             Path(fig_dir).mkdir(parents=True, exist_ok=True)
 
@@ -263,7 +263,7 @@ class PlotLoops:
         )
 
         return FileSave.save_figure(
-            f"{PathUtil.get_figure_dir()}/loops/mean_{val_type}_p_{total_perc}_mxl_{max_loop_length}_{self._loops}.png"
+            f"{PathObtain.figure_dir()}/loops/mean_{val_type}_p_{total_perc}_mxl_{max_loop_length}_{self._loops}.png"
         )
 
     def plot_c0_around_anchor(self, lim=500):
@@ -295,7 +295,7 @@ class PlotLoops:
         )
 
         return FileSave.save_figure(
-            f"{PathUtil.get_figure_dir()}/loops/mean_c0_anchor_dist_{lim}_{self._loops}.png"
+            f"{PathObtain.figure_dir()}/loops/mean_c0_anchor_dist_{lim}_{self._loops}.png"
         )
 
     def plot_c0_around_individual_anchors(self, lim=500) -> list[Path]:
@@ -314,7 +314,7 @@ class PlotLoops:
                 )
 
                 path = FileSave.save_figure(
-                    f"{PathUtil.get_figure_dir()}/loops/{self._chrm._chr_id}/individual_anchor_{col}_{pos}.png"
+                    f"{PathObtain.figure_dir()}/loops/{self._chrm._chr_id}/individual_anchor_{col}_{pos}.png"
                 )
                 paths.append(path)
 
@@ -339,7 +339,7 @@ class PlotLoops:
 
             paths.append(
                 FileSave.save_figure(
-                    f"{PathUtil.get_figure_dir()}/loops/{self._chrm._chr_id}/individual_mean_c0_{loop[COL_START]}_{loop[COL_END]}_{self._loops}.png"
+                    f"{PathObtain.figure_dir()}/loops/{self._chrm._chr_id}/individual_mean_c0_{loop[COL_START]}_{loop[COL_END]}_{self._loops}.png"
                 )
             )
 
@@ -404,5 +404,5 @@ class PlotLoops:
         plt.legend()
 
         return FileSave.save_figure(
-            f"{PathUtil.get_figure_dir()}/loops/individual_scatter_nuc_linker_{self._chrm}.png"
+            f"{PathObtain.figure_dir()}/loops/individual_scatter_nuc_linker_{self._chrm}.png"
         )

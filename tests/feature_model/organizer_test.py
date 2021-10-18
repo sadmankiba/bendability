@@ -9,7 +9,7 @@ from feature_model.data_organizer import (
 from feature_model.feat_selector import FeatureSelectorFactory
 from util.reader import DNASequenceReader
 from util.constants import CNL, CNL_LEN, RL, TL, TL_LEN, RL_LEN
-from util.util import PathUtil
+from util.util import PathObtain
 
 import numpy as np
 import pandas as pd
@@ -64,12 +64,12 @@ class TestDataOrganizer(unittest.TestCase):
         self.assertEqual(len(hel_dfs["test"][0].columns), 3 + 120 + 16)
 
         saved_train_file = Path(
-            f"{PathUtil.get_data_dir()}/generated_data/helical_separation"
+            f"{PathObtain.data_dir()}/generated_data/helical_separation"
             f"/{libraries['train'][0]['name']}_{libraries['seq_start_pos']}_{libraries['seq_end_pos']}_hs.tsv"
         )
 
         saved_test_file = Path(
-            f"{PathUtil.get_data_dir()}/generated_data/helical_separation"
+            f"{PathObtain.data_dir()}/generated_data/helical_separation"
             f"/{libraries['test'][0]['name']}_{libraries['seq_start_pos']}_{libraries['seq_end_pos']}_hs.tsv"
         )
 

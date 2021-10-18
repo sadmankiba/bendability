@@ -1,5 +1,5 @@
 from util.constants import CHRV_TOTAL_BP
-from util.util import PathUtil
+from util.util import PathObtain
 from conformation.loops import Loops
 from conformation.meanloops import (
     MeanLoops,

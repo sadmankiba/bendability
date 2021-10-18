@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import spearmanr
 
 from chromosome.chromosome import Chromosome
-from util.util import PathUtil, FileSave
+from util.util import PathObtain, FileSave
 
 # TODO: Rename conformation to threedim
 
@@ -50,7 +50,7 @@ class Contact:
             f"and avg {self._chrm.c0_type} C0 in chromosome {self._chrm.number}"
         )
         return FileSave.save_figure(
-            f"{PathUtil.get_figure_dir()}/contact/corr_{type}_{self._res}_{self._chrm}.png"
+            f"{PathObtain.figure_dir()}/contact/corr_{type}_{self._res}_{self._chrm}.png"
         )
 
     def show(self) -> Path:
@@ -65,7 +65,7 @@ class Contact:
 
         plt.imshow(img, interpolation="nearest")
         return FileSave.save_figure(
-            f"{PathUtil.get_figure_dir()}/contact/observed_vc_{self._res}_{self._chrm.number}.png"
+            f"{PathObtain.figure_dir()}/contact/observed_vc_{self._res}_{self._chrm.number}.png"
         )
 
     def _intensity_arr(self, type: CorrelationType) -> NDArray[(Any,)]:
@@ -93,7 +93,7 @@ class Contact:
         5200 5200 15
         """
         saved_contact = Path(
-            f"{PathUtil.get_data_dir()}/generated_data/contact"
+            f"{PathObtain.data_dir()}/generated_data/contact"
             f"/observed_vc_{self._res}_{self._chrm.number}.npy"
         )
 
@@ -126,7 +126,7 @@ class Contact:
 
     def _load_contact(self) -> pd.DataFrame:
         df = pd.read_table(
-            f"{PathUtil.get_data_dir()}/input_data/contact/"
+            f"{PathObtain.data_dir()}/input_data/contact/"
             f"observed_vc_400_{self._chrm.number}.txt",
             names=["row", "col", "intensity"],
         )

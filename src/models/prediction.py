@@ -12,7 +12,7 @@ from .data_preprocess import Preprocess
 from .parameters import get_parameters
 from util.custom_types import LIBRARY_NAMES
 from util.reader import DNASequenceReader
-from util.util import FileSave, PathUtil
+from util.util import FileSave, PathObtain
 
 
 class Prediction:
@@ -27,7 +27,7 @@ class Prediction:
         return str(self._model_no)
 
     def _select_model(self) -> tuple[CNNModel6, str, str]:
-        parent_dir = PathUtil.get_parent_dir(inspect.currentframe())
+        parent_dir = PathObtain.parent_dir(inspect.currentframe())
 
         if self._model_no == 6:
             return (
@@ -66,7 +66,7 @@ class Prediction:
         predict_df = self.predict(DNASequenceReader().get_processed_data()[lib])
         FileSave.save_tsv(
             predict_df,
-            f"{PathUtil.get_data_dir()}/generated_data/predictions/{lib}_pred_m_{self._model_no}.tsv",
+            f"{PathObtain.data_dir()}/generated_data/predictions/{lib}_pred_m_{self._model_no}.tsv",
         )
         return predict_df
 
@@ -86,5 +86,5 @@ class Prediction:
         )
         FileSave.append_tsv(
             metrics_df,
-            f"{PathUtil.get_data_dir()}/generated_data/prediction_metrics/pred_m_{self._model_no}.tsv",
+            f"{PathObtain.data_dir()}/generated_data/prediction_metrics/pred_m_{self._model_no}.tsv",
         )

@@ -1,6 +1,6 @@
 from util.constants import CNL
 from util.reader import DNASequenceReader
-from util.util import PathUtil
+from util.util import PathObtain
 from .cnnmodel import CNNModel6
 from .data_preprocess import Preprocess
 
@@ -113,7 +113,7 @@ class Evaluation:
         self._model = self._load_model()
 
     def _load_model(self) -> keras.Model:
-        parent_dir = PathUtil.get_parent_dir(inspect.currentframe())
+        parent_dir = PathObtain.parent_dir(inspect.currentframe())
 
         parameter_file = f"{parent_dir}/parameter_model6.txt"
 
@@ -153,7 +153,7 @@ class Evaluation:
             + ylim(-2.75, 2.75)
         )
 
-        with open(f"{PathUtil.get_figure_dir()}/scatter.png", "w") as f:
+        with open(f"{PathObtain.figure_dir()}/scatter.png", "w") as f:
             print(p, file=f)
 
     def check_performance(self, df: pd.DataFrame) -> None:
