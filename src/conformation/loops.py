@@ -201,7 +201,6 @@ class Loops:
 
         plt.grid()
 
-        # Decorate
         xticks = (
             sorted_loop_df["len"].apply(lambda len: str(int(len / 1000)) + "k").tolist()
         )
@@ -228,39 +227,105 @@ class PlotLoops:
         self._chrm = chrm
         self._loops = Loops(self._chrm)
 
-    def plot_c0_in_individual_loop(self) -> list[Path]:
-        paths = []
-
-        for _, loop in self._loops:
-            # TODO: -150% to +150% of loop. Vertical line = loop anchor
-            self._chrm.plot_moving_avg(loop[Loops.COL_START], loop[Loops.COL_END])
-            plt.ylim(-0.7, 0.7)
-            plt.xlabel(f"Position along Chromosome {self._chrm.number}")
-            plt.ylabel("Intrinsic Cyclizability")
-            plt.title(
-                f"C0 in loop between {loop[Loops.COL_START]}-{loop[Loops.COL_END]}. Found with resolution: {loop[Loops.COL_RES]}."
-            )
-
-            paths.append(
-                IOUtil().save_figure(
-                    f"{PathUtil.get_figure_dir()}/loops/{self._chrm._chr_id}/individual_mean_c0_{loop[Loops.COL_START]}_{loop[Loops.COL_END]}_{self._loops}.png"
-                )
-            )
-
-        return paths
-
+    def plot_histogram_c0(self):
+        pass 
+    
     def plot_mean_c0_across_loops(self, total_perc=150) -> Path:
         """
-        Plot mean C0 across total loop in found loops in chr V
-
-        Args:
-            total_perc: Total percentage of loop length to consider
+        Line plot of mean C0 across total loop vs. position along loop
+        (percentage)
         """
         return self._plot_mean_across_loops(total_perc, self._chrm.get_spread(), "c0")
 
     def plot_mean_nuc_occupancy_across_loops(self, total_perc=150) -> Path:
         return self._plot_mean_across_loops(
             total_perc, Nucleosome(self._chrm).get_nucleosome_occupancy(), "nuc_occ"
+        )
+
+    def _plot_mean_across_loops(
+        self,
+        total_perc: int,
+        chr_spread: np.ndarray,
+        val_type: Literal["c0"] | Literal["nuc_occ"],
+    ) -> Path:
+        """
+        Create a line plot of mean C0 or mean nuc. occupancy vs. position along
+        loop (percentage)
+
+        Underlying plotter to plot mean across loops.
+        """
+        max_loop_length = 100000
+        self._loops.exclude_above_len(max_loop_length)
+
+        def _find_value_in_loop(loop: pd.Series) -> np.ndarray:
+            """
+            Find value from start to end considering total percentage.
+
+            Returns:
+                A 1D numpy array. If value can't be calculated for whole total percentage
+                an empty array of size 0 is returned.
+            """
+            # TODO: Make 2 lists. start, end
+            start_pos = int(
+                loop["start"]
+                + (loop["end"] - loop["start"]) * (1 - total_perc / 100) / 2
+            )
+            end_pos = int(
+                loop["end"] + (loop["end"] - loop["start"]) * (total_perc / 100 - 1) / 2
+            )
+
+            if start_pos < 0 or end_pos > self._chrm.total_bp - 1:
+                print(f'Excluding loop: ({loop["start"]}-{loop["end"]})!')
+                return np.empty((0,))
+
+            return chr_spread[start_pos:end_pos]
+
+        assert _find_value_in_loop(pd.Series({"start": 30, "end": 50})).size == int(
+            20 * total_perc / 100
+        )
+        assert _find_value_in_loop(pd.Series({"start": 50, "end": 30})).size == 0
+
+        value_in_loops = pd.Series(_find_value_in_loop(loop[1]) for loop in self._loops)
+        value_in_loops = pd.Series(
+            list(filter(lambda arr: arr.size != 0, value_in_loops))
+        )
+        resize_multiple = 10
+        value_in_loops = pd.Series(
+            list(
+                map(
+                    lambda arr: resize(arr, ((total_perc + 1) * resize_multiple,)),
+                    value_in_loops,
+                )
+            )
+        )
+        mean_val = np.array(value_in_loops.tolist()).mean(axis=0)
+
+        plt.close()
+        plt.clf()
+
+        x = (
+            np.arange((total_perc + 1) * resize_multiple) / resize_multiple
+            - (total_perc - 100) / 2
+        )
+        plt.plot(x, mean_val, color="tab:blue")
+        self._chrm.plot_horizontal_line(chr_spread.mean())
+        plt.grid()
+
+        if total_perc >= 100:
+            for pos in [0, 100]:
+                PlotUtil().plot_vertical_line(pos, "tab:green", "anchor")
+
+        center = 50
+        PlotUtil().plot_vertical_line(center, "tab:orange", "center")
+
+        plt.xlabel("Position along loop (percentage)")
+        plt.ylabel(val_type)
+        plt.title(
+            f"Mean {self._chrm.c0_type} {val_type} along chromosome {self._chrm.number} loop ({x[0]}% to {x[-1]}% of loop length)"
+        )
+
+        return IOUtil().save_figure(
+            f"{PathUtil.get_figure_dir()}/loops/mean_{val_type}_p_{total_perc}_mxl_{max_loop_length}_{self._loops}.png"
         )
 
     def plot_c0_around_anchor(self, lim=500):
@@ -317,93 +382,27 @@ class PlotLoops:
 
         return paths
 
-    def _plot_mean_across_loops(
-        self,
-        total_perc: int,
-        chr_spread: np.ndarray,
-        val_type: Literal["c0"] | Literal["nuc_occ"],
-    ) -> Path:
+    def plot_c0_in_individual_loop(self) -> list[Path]:
         """
-        Underlying plotter to plot mean across loops
-
-        Plots mean C0 or mean nuc. occupancy.
-
-        Args:
-            total_perc: Total percentage
-            chr_spread: value at bp-resoulution. either c0 or nuc occupancy
-            val_type: Whether it is c0 or nuc occupancy
+        Create a line plot of c0 spread vs. position along loop.
         """
-        max_loop_length = 100000
-        self._loops.exclude_above_len(max_loop_length)
+        paths = []
 
-        def _find_value_in_loop(loop: pd.Series) -> np.ndarray:
-            """
-            Find value from start to end considering total percentage.
-
-            Returns:
-                A 1D numpy array. If value can't be calculated for whole total percentage
-                an empty array of size 0 is returned.
-            """
-            # TODO: Make 2 lists. start, end
-            start_pos = int(
-                loop["start"]
-                + (loop["end"] - loop["start"]) * (1 - total_perc / 100) / 2
-            )
-            end_pos = int(
-                loop["end"] + (loop["end"] - loop["start"]) * (total_perc / 100 - 1) / 2
+        for _, loop in self._loops:
+            # TODO: -150% to +150% of loop. Vertical line = loop anchor
+            # TODO: Method for single loop
+            self._chrm.plot_moving_avg(loop[Loops.COL_START], loop[Loops.COL_END])
+            plt.ylim(-0.7, 0.7)
+            plt.xlabel(f"Position along Chromosome {self._chrm.number} (bp)")
+            plt.ylabel("Intrinsic Cyclizability")
+            plt.title(
+                f"C0 in loop between {loop[Loops.COL_START]}-{loop[Loops.COL_END]}. Found with resolution: {loop[Loops.COL_RES]}."
             )
 
-            if start_pos < 0 or end_pos > self._chrm.total_bp - 1:
-                print(f'Excluding loop: ({loop["start"]}-{loop["end"]})!')
-                return np.empty((0,))
-
-            return chr_spread[start_pos:end_pos]
-
-        assert _find_value_in_loop(pd.Series({"start": 30, "end": 50})).size == int(
-            20 * total_perc / 100
-        )
-        assert _find_value_in_loop(pd.Series({"start": 50, "end": 30})).size == 0
-
-        value_in_loops = pd.Series(_find_value_in_loop(loop[1]) for loop in self._loops)
-        value_in_loops = pd.Series(
-            list(filter(lambda arr: arr.size != 0, value_in_loops))
-        )
-        resize_multiple = 10
-        value_in_loops = pd.Series(
-            list(
-                map(
-                    lambda arr: resize(arr, ((total_perc + 1) * resize_multiple,)),
-                    value_in_loops,
+            paths.append(
+                IOUtil().save_figure(
+                    f"{PathUtil.get_figure_dir()}/loops/{self._chrm._chr_id}/individual_mean_c0_{loop[Loops.COL_START]}_{loop[Loops.COL_END]}_{self._loops}.png"
                 )
             )
-        )
-        mean_val = np.array(value_in_loops.tolist()).mean(axis=0)
 
-        plt.close()
-        plt.clf()
-
-        # Plot mean value
-        x = (
-            np.arange((total_perc + 1) * resize_multiple) / resize_multiple
-            - (total_perc - 100) / 2
-        )
-        plt.plot(x, mean_val, color="tab:blue")
-        self._chrm.plot_horizontal_line(chr_spread.mean())
-        plt.grid()
-
-        if total_perc >= 100:
-            for pos in [0, 100]:
-                PlotUtil().plot_vertical_line(pos, "tab:green", "anchor")
-
-        center = 50
-        PlotUtil().plot_vertical_line(center, "tab:orange", "center")
-
-        plt.xlabel("Position along loop (percentage)")
-        plt.ylabel(val_type)
-        plt.title(
-            f"Mean {self._chrm.c0_type} {val_type} along chromosome {self._chrm.number} loop ({x[0]}% to {x[-1]}% of loop length)"
-        )
-
-        return IOUtil().save_figure(
-            f"{PathUtil.get_figure_dir()}/loops/mean_{val_type}_p_{total_perc}_mxl_{max_loop_length}_{self._loops}.png"
-        )
+        return paths
