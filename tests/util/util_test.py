@@ -1,6 +1,12 @@
-from util.util import PlotUtil, get_possible_seq, cut_sequence, \
-        reverse_compliment_of, append_reverse_compliment, IOUtil, \
-            PathUtil
+from util.util import (
+    PlotUtil,
+    get_possible_seq,
+    cut_sequence,
+    reverse_compliment_of,
+    append_reverse_compliment,
+    IOUtil,
+    PathUtil,
+)
 
 import pandas as pd
 
@@ -16,31 +22,48 @@ class TestUtil(unittest.TestCase):
         pass
 
     def test_reverse_compliment_of(self):
-        res = reverse_compliment_of('ATGCTAAC')
-        assert res == 'GTTAGCAT'
+        res = reverse_compliment_of("ATGCTAAC")
+        assert res == "GTTAGCAT"
 
     def test_append_reverse_compliment(self):
-        df = pd.DataFrame({'Sequence': ['ATGCCGT', 'GCGATGC'], 'Col2': [5, 6]})
+        df = pd.DataFrame({"Sequence": ["ATGCCGT", "GCGATGC"], "Col2": [5, 6]})
         rdf = append_reverse_compliment(df)
 
         self.assertGreater(len(rdf), len(df))
-        self.assertCountEqual(rdf['Sequence'].tolist(),
-                              ['ATGCCGT', 'GCGATGC', 'ACGGCAT', 'GCATCGC'])
-        self.assertCountEqual(rdf['Col2'].tolist(), [5, 6, 5, 6])
+        self.assertCountEqual(
+            rdf["Sequence"].tolist(), ["ATGCCGT", "GCGATGC", "ACGGCAT", "GCATCGC"]
+        )
+        self.assertCountEqual(rdf["Col2"].tolist(), [5, 6, 5, 6])
 
     def test_get_possible_seq_two(self):
         possib_seq = get_possible_seq(size=2)
-        expected = ['AA', 'AT', 'AG', 'AC', 'TA', 'TT', 'TG', 'TC', \
-            'GA', 'GT', 'GG', 'GC', 'CA', 'CT', 'CG', 'CC']
+        expected = [
+            "AA",
+            "AT",
+            "AG",
+            "AC",
+            "TA",
+            "TT",
+            "TG",
+            "TC",
+            "GA",
+            "GT",
+            "GG",
+            "GC",
+            "CA",
+            "CT",
+            "CG",
+            "CC",
+        ]
 
         # Test two list have same content without regard to their order
         self.assertCountEqual(possib_seq, expected)
 
     def test_cut_sequence(self):
-        df = pd.DataFrame({'Sequence': ['abcde', 'fghij']})
+        df = pd.DataFrame({"Sequence": ["abcde", "fghij"]})
         cdf = cut_sequence(df, 2, 4)
-        cdf_seq_list = cdf['Sequence'].tolist()
-        expected = ['bcd', 'ghi']
+        cdf_seq_list = cdf["Sequence"].tolist()
+        expected = ["bcd", "ghi"]
 
         # Test two list have same content, also regarding their order
         self.assertListEqual(cdf_seq_list, expected)
@@ -48,44 +71,41 @@ class TestUtil(unittest.TestCase):
 
 class TestIOUtil:
     def test_append_tsv(self):
-        sample_df = pd.DataFrame({'a': [1, 2], 'b': [11, 12], 'c': [21,25]})
-        path = Path('data/generated_data/test_append.tsv')
+        sample_df = pd.DataFrame({"a": [1, 2], "b": [11, 12], "c": [21, 25]})
+        path = Path("data/generated_data/test_append.tsv")
 
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
 
-        sample_df.to_csv(path, sep='\t', index=False)
-        other_df = pd.DataFrame({'a': [3], 'b': [13], 'd': [31]})
+        sample_df.to_csv(path, sep="\t", index=False)
+        other_df = pd.DataFrame({"a": [3], "b": [13], "d": [31]})
 
         IOUtil().append_tsv(other_df, path)
-        append_df = pd.read_csv(path, sep='\t')
+        append_df = pd.read_csv(path, sep="\t")
         assert len(append_df) == 3
         assert len(append_df.columns) == 4
         os.remove(path)
 
+
 class TestPlotUtil:
     def test_plot_stacked_bar(self):
-        series_labels = ['Series 1', 'Series 2']
+        series_labels = ["Series 1", "Series 2"]
 
-        data = [
-            [0.2, 0.3, 0.35, 0.3],
-            [0.8, 0.7, 0.6, 0.5]
-        ]
+        data = [[0.2, 0.3, 0.35, 0.3], [0.8, 0.7, 0.6, 0.5]]
 
-        category_labels = ['Cat A', 'Cat B', 'Cat C', 'Cat D']
+        category_labels = ["Cat A", "Cat B", "Cat C", "Cat D"]
 
         PlotUtil().plot_stacked_bar(
-            data, 
-            series_labels, 
-            category_labels, 
-            show_values=True, 
+            data,
+            series_labels,
+            category_labels,
+            show_values=True,
             value_format="{:.1f}",
-            colors=['tab:orange', 'tab:green'],
-            y_label="Quantity (units)"
+            colors=["tab:orange", "tab:green"],
+            y_label="Quantity (units)",
         )
-        IOUtil().save_figure(f'{PathUtil.get_figure_dir()}/test/stacked_bar.png')
+        IOUtil().save_figure(f"{PathUtil.get_figure_dir()}/test/stacked_bar.png")
         assert True
-
 
 
 if __name__ == "__main__":

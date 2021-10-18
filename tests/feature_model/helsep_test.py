@@ -8,16 +8,17 @@ import unittest
 
 class TestHelicalSeparationCounter(unittest.TestCase):
     def test_get_all_dist(self):
-        seq = 'AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACGCCCGGGCGCTCTC'
+        seq = "AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACGCCCGGGCGCTCTC"
         # Explanation
         # TT -> [3, 13]
         # GC -> [5, 9, 18, 36, 42, 44]
         # Absolute diff -> [2, 6, 15, 33, 39, 41, 8, 4, 5, 23, 29, 31]
         helsep = HelicalSeparationCounter()
         all_dist = helsep._get_all_dist(seq)
-        pair_idx = helsep._dinc_pairs.index(('GC', 'TT'))
-        p_expected = np.bincount([2, 6, 15, 33, 39, 41, 8, 4, 5, 23, 29, 31],
-                                 minlength=49)[1:]
+        pair_idx = helsep._dinc_pairs.index(("GC", "TT"))
+        p_expected = np.bincount(
+            [2, 6, 15, 33, 39, 41, 8, 4, 5, 23, 29, 31], minlength=49
+        )[1:]
 
         self.assertListEqual(all_dist[pair_idx].tolist(), p_expected.tolist())
 
@@ -26,7 +27,7 @@ class TestHelicalSeparationCounter(unittest.TestCase):
         self.assertEqual(df.shape, (136, 49))
 
     def test_normalized_helical_sep_of(self):
-        seq = 'AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACGCCCGGGCGCTCTC'
+        seq = "AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACGCCCGGGCGCTCTC"
         # Explanation
         # TT -> [3, 13]
         # GC -> [5, 9, 18, 36, 42, 44]
@@ -37,12 +38,13 @@ class TestHelicalSeparationCounter(unittest.TestCase):
 
         helsep = HelicalSeparationCounter()
         expected_dist = helsep.calculate_expected_p().values
-        pair_idx = helsep._dinc_pairs.index(('GC', 'TT'))
+        pair_idx = helsep._dinc_pairs.index(("GC", "TT"))
 
         # Normalize dist
         helical = (np.array([1, 0, 1]) / expected_dist[pair_idx, 28:31]).max()
-        half_helical = (np.array([1,1,1]) / expected_dist[pair_idx, 3:6]).max() \
-            + (np.array([0, 1, 0]) / expected_dist[pair_idx, 13:16]).max()
+        half_helical = (np.array([1, 1, 1]) / expected_dist[pair_idx, 3:6]).max() + (
+            np.array([0, 1, 0]) / expected_dist[pair_idx, 13:16]
+        ).max()
 
         hs = helsep._normalized_helical_sep_of([seq])
         self.assertTupleEqual(hs.shape, (1, 136))
@@ -50,12 +52,14 @@ class TestHelicalSeparationCounter(unittest.TestCase):
 
     def test_find_helical_separation(self):
 
-        df = pd.DataFrame({
-            'Sequence': [
-                'AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACCGCCGGGCGCTCTC',
-                'AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACGCCCGGGCGCTCTC'
-            ]
-        })
+        df = pd.DataFrame(
+            {
+                "Sequence": [
+                    "AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACCGCCGGGCGCTCTC",
+                    "AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACGCCCGGGCGCTCTC",
+                ]
+            }
+        )
 
         # Explanation
         # First
@@ -69,4 +73,3 @@ class TestHelicalSeparationCounter(unittest.TestCase):
         self.assertEqual(len(df_hel.columns.tolist()), 1 + 120 + 16)
         # Needs to be normalized
         # self.assertListEqual(df_hel['GC-TT'].tolist(), [-2, -1])
-

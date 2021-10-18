@@ -1,5 +1,6 @@
 from typing import TypedDict
 
+
 class ModelParameters(TypedDict):
     filters: int
     kernel_size: int
@@ -10,6 +11,7 @@ class ModelParameters(TypedDict):
     batch_size: int
     loss_func: str
     optimizer: str
+
 
 # TODO: Use .ini for parameters
 def get_parameters(file_name: str) -> ModelParameters:

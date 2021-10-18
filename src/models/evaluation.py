@@ -30,7 +30,7 @@ from .parameters import get_parameters
 
 
 def save_kernel_weights_logos(model):
-    with open('kernel_weights/6', 'w') as f:
+    with open("kernel_weights/6", "w") as f:
         for layer_num in range(2, 3):
             layer = model.layers[layer_num]
             config = layer.get_config()
@@ -46,29 +46,46 @@ def save_kernel_weights_logos(model):
                     tf.subtract(
                         tf.subtract(
                             tf.math.scalar_mul(alpha, x),
-                            tf.expand_dims(tf.math.reduce_max(
-                                tf.math.scalar_mul(alpha, x), axis=1),
-                                           axis=1)),
-                        tf.expand_dims(tf.math.log(
-                            tf.math.reduce_sum(tf.math.exp(
-                                tf.subtract(
-                                    tf.math.scalar_mul(alpha, x),
-                                    tf.expand_dims(tf.math.reduce_max(
-                                        tf.math.scalar_mul(alpha, x), axis=1),
-                                                   axis=1))),
-                                               axis=1)),
-                                       axis=1))), w)
+                            tf.expand_dims(
+                                tf.math.reduce_max(
+                                    tf.math.scalar_mul(alpha, x), axis=1
+                                ),
+                                axis=1,
+                            ),
+                        ),
+                        tf.expand_dims(
+                            tf.math.log(
+                                tf.math.reduce_sum(
+                                    tf.math.exp(
+                                        tf.subtract(
+                                            tf.math.scalar_mul(alpha, x),
+                                            tf.expand_dims(
+                                                tf.math.reduce_max(
+                                                    tf.math.scalar_mul(alpha, x), axis=1
+                                                ),
+                                                axis=1,
+                                            ),
+                                        )
+                                    ),
+                                    axis=1,
+                                )
+                            ),
+                            axis=1,
+                        ),
+                    )
+                ),
+                w,
+            )
 
             npa = np.array(filt_list)
             print(npa, file=f)
             # print(npa.shape[0])
             for i in range(npa.shape[0]):
-                df = pd.DataFrame(npa[i], columns=['A', 'C', 'G', 'T']).T
+                df = pd.DataFrame(npa[i], columns=["A", "C", "G", "T"]).T
                 # print(df.head())
-                df.to_csv('kernel_weights/6.csv',
-                          mode='a',
-                          sep='\t',
-                          float_format='%.3f')
+                df.to_csv(
+                    "kernel_weights/6.csv", mode="a", sep="\t", float_format="%.3f"
+                )
 
             for i in range(npa.shape[0]):
                 for rows in range(npa[i].shape[0]):
@@ -77,16 +94,16 @@ def save_kernel_weights_logos(model):
                         ownlog[cols] = ownlog[cols] * np.log2(ownlog[cols])
                     scalar = np.cumsum(ownlog, axis=0) + 2
                     npa[i][rows] *= scalar
-                df = pd.DataFrame(npa[i], columns=['A', 'C', 'G', 'T'])
+                df = pd.DataFrame(npa[i], columns=["A", "C", "G", "T"])
                 print(df.head())
                 logo = lm.Logo(
                     df,
-                    font_name='Arial Rounded MT Bold',
+                    font_name="Arial Rounded MT Bold",
                 )
                 # plt.show()
-                plt.savefig('logos/l6/logo' + str(layer_num) + '_' + str(i) +
-                            '.png',
-                            dpi=50)
+                plt.savefig(
+                    "logos/l6/logo" + str(layer_num) + "_" + str(i) + ".png", dpi=50
+                )
 
 
 class Evaluation:
@@ -97,41 +114,46 @@ class Evaluation:
 
     def _load_model(self) -> keras.Model:
         parent_dir = PathUtil.get_parent_dir(inspect.currentframe())
-        
-        parameter_file = f'{parent_dir}/parameter_model6.txt'
+
+        parameter_file = f"{parent_dir}/parameter_model6.txt"
 
         params = get_parameters(parameter_file)
 
         dim_num = (-1, 50, 4)
-        print('Initializing CNNModel6 object...')
-        nn = CNNModel6(dim_num=dim_num,
-                      filters=params["filters"],
-                      kernel_size=params["kernel_size"],
-                      pool_type=params["pool_type"],
-                      regularizer=params["regularizer"],
-                      activation_type=params["activation_type"],
-                      epochs=params["epochs"],
-                      batch_size=params["batch_size"],
-                      loss_func=params["loss_func"],
-                      optimizer=params["optimizer"])
+        print("Initializing CNNModel6 object...")
+        nn = CNNModel6(
+            dim_num=dim_num,
+            filters=params["filters"],
+            kernel_size=params["kernel_size"],
+            pool_type=params["pool_type"],
+            regularizer=params["regularizer"],
+            activation_type=params["activation_type"],
+            epochs=params["epochs"],
+            batch_size=params["batch_size"],
+            loss_func=params["loss_func"],
+            optimizer=params["optimizer"],
+        )
 
-        print('Creating Keras model...')
+        print("Creating Keras model...")
         model = nn.create_model()
         # tf.keras.utils.plot_model(
         #     model, to_file='model.png', show_shapes=False, show_dtype=False,
         #     show_layer_names=False, rankdir='TB', expand_nested=False, dpi=96
         # )
 
-        print('Loading weights in model...')
-        model.load_weights(f'{parent_dir}/model_weights/w6.h5_archived')
+        print("Loading weights in model...")
+        model.load_weights(f"{parent_dir}/model_weights/w6.h5_archived")
         return model
 
     def _plot_scatter(self, df: pd.DataFrame) -> None:
         p = (
-            ggplot(data=df, mapping=aes(x='True Value', y='Predicted Value')) +
-            stat_bin_2d(bins=150) + xlim(-2.75, 2.75) + ylim(-2.75, 2.75))
+            ggplot(data=df, mapping=aes(x="True Value", y="Predicted Value"))
+            + stat_bin_2d(bins=150)
+            + xlim(-2.75, 2.75)
+            + ylim(-2.75, 2.75)
+        )
 
-        with open(f'{PathUtil.get_figure_dir()}/scatter.png', 'w') as f:
+        with open(f"{PathUtil.get_figure_dir()}/scatter.png", "w") as f:
             print(p, file=f)
 
     def check_performance(self, df: pd.DataFrame) -> None:
@@ -147,10 +169,10 @@ class Evaluation:
         x2 = data["reverse"]
         y = data["target"]
 
-        history2 = self._model.evaluate({'forward': x1, 'reverse': x2}, y)
+        history2 = self._model.evaluate({"forward": x1, "reverse": x2}, y)
 
-        print('metric values of model.evaluate: ' + str(history2))
-        print('metrics names are ' + str(self._model.metrics_names))
+        print("metric values of model.evaluate: " + str(history2))
+        print("metrics names are " + str(self._model.metrics_names))
 
         print(f"Took --- {time.time() - start_time} seconds ---")
 
@@ -161,7 +183,7 @@ class Evaluation:
         x1 = data["forward"]
         x2 = data["reverse"]
 
-        y_pred = self._model.predict({'forward': x1, 'reverse': x2}).flatten()
+        y_pred = self._model.predict({"forward": x1, "reverse": x2}).flatten()
         return df.assign(c0_predict=y_pred)
 
     def print_prediction_metrics(self, df: pd.DataFrame) -> None:
@@ -172,11 +194,11 @@ class Evaluation:
         x2 = data["reverse"]
         y = data["target"]
 
-        y_pred = self._model.predict({'forward': x1, 'reverse': x2}).flatten()
+        y_pred = self._model.predict({"forward": x1, "reverse": x2}).flatten()
         assert y_pred.shape == y.shape
-        print('r2 score:', r2_score(y, y_pred))
-        print('Pearson\'s correlation:', pearsonr(y, y_pred)[0])
-        print('Spearman\'s correlation: ', spearmanr(y, y_pred)[0])
+        print("r2 score:", r2_score(y, y_pred))
+        print("Pearson's correlation:", pearsonr(y, y_pred)[0])
+        print("Spearman's correlation: ", spearmanr(y, y_pred)[0])
 
         # self._plot_scatter(df)
 

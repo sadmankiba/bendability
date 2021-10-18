@@ -6,7 +6,7 @@ import re as bre  # built-in re
 import itertools as it
 from pathlib import Path
 import logging
-import inspect 
+import inspect
 from types import FrameType
 from typing import Union
 
@@ -20,9 +20,10 @@ from .constants import SEQ_LEN
 
 logging.basicConfig(level=logging.INFO)
 
+
 def reverse_compliment_of(seq: str):
     # Define replacements
-    rep = {"A": "T", "T": "A", 'G': 'C', 'C': 'G'}
+    rep = {"A": "T", "T": "A", "G": "C", "C": "G"}
 
     # Create regex pattern
     rep = dict((bre.escape(k), v) for k, v in rep.items())
@@ -37,15 +38,13 @@ def append_reverse_compliment(df: pd.DataFrame) -> pd.DataFrame:
     Appends reverse compliment sequences to a dataframe
     """
     rdf = df.copy()
-    rdf['Sequence'] = df['Sequence'].apply(
-        lambda seq: reverse_compliment_of(seq))
+    rdf["Sequence"] = df["Sequence"].apply(lambda seq: reverse_compliment_of(seq))
     return pd.concat([df, rdf], ignore_index=True)
 
 
-def sorted_split(df: pd.DataFrame,
-                 n=1000,
-                 n_bins=1,
-                 ascending=False) -> list[pd.DataFrame]:
+def sorted_split(
+    df: pd.DataFrame, n=1000, n_bins=1, ascending=False
+) -> list[pd.DataFrame]:
     """
     Sort data according to C0 value
     params:
@@ -56,10 +55,10 @@ def sorted_split(df: pd.DataFrame,
     returns:
         A list of dataframes.
     """
-    sorted_df = df.sort_values(by=['C0'], ascending=ascending)[0:n]
+    sorted_df = df.sort_values(by=["C0"], ascending=ascending)[0:n]
 
     return [
-        sorted_df.iloc[start_pos:start_pos + math.ceil(n / n_bins)]
+        sorted_df.iloc[start_pos : start_pos + math.ceil(n / n_bins)]
         for start_pos in range(0, n, math.ceil(n / n_bins))
     ]
 
@@ -69,7 +68,7 @@ def cut_sequence(df, start, stop):
     Cut a sequence from start to stop position.
     start, stop - 1-indexed, inclusive
     """
-    df['Sequence'] = df['Sequence'].str[start - 1:stop]
+    df["Sequence"] = df["Sequence"].str[start - 1 : stop]
     return df
 
 
@@ -81,12 +80,10 @@ def get_possible_seq(size):
         A list of sequences
     """
 
-    possib_seq = ['']
+    possib_seq = [""]
 
     for _ in range(size):
-        possib_seq = [
-            seq + nc for seq in possib_seq for nc in ['A', 'C', 'G', 'T']
-        ]
+        possib_seq = [seq + nc for seq in possib_seq for nc in ["A", "C", "G", "T"]]
 
     return possib_seq
 
@@ -102,8 +99,8 @@ def get_possible_shape_seq(size: int, n_letters: int):
     Returns:
         A list of strings
     """
-    possib_seq = ['']
-    alphabet = [chr(ord('a') + i) for i in range(n_letters)]
+    possib_seq = [""]
+    alphabet = [chr(ord("a") + i) for i in range(n_letters)]
 
     for _ in range(size):
         possib_seq = [seq + c for seq in possib_seq for c in alphabet]
@@ -111,8 +108,7 @@ def get_possible_shape_seq(size: int, n_letters: int):
     return possib_seq
 
 
-def find_shape_occurence_individual(df: pd.DataFrame, k_list: list,
-                                    n_letters: int):
+def find_shape_occurence_individual(df: pd.DataFrame, k_list: list, n_letters: int):
     """
     Find occurences of all possible shape sequences for individual DNA sequences.
 
@@ -129,8 +125,8 @@ def find_shape_occurence_individual(df: pd.DataFrame, k_list: list,
         possib_seq += get_possible_shape_seq(k, n_letters)
 
     for seq in possib_seq:
-        df = df.assign(new_column=lambda x: x['Sequence'].str.count(seq))
-        df = df.rename(columns={'new_column': seq})
+        df = df.assign(new_column=lambda x: x["Sequence"].str.count(seq))
+        df = df.rename(columns={"new_column": seq})
 
     return df
 
@@ -139,18 +135,18 @@ def gen_random_sequences(n: int):
     """Generates n 50 bp random DNA sequences"""
     seq_list = []
     for _ in range(n):
-        seq = ''
+        seq = ""
 
         for _ in range(50):
             d = random.random()
             if d < 0.25:
-                c = 'A'
+                c = "A"
             elif d < 0.5:
-                c = 'T'
+                c = "T"
             elif d < 0.75:
-                c = 'G'
+                c = "G"
             else:
-                c = 'C'
+                c = "C"
 
             seq += c
 
@@ -162,67 +158,66 @@ def gen_random_sequences(n: int):
 def get_random_string(length):
     # choose from all lowercase letter
     letters = string.ascii_lowercase
-    result_str = ''.join(random.choice(letters) for i in range(length))
+    result_str = "".join(random.choice(letters) for i in range(length))
     return result_str
 
 
 def roman_to_num(chr_num: YeastChrNum) -> int:
     rom_num_map = {
-        'I': 1,
-        'II': 2,
-        'III': 3,
-        'IV': 4,
-        'V': 5,
-        'VI': 6,
-        'VII': 7,
-        'VIII': 8,
-        'IX': 9,
-        'X': 10,
-        'XI': 11,
-        'XII': 12,
-        'XIII': 13,
-        'XIV': 14,
-        'XV': 15,
-        'XVI': 16
+        "I": 1,
+        "II": 2,
+        "III": 3,
+        "IV": 4,
+        "V": 5,
+        "VI": 6,
+        "VII": 7,
+        "VIII": 8,
+        "IX": 9,
+        "X": 10,
+        "XI": 11,
+        "XII": 12,
+        "XIII": 13,
+        "XIV": 14,
+        "XV": 15,
+        "XVI": 16,
     }
     return rom_num_map[chr_num]
 
-      
+
 class PathUtil:
     """
     Class to get path in runtime
-    
+
     With this, we can create correct path even when this module is called from
     modules in other directories. (e.g. child directory)
     """
-    
-    
+
     @classmethod
     def get_parent_dir(self, currentframe: FrameType) -> Path:
-        '''Find parent directory path in runtime'''
+        """Find parent directory path in runtime"""
         return Path(inspect.getabsfile(currentframe)).parent
-    
+
     @classmethod
     def get_figure_dir(self) -> str:
         """
         Get figure directory in runtime.
         """
         parent_dir = self.get_parent_dir(inspect.currentframe())
-        return f'{parent_dir.parent.parent}/figures'
+        return f"{parent_dir.parent.parent}/figures"
 
     @classmethod
     def get_data_dir(self) -> str:
         """
-        Get data directory in runtime. 
+        Get data directory in runtime.
         """
         parent_dir = self.get_parent_dir(inspect.currentframe())
-        return f'{parent_dir.parent.parent}/data'
-    
+        return f"{parent_dir.parent.parent}/data"
+
     @classmethod
-    def get_hic_data_dir(self) -> str: 
+    def get_hic_data_dir(self) -> str:
         # TODO: DRY parent_dir
         parent_dir = self.get_parent_dir(inspect.currentframe())
-        return f'{parent_dir.parent.parent}/hic/data'
+        return f"{parent_dir.parent.parent}/hic/data"
 
 
 class IOUtil:
@@ -232,31 +227,31 @@ class IOUtil:
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
-       
-        # Set plot size 
+
+        # Set plot size
         plt.gcf().set_size_inches(12, 6)
-        
+
         # Save
         plt.savefig(path, dpi=200)
-        
-        logging.info(f'Figure saved at: {path}')
-        return path 
+
+        logging.info(f"Figure saved at: {path}")
+        return path
 
     def save_tsv(self, df: pd.DataFrame, path_str: Union[str, Path]) -> Path:
         """Save a dataframe in tsv format"""
         path = Path(path_str)
         self.make_parent_dirs(path)
-        df.to_csv(path, sep='\t', index=False, float_format='%.3f')
-        
-        logging.info(f'TSV file saved at: {path}')
+        df.to_csv(path, sep="\t", index=False, float_format="%.3f")
+
+        logging.info(f"TSV file saved at: {path}")
         return path
-    
+
     def save_npy(self, arr: np.ndarray, path_str: Union[str, Path]) -> Path:
         path = Path(path_str)
         self.make_parent_dirs(path)
         np.save(path, arr)
-    
-        logging.info(f'.npy file saved at: {path}')
+
+        logging.info(f".npy file saved at: {path}")
         return path
 
     def make_parent_dirs(self, path_str: Union[str, Path]) -> None:
@@ -268,9 +263,10 @@ class IOUtil:
         """Append a dataframe to a tsv if it exists, otherwise create"""
         path = Path(path_str)
         if path.is_file():
-            target_df = pd.read_csv(path, sep='\t')
-            pd.concat([df, target_df], join='outer', ignore_index=True)\
-                .to_csv(path, sep='\t', index=False, float_format='%3f')
+            target_df = pd.read_csv(path, sep="\t")
+            pd.concat([df, target_df], join="outer", ignore_index=True).to_csv(
+                path, sep="\t", index=False, float_format="%3f"
+            )
             return path
 
         return self.save_tsv(df, path_str)
@@ -282,32 +278,45 @@ class PlotUtil:
         """
         Plot a horizontal red line denoting avg
         """
-        self.plot_horizontal_line(y, 'r', 'avg')
+        self.plot_horizontal_line(y, "r", "avg")
 
     @classmethod
     def plot_horizontal_line(self, y: float, color: str, text: str):
-        plt.axhline(y=y, color=color, linestyle='-')
+        plt.axhline(y=y, color=color, linestyle="-")
         x_lim = plt.gca().get_xlim()
-        plt.text(x_lim[0] + (x_lim[1] - x_lim[0]) * 0.15,
-                 y,
-                 text,
-                 color=color,
-                 ha='center',
-                 va='bottom')
+        plt.text(
+            x_lim[0] + (x_lim[1] - x_lim[0]) * 0.15,
+            y,
+            text,
+            color=color,
+            ha="center",
+            va="bottom",
+        )
 
     def plot_vertical_line(self, x: float, color: str, text: str):
-        plt.axvline(x=x, color=color, linestyle='--')
+        plt.axvline(x=x, color=color, linestyle="--")
         y_lim = plt.gca().get_ylim()
-        plt.text(x,
+        plt.text(
+            x,
             y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75,
             text,
             color=color,
-            ha='left',
-            va='center')
+            ha="left",
+            va="center",
+        )
 
-    def plot_stacked_bar(self, data, series_labels, category_labels=None, 
-                     show_values=False, value_format="{}", y_label=None, 
-                     colors=None, grid=False, reverse=False):
+    def plot_stacked_bar(
+        self,
+        data,
+        series_labels,
+        category_labels=None,
+        show_values=False,
+        value_format="{}",
+        y_label=None,
+        colors=None,
+        grid=False,
+        reverse=False,
+    ):
         """Plots a stacked bar chart with the data and labels provided.
 
         Keyword arguments:
@@ -317,7 +326,7 @@ class PlotUtil:
                         the legend)
         category_labels -- list of category labels (these appear
                         on the x-axis)
-        show_values     -- If True then numeric value labels will 
+        show_values     -- If True then numeric value labels will
                         be shown on each bar
         value_format    -- Format string for numeric value labels
                         (default is "{}")
@@ -343,8 +352,11 @@ class PlotUtil:
 
         for i, row_data in enumerate(data):
             color = colors[i] if colors is not None else None
-            bar_containers.append(plt.bar(ind, row_data, bottom=cum_size, 
-                                label=series_labels[i], color=color))
+            bar_containers.append(
+                plt.bar(
+                    ind, row_data, bottom=cum_size, label=series_labels[i], color=color
+                )
+            )
             cum_size += row_data
 
         if category_labels:
@@ -362,11 +374,15 @@ class PlotUtil:
             for bar_container in bar_containers:
                 for bar in bar_container:
                     w, h = bar.get_width(), bar.get_height()
-                    plt.text(bar.get_x() + w/2, bar.get_y() + h/2, 
-                            value_format.format(h), ha="center", 
-                            va="center")
-                
+                    plt.text(
+                        bar.get_x() + w / 2,
+                        bar.get_y() + h / 2,
+                        value_format.format(h),
+                        ha="center",
+                        va="center",
+                    )
+
     def show_grid(self) -> None:
         """Invoke this function before plotting to show grid below"""
-        plt.rc('axes', axisbelow=True)
+        plt.rc("axes", axisbelow=True)
         plt.grid()

@@ -11,7 +11,7 @@ from util.custom_types import DNASeq
 
 
 class SeqTarget(TypedDict):
-    all_seqs: list[DNASeq] 
+    all_seqs: list[DNASeq]
     rc_seqs: list[DNASeq]
     target: Union[np.ndarray, None]
 
@@ -21,35 +21,40 @@ class OheResult(TypedDict):
     reverse: np.ndarray
     target: Union[np.ndarray, None]
 
+
 class Preprocess:
     def __init__(self, df: pd.DataFrame):
         self._df = df
 
     def _get_sequences_target(self) -> SeqTarget:
-        all_seqs = self._df['Sequence'].tolist()
-        rc_seqs = [ reverse_compliment_of(seq) for seq in all_seqs ] 
-        target = self._df['C0'].to_numpy() if 'C0' in self._df else None
+        all_seqs = self._df["Sequence"].tolist()
+        rc_seqs = [reverse_compliment_of(seq) for seq in all_seqs]
+        target = self._df["C0"].to_numpy() if "C0" in self._df else None
 
         return {"all_seqs": all_seqs, "target": target, "rc_seqs": rc_seqs}
 
     def one_hot_encode(self) -> OheResult:
         def _seq_to_col_mat(seq):
             return np.array(list(seq)).reshape(-1, 1)
-        
-        one_hot_encoder = OneHotEncoder(categories='auto')
+
+        one_hot_encoder = OneHotEncoder(categories="auto")
         one_hot_encoder.fit(_seq_to_col_mat("ACGT"))
 
         seq_and_target = self._get_sequences_target()
 
-        forward = [ one_hot_encoder.transform(_seq_to_col_mat(s)).toarray()
-                       for s in seq_and_target["all_seqs"] ]
-        reverse = [ one_hot_encoder.transform(_seq_to_col_mat(s)).toarray()
-                        for s in seq_and_target["rc_seqs"] ]
+        forward = [
+            one_hot_encoder.transform(_seq_to_col_mat(s)).toarray()
+            for s in seq_and_target["all_seqs"]
+        ]
+        reverse = [
+            one_hot_encoder.transform(_seq_to_col_mat(s)).toarray()
+            for s in seq_and_target["rc_seqs"]
+        ]
 
         return {
             "forward": np.stack(forward),
             "reverse": np.stack(reverse),
-            "target": seq_and_target['target']
+            "target": seq_and_target["target"],
         }
 
     def dinucleotide_encode(self):

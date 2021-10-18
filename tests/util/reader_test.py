@@ -51,18 +51,20 @@ class TestReader(unittest.TestCase):
         pass
 
     def test_preprocess(self):
-        df = pd.DataFrame({
-            'Sequence #': [1, 2],
-            'Sequence': [
-                'TTTCTTCACTTATCTCCCACCGTCCTCCGCACTTATGTACTGTGCTGAGATATAGTAGATTCTGCGTGTGATCGAGGCAGAAGACAAGGGAACGAAATAG',
-                'TTTCTTCACTTATCTCCCACCGTCCGTCTCGATCCACCGCTAGTAGTAAGACAACAGGGCTGCCTGGCTTCAACTGGCAGAAGACAAGGGAACGAAATAG'
-            ],
-            ' C0': [-1, 1]
-        })
+        df = pd.DataFrame(
+            {
+                "Sequence #": [1, 2],
+                "Sequence": [
+                    "TTTCTTCACTTATCTCCCACCGTCCTCCGCACTTATGTACTGTGCTGAGATATAGTAGATTCTGCGTGTGATCGAGGCAGAAGACAAGGGAACGAAATAG",
+                    "TTTCTTCACTTATCTCCCACCGTCCGTCTCGATCCACCGCTAGTAGTAAGACAACAGGGCTGCCTGGCTTCAACTGGCAGAAGACAAGGGAACGAAATAG",
+                ],
+                " C0": [-1, 1],
+            }
+        )
         reader = DNASequenceReader()
         df = reader._preprocess(df)
 
-        sequences = df['Sequence'].tolist()
+        sequences = df["Sequence"].tolist()
         self.assertEqual(len(sequences[0]), 50)
         self.assertEqual(len(sequences[1]), 50)
 
@@ -73,39 +75,43 @@ class TestReader(unittest.TestCase):
     def test_read_yeast_genome(self):
         reader = DNASequenceReader()
         chrv_df = reader.get_processed_data()[CHRVL]
-        chrv_genome_read_df = reader.read_yeast_genome('V')
+        chrv_genome_read_df = reader.read_yeast_genome("V")
 
         self.assertEqual(len(chrv_df), len(chrv_genome_read_df))
 
         sample_idx = random.sample(range(len(chrv_df)), 100)
         self.assertListEqual(
-            chrv_df.iloc[sample_idx]['Sequence #'].tolist(),
-            chrv_genome_read_df.iloc[sample_idx]['Sequence #'].tolist())
+            chrv_df.iloc[sample_idx]["Sequence #"].tolist(),
+            chrv_genome_read_df.iloc[sample_idx]["Sequence #"].tolist(),
+        )
 
         self.assertListEqual(
-            chrv_df.iloc[sample_idx]['Sequence'].tolist(),
-            chrv_genome_read_df.iloc[sample_idx]['Sequence'].tolist())
+            chrv_df.iloc[sample_idx]["Sequence"].tolist(),
+            chrv_genome_read_df.iloc[sample_idx]["Sequence"].tolist(),
+        )
 
 
 class TestGeneReader:
     def test_read_genes_of(self):
         for chrm_num in YeastChrNumList:
             gene_df = GeneReader().read_genes_of(chrm_num)
-            assert set(gene_df.columns.tolist()) == set(['start', 'end', 'strand', 'length'])
-            
+            assert set(gene_df.columns.tolist()) == set(
+                ["start", "end", "strand", "length"]
+            )
+
             chrm_df = DNASequenceReader().read_yeast_genome(chrm_num)
             chrm_total_bp = ChrmCalc.total_bp(len(chrm_df))
-            assert gene_df['end'].max() <= chrm_total_bp
-    
+            assert gene_df["end"].max() <= chrm_total_bp
+
     def test_read_transcription_regions_of(self):
         for chrm_num in YeastChrNumList:
             trns_df = GeneReader().read_transcription_regions_of(chrm_num)
-            assert set(trns_df.columns) == set(['start', 'end', 'strand'])
+            assert set(trns_df.columns) == set(["start", "end", "strand"])
 
             chrm_df = DNASequenceReader().read_yeast_genome(chrm_num)
             chrm_total_bp = ChrmCalc.total_bp(len(chrm_df))
-            assert trns_df['end'].max() <= chrm_total_bp
+            assert trns_df["end"].max() <= chrm_total_bp
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

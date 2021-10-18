@@ -1,15 +1,31 @@
 # Chromosome Numbers
-YeastChrNumList = ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
-                   'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI')
+YeastChrNumList = (
+    "I",
+    "II",
+    "III",
+    "IV",
+    "V",
+    "VI",
+    "VII",
+    "VIII",
+    "IX",
+    "X",
+    "XI",
+    "XII",
+    "XIII",
+    "XIV",
+    "XV",
+    "XVI",
+)
 
-ChrIdList = YeastChrNumList + ('VL', )
+ChrIdList = YeastChrNumList + ("VL",)
 
 # Library names
-CNL = 'cnl'
-RL = 'rl'
-TL = 'tl'
-CHRVL = 'chrvl'
-LIBL = 'libl'
+CNL = "cnl"
+RL = "rl"
+TL = "tl"
+CHRVL = "chrvl"
+LIBL = "libl"
 
 # Library length
 CNL_LEN = 19907
