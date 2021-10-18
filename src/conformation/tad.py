@@ -163,7 +163,7 @@ class HicExplBoundaries:
         )
         plt.legend()
 
-        return FileSave.save_figure(
+        return FileSave.figure(
             f"{PathObtain.figure_dir()}/domains/mean_c0_scatter_{self}.png"
         )
 
@@ -395,7 +395,7 @@ class MultiChrmHicExplBoundariesCollector:
         plt.title(f"Comparison of mean C0 in boundaries vs. domains")
         plt.legend()
 
-        return FileSave.save_figure(
+        return FileSave.figure(
             f"{PathObtain.figure_dir()}/mcdomains/bndrs_dmns_c0_{self}.png"
         )
 
@@ -417,7 +417,7 @@ class MultiChrmHicExplBoundariesCollector:
         plt.ylabel("Boundaries in promoters (%)")
         plt.title(f"Percentage of boundaries in promoters in chromosomes")
         plt.legend()
-        return FileSave.save_figure(
+        return FileSave.figure(
             f"{PathObtain.figure_dir()}/mcdomains/perc_bndrs_in_promoters_{self}.png"
         )
 

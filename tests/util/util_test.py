@@ -104,7 +104,7 @@ class TestPlotUtil:
             colors=["tab:orange", "tab:green"],
             y_label="Quantity (units)",
         )
-        FileSave.save_figure(f"{PathObtain.figure_dir()}/test/stacked_bar.png")
+        FileSave.figure(f"{PathObtain.figure_dir()}/test/stacked_bar.png")
         assert True
 
 

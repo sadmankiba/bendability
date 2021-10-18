@@ -53,7 +53,7 @@ class Genes:
             f" in chromosome {self._chrm.number}"
         )
 
-        return FileSave.save_figure(
+        return FileSave.figure(
             f"{PathObtain.figure_dir()}/gene/dist_p1_dyad_{self._chrm}.png"
         )
 

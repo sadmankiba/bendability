@@ -166,7 +166,7 @@ class HelicalSeparationCounter:
         # Save a dataframe of 136 rows x 49 columns
         df = pd.DataFrame(mean_pair_dist, columns=np.arange(48) + 1)
         df["Pair"] = list(map(lambda p: f"{p[0]}-{p[1]}", self._dinc_pairs))
-        FileSave.save_tsv(df, self._expected_dist_file)
+        FileSave.tsv(df, self._expected_dist_file)
         return df
 
     def find_helical_separation(self, df: pd.DataFrame) -> pd.DataFrame:

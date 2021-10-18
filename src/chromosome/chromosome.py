@@ -93,7 +93,7 @@ class Spread:
         )
         assert full_spread.shape == (self.total_bp,)
 
-        FileSave.save_tsv(
+        FileSave.tsv(
             pd.DataFrame(
                 {"position": np.arange(self.total_bp) + 1, "c0_mean7": full_spread}
             ),
@@ -284,7 +284,7 @@ class Chromosome:
         predict_df = self._prediction.predict(df).rename(columns={"c0_predict": "C0"})
 
         # Save data
-        FileSave.save_tsv(predict_df, saved_predict_data)
+        FileSave.tsv(predict_df, saved_predict_data)
 
         return predict_df
 

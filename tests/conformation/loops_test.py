@@ -64,6 +64,11 @@ class TestLoops(unittest.TestCase):
 
 
 class TestPlotLoops:
+    def test_plot_histogram_c0(self):
+        ploops = PlotLoops(Chromosome('VL'))
+        figpath = ploops.plot_histogram_c0()
+        assert figpath.is_file()
+        
     def test_line_plot_mean_c0(self):
         ploops = PlotLoops(Chromosome("VL"))
         paths = ploops.line_plot_mean_c0()

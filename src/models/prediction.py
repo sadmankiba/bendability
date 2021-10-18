@@ -64,7 +64,7 @@ class Prediction:
 
     def predict_lib(self, lib: LIBRARY_NAMES) -> pd.DataFrame:
         predict_df = self.predict(DNASequenceReader().get_processed_data()[lib])
-        FileSave.save_tsv(
+        FileSave.tsv(
             predict_df,
             f"{PathObtain.data_dir()}/generated_data/predictions/{lib}_pred_m_{self._model_no}.tsv",
         )

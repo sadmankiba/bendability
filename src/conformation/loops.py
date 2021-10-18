@@ -45,6 +45,7 @@ class Loops:
         return self._loop_df.iloc[key]
 
     def __iter__(self) -> Iterable[tuple[int, pd.Series]]:
+        # TODO: Return only series. yield?
         return self._loop_df.iterrows()
 
     def __str__(self):
@@ -160,13 +161,12 @@ class PlotLoops:
         self._chrm = chrm
         self._loops = Loops(self._chrm)
 
-    def plot_histogram_c0(self):
+    def plot_histogram_c0(self) -> Path:
         self._loops.add_mean_c0()
-        mean_c0 = [m[1].mean_c0_full for m in self._loops]
+        mean_c0 = [m[1].get(COL_MEAN_C0_FULL) for m in self._loops]
 
         plt.hist(mean_c0)
-        FileSave
-        pass
+        return FileSave.figure_in_figdir(f'loops/hist_c0_{self._chrm}.png')
 
     def plot_mean_c0_across_loops(self, total_perc=150) -> Path:
         """
@@ -262,7 +262,7 @@ class PlotLoops:
             f"Mean {self._chrm.c0_type} {val_type} along chromosome {self._chrm.number} loop ({x[0]}% to {x[-1]}% of loop length)"
         )
 
-        return FileSave.save_figure(
+        return FileSave.figure(
             f"{PathObtain.figure_dir()}/loops/mean_{val_type}_p_{total_perc}_mxl_{max_loop_length}_{self._loops}.png"
         )
 
@@ -294,7 +294,7 @@ class PlotLoops:
             f"Mean {self._chrm.c0_type} C0 around anchor points. Considering start, end and all anchors."
         )
 
-        return FileSave.save_figure(
+        return FileSave.figure(
             f"{PathObtain.figure_dir()}/loops/mean_c0_anchor_dist_{lim}_{self._loops}.png"
         )
 
@@ -313,7 +313,7 @@ class PlotLoops:
                     f"C0 around chromosome {self._chrm.number} loop {col} anchor at {pos}bp. Found with res {loop[Loops.COL_RES]}"
                 )
 
-                path = FileSave.save_figure(
+                path = FileSave.figure(
                     f"{PathObtain.figure_dir()}/loops/{self._chrm._chr_id}/individual_anchor_{col}_{pos}.png"
                 )
                 paths.append(path)
@@ -338,7 +338,7 @@ class PlotLoops:
             )
 
             paths.append(
-                FileSave.save_figure(
+                FileSave.figure(
                     f"{PathObtain.figure_dir()}/loops/{self._chrm._chr_id}/individual_mean_c0_{loop[COL_START]}_{loop[COL_END]}_{self._loops}.png"
                 )
             )
@@ -403,6 +403,6 @@ class PlotLoops:
         )
         plt.legend()
 
-        return FileSave.save_figure(
+        return FileSave.figure(
             f"{PathObtain.figure_dir()}/loops/individual_scatter_nuc_linker_{self._chrm}.png"
         )

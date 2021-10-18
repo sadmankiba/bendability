@@ -41,12 +41,10 @@ class FancBoundary:
         f = fancplot.GenomicFigure([ph, pb])
         if start > 0 and end > 0:
             fig, axes = f.plot(f"{chrm_num}:{int(start / 1000)}kb-{int(end / 1000)}kb")
-            FileSave.save_figure(f"{PathObtain.figure_dir()}/hic/xii_100kb_300kb.png")
+            FileSave.figure(f"{PathObtain.figure_dir()}/hic/xii_100kb_300kb.png")
         else:
             fig, axes = f.plot(f"{chrm_num}")
-            FileSave.save_figure(
-                f"{PathObtain.figure_dir()}/hic/{chrm_num}_boundaries.png"
-            )
+            FileSave.figure(f"{PathObtain.figure_dir()}/hic/{chrm_num}_boundaries.png")
 
     def _get_insulation(self) -> fanc.InsulationScores:
         insulation_output_path = f"{PathObtain.data_dir()}/generated_data/hic/insulation_fanc_res_{self._resolution}"
@@ -80,7 +78,7 @@ class FancBoundary:
                 "score": list(map(lambda r: r.score, self.boundaries)),
             }
         )
-        FileSave.save_tsv(
+        FileSave.tsv(
             df,
             f"{PathObtain.data_dir()}/generated_data/hic/boundaries_w_{self._window_size}_res_{self._resolution}.tsv",
         )
@@ -114,7 +112,7 @@ class FancBoundary:
     def save_global_octiles_of_scores(self) -> None:
         octiles = self._get_octiles()
         oct_cols = [f"octile_{num}" for num in range(9)]
-        FileSave.save_tsv(
+        FileSave.tsv(
             pd.DataFrame(octiles.reshape((1, 9)), columns=oct_cols),
             f"{PathObtain.data_dir()}/generated_data/hic/boundary_octiles.tsv",
         )

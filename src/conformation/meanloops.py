@@ -533,9 +533,7 @@ class MultiChrmMeanLoopsCollector:
         )
         plt.legend()
 
-        FileSave.save_figure(
-            f"{PathObtain.figure_dir()}/mcloops/nuc_linker_mean_{self}.png"
-        )
+        FileSave.figure(f"{PathObtain.figure_dir()}/mcloops/nuc_linker_mean_{self}.png")
 
     def plot_loop_cover_frac(self) -> Path:
         self.save_avg_c0_stat([2], subtract_chrm=False)
@@ -549,7 +547,7 @@ class MultiChrmMeanLoopsCollector:
         plt.title(
             f"Loop cover percentage in whole chromosome with max length = {self._mxlen}"
         )
-        return FileSave.save_figure(
+        return FileSave.figure(
             f"{PathObtain.figure_dir()}/mcloop/loop_cover_{self}.png"
         )
 
@@ -634,7 +632,7 @@ class MultiChrmMeanLoopsAggregator:
         plt.xlabel("Loop length in bp (logarithmic)")
         plt.ylabel("Mean C0")
         plt.title("Mean C0 vs Loop Size")
-        return FileSave.save_figure(
+        return FileSave.figure(
             f"{PathObtain.figure_dir()}/mcloops/c0_vs_loop_size_{self._coll}.png"
         )
 
@@ -722,5 +720,5 @@ class MultiChrmCoverLoopsCollector:
             f"{PathObtain.figure_dir()}/mcloop/nuc_linker_cover_mxl_{self._mxlen}.png"
         )
 
-        FileSave.save_figure(fig_path_str)
+        FileSave.figure(fig_path_str)
         return fig_path_str

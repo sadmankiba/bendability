@@ -376,7 +376,7 @@ def backprop_contribution5(argv=None):
                 )
 
             # logo = lm.Logo(df)
-            fig_path = FileSave.save_figure(
+            fig_path = FileSave.figure(
                 f"{PathObtain.figure_dir()}/contribution_patterns/model30_train_9_top/seq_"
                 + str(batch_num * batch_size + seq_index)
                 + ".png"

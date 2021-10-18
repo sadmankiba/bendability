@@ -183,7 +183,7 @@ def roman_to_num(chr_num: YeastChrNum) -> int:
     }
     return rom_num_map[chr_num]
 
-
+# TODO: Move PathObtain, FileSave to util.file module
 class PathObtain:
     """
     Class to obtain path in runtime dynamically.
@@ -217,7 +217,7 @@ class PathObtain:
 
 class FileSave:
     @classmethod
-    def save_figure(self, path_str: Union[str, Path]) -> Path:
+    def figure(self, path_str: Union[str, Path]) -> Path:
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -230,7 +230,7 @@ class FileSave:
 
     @classmethod
     def figure_in_figdir(self, path_str: str | Path) -> Path: 
-        path = Path(PathObtain.figure_dir str(path_str))
+        path = Path(f'{PathObtain.figure_dir()}/{path_str}')
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
         
@@ -241,7 +241,7 @@ class FileSave:
         return path
 
     @classmethod
-    def save_tsv(self, df: pd.DataFrame, path_str: Union[str, Path]) -> Path:
+    def tsv(self, df: pd.DataFrame, path_str: Union[str, Path]) -> Path:
         """Save a dataframe in tsv format"""
         path = Path(path_str)
         self.make_parent_dirs(path)
@@ -251,7 +251,7 @@ class FileSave:
         return path
 
     @classmethod
-    def save_npy(self, arr: np.ndarray, path_str: Union[str, Path]) -> Path:
+    def npy(self, arr: np.ndarray, path_str: Union[str, Path]) -> Path:
         path = Path(path_str)
         self.make_parent_dirs(path)
         np.save(path, arr)
@@ -276,7 +276,7 @@ class FileSave:
             )
             return path
 
-        return self.save_tsv(df, path_str)
+        return self.tsv(df, path_str)
 
 
 class PlotUtil:
