@@ -205,7 +205,7 @@ class MultiChrmHicExplBoundariesCollector:
 
     def _add_num_bndrs(self) -> Literal["num_bndrs"]:
         num_bndrs_col = "num_bndrs"
-        if not num_bndrs_col in self._coll_df.columns:
+        if num_bndrs_col not in self._coll_df.columns:
             self._coll_df[num_bndrs_col] = self._mc_bndrs.apply(
                 lambda mc_bndrs: len(mc_bndrs.bndrs_df)
             )
@@ -214,7 +214,7 @@ class MultiChrmHicExplBoundariesCollector:
 
     def _add_num_dmns(self) -> str:
         num_dmns_col = "num_dmns"
-        if not num_dmns_col in self._coll_df.columns:
+        if num_dmns_col not in self._coll_df.columns:
             num_bndrs_col = self._add_num_bndrs()
             self._coll_df[num_dmns_col] = self._coll_df[num_bndrs_col] - 1
 
@@ -222,7 +222,7 @@ class MultiChrmHicExplBoundariesCollector:
 
     def _add_bndrs_mean(self) -> Literal["c0_bndrs"]:
         c0_bndrs_col = "c0_bndrs"
-        if not c0_bndrs_col in self._coll_df.columns:
+        if c0_bndrs_col not in self._coll_df.columns:
             self._coll_df["c0_bndrs"] = self._mc_bndrs.apply(
                 lambda bndrs: bndrs.bndry_domain_mean_c0()[0]
             )
@@ -231,7 +231,7 @@ class MultiChrmHicExplBoundariesCollector:
 
     def _add_dmns_mean(self) -> Literal["c0_dmns"]:
         c0_dmns_col = "c0_dmns"
-        if not c0_dmns_col in self._coll_df.columns:
+        if c0_dmns_col not in self._coll_df.columns:
             self._coll_df[c0_dmns_col] = self._mc_bndrs.apply(
                 lambda bndrs: bndrs.bndry_domain_mean_c0()[1]
             )
@@ -240,7 +240,7 @@ class MultiChrmHicExplBoundariesCollector:
 
     def _add_num_bndrs_gt_dmns(self) -> str:
         num_bndrs_gt_dmns_col = "num_bndrs_gt_dmns"
-        if not num_bndrs_gt_dmns_col in self._coll_df.columns:
+        if num_bndrs_gt_dmns_col not in self._coll_df.columns:
             c0_dmns_col = self._add_dmns_mean()
 
             # Compare mean C0 of each bndry and dmns

@@ -95,5 +95,7 @@ class TestChromosome:
 
         t = time.time()
         sp_two = chrm.get_spread()
+        assert len(sp_one) == len(sp_two)
+
         dr_two = time.time() - t
         assert dr_two < dr_one * 0.01

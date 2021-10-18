@@ -39,6 +39,7 @@ def layer_influence_whole(weights, output, pad="valid"):
     else:
         padding = 0
     whole_influence = np.zeros(output.shape[0])
+    print(whole_influence)
     for position in range(output.shape[0]):
         start_pos = max(position, int(padding / 2)) - int(padding / 2)
         end_pos = min(output.shape[0], position - int(padding / 2) + weights.shape[0])
@@ -50,6 +51,7 @@ def layer_influence_whole(weights, output, pad="valid"):
             ],
             weights[start_pos_w:end_pos_w],
         )
+        print(influence)
 
 
 def layer_influence_provided_output(
@@ -166,7 +168,7 @@ def backprop_contribution5(argv=None):
     weights = layer.get_weights()
     w = tf.transpose(weights[0], [2, 0, 1])
     alpha = 75.0
-    beta = 1 / alpha
+    # beta = 1 / alpha
     bkg = tf.constant([0.295, 0.205, 0.205, 0.295])
     bkg_tf = tf.cast(bkg, tf.float32)
     ll = tf.map_fn(
@@ -217,9 +219,9 @@ def backprop_contribution5(argv=None):
         ll,
     )
 
-    plp = tf.scalar_mul(1.442695041, tf.multiply(prob, ll))
-    ic = tf.reduce_sum(plp, axis=2)
-    ic_scaled_prob = tf.multiply(prob, tf.expand_dims(ic, axis=2))
+    # plp = tf.scalar_mul(1.442695041, tf.multiply(prob, ll))
+    # ic = tf.reduce_sum(plp, axis=2)
+    # ic_scaled_prob = tf.multiply(prob, tf.expand_dims(ic, axis=2))
 
     probability_matrices = np.array(prob)
 
@@ -373,7 +375,7 @@ def backprop_contribution5(argv=None):
                     decimal=3,
                 )
 
-            logo = lm.Logo(df)
+            # logo = lm.Logo(df)
             fig_path = IOUtil().save_figure(
                 f"{PathUtil.get_figure_dir()}/contribution_patterns/model30_train_9_top/seq_"
                 + str(batch_num * batch_size + seq_index)

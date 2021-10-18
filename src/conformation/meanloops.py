@@ -1,13 +1,10 @@
 from __future__ import annotations
-from chromosome.nucleosome import Nucleosome
-
-from util.custom_types import ChrId
-from models.prediction import Prediction
-from util.reader import DNASequenceReader
-from util.constants import ChrIdList
-from chromosome.chromosome import Chromosome
-from util.util import IOUtil, PlotUtil, PathUtil
-from conformation.loops import Loops
+import math
+from pathlib import Path
+import itertools
+from typing import Literal, Callable
+import functools
+import operator
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -15,12 +12,14 @@ import pandas as pd
 from skimage.transform import resize
 import numpy as np
 
-import math
-from pathlib import Path
-import itertools
-from typing import Literal
-import functools
-import operator
+from chromosome.nucleosome import Nucleosome
+from util.custom_types import ChrId
+from models.prediction import Prediction
+from util.reader import DNASequenceReader
+from util.constants import ChrIdList
+from chromosome.chromosome import Chromosome
+from util.util import IOUtil, PlotUtil, PathUtil
+from conformation.loops import Loops
 
 
 class MeanLoops:
@@ -231,7 +230,7 @@ class MultiChrmMeanLoopsCollector:
             else Chromosome(chr_id, None)
         )
 
-    def _create_multiple_col(self, func: function, *args) -> np.ndarray:
+    def _create_multiple_col(self, func: Callable, *args) -> np.ndarray:
         """
         Call functions of Loops in each chromosome and split result into
         multiple columns

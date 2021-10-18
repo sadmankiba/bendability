@@ -25,7 +25,6 @@ def get_shape(file_path):
         a numpy 2d array with NA values replaced by None
     """
     with open(file_path, "r") as file:
-        i = 0
         all_seq_shapes = []
 
         for data in file.readlines():

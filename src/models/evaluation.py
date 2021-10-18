@@ -38,9 +38,9 @@ def save_kernel_weights_logos(model):
             weights = layer.get_weights()
             w = tf.transpose(weights[0], [2, 0, 1])
             alpha = 20
-            beta = 1 / alpha
-            bkg = tf.constant([0.295, 0.205, 0.205, 0.295])
-            bkg_tf = tf.cast(bkg, tf.float32)
+            # beta = 1 / alpha
+            # bkg = tf.constant([0.295, 0.205, 0.205, 0.295])
+            # bkg_tf = tf.cast(bkg, tf.float32)
             filt_list = tf.map_fn(
                 lambda x: tf.math.exp(
                     tf.subtract(
@@ -96,7 +96,7 @@ def save_kernel_weights_logos(model):
                     npa[i][rows] *= scalar
                 df = pd.DataFrame(npa[i], columns=["A", "C", "G", "T"])
                 print(df.head())
-                logo = lm.Logo(
+                lm.Logo(
                     df,
                     font_name="Arial Rounded MT Bold",
                 )

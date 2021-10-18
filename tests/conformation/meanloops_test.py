@@ -79,9 +79,8 @@ class TestMultiChrmMeanLoopsCollector:
         assert path.is_file()
 
         collector_df = pd.read_csv(path, sep="\t")
-        assert (
+        assert not (
             np.isnan(collector_df.iloc[0].drop(["ChrID", "model"]).astype(float)).any()
-            == False
         )
 
     def test_get_loops_data(self):
@@ -99,7 +98,7 @@ class TestMultiChrmMeanLoopsCollector:
 
         collector_df = pd.read_csv(path, sep="\t")
         cols = ["chromosome", "chrm_nuc", "chrm_linker", "loop", "non_loop"]
-        assert np.isnan(collector_df[cols].iloc[0]).any() == False
+        assert not np.isnan(collector_df[cols].iloc[0]).any()
 
     def test_plot_loop_cover_frac(self):
         fig_path = MultiChrmMeanLoopsCollector(None, ("VL",)).plot_loop_cover_frac()

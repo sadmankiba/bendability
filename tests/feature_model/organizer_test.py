@@ -44,9 +44,6 @@ class TestDataOrganizer(unittest.TestCase):
             classify=False
         )
 
-        reader = DNASequenceReader()
-        all_df = reader.get_processed_data()
-
         assert X_train.shape[0] == 65000
         assert y_train.shape[0] == 65000
         assert X_test.shape[0] == 10000
