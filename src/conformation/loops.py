@@ -13,23 +13,22 @@ from chromosome.nucleosome import Nucleosome
 from chromosome.chromosome import Chromosome
 from util.util import IOUtil, PlotUtil, PathUtil
 
+COL_RES = "res"
+COL_START = "start"
+COL_END = "end"
+COL_LEN = "len"
+COL_MEAN_C0_FULL = "mean_c0_full"
+COL_MEAN_C0_NUC = "mean_c0_nuc"
+COL_MEAN_C0_LINKER = "mean_c0_linker"
+
 
 class Loops:
     """
-    Abstraction of collection of loops in a single chromosome
+    A data structure to denote collection of loops in a single chromosome
     """
-
-    COL_RES = "res"
-    COL_START = "start"
-    COL_END = "end"
-    COL_LEN = "len"
-    COL_MEAN_C0_FULL = "mean_c0_full"
-    COL_MEAN_C0_NUC = "mean_c0_nuc"
-    COL_MEAN_C0_LINKER = "mean_c0_linker"
-
     def __init__(self, chrm: Chromosome, mxlen: int = None):
         self._loop_file = f"{PathUtil.get_data_dir()}/input_data/loops/merged_loops_res_500_chr{chrm.number}.bedpe"
-        # TODO: Make _chr, _loop_df public. Used in MeanLoops
+        # TODO: Make _chr. Used in MeanLoops
         self._chr = chrm
         self._loop_df = self._read_loops()
         self._mxlen = mxlen
@@ -119,7 +118,7 @@ class Loops:
             loop_array[int(start) : int(end)] = True
 
         loop_df.apply(
-            lambda loop: _set_bp(loop[Loops.COL_START] - 1, loop[Loops.COL_END]), axis=1
+            lambda loop: _set_bp(loop[COL_START] - 1, loop[COL_END]), axis=1
         )
         return loop_array
 
@@ -131,9 +130,9 @@ class Loops:
         """
         # TODO: Save columns as class attribute
         mean_cols = [
-            self.COL_MEAN_C0_FULL,
-            self.COL_MEAN_C0_NUC,
-            self.COL_MEAN_C0_LINKER,
+            COL_MEAN_C0_FULL,
+            COL_MEAN_C0_NUC,
+            COL_MEAN_C0_LINKER,
         ]
 
         if all(list(map(lambda col: col in self._loop_df.columns, mean_cols))):
@@ -218,10 +217,6 @@ class Loops:
         )
 
 
-COL_START = "start"
-COL_END = "end"
-
-
 class PlotLoops:
     def __init__(self, chrm: Chromosome):
         self._chrm = chrm
@@ -229,7 +224,7 @@ class PlotLoops:
 
     def plot_histogram_c0(self):
         pass 
-    
+
     def plot_mean_c0_across_loops(self, total_perc=150) -> Path:
         """
         Line plot of mean C0 across total loop vs. position along loop
@@ -364,7 +359,7 @@ class PlotLoops:
         paths = []
 
         for _, loop in self._loops:
-            for col in [Loops.COL_START, Loops.COL_END]:
+            for col in [COL_START, COL_END]:
                 pos = loop[col]
                 self._chrm.plot_moving_avg(pos - lim, pos + lim)
                 plt.ylim(-0.7, 0.7)
@@ -391,7 +386,7 @@ class PlotLoops:
         for _, loop in self._loops:
             # TODO: -150% to +150% of loop. Vertical line = loop anchor
             # TODO: Method for single loop
-            self._chrm.plot_moving_avg(loop[Loops.COL_START], loop[Loops.COL_END])
+            self._chrm.plot_moving_avg(loop[COL_START], loop[COL_END])
             plt.ylim(-0.7, 0.7)
             plt.xlabel(f"Position along Chromosome {self._chrm.number} (bp)")
             plt.ylabel("Intrinsic Cyclizability")
@@ -401,7 +396,7 @@ class PlotLoops:
 
             paths.append(
                 IOUtil().save_figure(
-                    f"{PathUtil.get_figure_dir()}/loops/{self._chrm._chr_id}/individual_mean_c0_{loop[Loops.COL_START]}_{loop[Loops.COL_END]}_{self._loops}.png"
+                    f"{PathUtil.get_figure_dir()}/loops/{self._chrm._chr_id}/individual_mean_c0_{loop[COL_START]}_{loop[COL_END]}_{self._loops}.png"
                 )
             )
 

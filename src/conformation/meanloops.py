@@ -19,7 +19,7 @@ from util.reader import DNASequenceReader
 from util.constants import ChrIdList
 from chromosome.chromosome import Chromosome
 from util.util import IOUtil, PlotUtil, PathUtil
-from conformation.loops import Loops
+from conformation.loops import Loops, COL_START, COL_END, COL_MEAN_C0_FULL, COL_LEN
 
 
 class MeanLoops:
@@ -38,14 +38,11 @@ class MeanLoops:
             df.loc[quart3 < df["len"]],
         )
 
-    def in_complete_loop(self, loop_df: pd.DataFrame = None) -> float:
-        """
-        Find average c0 in loop cover.
-
-        Args:
-            loop_df: A dataframe of loops. If None, then all loops of this
-                object are considered.
-        """
+    def in_complete_loop(
+        self, loop_df: pd.DataFrame[COL_START:float, COL_END:float] | None = None
+    ) -> float:
+        """Find single average c0 of loop cover in a chromosome."""
+        # TODO: Use Loops instead of loop_df.
         if loop_df is None:
             loop_df = self._loops._loop_df
 
@@ -54,6 +51,7 @@ class MeanLoops:
         )
 
     def in_complete_non_loop(self) -> float:
+        """Find single average c0 of non-loop cover in a chromosome."""
         return round(
             self._loops._chr.get_spread()[
                 ~self._loops.get_loop_cover(self._loops._loop_df)
@@ -625,8 +623,8 @@ class MultiChrmMeanLoopsAggregator:
 
     def plot_c0_vs_loop_size(self) -> Path:
         all_loops_df = self._coll.get_loops_data()
-        x = all_loops_df[Loops.COL_LEN]
-        y = all_loops_df[Loops.COL_MEAN_C0_FULL]
+        x = all_loops_df[COL_LEN]
+        y = all_loops_df[COL_MEAN_C0_FULL]
         PlotUtil().show_grid()
         plt.scatter(x, y)
         plt.xscale("log")
