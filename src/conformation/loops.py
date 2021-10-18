@@ -26,9 +26,11 @@ class Loops:
     """
     A data structure to denote collection of loops in a single chromosome
     """
+
     def __init__(self, chrm: Chromosome, mxlen: int = None):
         self._loop_file = f"{PathUtil.get_data_dir()}/input_data/loops/merged_loops_res_500_chr{chrm.number}.bedpe"
         # TODO: Make _chr. Used in MeanLoops
+        # TODO: Change all _loop_df usage to Loops
         self._chr = chrm
         self._loop_df = self._read_loops()
         self._mxlen = mxlen
@@ -117,18 +119,15 @@ class Loops:
         def _set_bp(start: float, end: float) -> None:
             loop_array[int(start) : int(end)] = True
 
-        loop_df.apply(
-            lambda loop: _set_bp(loop[COL_START] - 1, loop[COL_END]), axis=1
-        )
+        loop_df.apply(lambda loop: _set_bp(loop[COL_START] - 1, loop[COL_END]), axis=1)
         return loop_array
 
     def add_mean_c0(self) -> pd.Series:
         """Find mean c0 of full, nucs and linkers of each loop and store it
 
         Returns:
-            A tuple: Name of columns appended to dataframe
+            A Series of Name of columns appended to dataframe
         """
-        # TODO: Save columns as class attribute
         mean_cols = [
             COL_MEAN_C0_FULL,
             COL_MEAN_C0_NUC,
@@ -155,67 +154,6 @@ class Loops:
 
         return pd.Series(mean_cols)
 
-    def plot_scatter_mean_c0_nuc_linker_individual_loop(self) -> Path:
-        # TODO: Move this function to plotloops
-        nucs = Nucleosome(self._chr)
-        nucs_cover = nucs.get_nuc_regions()
-        loops_cover = self.get_loop_cover()
-        c0_spread = self._chr.get_spread()
-
-        mean_cols = self.add_mean_c0()
-        sorted_loop_df = self._loop_df.sort_values("len", ignore_index=True)
-
-        # Plot scatter for mean C0 of nuc, linker
-        markers = ["o", "s", "p"]
-        labels = ["loop", "loop nuc", "loop linker"]
-        colors = ["tab:blue", "tab:orange", "tab:green"]
-
-        plt.close()
-        plt.clf()
-
-        PlotUtil().show_grid()
-
-        x = np.arange(len(sorted_loop_df))
-        for i, col in enumerate(sorted_loop_df[mean_cols]):
-            plt.scatter(
-                x,
-                sorted_loop_df[col],
-                marker=markers[i],
-                label=labels[i],
-                color=colors[i],
-            )
-
-        # Plot horizontal lines for mean C0 of non-loop nuc, linker
-        non_loop_colors = ["tab:red", "tab:purple", "tab:brown"]
-        non_loops_mean = c0_spread[~loops_cover].mean()
-        non_loops_nuc_mean = c0_spread[~loops_cover & nucs_cover].mean()
-        non_loops_linker_mean = c0_spread[~loops_cover & ~nucs_cover].mean()
-        PlotUtil().plot_horizontal_line(non_loops_mean, non_loop_colors[0], "non-loop")
-        PlotUtil().plot_horizontal_line(
-            non_loops_nuc_mean, non_loop_colors[1], "non-loop nuc"
-        )
-        PlotUtil().plot_horizontal_line(
-            non_loops_linker_mean, non_loop_colors[2], "non-loop linker"
-        )
-
-        plt.grid()
-
-        xticks = (
-            sorted_loop_df["len"].apply(lambda len: str(int(len / 1000)) + "k").tolist()
-        )
-        plt.xticks(x, xticks, rotation=90)
-        plt.xlabel("Individual loops labeled with and sorted by length")
-        plt.ylabel("Mean C0")
-        plt.title(
-            f"Comparison of mean {self._chr.c0_type} C0 among loops"
-            f" in chromosome {self._chr.number}"
-        )
-        plt.legend()
-
-        return IOUtil().save_figure(
-            f"{PathUtil.get_figure_dir()}/loops/individual_scatter_nuc_linker_{self._chr}.png"
-        )
-
 
 class PlotLoops:
     def __init__(self, chrm: Chromosome):
@@ -223,7 +161,8 @@ class PlotLoops:
         self._loops = Loops(self._chrm)
 
     def plot_histogram_c0(self):
-        pass 
+        self._loops.add_mean_c0()
+        pass
 
     def plot_mean_c0_across_loops(self, total_perc=150) -> Path:
         """
@@ -377,7 +316,7 @@ class PlotLoops:
 
         return paths
 
-    def plot_c0_in_individual_loop(self) -> list[Path]:
+    def line_plot_mean_c0(self) -> list[Path]:
         """
         Create a line plot of c0 spread vs. position along loop.
         """
@@ -401,3 +340,65 @@ class PlotLoops:
             )
 
         return paths
+
+    def plot_scatter_mean_c0_vs_length(self) -> Path:
+        """Create scatter plot of mean C0 of total loop, loop nuc and loop
+        linker vs. loop length"""
+        nucs = Nucleosome(self._chrm)
+        nucs_cover = nucs.get_nuc_regions()
+        loops_cover = self._loops.get_loop_cover()
+        c0_spread = self._chrm.get_spread()
+
+        mean_cols = self._loops.add_mean_c0()
+        sorted_loop_df = self._loops._loop_df.sort_values("len", ignore_index=True)
+
+        # Plot scatter for mean C0 of nuc, linker
+        markers = ["o", "s", "p"]
+        labels = ["loop", "loop nuc", "loop linker"]
+        colors = ["tab:blue", "tab:orange", "tab:green"]
+
+        plt.close()
+        plt.clf()
+
+        PlotUtil().show_grid()
+
+        x = np.arange(len(sorted_loop_df))
+        for i, col in enumerate(sorted_loop_df[mean_cols]):
+            plt.scatter(
+                x,
+                sorted_loop_df[col],
+                marker=markers[i],
+                label=labels[i],
+                color=colors[i],
+            )
+
+        # Plot horizontal lines for mean C0 of non-loop nuc, linker
+        non_loop_colors = ["tab:red", "tab:purple", "tab:brown"]
+        non_loops_mean = c0_spread[~loops_cover].mean()
+        non_loops_nuc_mean = c0_spread[~loops_cover & nucs_cover].mean()
+        non_loops_linker_mean = c0_spread[~loops_cover & ~nucs_cover].mean()
+        PlotUtil().plot_horizontal_line(non_loops_mean, non_loop_colors[0], "non-loop")
+        PlotUtil().plot_horizontal_line(
+            non_loops_nuc_mean, non_loop_colors[1], "non-loop nuc"
+        )
+        PlotUtil().plot_horizontal_line(
+            non_loops_linker_mean, non_loop_colors[2], "non-loop linker"
+        )
+
+        plt.grid()
+
+        xticks = (
+            sorted_loop_df["len"].apply(lambda len: str(int(len / 1000)) + "k").tolist()
+        )
+        plt.xticks(x, xticks, rotation=90)
+        plt.xlabel("Individual loops labeled with and sorted by length")
+        plt.ylabel("Mean C0")
+        plt.title(
+            f"Comparison of mean {self._chrm.c0_type} C0 among loops"
+            f" in chromosome {self._chrm.number}"
+        )
+        plt.legend()
+
+        return IOUtil().save_figure(
+            f"{PathUtil.get_figure_dir()}/loops/individual_scatter_nuc_linker_{self._chrm}.png"
+        )

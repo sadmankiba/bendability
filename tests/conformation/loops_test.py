@@ -62,15 +62,11 @@ class TestLoops(unittest.TestCase):
         perc = chrm_arr.sum() / CHRV_TOTAL_BP * 100
         assert 10 < perc < 90
 
-    def test_plot_scatter_mean_c0_nuc_linker_individual_loop(self):
-        path = Loops(Chromosome("VL")).plot_scatter_mean_c0_nuc_linker_individual_loop()
-        assert path.is_file()
-
 
 class TestPlotLoops:
-    def test_plot_c0_in_individual_loop(self):
+    def test_line_plot_mean_c0(self):
         ploops = PlotLoops(Chromosome("VL"))
-        paths = ploops.plot_c0_in_individual_loop()
+        paths = ploops.line_plot_mean_c0()
         for path in paths:
             assert path.is_file()
 
@@ -96,3 +92,7 @@ class TestPlotLoops:
         paths = ploops.plot_c0_around_individual_anchors()
         for path in paths:
             assert path.is_file()
+
+    def test_plot_scatter_mean_c0_vs_length(self):
+        path = PlotLoops(Chromosome("VL")).plot_scatter_mean_c0_vs_length()
+        assert path.is_file()

@@ -176,7 +176,7 @@ class MeanLoops:
 
 class MultiChrmMeanLoopsCollector:
     """
-    Class to accumulate various mean operations in loops in each chromosome.
+    Class to accumulate various mean operations in loops in multiple chromosomes.
 
     Result is stored in a dataframe for side-by-side comparison. The dataframe
     contains a row for each chromosome.
