@@ -1,7 +1,7 @@
 from __future__ import annotations
 from .chromosome import Chromosome
 from util.reader import DNASequenceReader
-from util.util import IOUtil, PathUtil
+from util.util import FileSave, PathUtil
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -66,7 +66,7 @@ class Nucleosome:
         plt.ylabel("C0")
         plt.title(f"C0 of +-{dist} bp from nuclesome dyad")
 
-        return IOUtil().save_figure(
+        return FileSave.save_figure(
             f"{PathUtil.get_figure_dir()}/nucleosome/dist_{dist}_s_{spread_str}_m_{self._chr.predict_model_no()}_{self._chr._chr_id}.png"
         )
 

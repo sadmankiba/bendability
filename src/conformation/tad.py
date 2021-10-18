@@ -1,7 +1,7 @@
 from __future__ import annotations
 from chromosome.genes import Genes
 
-from util.util import IOUtil, PlotUtil, PathUtil
+from util.util import FileSave, PlotUtil, PathUtil
 from util.custom_types import ChrId, PositiveInt, YeastChrNum
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
@@ -163,7 +163,7 @@ class HicExplBoundaries:
         )
         plt.legend()
 
-        return IOUtil().save_figure(
+        return FileSave.save_figure(
             f"{PathUtil.get_figure_dir()}/domains/mean_c0_scatter_{self}.png"
         )
 
@@ -340,7 +340,7 @@ class MultiChrmHicExplBoundariesCollector:
         self._coll_df["lim"] = np.full((len(self._coll_df),), self._lim)
         self._coll_df["model"] = np.full((len(self._coll_df),), str(self._prediction))
 
-        return IOUtil().append_tsv(
+        return FileSave.append_tsv(
             self._coll_df,
             f"{PathUtil.get_data_dir()}/generated_data/mcdomains/mcdmns_stat.tsv",
         )
@@ -395,7 +395,7 @@ class MultiChrmHicExplBoundariesCollector:
         plt.title(f"Comparison of mean C0 in boundaries vs. domains")
         plt.legend()
 
-        return IOUtil().save_figure(
+        return FileSave.save_figure(
             f"{PathUtil.get_figure_dir()}/mcdomains/bndrs_dmns_c0_{self}.png"
         )
 
@@ -417,7 +417,7 @@ class MultiChrmHicExplBoundariesCollector:
         plt.ylabel("Boundaries in promoters (%)")
         plt.title(f"Percentage of boundaries in promoters in chromosomes")
         plt.legend()
-        return IOUtil().save_figure(
+        return FileSave.save_figure(
             f"{PathUtil.get_figure_dir()}/mcdomains/perc_bndrs_in_promoters_{self}.png"
         )
 
@@ -512,7 +512,7 @@ class MultiChrmHicExplBoundariesAggregator:
             (len(self._agg_df),), str(self._coll._prediction)
         )
 
-        return IOUtil().append_tsv(
+        return FileSave.append_tsv(
             self._agg_df,
             f"{PathUtil.get_data_dir()}/generated_data/mcdomains/aggr_mcdmns_stat.tsv",
         )

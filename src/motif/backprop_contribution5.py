@@ -15,7 +15,7 @@ from models.cnnmodel import CNNModel30
 from models.data_preprocess import Preprocess
 from keras import Model
 from util.reader import DNASequenceReader
-from util.util import IOUtil, PathUtil
+from util.util import FileSave, PathUtil
 from util.constants import RL
 
 part_model = [None] * 20
@@ -376,7 +376,7 @@ def backprop_contribution5(argv=None):
                 )
 
             # logo = lm.Logo(df)
-            fig_path = IOUtil().save_figure(
+            fig_path = FileSave.save_figure(
                 f"{PathUtil.get_figure_dir()}/contribution_patterns/model30_train_9_top/seq_"
                 + str(batch_num * batch_size + seq_index)
                 + ".png"

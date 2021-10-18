@@ -4,7 +4,7 @@ from util.util import (
     cut_sequence,
     reverse_compliment_of,
     append_reverse_compliment,
-    IOUtil,
+    FileSave,
     PathUtil,
 )
 
@@ -69,7 +69,7 @@ class TestUtil(unittest.TestCase):
         self.assertListEqual(cdf_seq_list, expected)
 
 
-class TestIOUtil:
+class TestFileSave:
     def test_append_tsv(self):
         sample_df = pd.DataFrame({"a": [1, 2], "b": [11, 12], "c": [21, 25]})
         path = Path("data/generated_data/test_append.tsv")
@@ -80,7 +80,7 @@ class TestIOUtil:
         sample_df.to_csv(path, sep="\t", index=False)
         other_df = pd.DataFrame({"a": [3], "b": [13], "d": [31]})
 
-        IOUtil().append_tsv(other_df, path)
+        FileSave.append_tsv(other_df, path)
         append_df = pd.read_csv(path, sep="\t")
         assert len(append_df) == 3
         assert len(append_df.columns) == 4
@@ -104,7 +104,7 @@ class TestPlotUtil:
             colors=["tab:orange", "tab:green"],
             y_label="Quantity (units)",
         )
-        IOUtil().save_figure(f"{PathUtil.get_figure_dir()}/test/stacked_bar.png")
+        FileSave.save_figure(f"{PathUtil.get_figure_dir()}/test/stacked_bar.png")
         assert True
 
 

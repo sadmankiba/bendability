@@ -1,6 +1,6 @@
 from __future__ import annotations
 from util.custom_types import ChrId, YeastChrNum
-from util.util import IOUtil, PathUtil
+from util.util import FileSave, PathUtil
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
 from util.constants import ChrIdList
@@ -41,10 +41,10 @@ class FancBoundary:
         f = fancplot.GenomicFigure([ph, pb])
         if start > 0 and end > 0:
             fig, axes = f.plot(f"{chrm_num}:{int(start / 1000)}kb-{int(end / 1000)}kb")
-            IOUtil().save_figure(f"{PathUtil.get_figure_dir()}/hic/xii_100kb_300kb.png")
+            FileSave.save_figure(f"{PathUtil.get_figure_dir()}/hic/xii_100kb_300kb.png")
         else:
             fig, axes = f.plot(f"{chrm_num}")
-            IOUtil().save_figure(
+            FileSave.save_figure(
                 f"{PathUtil.get_figure_dir()}/hic/{chrm_num}_boundaries.png"
             )
 
@@ -53,7 +53,7 @@ class FancBoundary:
         if Path(insulation_output_path).is_file():
             return fanc.load(insulation_output_path)
 
-        IOUtil().make_parent_dirs(insulation_output_path)
+        FileSave.make_parent_dirs(insulation_output_path)
 
         return fanc.InsulationScores.from_hic(
             self._hic_file,
@@ -80,7 +80,7 @@ class FancBoundary:
                 "score": list(map(lambda r: r.score, self.boundaries)),
             }
         )
-        IOUtil().save_tsv(
+        FileSave.save_tsv(
             df,
             f"{PathUtil.get_data_dir()}/generated_data/hic/boundaries_w_{self._window_size}_res_{self._resolution}.tsv",
         )
@@ -114,7 +114,7 @@ class FancBoundary:
     def save_global_octiles_of_scores(self) -> None:
         octiles = self._get_octiles()
         oct_cols = [f"octile_{num}" for num in range(9)]
-        IOUtil().save_tsv(
+        FileSave.save_tsv(
             pd.DataFrame(octiles.reshape((1, 9)), columns=oct_cols),
             f"{PathUtil.get_data_dir()}/generated_data/hic/boundary_octiles.tsv",
         )
@@ -150,7 +150,7 @@ class FancBoundaryAnalysis:
         ]
         cols = ["avg", "lim"] + [f"eighth_{num}" for num in range(1, 9)]
         vals = np.concatenate(([c0_spread.mean(), lim], one_eighth_means))
-        IOUtil().append_tsv(
+        FileSave.append_tsv(
             pd.DataFrame(vals.reshape((1, -1)), columns=cols),
             f"{PathUtil.get_data_dir()}/generated_data/hic/mean_at_boundaries.tsv",
         )

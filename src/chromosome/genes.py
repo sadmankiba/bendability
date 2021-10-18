@@ -7,7 +7,7 @@ import pandas as pd
 
 from .chromosome import Chromosome
 from util.reader import GeneReader
-from util.util import IOUtil, PlotUtil, PathUtil
+from util.util import FileSave, PlotUtil, PathUtil
 from .nucleosome import Nucleosome
 
 
@@ -53,7 +53,7 @@ class Genes:
             f" in chromosome {self._chrm.number}"
         )
 
-        return IOUtil().save_figure(
+        return FileSave.save_figure(
             f"{PathUtil.get_figure_dir()}/gene/dist_p1_dyad_{self._chrm}.png"
         )
 

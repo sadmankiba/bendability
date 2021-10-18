@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import spearmanr
 
 from chromosome.chromosome import Chromosome
-from util.util import PathUtil, IOUtil
+from util.util import PathUtil, FileSave
 
 # TODO: Rename conformation to threedim
 
@@ -49,7 +49,7 @@ class Contact:
             f"Correlation between contact intensity at {self._res} resolution"
             f"and avg {self._chrm.c0_type} C0 in chromosome {self._chrm.number}"
         )
-        return IOUtil().save_figure(
+        return FileSave.save_figure(
             f"{PathUtil.get_figure_dir()}/contact/corr_{type}_{self._res}_{self._chrm}.png"
         )
 
@@ -64,7 +64,7 @@ class Contact:
         img[img > MAX_PIXEL_INTENSITY] = MAX_PIXEL_INTENSITY
 
         plt.imshow(img, interpolation="nearest")
-        return IOUtil().save_figure(
+        return FileSave.save_figure(
             f"{PathUtil.get_figure_dir()}/contact/observed_vc_{self._res}_{self._chrm.number}.png"
         )
 
@@ -121,7 +121,7 @@ class Contact:
         _fill_upper_right_half_triangle()
         mat = _fill_lower_left_half_triangle(mat)
 
-        IOUtil().save_npy(mat, saved_contact)
+        FileSave.save_npy(mat, saved_contact)
         return mat
 
     def _load_contact(self) -> pd.DataFrame:

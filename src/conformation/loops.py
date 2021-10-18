@@ -11,7 +11,7 @@ from nptyping import NDArray
 
 from chromosome.nucleosome import Nucleosome
 from chromosome.chromosome import Chromosome
-from util.util import IOUtil, PlotUtil, PathUtil
+from util.util import FileSave, PlotUtil, PathUtil
 
 COL_RES = "res"
 COL_START = "start"
@@ -162,6 +162,10 @@ class PlotLoops:
 
     def plot_histogram_c0(self):
         self._loops.add_mean_c0()
+        mean_c0 = [m[1].mean_c0_full for m in self._loops]
+
+        plt.hist(mean_c0)
+        FileSave
         pass
 
     def plot_mean_c0_across_loops(self, total_perc=150) -> Path:
@@ -258,7 +262,7 @@ class PlotLoops:
             f"Mean {self._chrm.c0_type} {val_type} along chromosome {self._chrm.number} loop ({x[0]}% to {x[-1]}% of loop length)"
         )
 
-        return IOUtil().save_figure(
+        return FileSave.save_figure(
             f"{PathUtil.get_figure_dir()}/loops/mean_{val_type}_p_{total_perc}_mxl_{max_loop_length}_{self._loops}.png"
         )
 
@@ -290,7 +294,7 @@ class PlotLoops:
             f"Mean {self._chrm.c0_type} C0 around anchor points. Considering start, end and all anchors."
         )
 
-        return IOUtil().save_figure(
+        return FileSave.save_figure(
             f"{PathUtil.get_figure_dir()}/loops/mean_c0_anchor_dist_{lim}_{self._loops}.png"
         )
 
@@ -309,7 +313,7 @@ class PlotLoops:
                     f"C0 around chromosome {self._chrm.number} loop {col} anchor at {pos}bp. Found with res {loop[Loops.COL_RES]}"
                 )
 
-                path = IOUtil().save_figure(
+                path = FileSave.save_figure(
                     f"{PathUtil.get_figure_dir()}/loops/{self._chrm._chr_id}/individual_anchor_{col}_{pos}.png"
                 )
                 paths.append(path)
@@ -334,7 +338,7 @@ class PlotLoops:
             )
 
             paths.append(
-                IOUtil().save_figure(
+                FileSave.save_figure(
                     f"{PathUtil.get_figure_dir()}/loops/{self._chrm._chr_id}/individual_mean_c0_{loop[COL_START]}_{loop[COL_END]}_{self._loops}.png"
                 )
             )
@@ -399,6 +403,6 @@ class PlotLoops:
         )
         plt.legend()
 
-        return IOUtil().save_figure(
+        return FileSave.save_figure(
             f"{PathUtil.get_figure_dir()}/loops/individual_scatter_nuc_linker_{self._chrm}.png"
         )

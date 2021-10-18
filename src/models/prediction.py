@@ -12,7 +12,7 @@ from .data_preprocess import Preprocess
 from .parameters import get_parameters
 from util.custom_types import LIBRARY_NAMES
 from util.reader import DNASequenceReader
-from util.util import IOUtil, PathUtil
+from util.util import FileSave, PathUtil
 
 
 class Prediction:
@@ -64,7 +64,7 @@ class Prediction:
 
     def predict_lib(self, lib: LIBRARY_NAMES) -> pd.DataFrame:
         predict_df = self.predict(DNASequenceReader().get_processed_data()[lib])
-        IOUtil().save_tsv(
+        FileSave.save_tsv(
             predict_df,
             f"{PathUtil.get_data_dir()}/generated_data/predictions/{lib}_pred_m_{self._model_no}.tsv",
         )
@@ -84,7 +84,7 @@ class Prediction:
                 "spearmans_corr": [spearmanr(y, y_pred)[0]],
             }
         )
-        IOUtil().append_tsv(
+        FileSave.append_tsv(
             metrics_df,
             f"{PathUtil.get_data_dir()}/generated_data/prediction_metrics/pred_m_{self._model_no}.tsv",
         )

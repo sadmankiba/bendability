@@ -186,10 +186,10 @@ def roman_to_num(chr_num: YeastChrNum) -> int:
 
 class PathUtil:
     """
-    Class to get path in runtime
+    Class to obtain path in runtime dynamically.
 
-    With this, we can create correct path even when this module is called from
-    modules in other directories. (e.g. child directory)
+    inspect.currentframe() creates correct path when module is called from other
+    directories. (e.g. child directory)
     """
 
     @classmethod
@@ -220,23 +220,33 @@ class PathUtil:
         return f"{parent_dir.parent.parent}/hic/data"
 
 
-class IOUtil:
-    # TODO: Change name - SaveUtil
+class FileSave:
+    @classmethod
     def save_figure(self, path_str: Union[str, Path]) -> Path:
         # TODO: Get figure dir in here?
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
-
-        # Set plot size
+        
         plt.gcf().set_size_inches(12, 6)
-
-        # Save
         plt.savefig(path, dpi=200)
 
         logging.info(f"Figure saved at: {path}")
         return path
 
+    @classmethod
+    def figure_in_figdir(self, path_str: str | Path) -> Path: 
+        path = Path(PathUtil.get_figure_dir str(path_str))
+        if not path.parent.is_dir():
+            path.parent.mkdir(parents=True, exist_ok=True)
+        
+        plt.gcf().set_size_inches(12, 6)
+        plt.savefig(path, dpi=200)
+
+        logging.info(f"Figure saved at: {path}")
+        return path
+
+    @classmethod
     def save_tsv(self, df: pd.DataFrame, path_str: Union[str, Path]) -> Path:
         """Save a dataframe in tsv format"""
         path = Path(path_str)
@@ -246,6 +256,7 @@ class IOUtil:
         logging.info(f"TSV file saved at: {path}")
         return path
 
+    @classmethod
     def save_npy(self, arr: np.ndarray, path_str: Union[str, Path]) -> Path:
         path = Path(path_str)
         self.make_parent_dirs(path)
@@ -254,11 +265,13 @@ class IOUtil:
         logging.info(f".npy file saved at: {path}")
         return path
 
+    @classmethod
     def make_parent_dirs(self, path_str: Union[str, Path]) -> None:
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
 
+    @classmethod
     def append_tsv(self, df: pd.DataFrame, path_str: Union[str, Path]) -> Path:
         """Append a dataframe to a tsv if it exists, otherwise create"""
         path = Path(path_str)

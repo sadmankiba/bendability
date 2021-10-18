@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from util.util import IOUtil, PathUtil, cut_sequence
+from util.util import FileSave, PathUtil, cut_sequence
 from .helsep import HelicalSeparationCounter
 from .occurence import Occurence
 from .shape import run_dna_shape_r_wrapper
@@ -414,12 +414,12 @@ class DataOrganizer:
         )
         file_name = f'{name}_{self._libraries["seq_start_pos"]}_{self._libraries["seq_end_pos"]}_kmercount_{k_list_str}_{classify_str}'
 
-        IOUtil().save_tsv(
+        FileSave.save_tsv(
             df.sort_values("C0"),
             f"{PathUtil.get_data_dir()}/generated_data/classification/{file_name}.tsv",
         )
         df = df.drop(columns=["Sequence #", "Sequence"])
-        IOUtil().save_tsv(
+        FileSave.save_tsv(
             df.groupby("C0").mean().sort_values("C0"),
             f"{PathUtil.get_data_dir()}/generated_data/kmer_count/{file_name}_mean.tsv",
         )
@@ -462,7 +462,7 @@ class DataOrganizer:
         )
         print(f"Helical separation count time: {(time.time() - t) / 60} min")
 
-        IOUtil().save_tsv(df_hel, saved_helical_sep_file)
+        FileSave.save_tsv(df_hel, saved_helical_sep_file)
         return df_hel
 
     def _get_kmer_count(self) -> dict[str, list[pd.DataFrame]]:
@@ -496,7 +496,7 @@ class DataOrganizer:
                     t = time.time()
                     df_one_kmer = Occurence().find_occurence_individual(df, [k])
                     print(f"{k}-mer count time: {(time.time() - t) / 60} min")
-                    IOUtil().save_tsv(df_one_kmer, saved_kmer_count_file)
+                    FileSave.save_tsv(df_one_kmer, saved_kmer_count_file)
 
                 df_kmer = df_kmer.merge(
                     df_one_kmer, on=["Sequence #", "Sequence", "C0"]
