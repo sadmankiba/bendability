@@ -168,12 +168,14 @@ class PlotMCCoverLoops:
         self._mcloops = MCLoops(mcchrm)
     
     def plot_histogram_c0(self):
-        plt.hist(MCCoverLoops(self._mcloops)[COL_MEAN_C0_FULL], label="Loops", alpha=0.5)
+        num_bins = 40
+        bins = np.linspace(-0.4, 0.0, num_bins)
+        plt.hist(MCCoverLoops(self._mcloops)[COL_MEAN_C0_FULL], bins, label="Loops", alpha=0.8)
         plt.hist(
-            MCNonCoverLoops(self._mcloops)[COL_MEAN_C0_FULL], label="Non-loops", alpha=0.5
+            MCNonCoverLoops(self._mcloops)[COL_MEAN_C0_FULL], bins, label="Non-loops", alpha=0.5
         )
         plt.legend()
-        return FileSave.figure_in_figdir(f"mcloops/hist_c0_{self._mcloops}.png")
+        return FileSave.figure_in_figdir(f"mcloops/hist_c0_bins_{num_bins}_{self._mcloops}.png")
 
 
 class LoopsCover:
