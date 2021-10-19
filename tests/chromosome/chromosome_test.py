@@ -9,6 +9,7 @@ from models.prediction import Prediction
 
 # TODO: Use fixture for Chrm obj
 
+
 class TestChrmCalc(unittest.TestCase):
     def test_moving_avg(self):
         arr = np.array([4, 6, 1, -9, 2, 7, 3])

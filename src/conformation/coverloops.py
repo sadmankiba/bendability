@@ -20,6 +20,7 @@ from util.constants import ChrIdList
 
 # TODO: Create super class for cover classes
 
+
 class CoverLoops:
     "Loop seqs determined by coverage by original loops in a chromosome"
 
@@ -126,13 +127,11 @@ class MCCoverLoops:
             return self._mccloops[key]
 
         raise KeyError
-    
+
     def _mccoverloops_with_c0(
         self, mcloops: MCLoops
     ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:
-        mccloops = list(
-            map(lambda loops: CoverLoops(loops), mcloops)
-        )
+        mccloops = list(map(lambda loops: CoverLoops(loops), mcloops))
         return pd.DataFrame([cl for clps in mccloops for cl in clps])
 
 
@@ -153,29 +152,37 @@ class MCNonCoverLoops:
             return self._mcncloops[key]
 
         raise KeyError
-    
+
     def _mcncloops_with_c0(
         self, mcloops: MCLoops
     ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:
-        mcncloops = list(
-            map(lambda loops: NonCoverLoops(loops), mcloops)
-        )
+        mcncloops = list(map(lambda loops: NonCoverLoops(loops), mcloops))
         return pd.DataFrame([ncl for nclps in mcncloops for ncl in nclps])
 
 
 class PlotMCCoverLoops:
     def __init__(self, mcchrm: MultiChrm):
         self._mcloops = MCLoops(mcchrm)
-    
+
     def plot_histogram_c0(self):
         num_bins = 40
         bins = np.linspace(-0.4, 0.0, num_bins)
-        plt.hist(MCCoverLoops(self._mcloops)[COL_MEAN_C0_FULL], bins, label="Loops", alpha=0.8)
         plt.hist(
-            MCNonCoverLoops(self._mcloops)[COL_MEAN_C0_FULL], bins, label="Non-loops", alpha=0.5
+            MCCoverLoops(self._mcloops)[COL_MEAN_C0_FULL],
+            bins,
+            label="Loops",
+            alpha=0.8,
+        )
+        plt.hist(
+            MCNonCoverLoops(self._mcloops)[COL_MEAN_C0_FULL],
+            bins,
+            label="Non-loops",
+            alpha=0.5,
         )
         plt.legend()
-        return FileSave.figure_in_figdir(f"mcloops/hist_c0_bins_{num_bins}_{self._mcloops}.png")
+        return FileSave.figure_in_figdir(
+            f"mcloops/hist_c0_bins_{num_bins}_{self._mcloops}.png"
+        )
 
 
 class LoopsCover:
@@ -199,7 +206,7 @@ class LoopsCover:
 
 
 class MultiChrmLoopsCoverCollector:
-    #TODO: Use MultiChrm and MCLoops
+    # TODO: Use MultiChrm and MCLoops
     def __init__(self, chrmids: tuple[ChrId] = ChrIdList, mxlen: int | None = None):
         self._chrmids = chrmids
         self._mxlen = mxlen

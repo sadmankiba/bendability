@@ -497,15 +497,15 @@ class MultiChrm:
     def __init__(self, chrmids: tuple[ChrId] = ChrIdList):
         self._chrmids = chrmids
         self._chrms = list(map(lambda id: Chromosome(id), chrmids))
-    
+
     def __iter__(self) -> Iterable[Chromosome]:
         return iter(self._chrms)
 
     def __str__(self):
         if set(self._chrmids) == set(ChrIdList):
-            return 'all_pred'
-        
-        if set(self._chrmids) == set(('VL',)):
-            return 'VL'
-        
+            return "all_pred"
+
+        if set(self._chrmids) == set(("VL",)):
+            return "VL"
+
         return ""
