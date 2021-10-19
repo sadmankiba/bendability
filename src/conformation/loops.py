@@ -11,7 +11,7 @@ import numpy as np
 from nptyping import NDArray
 
 from chromosome.nucleosome import Nucleosome
-from chromosome.chromosome import Chromosome
+from chromosome.chromosome import Chromosome, MultiChrm
 from util.util import FileSave, PlotUtil, PathObtain, NumpyTool
 from util.constants import ONE_INDEX_START
 
@@ -400,3 +400,11 @@ class PlotLoops:
         return FileSave.figure(
             f"{PathObtain.figure_dir()}/loops/individual_scatter_nuc_linker_{self._chrm}.png"
         )
+
+
+class MCLoops:
+    def __init__(self, multichrm: MultiChrm):
+        self._loops = list(map(lambda c: Loops(c), multichrm))
+    
+    def __iter__(self):
+        return iter(self._loops)

@@ -2,7 +2,7 @@ from __future__ import annotations
 import math
 from pathlib import Path
 import time
-from typing import IO, Literal, Union, Any
+from typing import IO, Iterable, Literal, Union, Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,7 +12,7 @@ from nptyping import NDArray
 
 from models.prediction import Prediction
 from util.reader import DNASequenceReader
-from util.constants import CHRVL, SEQ_LEN
+from util.constants import CHRVL, SEQ_LEN, ChrIdList
 from util.custom_types import ChrId, OneIdxPos, YeastChrNum, PositiveInt
 from util.util import FileSave, PathObtain, PlotUtil
 
@@ -491,3 +491,12 @@ class Chromosome:
 
         assert result.shape == (len(bps),)
         return result
+
+
+class MultiChrm:
+    def __init__(self, chrmids: tuple[ChrId] = ChrIdList):
+        self._chrmids = chrmids
+        self._chrms = list(map(lambda id: Chromosome(id), chrmids))
+    
+    def __iter__(self) -> Iterable[Chromosome]:
+        return iter(self._chrms)

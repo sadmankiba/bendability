@@ -7,6 +7,7 @@ from chromosome.chromosome import Chromosome, ChrmCalc, Spread
 from util.constants import CHRVL_LEN, CHRV_TOTAL_BP
 from models.prediction import Prediction
 
+# TODO: Use fixture for Chrm obj
 
 class TestChrmCalc(unittest.TestCase):
     def test_moving_avg(self):
