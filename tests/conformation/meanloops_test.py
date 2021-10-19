@@ -3,7 +3,7 @@ from util.util import PathObtain
 from conformation.loops import Loops
 from conformation.meanloops import (
     MeanLoops,
-    MultiChrmCoverLoopsCollector,
+    MultiChrmLoopsCoverCollector,
     MultiChrmMeanLoopsAggregator,
     MultiChrmMeanLoopsCollector,
 )
@@ -121,17 +121,17 @@ class TestMultiChrmMeanLoopsAggregator:
         path = aggr.save_stat([0])
         assert path.is_file()
 
-    def test_plot_c0_vs_loop_size(self):
+    def test_scatter_plot_c0_vs_loop_size(self):
         aggr = MultiChrmMeanLoopsAggregator(
             MultiChrmMeanLoopsCollector(Prediction(30), ("X", "XI"))
         )
-        path = aggr.plot_c0_vs_loop_size()
+        path = aggr.scatter_plot_c0_vs_loop_size()
         assert path.is_file()
 
 
-class TestMultiChrmCoverLoopsCollector:
+class TestMultiChrmLoopsCoverCollector:
     def test_get_cover_stat(self):
-        colt_df, path_str = MultiChrmCoverLoopsCollector(
+        colt_df, path_str = MultiChrmLoopsCoverCollector(
             ("VL",), 1000000
         ).get_cover_stat()
         assert Path(path_str).is_file()
@@ -144,5 +144,5 @@ class TestMultiChrmCoverLoopsCollector:
         ]
 
     def test_plot_cover_stat(self):
-        path_str = MultiChrmCoverLoopsCollector(("VL",), 100000).plot_bar_cover_stat()
+        path_str = MultiChrmLoopsCoverCollector(("VL",), 100000).plot_bar_cover_stat()
         assert Path(path_str).is_file()

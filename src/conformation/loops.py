@@ -172,6 +172,7 @@ class CoverLoops:
     ) -> Iterable[NamedTuple[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]]:
         return self._cloops.itertuples()
 
+    # TODO: Separate class for noncoverloops
     def noncoverloops_with_c0(
         self,
     ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:

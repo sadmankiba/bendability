@@ -621,7 +621,7 @@ class MultiChrmMeanLoopsAggregator:
         )
         return FileSave.append_tsv(self._agg_df, save_df_path)
 
-    def plot_c0_vs_loop_size(self) -> Path:
+    def scatter_plot_c0_vs_loop_size(self) -> Path:
         all_loops_df = self._coll.get_loops_data()
         x = all_loops_df[COL_LEN]
         y = all_loops_df[COL_MEAN_C0_FULL]
@@ -636,8 +636,9 @@ class MultiChrmMeanLoopsAggregator:
             f"{PathObtain.figure_dir()}/mcloops/c0_vs_loop_size_{self._coll}.png"
         )
 
+
 # TODO: Rename CoverMeanLoops
-class CoverLoops:
+class LoopsCover:
     def __init__(self, loops: Loops):
         nucs = Nucleosome(loops._chr)
 
@@ -657,14 +658,14 @@ class CoverLoops:
         return (~self._loop_cover & ~self._nuc_cover).mean()
 
 
-class MultiChrmCoverLoopsCollector:
+class MultiChrmLoopsCoverCollector:
     def __init__(self, chrmids: tuple[ChrId] = ChrIdList, mxlen: int | None = None):
         self._chrmids = chrmids
         self._mxlen = mxlen
 
         chrms = pd.Series(list(map(lambda chrm_id: Chromosome(chrm_id), chrmids)))
         mcloops = chrms.apply(lambda chrm: Loops(chrm, mxlen))
-        self._mccloops = mcloops.apply(lambda loops: CoverLoops(loops))
+        self._mccloops = mcloops.apply(lambda loops: LoopsCover(loops))
 
     def get_cover_stat(self) -> pd.DataFrame:
         collector_df = pd.DataFrame({"ChrID": self._chrmids})
