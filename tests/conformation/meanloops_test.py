@@ -1,9 +1,6 @@
-from util.constants import CHRV_TOTAL_BP
-from util.util import PathObtain
 from conformation.loops import Loops
 from conformation.meanloops import (
     MeanLoops,
-    MultiChrmLoopsCoverCollector,
     MultiChrmMeanLoopsAggregator,
     MultiChrmMeanLoopsCollector,
 )
@@ -127,22 +124,3 @@ class TestMultiChrmMeanLoopsAggregator:
         )
         path = aggr.scatter_plot_c0_vs_loop_size()
         assert path.is_file()
-
-
-class TestMultiChrmLoopsCoverCollector:
-    def test_get_cover_stat(self):
-        colt_df, path_str = MultiChrmLoopsCoverCollector(
-            ("VL",), 1000000
-        ).get_cover_stat()
-        assert Path(path_str).is_file()
-        assert pd.read_csv(path_str, sep="\t").columns.tolist() == [
-            "ChrID",
-            "loop_nuc",
-            "loop_linker",
-            "non_loop_nuc",
-            "non_loop_linker",
-        ]
-
-    def test_plot_cover_stat(self):
-        path_str = MultiChrmLoopsCoverCollector(("VL",), 100000).plot_bar_cover_stat()
-        assert Path(path_str).is_file()

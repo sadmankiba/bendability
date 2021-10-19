@@ -157,79 +157,10 @@ class Loops:
         )
 
 
-class CoverLoops:
-    "Loop seqs determined by coverage by original loops in a chromosome"
-
-    def __init__(self, loops: Loops):
-        self._chrm = loops.chrm
-        self._cloops = self._coverloops_with_c0(loops)
-
-    def __len__(self):
-        return len(self._cloops)
-
-    def __iter__(
-        self,
-    ) -> Iterable[NamedTuple[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]]:
-        return self._cloops.itertuples()
-
-    # TODO: Separate class for noncoverloops
-    def noncoverloops_with_c0(
-        self,
-    ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:
-        ncloops = self._noncoverloops()
-        ncloops[COL_MEAN_C0_FULL] = ncloops.apply(
-            lambda ncl: self._chrm.mean_c0_segment(*ncl[[COL_START, COL_END]]), axis=1
-        )
-        return ncloops
-
-    def _noncoverloops(self) -> pd.DataFrame[COL_START:int, COL_END:int]:
-        nlstarts = np.append([ONE_INDEX_START], self._cloops[COL_END] + 1)
-        nlends = np.append(self._cloops[COL_START] - 1, self._chrm.total_bp)
-        return pd.DataFrame({COL_START: nlstarts, COL_END: nlends})
-
-    def _coverloops_with_c0(
-        self, loops: Loops
-    ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:
-        cloops = self._coverloops(loops)
-        cloops[COL_MEAN_C0_FULL] = cloops.apply(
-            lambda cl: self._chrm.mean_c0_segment(*cl[[COL_START, COL_END]]), axis=1
-        )
-        return cloops
-
-    def _coverloops(self, loops: Loops) -> pd.DataFrame[COL_START:int, COL_END:int]:
-        lcv = loops.get_loop_cover()
-        return self._loops_from_cover(lcv)
-
-    def _loops_from_cover(
-        self, lcv: NDArray[(Any,)]
-    ) -> pd.DataFrame[COL_START:int, COL_END:int]:
-        clstarts = NumpyTool.match_pattern(lcv, [False, True]) + 1 + ONE_INDEX_START
-        clends = NumpyTool.match_pattern(lcv, [True, False]) + ONE_INDEX_START
-        assert len(clstarts) == len(clends)
-
-        return pd.DataFrame({COL_START: clstarts, COL_END: clends})
-
-
 class PlotLoops:
     def __init__(self, chrm: Chromosome):
         self._chrm = chrm
         self._loops = Loops(self._chrm)
-
-    def plot_histogram_c0(self) -> Path:
-        clps = CoverLoops(self._loops)
-
-        cl_mean_c0 = [getattr(cl, COL_MEAN_C0_FULL) for cl in clps]
-        nl_mean_c0 = [
-            getattr(nl, COL_MEAN_C0_FULL)
-            for nl in clps.noncoverloops_with_c0().itertuples()
-        ]
-
-        plt.close()
-        plt.clf()
-        plt.hist(cl_mean_c0, label="Loops", alpha=0.5)
-        plt.hist(nl_mean_c0, label="Non-loops", alpha=0.5)
-        plt.legend()
-        return FileSave.figure_in_figdir(f"loops/hist_c0_{self._chrm}.png")
 
     def plot_mean_c0_across_loops(self, total_perc=150) -> Path:
         """

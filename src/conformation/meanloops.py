@@ -1,5 +1,4 @@
 from __future__ import annotations
-import math
 from pathlib import Path
 import itertools
 from typing import Literal, Callable
@@ -7,7 +6,6 @@ import functools
 import operator
 
 import matplotlib.pyplot as plt
-import matplotlib as mpl
 import pandas as pd
 from skimage.transform import resize
 import numpy as np
@@ -15,7 +13,6 @@ import numpy as np
 from chromosome.nucleosome import Nucleosome
 from util.custom_types import ChrId
 from models.prediction import Prediction
-from util.reader import DNASequenceReader
 from util.constants import ChrIdList
 from chromosome.chromosome import Chromosome
 from util.util import FileSave, PlotUtil, PathObtain
@@ -635,91 +632,3 @@ class MultiChrmMeanLoopsAggregator:
         return FileSave.figure(
             f"{PathObtain.figure_dir()}/mcloops/c0_vs_loop_size_{self._coll}.png"
         )
-
-
-# TODO: Rename CoverMeanLoops
-class LoopsCover:
-    def __init__(self, loops: Loops):
-        nucs = Nucleosome(loops._chr)
-
-        self._nuc_cover = nucs.get_nuc_regions()
-        self._loop_cover = loops.get_loop_cover(loops._loop_df)
-
-    def in_loop_nuc(self) -> float:
-        return (self._loop_cover & self._nuc_cover).mean()
-
-    def in_loop_linker(self) -> float:
-        return (self._loop_cover & ~self._nuc_cover).mean()
-
-    def in_non_loop_nuc(self) -> float:
-        return (~self._loop_cover & self._nuc_cover).mean()
-
-    def in_non_loop_linker(self) -> float:
-        return (~self._loop_cover & ~self._nuc_cover).mean()
-
-
-class MultiChrmLoopsCoverCollector:
-    def __init__(self, chrmids: tuple[ChrId] = ChrIdList, mxlen: int | None = None):
-        self._chrmids = chrmids
-        self._mxlen = mxlen
-
-        chrms = pd.Series(list(map(lambda chrm_id: Chromosome(chrm_id), chrmids)))
-        mcloops = chrms.apply(lambda chrm: Loops(chrm, mxlen))
-        self._mccloops = mcloops.apply(lambda loops: LoopsCover(loops))
-
-    def get_cover_stat(self) -> pd.DataFrame:
-        collector_df = pd.DataFrame({"ChrID": self._chrmids})
-
-        collector_df["loop_nuc"] = self._mccloops.apply(
-            lambda cloops: cloops.in_loop_nuc()
-        )
-
-        collector_df["loop_linker"] = self._mccloops.apply(
-            lambda cloops: cloops.in_loop_linker()
-        )
-
-        collector_df["non_loop_nuc"] = self._mccloops.apply(
-            lambda cloops: cloops.in_non_loop_nuc()
-        )
-
-        collector_df["non_loop_linker"] = self._mccloops.apply(
-            lambda cloops: cloops.in_non_loop_linker()
-        )
-        save_path_str = f"{PathObtain.data_dir()}/generated_data/mcloop/multichr_cover_stat_{self._mxlen}.tsv"
-        FileSave.append_tsv(collector_df, save_path_str)
-        return collector_df, save_path_str
-
-    def plot_bar_cover_stat(self) -> str:
-        labels = ["loop_nuc", "loop_linker", "non_loop_nuc", "non_loop_linker"]
-        colt_df = self.get_cover_stat()[0]
-        colt_arr = colt_df[labels].values
-        mpl.rcParams.update({"font.size": 12})
-        PlotUtil().plot_stacked_bar(
-            colt_arr.transpose() * 100,
-            labels,
-            colt_df["ChrID"].tolist(),
-            show_values=True,
-            value_format="{:.1f}",
-            y_label="Coverage (%)",
-        )
-
-        plt.gca().legend(
-            loc="upper center",
-            bbox_to_anchor=(0.5, 1.1),
-            ncol=4,
-            fancybox=False,
-            shadow=False,
-        )
-
-        plt.xlabel("Chromosome")
-        plt.title(
-            "Coverage by nucleosomes and linkers in loop and"
-            f"non-loop region with max loop length = {self._mxlen}",
-            pad=35,
-        )
-        fig_path_str = (
-            f"{PathObtain.figure_dir()}/mcloop/nuc_linker_cover_mxl_{self._mxlen}.png"
-        )
-
-        FileSave.figure(fig_path_str)
-        return fig_path_str

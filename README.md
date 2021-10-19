@@ -8,6 +8,8 @@ This repository contains various utility tools to analyze DNA Bendability.
 
 **Use virtual environment** 
 
+Python: 3.9+ required
+
 ```sh 
 python3 -m venv venv            # Create venv. Only once.
 source venv/bin/activate        # Activate venv. 

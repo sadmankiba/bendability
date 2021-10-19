@@ -1,11 +1,8 @@
 import unittest
 import subprocess
 
-import numpy as np
-import pytest
-
-from util.constants import CHRV_TOTAL_BP, ONE_INDEX_START
-from conformation.loops import Loops, PlotLoops, CoverLoops, COL_START, COL_END
+from util.constants import CHRV_TOTAL_BP
+from conformation.loops import Loops, PlotLoops
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
 
@@ -64,32 +61,7 @@ class TestLoops(unittest.TestCase):
         assert 10 < perc < 90
 
 
-class TestCoverLoops:
-    @pytest.fixture
-    def cloops_vl(self):
-        return CoverLoops(Loops(Chromosome("VL")))
-
-    def test_noncoverloops(self, cloops_vl):
-        assert len(cloops_vl.noncoverloops_with_c0()) == len(cloops_vl._cloops) + 1
-
-    def test_loops_from_cover(self, cloops_vl):
-        lcv = np.array([False, False, True, False, True, True, False, True, False])
-        df = cloops_vl._loops_from_cover(lcv)
-        assert df[COL_START].tolist() == [3, 5, 8]
-        assert df[COL_END].tolist() == [3, 6, 8]
-
-    def test_iter(self, cloops_vl):
-        cloops = [cl for cl in cloops_vl]
-        assert len(cloops) > 0
-        assert getattr(cloops[0], COL_START) > ONE_INDEX_START
-
-
 class TestPlotLoops:
-    def test_plot_histogram_c0(self):
-        ploops = PlotLoops(Chromosome("VL"))
-        figpath = ploops.plot_histogram_c0()
-        assert figpath.is_file()
-
     def test_line_plot_mean_c0(self):
         ploops = PlotLoops(Chromosome("VL"))
         paths = ploops.line_plot_mean_c0()
