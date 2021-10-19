@@ -184,6 +184,7 @@ def roman_to_num(chr_num: YeastChrNum) -> int:
     }
     return rom_num_map[chr_num]
 
+
 # TODO: Move PathObtain, FileSave to util.file module
 class PathObtain:
     """
@@ -209,7 +210,7 @@ class PathObtain:
     @classmethod
     def hic_data_dir(self) -> str:
         return f"{self.root_dir()}/hic/data"
-    
+
     @classmethod
     def root_dir(self) -> Path:
         parent_dir = self.parent_dir(inspect.currentframe())
@@ -222,7 +223,7 @@ class FileSave:
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         plt.gcf().set_size_inches(12, 6)
         plt.savefig(path, dpi=200)
 
@@ -230,11 +231,11 @@ class FileSave:
         return path
 
     @classmethod
-    def figure_in_figdir(self, path_str: str | Path) -> Path: 
-        path = Path(f'{PathObtain.figure_dir()}/{path_str}')
+    def figure_in_figdir(self, path_str: str | Path) -> Path:
+        path = Path(f"{PathObtain.figure_dir()}/{path_str}")
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         plt.gcf().set_size_inches(12, 6)
         plt.savefig(path, dpi=200)
 
@@ -398,8 +399,13 @@ class PlotUtil:
 
 class NumpyTool:
     @classmethod
-    def match_pattern(self, container: NDArray[(Any,)], pattern: NDArray[(Any,)] | list) -> NDArray[(Any,)]: 
-        starts = [ i for i in range(len(container) - len(pattern) + 1)
-            if all(pattern == container[i:i + len(pattern)])]
-        
+    def match_pattern(
+        self, container: NDArray[(Any,)], pattern: NDArray[(Any,)] | list
+    ) -> NDArray[(Any,)]:
+        starts = [
+            i
+            for i in range(len(container) - len(pattern) + 1)
+            if all(pattern == container[i : i + len(pattern)])
+        ]
+
         return np.array(starts)

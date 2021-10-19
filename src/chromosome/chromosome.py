@@ -447,7 +447,7 @@ class Chromosome:
 
         return cvr_arr
 
-    def mean_c0_segment(self, start: OneIdxPos, end: OneIdxPos) -> float: 
+    def mean_c0_segment(self, start: OneIdxPos, end: OneIdxPos) -> float:
         return self.get_spread()[start - 1 : end].mean()
 
     def mean_c0_of_segments(

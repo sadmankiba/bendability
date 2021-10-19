@@ -186,7 +186,9 @@ class CoverLoops:
         nlends = np.append(self._cloops[COL_START] - 1, self._chrm.total_bp)
         return pd.DataFrame({COL_START: nlstarts, COL_END: nlends})
 
-    def _coverloops_with_c0(self, loops: Loops) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:
+    def _coverloops_with_c0(
+        self, loops: Loops
+    ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:
         cloops = self._coverloops(loops)
         cloops[COL_MEAN_C0_FULL] = cloops.apply(
             lambda cl: self._chrm.mean_c0_segment(*cl[[COL_START, COL_END]]), axis=1
@@ -214,9 +216,9 @@ class PlotLoops:
 
     def plot_histogram_c0(self) -> Path:
         self._loops.add_mean_c0()
-        mean_c0 = [l[1].get(COL_MEAN_C0_FULL) for l in self._loops]
+        mean_c0 = [lp[1].get(COL_MEAN_C0_FULL) for lp in self._loops]
 
-        nloops = self._loops.nonloops_with_c0()
+        # nloops = self._loops.nonloops_with_c0()
         nloops_mean_c0 = [nl[1].get(COL_MEAN_C0_FULL) for nl in self._loops]
 
         plt.hist(mean_c0, label="Loops")

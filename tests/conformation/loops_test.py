@@ -63,14 +63,15 @@ class TestLoops(unittest.TestCase):
         perc = chrm_arr.sum() / CHRV_TOTAL_BP * 100
         assert 10 < perc < 90
 
+
 class TestCoverLoops:
     @pytest.fixture
     def cloops_vl(self):
-        return CoverLoops(Loops(Chromosome('VL')))
+        return CoverLoops(Loops(Chromosome("VL")))
 
     def test_noncoverloops(self, cloops_vl):
-        assert len(cloops_vl.noncoverloops_with_c0()) == len(cloops_vl._cloops) + 1 
-        
+        assert len(cloops_vl.noncoverloops_with_c0()) == len(cloops_vl._cloops) + 1
+
     def test_loops_from_cover(self, cloops_vl):
         lcv = np.array([False, False, True, False, True, True, False, True, False])
         df = cloops_vl._loops_from_cover(lcv)
@@ -78,13 +79,14 @@ class TestCoverLoops:
         assert df[COL_END].tolist() == [3, 6, 8]
 
     def test_iter(self, cloops_vl):
-        cloops = [ cl for cl in cloops_vl ]
+        cloops = [cl for cl in cloops_vl]
         assert len(cloops) > 0
-        assert getattr(cloops[0], COL_START) > ONE_INDEX_START 
+        assert getattr(cloops[0], COL_START) > ONE_INDEX_START
+
 
 class TestPlotLoops:
     def test_plot_histogram_c0(self):
-        ploops = PlotLoops(Chromosome('VL'))
+        ploops = PlotLoops(Chromosome("VL"))
         figpath = ploops.plot_histogram_c0()
         assert figpath.is_file()
 
