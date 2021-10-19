@@ -245,7 +245,7 @@ class Chromosome:
             self._prediction = None
             self._df = DNASequenceReader().get_processed_data()[CHRVL]
         else:
-            self._prediction = prediction
+            self._prediction = prediction or Prediction(30)
             self._df = self._get_chrm_df()
 
         self.spread_str = spread_str

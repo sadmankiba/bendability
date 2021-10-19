@@ -16,6 +16,7 @@ from util.util import FileSave, PathObtain
 
 
 class Prediction:
+    # TODO: Use default 30
     def __init__(self, model: Union[int, keras.Model] = 6):
         if isinstance(model, int):
             self._model_no = model

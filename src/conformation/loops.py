@@ -215,14 +215,18 @@ class PlotLoops:
         self._loops = Loops(self._chrm)
 
     def plot_histogram_c0(self) -> Path:
-        self._loops.add_mean_c0()
-        mean_c0 = [lp[1].get(COL_MEAN_C0_FULL) for lp in self._loops]
+        clps = CoverLoops(self._loops)
 
-        # nloops = self._loops.nonloops_with_c0()
-        nloops_mean_c0 = [nl[1].get(COL_MEAN_C0_FULL) for nl in self._loops]
+        cl_mean_c0 = [getattr(cl, COL_MEAN_C0_FULL) for cl in clps]
+        nl_mean_c0 = [
+            getattr(nl, COL_MEAN_C0_FULL)
+            for nl in clps.noncoverloops_with_c0().itertuples()
+        ]
 
-        plt.hist(mean_c0, label="Loops")
-        plt.hist(nloops_mean_c0, label="Non-loops")
+        plt.close()
+        plt.clf()
+        plt.hist(cl_mean_c0, label="Loops", alpha=0.5)
+        plt.hist(nl_mean_c0, label="Non-loops", alpha=0.5)
         plt.legend()
         return FileSave.figure_in_figdir(f"loops/hist_c0_{self._chrm}.png")
 

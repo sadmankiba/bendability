@@ -636,7 +636,7 @@ class MultiChrmMeanLoopsAggregator:
             f"{PathObtain.figure_dir()}/mcloops/c0_vs_loop_size_{self._coll}.png"
         )
 
-
+# TODO: Rename CoverMeanLoops
 class CoverLoops:
     def __init__(self, loops: Loops):
         nucs = Nucleosome(loops._chr)
