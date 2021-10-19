@@ -3,6 +3,8 @@ __pycache__/
 *.pyc
 .testmondata
 
+.vscode/
+
 *.zip
 *.png
 *.jpg

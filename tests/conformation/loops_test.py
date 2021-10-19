@@ -2,9 +2,10 @@ import unittest
 import subprocess
 
 import numpy as np
+import pytest
 
-from util.constants import CHRV_TOTAL_BP
-from conformation.loops import Loops, PlotLoops
+from util.constants import CHRV_TOTAL_BP, ONE_INDEX_START
+from conformation.loops import Loops, PlotLoops, CoverLoops, COL_START, COL_END
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
 
@@ -43,12 +44,6 @@ class TestLoops(unittest.TestCase):
         assert dtypes["end"] == int
         assert dtypes["len"] == int
 
-    def test_nonloops_from_cover(self):
-        nlcv = np.array([True, True, False, False, True, False, True])
-        df = Loops(Chromosome('VL'))._nonloops_from_cover(nlcv)
-        assert df['start'].tolist() == [1, 5, 7]
-        assert df['end'].tolist() == [2, 5, 7]
-
     def test_exclude_above_len(self):
         bf_loops = Loops(Chromosome("VL", None))
         bf_len = len(bf_loops._loop_df)
@@ -68,6 +63,24 @@ class TestLoops(unittest.TestCase):
         perc = chrm_arr.sum() / CHRV_TOTAL_BP * 100
         assert 10 < perc < 90
 
+class TestCoverLoops:
+    @pytest.fixture
+    def cloops_vl(self):
+        return CoverLoops(Loops(Chromosome('VL')))
+
+    def test_noncoverloops(self, cloops_vl):
+        assert len(cloops_vl.noncoverloops_with_c0()) == len(cloops_vl._cloops) + 1 
+        
+    def test_loops_from_cover(self, cloops_vl):
+        lcv = np.array([False, False, True, False, True, True, False, True, False])
+        df = cloops_vl._loops_from_cover(lcv)
+        assert df[COL_START].tolist() == [3, 5, 8]
+        assert df[COL_END].tolist() == [3, 6, 8]
+
+    def test_iter(self, cloops_vl):
+        cloops = [ cl for cl in cloops_vl ]
+        assert len(cloops) > 0
+        assert getattr(cloops[0], COL_START) > ONE_INDEX_START 
 
 class TestPlotLoops:
     def test_plot_histogram_c0(self):

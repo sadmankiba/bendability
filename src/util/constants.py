@@ -34,8 +34,9 @@ TL_LEN = 82368
 CHRVL_LEN = 82404
 LIBL_LEN = 92918
 
-# Sequence length
 SEQ_LEN = 50
+ONE_INDEX_START = 1
+
 
 # Chromosome V
 CHRV_TOTAL_BP = 576871
