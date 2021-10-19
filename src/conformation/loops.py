@@ -368,7 +368,7 @@ class PlotLoops:
                 plt.xlabel(f"Distance from loop anchor")
                 plt.ylabel("Intrinsic Cyclizability")
                 plt.title(
-                    f"C0 around chromosome {self._chrm.number} loop {col} anchor at {pos}bp. Found with res {loop[Loops.COL_RES]}"
+                    f"C0 around chromosome {self._chrm.number} loop {col} anchor at {pos}bp. Found with res {loop[COL_RES]}"
                 )
 
                 path = FileSave.figure(
@@ -392,7 +392,7 @@ class PlotLoops:
             plt.xlabel(f"Position along Chromosome {self._chrm.number} (bp)")
             plt.ylabel("Intrinsic Cyclizability")
             plt.title(
-                f"C0 in loop between {loop[Loops.COL_START]}-{loop[Loops.COL_END]}. Found with resolution: {loop[Loops.COL_RES]}."
+                f"C0 in loop between {loop[COL_START]}-{loop[COL_END]}. Found with resolution: {loop[COL_RES]}."
             )
 
             paths.append(
