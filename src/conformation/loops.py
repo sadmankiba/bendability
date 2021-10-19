@@ -404,7 +404,11 @@ class PlotLoops:
 
 class MCLoops:
     def __init__(self, multichrm: MultiChrm):
+        self._multichrm = multichrm
         self._loops = list(map(lambda c: Loops(c), multichrm))
     
     def __iter__(self):
         return iter(self._loops)
+    
+    def __str__(self):
+        return str(self._multichrm)

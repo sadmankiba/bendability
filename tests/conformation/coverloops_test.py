@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd 
 import pytest
 
-from conformation.coverloops import CoverLoops, MCCoverLoops, NonCoverLoops, PlotCoverLoops, MultiChrmLoopsCoverCollector
-from conformation.loops import COL_MEAN_C0_FULL, Loops, COL_START, COL_END
-from chromosome.chromosome import Chromosome
+from conformation.coverloops import CoverLoops, MCCoverLoops, NonCoverLoops, PlotCoverLoops, MultiChrmLoopsCoverCollector, PlotMCCoverLoops
+from conformation.loops import COL_MEAN_C0_FULL, Loops, COL_START, COL_END, MCLoops
+from chromosome.chromosome import Chromosome, MultiChrm
 from util.constants import ONE_INDEX_START
 
 @pytest.fixture
@@ -33,7 +33,7 @@ class TestNonCoverLoops:
         ncloops = NonCoverLoops(loops_vl)
         assert len(ncloops) == len(cloops_vl) + 1
 
-class PlotCoverLoopsTest:
+class TestPlotCoverLoops:
     def test_plot_histogram_c0(self):
         ploops = PlotCoverLoops(Chromosome("VL"))
         figpath = ploops.plot_histogram_c0()
@@ -41,9 +41,14 @@ class PlotCoverLoopsTest:
     
 class TestMCCoverLoops:
     def test_creation(self, cloops_vl):
-        mccl = MCCoverLoops(("VL", "I"))
+        mccl = MCCoverLoops(MCLoops(MultiChrm(("VL", "I"))))
         cli = CoverLoops(Loops(Chromosome('I')))
         assert len(mccl) == len(cloops_vl) + len(cli)
+
+class TestPlotMCCoverLoops:
+    def test_histogram(self):
+        figpath = PlotMCCoverLoops(MultiChrm(('VL', 'I'))).plot_histogram_c0()
+        assert figpath.is_file()
 
 class TestMultiChrmLoopsCoverCollector:
     def test_get_cover_stat(self):

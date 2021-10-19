@@ -302,6 +302,7 @@ class PlotUtil:
             va="bottom",
         )
 
+    @classmethod
     def plot_vertical_line(self, x: float, color: str, text: str):
         plt.axvline(x=x, color=color, linestyle="--")
         y_lim = plt.gca().get_ylim()
@@ -314,6 +315,12 @@ class PlotUtil:
             va="center",
         )
 
+    @classmethod
+    def clearfig(self):
+        plt.close()
+        plt.clf()
+
+    @classmethod
     def plot_stacked_bar(
         self,
         data,
@@ -391,6 +398,7 @@ class PlotUtil:
                         va="center",
                     )
 
+    @classmethod
     def show_grid(self) -> None:
         """Invoke this function before plotting to show grid below"""
         plt.rc("axes", axisbelow=True)

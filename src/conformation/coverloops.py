@@ -8,14 +8,17 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from nptyping import NDArray
 
+from conformation.loops import MCLoops
+
 from .loops import Loops, COL_START, COL_END, COL_MEAN_C0_FULL
-from chromosome.chromosome import Chromosome
+from chromosome.chromosome import Chromosome, MultiChrm
 from chromosome.nucleosome import Nucleosome
 from util.constants import ONE_INDEX_START
 from util.util import NumpyTool, PathObtain, FileSave, PlotUtil
 from util.custom_types import ChrId
 from util.constants import ChrIdList
 
+# TODO: Create super class for cover classes
 
 class CoverLoops:
     "Loop seqs determined by coverage by original loops in a chromosome"
@@ -97,8 +100,7 @@ class PlotCoverLoops:
         self._loops = Loops(self._chrm)
 
     def plot_histogram_c0(self) -> Path:
-        plt.close()
-        plt.clf()
+        PlotUtil.clearfig()
         plt.hist(CoverLoops(self._loops)[COL_MEAN_C0_FULL], label="Loops", alpha=0.5)
         plt.hist(
             NonCoverLoops(self._loops)[COL_MEAN_C0_FULL], label="Non-loops", alpha=0.5
@@ -108,9 +110,8 @@ class PlotCoverLoops:
 
 
 class MCCoverLoops:
-    def __init__(self, chrmids: tuple[ChrId] = ChrIdList):
-        self._chrmids = chrmids
-        self._mccloops = self._mccoverloops_with_c0()
+    def __init__(self, mcloops: MCLoops):
+        self._mccloops = self._mccoverloops_with_c0(mcloops)
 
     def __len__(self):
         return len(self._mccloops)
@@ -120,17 +121,60 @@ class MCCoverLoops:
     ) -> Iterable[NamedTuple[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]]:
         return self._mccloops.itertuples()
 
+    def __getitem__(self, key) -> pd.Series:
+        if key in self._mccloops.columns:
+            return self._mccloops[key]
+
+        raise KeyError
+    
     def _mccoverloops_with_c0(
-        self,
+        self, mcloops: MCLoops
     ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:
         mccloops = list(
-            map(lambda chrm_id: CoverLoops(Loops(Chromosome(chrm_id))), self._chrmids)
+            map(lambda loops: CoverLoops(loops), mcloops)
         )
         return pd.DataFrame([cl for clps in mccloops for cl in clps])
 
 
+class MCNonCoverLoops:
+    def __init__(self, mcloops: MCLoops):
+        self._mcncloops = self._mcncloops_with_c0(mcloops)
+
+    def __len__(self):
+        return len(self._mcncloops)
+
+    def __iter__(
+        self,
+    ) -> Iterable[NamedTuple[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]]:
+        return self._mcncloops.itertuples()
+
+    def __getitem__(self, key) -> pd.Series:
+        if key in self._mcncloops.columns:
+            return self._mcncloops[key]
+
+        raise KeyError
+    
+    def _mcncloops_with_c0(
+        self, mcloops: MCLoops
+    ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:
+        mcncloops = list(
+            map(lambda loops: NonCoverLoops(loops), mcloops)
+        )
+        return pd.DataFrame([ncl for nclps in mcncloops for ncl in nclps])
+
+
 class PlotMCCoverLoops:
-    pass
+    def __init__(self, mcchrm: MultiChrm):
+        self._mcloops = MCLoops(mcchrm)
+    
+    def plot_histogram_c0(self):
+        plt.hist(MCCoverLoops(self._mcloops)[COL_MEAN_C0_FULL], label="Loops", alpha=0.5)
+        plt.hist(
+            MCNonCoverLoops(self._mcloops)[COL_MEAN_C0_FULL], label="Non-loops", alpha=0.5
+        )
+        plt.legend()
+        return FileSave.figure_in_figdir(f"mcloops/hist_c0_{self._mcloops}.png")
+
 
 class LoopsCover:
     def __init__(self, loops: Loops):
