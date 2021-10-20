@@ -399,10 +399,10 @@ class PlotUtil:
                     )
 
     @classmethod
-    def show_grid(self) -> None:
-        """Invoke this function before plotting to show grid below"""
+    def show_grid(self, *args, **kwargs) -> None:
+        """Wrapper function to be called before plotting to show grid below"""
         plt.rc("axes", axisbelow=True)
-        plt.grid()
+        plt.grid(*args, **kwargs)
 
 
 class NumpyTool:

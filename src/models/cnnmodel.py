@@ -372,13 +372,11 @@ class CNNModel30:
         )
 
         outputs = Flatten()(output_conv(max_24))
-
         model = keras.Model(inputs=[forward, reverse], outputs=outputs)
 
-        model.summary()
+        # model.summary()
 
         adam_optimizer = keras.optimizers.Adam()
-
         optimizer_map = {
             "mse": adam_optimizer,
             "coeff_determination": adam_optimizer,
@@ -387,7 +385,6 @@ class CNNModel30:
             "rank_mse": self.optimizer,
             "poisson": self.optimizer,
         }
-
         model.compile(
             loss=Loss().param_map[self.loss_func],
             optimizer=optimizer_map[self.loss_func],

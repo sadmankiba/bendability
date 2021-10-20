@@ -62,17 +62,21 @@ class TestMCCoverLoops:
 
 
 class TestPlotMCCoverLoops:
+    def test_box_plot(self, mchrm_vl_i):
+        assert PlotMCCoverLoops(mchrm_vl_i).box_plot_c0().is_file()
+
     def test_histogram(self, mchrm_vl_i):
         figpath = PlotMCCoverLoops(mchrm_vl_i).plot_histogram_c0()
         assert figpath.is_file()
 
-@pytest.fixture 
-def mclccoll_vl():
-    return MultiChrmLoopsCoverCollector(
-            ("VL",), 1000000
-        )
 
 class TestMultiChrmLoopsCoverCollector:
+    @pytest.fixture 
+    def mclccoll_vl(self):
+        return MultiChrmLoopsCoverCollector(
+                ("VL",), 1000000
+            )
+
     def test_get_cover_stat(self, mclccoll_vl):
         colt_df, path_str = mclccoll_vl.get_cover_stat()
         assert Path(path_str).is_file()
