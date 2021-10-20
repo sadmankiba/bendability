@@ -14,7 +14,7 @@ from .loops import Loops, COL_START, COL_END, COL_MEAN_C0_FULL
 from chromosome.chromosome import Chromosome, MultiChrm
 from chromosome.nucleosome import Nucleosome
 from util.constants import ONE_INDEX_START
-from util.util import NumpyTool, PathObtain, FileSave, PlotUtil
+from util.util import DataCache, NumpyTool, PathObtain, FileSave, PlotUtil
 from util.custom_types import ChrId
 from util.constants import ChrIdList
 
@@ -45,14 +45,6 @@ class CoverLoops:
     def _coverloops_with_c0(
         self, loops: Loops
     ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:
-        def _calc_df_if_not_saved(savepath: str | Path, cb: Callable):
-            if Path(savepath).is_file():
-                return pd.read_csv(savepath, sep="\t")
-
-            df = cb()
-            FileSave.tsv(df, savepath)
-            return df
-
         def _calc_mean_c0() -> pd.DataFrame:
             cloops = self._coverloops(loops)
             cloops[COL_MEAN_C0_FULL] = cloops.apply(
@@ -60,8 +52,8 @@ class CoverLoops:
             )
             return cloops
 
-        return _calc_df_if_not_saved(
-            f"{PathObtain.gen_data_dir()}/loops/cover_c0_{self._chrm._chr_id}.tsv",
+        return DataCache.dataframe(
+            f"loops/cover_c0_{self._chrm._chr_id}.tsv",
             _calc_mean_c0,
         )
 

@@ -8,7 +8,7 @@ from pathlib import Path
 import logging
 import inspect
 from types import FrameType
-from typing import Union, Any
+from typing import Union, Any, Callable
 
 import pandas as pd
 import numpy as np
@@ -255,7 +255,7 @@ class FileSave:
 
         logging.info(f"TSV file saved at: {path}")
         return path
-
+    
     @classmethod
     def npy(self, arr: np.ndarray, path_str: Union[str, Path]) -> Path:
         path = Path(path_str)
@@ -284,6 +284,17 @@ class FileSave:
 
         return self.tsv(df, path_str)
 
+class DataCache:
+    """Class that caches data. Calculates if needed."""
+    @classmethod
+    def dataframe(self, subpath: str | Path, cb: Callable):
+        savepath = Path(f"{PathObtain.gen_data_dir()}/{subpath}")
+        if savepath.is_file():
+            return pd.read_csv(savepath, sep="\t")
+
+        df = cb()
+        FileSave.tsv(df, savepath)
+        return df
 
 class PlotUtil:
     @classmethod
