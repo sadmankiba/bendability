@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Iterable, NamedTuple, Any
+from typing import Callable, Iterable, NamedTuple, Any
 from pathlib import Path
 
 import numpy as np
@@ -45,12 +45,25 @@ class CoverLoops:
     def _coverloops_with_c0(
         self, loops: Loops
     ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:
-        #TODO: Save df
-        cloops = self._coverloops(loops)
-        cloops[COL_MEAN_C0_FULL] = cloops.apply(
-            lambda cl: self._chrm.mean_c0_segment(*cl[[COL_START, COL_END]]), axis=1
+        def _calc_df_if_not_saved(savepath: str | Path, cb: Callable):
+            if Path(savepath).is_file():
+                return pd.read_csv(savepath, sep="\t")
+
+            df = cb()
+            FileSave.tsv(df, savepath)
+            return df
+
+        def _calc_mean_c0() -> pd.DataFrame:
+            cloops = self._coverloops(loops)
+            cloops[COL_MEAN_C0_FULL] = cloops.apply(
+                lambda cl: self._chrm.mean_c0_segment(*cl[[COL_START, COL_END]]), axis=1
+            )
+            return cloops
+
+        return _calc_df_if_not_saved(
+            f"{PathObtain.gen_data_dir()}/loops/cover_c0_{self._chrm._chr_id}.tsv",
+            _calc_mean_c0,
         )
-        return cloops
 
     def _coverloops(self, loops: Loops) -> pd.DataFrame[COL_START:int, COL_END:int]:
         lcv = loops.get_loop_cover()
@@ -88,7 +101,7 @@ class NonCoverLoops:
     def _noncoverloops_with_c0(
         self, cloops: CoverLoops
     ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:
-        #TODO: Save df
+        # TODO: Save df
         ncloops = self._noncoverloops(cloops)
         ncloops[COL_MEAN_C0_FULL] = ncloops.apply(
             lambda ncl: self._chrm.mean_c0_segment(*ncl[[COL_START, COL_END]]), axis=1
@@ -173,17 +186,19 @@ class PlotMCCoverLoops:
         self._mcloops = MCLoops(mcchrm)
 
     def box_plot_c0(self) -> Path:
-        PlotUtil.show_grid(which='both')
+        PlotUtil.show_grid(which="both")
         plt.boxplot(
             [
                 MCCoverLoops(self._mcloops)[COL_MEAN_C0_FULL],
                 MCNonCoverLoops(self._mcloops)[COL_MEAN_C0_FULL],
             ]
         )
-        plt.xticks(ticks=[1,2], labels=['Loops', 'Non-loops'])
+        plt.xticks(ticks=[1, 2], labels=["Loops", "Non-loops"])
         plt.ylabel("Mean C0")
-        plt.title("Comparison of mean c0 distribution of loops and non-loops in all chromosomes")
-        return FileSave.figure_in_figdir(f'mcloops/box_plot_{self._mcloops}.png')
+        plt.title(
+            "Comparison of mean c0 distribution of loops and non-loops in all chromosomes"
+        )
+        return FileSave.figure_in_figdir(f"mcloops/box_plot_{self._mcloops}.png")
 
     def plot_histogram_c0(self):
         num_bins = 40
@@ -203,7 +218,9 @@ class PlotMCCoverLoops:
         plt.legend()
         plt.xlabel("Mean C0")
         plt.ylabel("Number of items")
-        plt.title("Comparison of distribution of mean c0 of loops and non-loops in all chromosomes")
+        plt.title(
+            "Comparison of distribution of mean c0 of loops and non-loops in all chromosomes"
+        )
         return FileSave.figure_in_figdir(
             f"mcloops/hist_c0_bins_{num_bins}_{self._mcloops}.png"
         )

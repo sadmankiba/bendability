@@ -204,6 +204,10 @@ class PathObtain:
         return f"{self.root_dir()}/figures"
 
     @classmethod
+    def gen_data_dir(self) -> str:
+        return f"{self.data_dir()}/generated_data/"
+
+    @classmethod
     def data_dir(self) -> str:
         return f"{self.root_dir()}/data"
 
