@@ -36,7 +36,7 @@ class CoverLoops:
     ) -> Iterable[NamedTuple[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]]:
         return self._cloops.itertuples()
 
-    def __getitem__(self, key) -> pd.Series:
+    def __getitem__(self, key: str) -> pd.Series:
         if key in self._cloops.columns:
             return self._cloops[key]
 
@@ -184,18 +184,20 @@ class PlotMCCoverLoops:
 
     def box_plot_c0(self) -> Path:
         PlotUtil.show_grid(which="both")
+        showfliers = False
         plt.boxplot(
             [
                 MCCoverLoops(self._mcloops)[COL_MEAN_C0_FULL],
                 MCNonCoverLoops(self._mcloops)[COL_MEAN_C0_FULL],
-            ]
+            ], 
+            showfliers=showfliers
         )
         plt.xticks(ticks=[1, 2], labels=["Loops", "Non-loops"])
         plt.ylabel("Mean C0")
         plt.title(
             "Comparison of mean c0 distribution of loops and non-loops in all chromosomes"
         )
-        return FileSave.figure_in_figdir(f"mcloops/box_plot_{self._mcloops}.png")
+        return FileSave.figure_in_figdir(f"mcloops/box_plot_fl_{showfliers}_{self._mcloops}.png")
 
     def plot_histogram_c0(self):
         num_bins = 40

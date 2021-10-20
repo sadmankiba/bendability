@@ -263,8 +263,8 @@ class PlotLoops:
     def plot_c0_around_anchor(self, lim=500):
         """Plot C0 around loop anchor points"""
         # TODO: Distance from loop anchor : percentage. Not required?
-        loops_start = pd.Series(loop["start"] for _, loop in self._loops)
-        loops_end = pd.Series(loop["end"] for _, loop in self._loops)
+        loops_start = self._loops[COL_START]
+        loops_end = self._loops[COL_END]
         anchors = pd.concat([loops_start, loops_end], ignore_index=True)
 
         mean_c0_start = self._chrm.mean_c0_around_bps(loops_start, lim, lim)

@@ -1,23 +1,33 @@
 from __future__ import annotations
-from chromosome.genes import Genes
-
-from util.util import FileSave, PlotUtil, PathObtain
-from util.custom_types import ChrId, PositiveInt, YeastChrNum
-from chromosome.chromosome import Chromosome
-from models.prediction import Prediction
-from util.constants import ChrIdList
+from pathlib import Path
+from typing import Literal, NamedTuple, Iterable
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from pathlib import Path
-from typing import Literal
+from chromosome.chromosome import Chromosome
+from chromosome.genes import Genes
+from models.prediction import Prediction
+from util.util import FileSave, PlotUtil, PathObtain
+from util.custom_types import ChrId, PositiveInt
+from util.constants import ChrIdList
 
 
-class HicExplBoundaries:
+# TODO: Rename tad to domain?
+# TODO: Inherit dataframe wrapper
+
+LEFT = "left"
+RIGHT = "right"
+MIDDLE = "middle"
+SCORE = "score"
+IN_PROMOTER = "in_promoter"
+MEAN_C0 = "mean_c0"
+
+
+class BoundariesHE:
     """
-    Represenation of boundaries in a chromosome
+    Represenation of boundaries in a chromosome found with Hi-C Explorer
 
     Note: Here domains are also determined by boundaries
     """
@@ -36,30 +46,34 @@ class HicExplBoundaries:
         self._add_mean_c0_col()
         self._add_in_promoter_col()
 
+    def __iter__(
+        self,
+    ) -> Iterable[NamedTuple[LEFT:int, RIGHT:int, MIDDLE:int, SCORE:float,]]:
+        return self.bndrs_df.itertuples()
+
+    def __getitem__(self, key: str) -> pd.Series:
+        if key in self.bndrs_df.columns:
+            return self.bndrs_df[key]
+
+        raise KeyError
+
     def __str__(self):
         return f"res_{self._res}_lim_{self._lim}_{self._chrm}"
 
-    def _read_boundaries(self) -> pd.DataFrame:
+    def _read_boundaries(
+        self,
+    ) -> pd.DataFrame[LEFT:int, RIGHT:int, MIDDLE:int, SCORE:float]:
         return (
             pd.read_table(
                 f"{PathObtain.data_dir()}/input_data/domains/"
                 f"{self._chrm.number}_res_{self._res}_hicexpl_boundaries.bed",
                 delim_whitespace=True,
                 header=None,
-                names=["chromosome", "left", "right", "id", "score", "_"],
+                names=["chromosome", LEFT, RIGHT, "id", SCORE, "_"],
             )
-            .assign(middle=lambda df: (df["left"] + df["right"]) // 2)
-            .drop(columns="_")
+            .assign(middle=lambda df: int((df["left"] + df["right"]) // 2))
+            .drop(columns=["chromosome", "id", "_"])
         )
-
-    def get_domains(self) -> pd.DataFrame:
-        dmns_df = pd.DataFrame(
-            {
-                "start": self.bndrs_df["right"].tolist()[:-1],
-                "end": self.bndrs_df["left"].tolist()[1:],
-            }
-        )
-        return dmns_df.assign(len=lambda df: df["end"] - df["start"])
 
     def _add_mean_c0_col(self) -> None:
         """Add mean c0 of each bndry"""
@@ -74,50 +88,32 @@ class HicExplBoundaries:
             in_promoter=lambda df: Genes(self._chrm).in_promoter(df["middle"])
         )
 
-    # TODO: Remove bndry, prmtr, non-prmtr bndrs mean c0 method
-    # TODO: domain_mean_c0 property?
-    def bndry_domain_mean_c0(self) -> tuple[float, float]:
+    def cover_mask(self):
+        return self._chrm.get_cvr_mask(self.bndrs_df[MIDDLE], self._lim, self._lim)
+
+    @property
+    def mean_c0(self) -> tuple[float, float]:
         """
         Returns:
             A tuple: bndry cvr mean, domain cvr mean
         """
-        if not (hasattr(self, "_bndrs_mean_c0") or hasattr(self, "_dmns_mean_c0")):
+        if not hasattr(self, "_mean_c0"):
             c0_spread = self._chrm.get_spread()
-            bndry_cvr = self._chrm.get_cvr_mask(
-                self.bndrs_df["middle"], self._lim, self._lim
-            )
-            self._bndrs_mean_c0, self._dmns_mean_c0 = (
-                c0_spread[bndry_cvr].mean(),
-                c0_spread[~bndry_cvr].mean(),
-            )
+            self._mean_c0 = c0_spread[self.cover_mask()].mean()
 
-        return self._bndrs_mean_c0, self._dmns_mean_c0
+        return self._mean_c0
 
-    def prmtr_bndrs_mean_c0(self) -> float:
-        return self._chrm.mean_c0_of_segments(
-            self.bndrs_df.iloc[self.bndrs_df["in_promoter"].to_numpy()]["middle"],
-            self._lim,
-            self._lim,
+    def prmtr_bndrs(self) -> BoundariesHE:
+        bndrs = BoundariesHE(self._chrm, self._res, self._lim)
+        bndrs.bndrs_df = pd.DataFrame([bndry for bndry in self if bndry[IN_PROMOTER]])
+        return bndrs
+
+    def non_prmtr_bndrs(self) -> BoundariesHE:
+        bndrs = BoundariesHE(self._chrm, self._res, self._lim)
+        bndrs.bndrs_df = pd.DataFrame(
+            [bndry for bndry in self if not bndry[IN_PROMOTER]]
         )
-
-    def non_prmtr_bndrs_mean_c0(self) -> float:
-        return self._chrm.mean_c0_of_segments(
-            self.bndrs_df.iloc[~(self.bndrs_df["in_promoter"].to_numpy())]["middle"],
-            self._lim,
-            self._lim,
-        )
-
-    def num_bndry_mean_c0_greater_than_dmn(self) -> PositiveInt:
-        _, dmns_mean_c0 = self.bndry_domain_mean_c0()
-        return (self.bndrs_df["mean_c0"] > dmns_mean_c0).sum()
-
-    def num_prmtr_bndry_mean_c0_greater_than_dmn(self) -> float:
-        _, dmns_mean_c0 = self.bndry_domain_mean_c0()
-        return (self.bndrs_df.query("in_promoter")["mean_c0"] > dmns_mean_c0).sum()
-
-    def num_non_prmtr_bndry_mean_c0_greater_than_dmns(self) -> float:
-        _, dmns_mean_c0 = self.bndry_domain_mean_c0()
-        return (self.bndrs_df.query("not in_promoter")["mean_c0"] > dmns_mean_c0).sum()
+        return bndrs
 
     def plot_scatter_mean_c0_each_bndry(self) -> Path:
         markers = ["o", "s"]
@@ -129,11 +125,11 @@ class HicExplBoundaries:
 
         PlotUtil().show_grid()
 
-        p_x = self.bndrs_df.query("in_promoter")["middle"]
-        np_x = self.bndrs_df.query("not in_promoter")["middle"]
+        p_x = self.bndrs_df.query(IN_PROMOTER)[MIDDLE]
+        np_x = self.bndrs_df.query(f"not {IN_PROMOTER}")[MIDDLE]
         plt.scatter(
             p_x,
-            self.bndrs_df.query("in_promoter")["mean_c0"],
+            self.bndrs_df.query(IN_PROMOTER)[MEAN_C0],
             marker=markers[0],
             label=labels[0],
             color=colors[0],
@@ -168,10 +164,86 @@ class HicExplBoundaries:
         )
 
 
+START = "start"
+END = "end"
+LEN = "len"
+
+
+class DomainsHE:
+    def __init__(self, chrm: Chromosome):
+        self._chrm = chrm
+        self._boundaries = BoundariesHE(chrm)
+        self._domains = self._get_domains()
+
+    def __iter__(self) -> Iterable[NamedTuple[START:int, END:int, LEN:int]]:
+        return self._domains.itertuples()
+
+    def __getitem__(self, key: str) -> pd.Series:
+        if key in self._domains.columns:
+            return self._domains[key]
+
+        raise KeyError
+
+    @property
+    def mean_c0(self) -> float:
+        if not hasattr(self, "_mean_c0"):
+            c0_spread = self._chrm.get_spread()
+            self._mean_c0 = c0_spread[~self._boundaries.cover_mask()].mean()
+
+        return self._mean_c0
+
+    def _get_domains(self) -> pd.DataFrame[START:int, END:int, LEN:int]:
+        return pd.DataFrame(
+            {
+                "start": self._boundaries[RIGHT].tolist()[:-1],
+                "end": self._boundaries[LEFT].tolist()[1:],
+            }
+        ).assign(len=lambda df: df["end"] - df["start"])
+
+
+class BoundariesDomainsHEQuery:
+    def __init__(self, chrm: Chromosome):
+        self._chrm = chrm
+        self._boundaries = BoundariesHE(chrm)
+        self._domains = DomainsHE(chrm)
+
+    def prmtr_bndrs_mean_c0(self) -> float:
+        return self._chrm.mean_c0_of_segments(
+            self._boundaries.prmtr_bndrs()[MIDDLE],
+            self._boundaries._lim,
+            self._boundaries._lim,
+        )
+
+    def non_prmtr_bndrs_mean_c0(self) -> float:
+        return self._chrm.mean_c0_of_segments(
+            self._boundaries.non_prmtr_bndrs()[MIDDLE],
+            self._boundaries._lim,
+            self._boundaries._lim,
+        )
+
+    def num_bndry_mean_c0_greater_than_dmn(self) -> PositiveInt:
+        return (self._boundaries[MEAN_C0] > self._domains.mean_c0).sum()
+
+    def num_prmtr_bndry_mean_c0_greater_than_dmn(self) -> float:
+        return (self._boundaries.prmtr_bndrs()[MEAN_C0] > self._domains.mean_c0).sum()
+
+    def num_non_prmtr_bndry_mean_c0_greater_than_dmns(self) -> float:
+        return (
+            self._boundaries.non_prmtr_bndrs()[MEAN_C0] > self._domains.mean_c0
+        ).sum()
+
+
+class MCBoundariesHE:
+    pass
+
+
+class MCDomainsHE:
+    pass
+
+
 # TODO:
-# - Create common MultiChrm Class for loops and boundaries. Factory? Composition?
-# - Have smaller name
-class MultiChrmHicExplBoundariesCollector:
+# Rewrite by using MCBoundaries and removing unnecessary procedures 
+class MCBoundariesHECollector:
     def __init__(
         self,
         prediction: Prediction,
@@ -198,10 +270,8 @@ class MultiChrmHicExplBoundariesCollector:
             )
         )
 
-    def _get_mc_bndrs(self) -> pd.Series[HicExplBoundaries]:
-        return self._chrms.apply(
-            lambda chrm: HicExplBoundaries(chrm, self._res, self._lim)
-        )
+    def _get_mc_bndrs(self) -> pd.Series[BoundariesHE]:
+        return self._chrms.apply(lambda chrm: BoundariesHE(chrm, self._res, self._lim))
 
     def _add_num_bndrs(self) -> Literal["num_bndrs"]:
         num_bndrs_col = "num_bndrs"
@@ -401,7 +471,7 @@ class MultiChrmHicExplBoundariesCollector:
 
     def plot_bar_perc_in_prmtrs(self) -> Path:
         chrms = self._chrms
-        mc_bndrs = chrms.apply(lambda chrm: HicExplBoundaries(chrm, self._res))
+        mc_bndrs = chrms.apply(lambda chrm: BoundariesHE(chrm, self._res))
         perc_in_prmtrs = mc_bndrs.apply(
             lambda bndrs: Genes(bndrs._chrm)
             .in_promoter(bndrs.bndrs_df["middle"])
@@ -438,18 +508,16 @@ class MultiChrmHicExplBoundariesCollector:
         # TODO: Reduce function calls. Access index with .name if needed.
         mc_bndrs = self._mc_bndrs
         num_mc_bndrs_gt = mc_bndrs.apply(
-            lambda bndrs: HicExplBoundaries.num_bndry_mean_c0_greater_than_dmn(bndrs)
+            lambda bndrs: BoundariesHE.num_bndry_mean_c0_greater_than_dmn(bndrs)
         ).sum()
         print("num_mc_bndrs_gt", num_mc_bndrs_gt)
         num_mc_prmtr_bndrs_gt = mc_bndrs.apply(
-            lambda bndrs: HicExplBoundaries.num_prmtr_bndry_mean_c0_greater_than_dmn(
-                bndrs
-            )
+            lambda bndrs: BoundariesHE.num_prmtr_bndry_mean_c0_greater_than_dmn(bndrs)
         ).sum()
         print("num_mc_prmtr_bndrs_gt", num_mc_prmtr_bndrs_gt)
 
         num_mc_non_prmtr_bndrs_gt = mc_bndrs.apply(
-            lambda bndrs: HicExplBoundaries.num_non_prmtr_bndry_mean_c0_greater_than_dmns(
+            lambda bndrs: BoundariesHE.num_non_prmtr_bndry_mean_c0_greater_than_dmns(
                 bndrs
             )
         ).sum()
@@ -466,8 +534,8 @@ class MultiChrmHicExplBoundariesCollector:
         print("num_mc_non_prmtr_bndrs", num_mc_non_prmtr_bndrs)
 
 
-class MultiChrmHicExplBoundariesAggregator:
-    def __init__(self, coll: MultiChrmHicExplBoundariesCollector):
+class MCBoundariesHEAggregator:
+    def __init__(self, coll: MCBoundariesHECollector):
         self._coll = coll
         self._agg_df = pd.DataFrame({"ChrIDs": [coll._coll_df["ChrID"].tolist()]})
 
