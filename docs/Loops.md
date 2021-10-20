@@ -2,21 +2,34 @@
 
 ## Experiments
 
-**Research Question**
-
-We ask whether bendability of sequences within loops are more bendable or less bendable. 
-
 **Methods**
 
-We predict bendability of sequences of all chromosomes in Yeast using our model. From these short sequences, we measure average bendability of long regions such as within loops or not within loops. Considering all chromosomes, sequences in loop = 80%, in non-loop = 20%. [?]
+- Predict bendability of sequences of all chromosomes in Yeast using our CNN model. 
+- From these short sequences, we measure average bendability of long regions such as within loops or not within loops. 
+- Considering all chromosomes, sequences in loop = 80%, in non-loop = 20%. [?]
 
-## Results
+We list the experiments with research questions as title.
 
-Out of 16 chromosomes, In 14 (87.5 %), loop regions are less bendable than non-loop regions. [1]
+### Compare C0 of sequences within loops and non-loops 
 
-Among total x loops, m loops (?) are less bendable than seq outside loops. [?]
+#### Mean C0 comparison in each chromosome
+
+`conformation.meanloops.MultiChrmMeanLoopsCollector.plot_scatter_loop_nuc_linker_mean()`
+
+![mean c0 all chrm](../figures/mcloops/nuc_linker_mean_md_30_mx_None.png)
+
+Out of 16 chromosomes, In 14 (87.5 %), loop regions are less bendable than non-loop regions.
+
+#### Mean C0 comparison of all loops vs. non-loops in all chromosomes
 
 
-## Reference
+- Among total x loops, m loops (?) are less bendable than seq outside loops. [?]
 
-[1] [Loop vs. Non-Loop C0 All Chromosomes](https://github.com/sadmankiba/bendability/blob/43d2bbf985832f2824f27e75b024b35bcac71b17/src/conformation/meanloops.py#L455)
+#### Histogram of mean C0 of all loops and non-loops in all chromosomes
+
+`conformation.coverloops.PlotMCCoverLoops.plot_histogram_c0()`
+
+![Double hist](../figures/mcloops/hist_c0_bins_40_all_pred.png)
+
+- Non-loops are slightly right of loops.
+

@@ -178,7 +178,7 @@ class MultiChrmMeanLoopsCollector:
     Result is stored in a dataframe for side-by-side comparison. The dataframe
     contains a row for each chromosome.
     """
-
+    # TODO: Use MultiChrm, MultiLoops
     OP_CHRM_MEAN = 0
     OP_CHRM_NUC_LINKER_MEAN = 1
     OP_LOOP_COVER_FRAC = 2
