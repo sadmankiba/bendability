@@ -93,12 +93,17 @@ class NonCoverLoops:
     def _noncoverloops_with_c0(
         self, cloops: CoverLoops
     ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:
-        # TODO: Save df
-        ncloops = self._noncoverloops(cloops)
-        ncloops[COL_MEAN_C0_FULL] = ncloops.apply(
-            lambda ncl: self._chrm.mean_c0_segment(*ncl[[COL_START, COL_END]]), axis=1
+        def _calc_mean_c0() -> pd.DataFrame:
+            ncloops = self._noncoverloops(cloops)
+            ncloops[COL_MEAN_C0_FULL] = ncloops.apply(
+                lambda ncl: self._chrm.mean_c0_segment(*ncl[[COL_START, COL_END]]), axis=1
+            )
+            return ncloops
+
+        return DataCache.dataframe(
+            f"loops/noncover_c0_{self._chrm._chr_id}.tsv",
+            _calc_mean_c0,
         )
-        return ncloops
 
     def _noncoverloops(
         self, cloops: CoverLoops

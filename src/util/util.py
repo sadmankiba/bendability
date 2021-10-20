@@ -284,6 +284,7 @@ class FileSave:
 
         return self.tsv(df, path_str)
 
+
 class DataCache:
     """Class that caches data. Calculates if needed."""
     @classmethod
@@ -295,6 +296,7 @@ class DataCache:
         df = cb()
         FileSave.tsv(df, savepath)
         return df
+
 
 class PlotUtil:
     @classmethod
