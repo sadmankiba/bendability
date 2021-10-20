@@ -78,6 +78,12 @@ class NonCoverLoops:
     ) -> Iterable[NamedTuple[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]]:
         return self._ncloops.itertuples()
 
+    def __getitem__(self, key) -> pd.Series:
+        if key in self._ncloops.columns:
+            return self._ncloops[key]
+
+        raise KeyError
+    
     def _noncoverloops_with_c0(
         self, cloops: CoverLoops
     ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:

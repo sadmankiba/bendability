@@ -45,30 +45,36 @@ class TestNonCoverLoops:
 
 
 class TestPlotCoverLoops:
-    def test_plot_histogram_c0(self):
-        ploops = PlotCoverLoops(Chromosome("VL"))
+    def test_plot_histogram_c0(self, chrm_vl):
+        ploops = PlotCoverLoops(chrm_vl)
         figpath = ploops.plot_histogram_c0()
         assert figpath.is_file()
 
+@pytest.fixture
+def mchrm_vl_i():
+    return MultiChrm(("VL", "I"))
 
 class TestMCCoverLoops:
-    def test_creation(self, cloops_vl):
-        mccl = MCCoverLoops(MCLoops(MultiChrm(("VL", "I"))))
-        cli = CoverLoops(Loops(Chromosome("I")))
+    def test_creation(self, mchrm_vl_i, cloops_vl, chrm_i):
+        mccl = MCCoverLoops(MCLoops(mchrm_vl_i))
+        cli = CoverLoops(Loops(chrm_i))
         assert len(mccl) == len(cloops_vl) + len(cli)
 
 
 class TestPlotMCCoverLoops:
-    def test_histogram(self):
-        figpath = PlotMCCoverLoops(MultiChrm(("VL", "I"))).plot_histogram_c0()
+    def test_histogram(self, mchrm_vl_i):
+        figpath = PlotMCCoverLoops(mchrm_vl_i).plot_histogram_c0()
         assert figpath.is_file()
 
+@pytest.fixture 
+def mclccoll_vl():
+    return MultiChrmLoopsCoverCollector(
+            ("VL",), 1000000
+        )
 
 class TestMultiChrmLoopsCoverCollector:
-    def test_get_cover_stat(self):
-        colt_df, path_str = MultiChrmLoopsCoverCollector(
-            ("VL",), 1000000
-        ).get_cover_stat()
+    def test_get_cover_stat(self, mclccoll_vl):
+        colt_df, path_str = mclccoll_vl.get_cover_stat()
         assert Path(path_str).is_file()
         assert pd.read_csv(path_str, sep="\t").columns.tolist() == [
             "ChrID",
@@ -78,6 +84,6 @@ class TestMultiChrmLoopsCoverCollector:
             "non_loop_linker",
         ]
 
-    def test_plot_cover_stat(self):
-        path_str = MultiChrmLoopsCoverCollector(("VL",), 100000).plot_bar_cover_stat()
+    def test_plot_cover_stat(self, mclccoll_vl):
+        path_str = mclccoll_vl.plot_bar_cover_stat()
         assert Path(path_str).is_file()

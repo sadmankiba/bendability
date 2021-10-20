@@ -1,9 +1,8 @@
 import pytest
 
 from conformation.loops import Loops
-from chromosome.chromosome import Chromosome
 
 
 @pytest.fixture
-def loops_vl():
-    return Loops(Chromosome("VL"))
+def loops_vl(chrm_vl):
+    return Loops(chrm_vl)
