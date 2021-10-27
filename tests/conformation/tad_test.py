@@ -18,7 +18,7 @@ from models.prediction import Prediction
 from chromosome.genes import Genes
 
 
-@pytest.mark.skip(reason="Updating tad")
+pytest.mark.skip(reason="Updating tad")
 
 
 class TestBoundariesHE:

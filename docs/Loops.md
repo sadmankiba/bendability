@@ -16,7 +16,7 @@ We list the experiments below:
 
 `conformation.meanloops.MultiChrmMeanLoopsCollector.plot_scatter_loop_nuc_linker_mean()`
 
-![Mean c0 all chrm](../figures/mcloops/nuc_linker_mean_md_30_mx_None.png)
+![Mean c0 all chrm](../figures/mcloops/nuc_linker_mean_md_30_mx_None_without_vl.png)
 
 - Out of 16 chromosomes, In 14 (87.5 %), loop regions are less bendable than non-loop regions.
 
