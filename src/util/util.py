@@ -193,19 +193,13 @@ class PathObtain:
     inspect.currentframe() creates correct path when module is called from other
     directories. (e.g. child directory)
     """
-
-    @classmethod
-    def parent_dir(self, currentframe: FrameType) -> Path:
-        """Find parent directory path in runtime"""
-        return Path(inspect.getabsfile(currentframe)).parent
-
-    @classmethod
-    def figure_dir(self) -> str:
-        return f"{self.root_dir()}/figures"
-
     @classmethod
     def gen_data_dir(self) -> str:
         return f"{self.data_dir()}/generated_data/"
+
+    @classmethod
+    def input_dir(self) -> str:
+        return f"{self.data_dir()}/input_data"
 
     @classmethod
     def data_dir(self) -> str:
@@ -216,10 +210,18 @@ class PathObtain:
         return f"{self.root_dir()}/hic/data"
 
     @classmethod
+    def figure_dir(self) -> str:
+        return f"{self.root_dir()}/figures"
+
+    @classmethod
     def root_dir(self) -> Path:
         parent_dir = self.parent_dir(inspect.currentframe())
         return parent_dir.parent.parent
 
+    @classmethod
+    def parent_dir(self, currentframe: FrameType) -> Path:
+        """Find parent directory path in runtime"""
+        return Path(inspect.getabsfile(currentframe)).parent
 
 class FileSave:
     @classmethod
