@@ -90,11 +90,12 @@ class TestBoundariesHE:
         non_prmtr_bndrs_gt = bndrs.num_non_prmtr_bndry_mean_c0_greater_than_dmns()
         assert bndrs_gt == prmtr_bndrs_gt + non_prmtr_bndrs_gt
 
-    def test_plot_scatter_mean_c0_each_bndry(self):
-        bndrs = BoundariesHE(Chromosome("VL"))
-        path = bndrs.plot_scatter_mean_c0_each_bndry()
-        assert path.is_file()
+    def test_plot_scatter_mean_c0_each_bndry(self, chrm_vl):
+        figpath = BoundariesHE(chrm_vl).plot_scatter_mean_c0_each_bndry()
+        assert figpath.is_file()
 
+class TestPlotBoundariesHE:
+    pass
 
 class TestMCBoundariesHECollector:
     def test_add_dmns_mean(self):

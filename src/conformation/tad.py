@@ -63,17 +63,16 @@ class BoundariesHE:
     def _read_boundaries(
         self,
     ) -> pd.DataFrame[LEFT:int, RIGHT:int, MIDDLE:int, SCORE:float]:
-        return (
-            pd.read_table(
-                f"{PathObtain.data_dir()}/input_data/domains/"
-                f"{self._chrm.number}_res_{self._res}_hicexpl_boundaries.bed",
-                delim_whitespace=True,
-                header=None,
-                names=["chromosome", LEFT, RIGHT, "id", SCORE, "_"],
-            )
-            .assign(middle=lambda df: int((df["left"] + df["right"]) // 2))
-            .drop(columns=["chromosome", "id", "_"])
+        df = pd.read_table(
+            f"{PathObtain.input_dir()}/domains/"
+            f"{self._chrm.number}_res_{self._res}_hicexpl_boundaries.bed",
+            delim_whitespace=True,
+            header=None,
+            names=["chromosome", LEFT, RIGHT, "id", SCORE, "_"],
         )
+        return df.assign(
+            middle=lambda df: ((df[LEFT] + df[RIGHT]) / 2).astype(int)
+        ).drop(columns=["chromosome", "id", "_"])
 
     def _add_mean_c0_col(self) -> None:
         """Add mean c0 of each bndry"""
@@ -105,13 +104,13 @@ class BoundariesHE:
 
     def prmtr_bndrs(self) -> BoundariesHE:
         bndrs = BoundariesHE(self._chrm, self._res, self._lim)
-        bndrs.bndrs_df = pd.DataFrame([bndry for bndry in self if bndry[IN_PROMOTER]])
+        bndrs.bndrs_df = pd.DataFrame([bndry for bndry in self if getattr(bndry, IN_PROMOTER)])
         return bndrs
 
     def non_prmtr_bndrs(self) -> BoundariesHE:
         bndrs = BoundariesHE(self._chrm, self._res, self._lim)
         bndrs.bndrs_df = pd.DataFrame(
-            [bndry for bndry in self if not bndry[IN_PROMOTER]]
+            [bndry for bndry in self if not getattr(bndry, IN_PROMOTER)]
         )
         return bndrs
 
