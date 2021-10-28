@@ -32,18 +32,10 @@ class MeanLoops:
         return (
             loops[list(filter(lambda i: loops[i]["len"] <= quart1, loops.index))],
             loops[
-                list(
-                    filter(
-                        lambda i: quart1 < loops[i]["len"] <= quart2, loops.index
-                    )
-                )
+                list(filter(lambda i: quart1 < loops[i]["len"] <= quart2, loops.index))
             ],
             loops[
-                list(
-                    filter(
-                        lambda i: quart2 < loops[i]["len"] <= quart3, loops.index
-                    )
-                )
+                list(filter(lambda i: quart2 < loops[i]["len"] <= quart3, loops.index))
             ],
             loops[list(filter(lambda i: quart3 < loops[i]["len"], loops.index))],
         )
@@ -641,7 +633,7 @@ class MultiChrmMeanLoopsAggregator:
         all_loops_df = self._coll.get_loops_data()
         x = all_loops_df[COL_LEN]
         y = all_loops_df[COL_MEAN_C0_FULL]
-        PlotUtil().show_grid()
+        PlotUtil.show_grid()
         plt.scatter(x, y)
         plt.xscale("log")
 

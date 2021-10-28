@@ -43,7 +43,7 @@ class Genes:
 
         plt.close()
         plt.clf()
-        PlotUtil().show_grid()
+        PlotUtil.show_grid()
         plt.plot(np.arange(-600, 400 + 1), mean_c0)
 
         plt.xlabel("Distance from dyad (bp)")

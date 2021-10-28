@@ -259,15 +259,15 @@ class PlotLoops:
             - (total_perc - 100) / 2
         )
         plt.plot(x, mean_val, color="tab:blue")
-        self._chrm.plot_horizontal_line(chr_spread.mean())
+        self._chrm.horizline(chr_spread.mean())
         plt.grid()
 
         if total_perc >= 100:
             for pos in [0, 100]:
-                PlotUtil().plot_vertical_line(pos, "tab:green", "anchor")
+                PlotUtil.plot_vertical_line(pos, "tab:green", "anchor")
 
         center = 50
-        PlotUtil().plot_vertical_line(center, "tab:orange", "center")
+        PlotUtil.plot_vertical_line(center, "tab:orange", "center")
 
         plt.xlabel("Position along loop (percentage)")
         plt.ylabel(val_type)
@@ -300,7 +300,7 @@ class PlotLoops:
         self._chrm.plot_avg()
 
         plt.legend()
-        PlotUtil().show_grid()
+        PlotUtil.show_grid()
         plt.xlabel("Distance from loop anchor(bp)")
         plt.ylabel("C0")
         plt.title(
@@ -377,7 +377,7 @@ class PlotLoops:
         plt.close()
         plt.clf()
 
-        PlotUtil().show_grid()
+        PlotUtil.show_grid()
 
         x = np.arange(len(sorted_loop_df))
         for i, col in enumerate(sorted_loop_df[mean_cols]):
@@ -394,13 +394,9 @@ class PlotLoops:
         non_loops_mean = c0_spread[~loops_cover].mean()
         non_loops_nuc_mean = c0_spread[~loops_cover & nucs_cover].mean()
         non_loops_linker_mean = c0_spread[~loops_cover & ~nucs_cover].mean()
-        PlotUtil().plot_horizontal_line(non_loops_mean, non_loop_colors[0], "non-loop")
-        PlotUtil().plot_horizontal_line(
-            non_loops_nuc_mean, non_loop_colors[1], "non-loop nuc"
-        )
-        PlotUtil().plot_horizontal_line(
-            non_loops_linker_mean, non_loop_colors[2], "non-loop linker"
-        )
+        PlotUtil.horizline(non_loops_mean, non_loop_colors[0], "non-loop")
+        PlotUtil.horizline(non_loops_nuc_mean, non_loop_colors[1], "non-loop nuc")
+        PlotUtil.horizline(non_loops_linker_mean, non_loop_colors[2], "non-loop linker")
 
         plt.grid()
 

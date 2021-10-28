@@ -98,7 +98,7 @@ class TestPlotUtil:
 
         category_labels = ["Cat A", "Cat B", "Cat C", "Cat D"]
 
-        PlotUtil().plot_stacked_bar(
+        PlotUtil.plot_stacked_bar(
             data,
             series_labels,
             category_labels,

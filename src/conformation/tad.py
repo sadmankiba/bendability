@@ -123,8 +123,10 @@ class BoundariesHE:
         plt.close()
         plt.clf()
 
-        PlotUtil().show_grid()
+        PlotUtil.show_grid()
 
+        prmtr_bndrs = self.prmtr_bndrs()
+        nonprmtr_bndrs = self.non_prmtr_bndrs()
         p_x = self.bndrs_df.query(IN_PROMOTER)[MIDDLE]
         np_x = self.bndrs_df.query(f"not {IN_PROMOTER}")[MIDDLE]
         plt.scatter(
@@ -144,11 +146,10 @@ class BoundariesHE:
 
         # Plot horizontal lines for mean C0 of non-loop nuc, linker
         horiz_colors = ["tab:green", "tab:red", "tab:purple"]
-        bndrs_mean_c0, dmns_mean_c0 = self.bndry_domain_mean_c0()
         chrm_mean_c0 = self._chrm.c0_spread().mean()
-        PlotUtil().plot_horizontal_line(dmns_mean_c0, horiz_colors[0], "domains")
-        PlotUtil().plot_horizontal_line(chrm_mean_c0, horiz_colors[1], "chromosome")
-        PlotUtil().plot_horizontal_line(bndrs_mean_c0, horiz_colors[2], "boundaries")
+        PlotUtil.horizline(DomainsHE(self._chrm).mean_c0, horiz_colors[0], "domains")
+        PlotUtil.horizline(chrm_mean_c0, horiz_colors[1], "chromosome")
+        PlotUtil.horizline(self.mean_c0, horiz_colors[2], "boundaries")
 
         # Decorate
         plt.xlabel("Position along chromosome (bp)")
@@ -162,6 +163,10 @@ class BoundariesHE:
         return FileSave.figure(
             f"{PathObtain.figure_dir()}/domains/mean_c0_scatter_{self}.png"
         )
+
+
+class PlotBoundariesHE:
+    pass
 
 
 START = "start"
@@ -453,7 +458,7 @@ class MCBoundariesHECollector:
         print("non prmtr bndrs > dmns:", (mc_non_prmtr_bndrs_c0 > mc_dmns_c0).sum())
         print("chrms > dmns:", (chrm_means.to_numpy() > mc_dmns_c0).sum())
 
-        PlotUtil().show_grid()
+        PlotUtil.show_grid()
         x = np.arange(len(self._chrids))
         markers = ["o", "s", "p", "P", "*"]
         labels = [
@@ -495,7 +500,7 @@ class MCBoundariesHECollector:
             * 100
         )
 
-        PlotUtil().show_grid()
+        PlotUtil.show_grid()
         x = np.arange(len(self._chrids))
         plt.bar(x, perc_in_prmtrs)
         plt.xticks(x, self._chrids)

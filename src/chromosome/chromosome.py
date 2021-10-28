@@ -304,7 +304,7 @@ class Chromosome:
             :,
         ]
 
-    def plot_horizontal_line(self, *args) -> None:
+    def horizline(self, *args) -> None:
         # TODO: Remove middle
         PlotUtil.plot_avg_horiz_line(*args)
 

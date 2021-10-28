@@ -80,7 +80,7 @@ class CoverLoops:
 class NonCoverLoops:
     def __init__(self, loops: Loops):
         self._chrm = loops.chrm
-        
+
         cloops = CoverLoops(loops)
         self.covermask = ~cloops.covermask
         self._ncloops = self._noncoverloops_with_c0(cloops)
@@ -301,7 +301,7 @@ class MultiChrmLoopsCoverCollector:
         colt_df = self.get_cover_stat()[0]
         colt_arr = colt_df[labels].values
         mpl.rcParams.update({"font.size": 12})
-        PlotUtil().plot_stacked_bar(
+        PlotUtil.plot_stacked_bar(
             colt_arr.transpose() * 100,
             labels,
             colt_df["ChrID"].tolist(),

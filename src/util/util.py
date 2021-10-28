@@ -193,6 +193,7 @@ class PathObtain:
     inspect.currentframe() creates correct path when module is called from other
     directories. (e.g. child directory)
     """
+
     @classmethod
     def gen_data_dir(self) -> str:
         return f"{self.data_dir()}/generated_data/"
@@ -222,6 +223,7 @@ class PathObtain:
     def parent_dir(self, currentframe: FrameType) -> Path:
         """Find parent directory path in runtime"""
         return Path(inspect.getabsfile(currentframe)).parent
+
 
 class FileSave:
     @classmethod
@@ -257,7 +259,7 @@ class FileSave:
 
         logging.info(f"TSV file saved at: {path}")
         return path
-    
+
     @classmethod
     def npy(self, arr: np.ndarray, path_str: Union[str, Path]) -> Path:
         path = Path(path_str)
@@ -289,6 +291,7 @@ class FileSave:
 
 class DataCache:
     """Class that caches data. Calculates if needed."""
+
     @classmethod
     def dataframe(self, subpath: str | Path, cb: Callable):
         savepath = Path(f"{PathObtain.gen_data_dir()}/{subpath}")
@@ -306,10 +309,10 @@ class PlotUtil:
         """
         Plot a horizontal red line denoting avg
         """
-        self.plot_horizontal_line(y, "r", "avg")
+        self.horizline(y, "r", "avg")
 
     @classmethod
-    def plot_horizontal_line(self, y: float, color: str, text: str):
+    def horizline(self, y: float, color: str, text: str):
         plt.axhline(y=y, color=color, linestyle="-")
         x_lim = plt.gca().get_xlim()
         plt.text(
