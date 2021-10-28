@@ -98,7 +98,7 @@ class BoundariesHE:
             A tuple: bndry cvr mean, domain cvr mean
         """
         if not hasattr(self, "_mean_c0"):
-            c0_spread = self._chrm.get_spread()
+            c0_spread = self._chrm.c0_spread()
             self._mean_c0 = c0_spread[self.cover_mask()].mean()
 
         return self._mean_c0
@@ -145,7 +145,7 @@ class BoundariesHE:
         # Plot horizontal lines for mean C0 of non-loop nuc, linker
         horiz_colors = ["tab:green", "tab:red", "tab:purple"]
         bndrs_mean_c0, dmns_mean_c0 = self.bndry_domain_mean_c0()
-        chrm_mean_c0 = self._chrm.get_spread().mean()
+        chrm_mean_c0 = self._chrm.c0_spread().mean()
         PlotUtil().plot_horizontal_line(dmns_mean_c0, horiz_colors[0], "domains")
         PlotUtil().plot_horizontal_line(chrm_mean_c0, horiz_colors[1], "chromosome")
         PlotUtil().plot_horizontal_line(bndrs_mean_c0, horiz_colors[2], "boundaries")
@@ -187,7 +187,7 @@ class DomainsHE:
     @property
     def mean_c0(self) -> float:
         if not hasattr(self, "_mean_c0"):
-            c0_spread = self._chrm.get_spread()
+            c0_spread = self._chrm.c0_spread()
             self._mean_c0 = c0_spread[~self._boundaries.cover_mask()].mean()
 
         return self._mean_c0
@@ -237,10 +237,10 @@ class MCBoundariesHE:
     def __init__(self, mchrm: MultiChrm):
         self._mchrm = mchrm
         self._bndrs = list(map(lambda c: BoundariesHE(c), mchrm))
-        
+
     def __iter__(self):
         return iter(self._bndrs)
-    
+
     def __str__(self):
         return str(self._mchrm)
 
@@ -249,16 +249,16 @@ class MCDomainsHE:
     def __init__(self, mchrm: MultiChrm):
         self._mchrm = mchrm
         self._dmns = list(map(lambda c: DomainsHE(c), mchrm))
-        
+
     def __iter__(self):
         return iter(self._dmns)
-    
+
     def __str__(self):
         return str(self._mchrm)
 
 
 # TODO:
-# Rewrite by using MCBoundaries and removing unnecessary procedures 
+# Rewrite by using MCBoundaries and removing unnecessary procedures
 class MCBoundariesHECollector:
     def __init__(
         self,
@@ -435,7 +435,7 @@ class MCBoundariesHECollector:
         """Draw scatter plot of mean c0 at boundaries and domains of
         chromosomes"""
         chrms = self._chrms
-        chrm_means = chrms.apply(lambda chrm: chrm.get_spread().mean())
+        chrm_means = chrms.apply(lambda chrm: chrm.c0_spread().mean())
 
         mc_bndrs = self._mc_bndrs
         mc_prmtr_bndrs_c0 = mc_bndrs.apply(lambda bndrs: bndrs.prmtr_bndrs_mean_c0())

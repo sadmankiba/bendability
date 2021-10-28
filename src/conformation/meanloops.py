@@ -44,13 +44,13 @@ class MeanLoops:
             loop_df = self._loops._loop_df
 
         return round(
-            self._loops._chr.get_spread()[self._loops.covermask(loop_df)].mean(), 3
+            self._loops._chr.c0_spread()[self._loops.covermask(loop_df)].mean(), 3
         )
 
     def in_complete_non_loop(self) -> float:
         """Find single average c0 of non-loop cover in a chromosome."""
         return round(
-            self._loops._chr.get_spread()[
+            self._loops._chr.c0_spread()[
                 ~self._loops.covermask(self._loops._loop_df)
             ].mean(),
             3,
@@ -73,7 +73,7 @@ class MeanLoops:
         if loop_df is None:
             loop_df = self._loops._loop_df
 
-        chrv_c0_spread = self._loops._chr.get_spread()
+        chrv_c0_spread = self._loops._chr.c0_spread()
 
         def _avg_c0_in_quartile_by_pos(row: pd.Series) -> list[float]:
             quart_pos = row.quantile([0.0, 0.25, 0.5, 0.75, 1.0]).astype(int)
@@ -115,7 +115,7 @@ class MeanLoops:
         if loop_df is None:
             loop_df = self._loops._loop_df
 
-        chrv_c0_spread = self._loops._chr.get_spread()
+        chrv_c0_spread = self._loops._chr.c0_spread()
 
         loop_df = loop_df.assign(center=lambda df: (df["start"] + df["end"]) / 2)
 
@@ -157,8 +157,8 @@ class MeanLoops:
 
         loop_cover = self._loops.covermask(self._loops._loop_df)
         return (
-            np.round(self._loops._chr.get_spread()[loop_cover & nuc_cover].mean(), 3),
-            np.round(self._loops._chr.get_spread()[loop_cover & ~nuc_cover].mean(), 3),
+            np.round(self._loops._chr.c0_spread()[loop_cover & nuc_cover].mean(), 3),
+            np.round(self._loops._chr.c0_spread()[loop_cover & ~nuc_cover].mean(), 3),
         )
 
     def in_non_loop_nuc_linker(self, nuc_half: int = 73):
@@ -166,8 +166,8 @@ class MeanLoops:
 
         loop_cover = self._loops.covermask(self._loops._loop_df)
         return (
-            np.round(self._loops._chr.get_spread()[~loop_cover & nuc_cover].mean(), 3),
-            np.round(self._loops._chr.get_spread()[~loop_cover & ~nuc_cover].mean(), 3),
+            np.round(self._loops._chr.c0_spread()[~loop_cover & nuc_cover].mean(), 3),
+            np.round(self._loops._chr.c0_spread()[~loop_cover & ~nuc_cover].mean(), 3),
         )
 
 
@@ -244,7 +244,7 @@ class MultiChrmMeanLoopsCollector:
 
     def _add_chrm_mean(self) -> None:
         self._mcloop_df["chromosome"] = self._chrs.apply(
-            lambda chr: chr.get_spread().mean()
+            lambda chr: chr.c0_spread().mean()
         )
 
     def _add_chrm_nuc_linker_mean(self) -> None:

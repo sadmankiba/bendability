@@ -186,7 +186,7 @@ class Spread:
 
         return spread
 
-    def get_spread(self, spread_str: SpreadType) -> np.ndarray:
+    def c0_spread(self, spread_str: SpreadType) -> np.ndarray:
         if spread_str == "mean7":
             return self._mean_of_7()
         elif spread_str == "mean_cover":
@@ -394,11 +394,11 @@ class Chromosome:
         plt.show()
 
     # TODO: Make spread, predict model no -> property
-    def get_spread(self) -> np.ndarray:
+    def c0_spread(self) -> np.ndarray:
         if not hasattr(self, "_c0_spread"):
             self._c0_spread = Spread(
                 self._df["C0"].values, self._chr_id, self.predict_model_no()
-            ).get_spread(self.spread_str)
+            ).c0_spread(self.spread_str)
 
         return self._c0_spread
 
@@ -423,7 +423,7 @@ class Chromosome:
         result = np.array(
             list(
                 map(
-                    lambda bp: self.get_spread()[bp - 1 - neg_lim : bp + pos_lim],
+                    lambda bp: self.c0_spread()[bp - 1 - neg_lim : bp + pos_lim],
                     np.array(bps),
                 )
             )
@@ -448,7 +448,7 @@ class Chromosome:
         return cvr_arr
 
     def mean_c0_segment(self, start: OneIdxPos, end: OneIdxPos) -> float:
-        return self.get_spread()[start - 1 : end].mean()
+        return self.c0_spread()[start - 1 : end].mean()
 
     def mean_c0_of_segments(
         self,
@@ -463,7 +463,7 @@ class Chromosome:
         """
         # TODO: Support one limit
         cvr = self.get_cvr_mask(bps, neg_lim, pos_lim)
-        result = self.get_spread()[cvr].mean()
+        result = self.c0_spread()[cvr].mean()
         return result
 
     def mean_c0_at_bps(
@@ -481,9 +481,7 @@ class Chromosome:
         result = np.array(
             list(
                 map(
-                    lambda bp: self.get_spread()[
-                        bp - 1 - neg_lim : bp + pos_lim
-                    ].mean(),
+                    lambda bp: self.c0_spread()[bp - 1 - neg_lim : bp + pos_lim].mean(),
                     np.array(bps),
                 )
             )

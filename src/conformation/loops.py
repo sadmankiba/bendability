@@ -98,7 +98,7 @@ class Loops:
         if all(list(map(lambda col: col in self._loop_df.columns, mean_cols))):
             return pd.Series(mean_cols)
 
-        c0_spread = self._chr.get_spread()
+        c0_spread = self._chr.c0_spread()
         nucs = Nucleosome(self._chr)
         nucs_cover = nucs.get_nuc_regions()
 
@@ -167,7 +167,7 @@ class PlotLoops:
         Line plot of mean C0 across total loop vs. position along loop
         (percentage)
         """
-        return self._plot_mean_across_loops(total_perc, self._chrm.get_spread(), "c0")
+        return self._plot_mean_across_loops(total_perc, self._chrm.c0_spread(), "c0")
 
     def plot_mean_nuc_occupancy_across_loops(self, total_perc=150) -> Path:
         return self._plot_mean_across_loops(
@@ -345,7 +345,7 @@ class PlotLoops:
         nucs = Nucleosome(self._chrm)
         nucs_cover = nucs.get_nuc_regions()
         loops_cover = self._loops.covermask()
-        c0_spread = self._chrm.get_spread()
+        c0_spread = self._chrm.c0_spread()
 
         mean_cols = self._loops.add_mean_c0()
         sorted_loop_df = self._loops._loop_df.sort_values("len", ignore_index=True)

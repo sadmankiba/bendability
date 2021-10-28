@@ -124,7 +124,7 @@ class Nucleosome:
         Args:
             dist: +-distance from dyad to plot (1-indexed)
         """
-        spread_c0 = self._chr.get_spread()
+        spread_c0 = self._chr.c0_spread()
         centers = self._get_nuc_centers()
 
         # Read C0 of -dist to +dist sequences
@@ -193,7 +193,7 @@ class Nucleosome:
             nuc_half < 73 would mean including some nuc region with linker.
             might give less difference.
         """
-        spread_c0 = self._chr.get_spread()
+        spread_c0 = self._chr.c0_spread()
         nuc_regions = self.get_nuc_regions(nuc_half)
         nuc_avg = spread_c0[nuc_regions].mean()
         linker_avg = spread_c0[~nuc_regions].mean()

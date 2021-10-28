@@ -21,12 +21,14 @@ class TestMeanLoops:
         assert -0.3 < mean < 0
 
     def test_in_complete_non_loop(self):
-        mean = MeanLoops(Loops(Chromosome("VL", spread_str="mean7"))).in_complete_non_loop()
+        mean = MeanLoops(
+            Loops(Chromosome("VL", spread_str="mean7"))
+        ).in_complete_non_loop()
         assert_almost_equal(mean, -0.161, decimal=3)
 
     def test_validate_complete_loop_non_loop(self):
         chrm = Chromosome("VL", None)
-        chrm_mean = chrm.get_spread().mean()
+        chrm_mean = chrm.c0_spread().mean()
 
         mloops = MeanLoops(Loops(chrm))
         loop_mean = mloops.in_complete_loop()

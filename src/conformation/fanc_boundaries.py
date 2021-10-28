@@ -131,7 +131,7 @@ class FancBoundaryAnalysis:
         one_eighth_regions = self._boundary.get_one_eighth_regions_in(chrm._chr_id)
         assert len(one_eighth_regions) == 8
 
-        c0_spread = chrm.get_spread()
+        c0_spread = chrm.c0_spread()
 
         def _mean_at(position: int) -> float:
             """Calculate mean C0 of a region around a position"""

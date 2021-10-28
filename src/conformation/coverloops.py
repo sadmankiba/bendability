@@ -46,11 +46,12 @@ class CoverLoops:
     @property
     def mean_c0(self) -> float:
         if not hasattr(self, "_mean_c0"):
-            self._mean_c0 = self._chrm.get_spread()[self.covermask].mean()
+            self._mean_c0 = self._chrm.c0_spread()[self.covermask].mean()
 
         return self._mean_c0
 
-    def _coverloops_with_c0(self
+    def _coverloops_with_c0(
+        self,
     ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:
         def _calc_mean_c0() -> pd.DataFrame:
             cloops = self._coverloops()
@@ -65,8 +66,12 @@ class CoverLoops:
         )
 
     def _coverloops(self) -> pd.DataFrame[COL_START:int, COL_END:int]:
-        clstarts = NumpyTool.match_pattern(self.covermask, [False, True]) + 1 + ONE_INDEX_START
-        clends = NumpyTool.match_pattern(self.covermask, [True, False]) + ONE_INDEX_START
+        clstarts = (
+            NumpyTool.match_pattern(self.covermask, [False, True]) + 1 + ONE_INDEX_START
+        )
+        clends = (
+            NumpyTool.match_pattern(self.covermask, [True, False]) + ONE_INDEX_START
+        )
         assert len(clstarts) == len(clends)
 
         return pd.DataFrame({COL_START: clstarts, COL_END: clends})
@@ -94,7 +99,7 @@ class NonCoverLoops:
     @property
     def mean_c0(self) -> float:
         if not hasattr(self, "_mean_c0"):
-            c0_spread = self._chrm.get_spread()
+            c0_spread = self._chrm.c0_spread()
             self._mean_c0 = c0_spread[~self._boundaries.cover_mask()].mean()
 
         return self._mean_c0

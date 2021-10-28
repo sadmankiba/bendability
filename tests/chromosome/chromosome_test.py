@@ -32,7 +32,7 @@ class TestSpread:
         spread_c0 = spread._mean_of_7()
         assert spread_c0.shape == (CHRV_TOTAL_BP,)
         samples = spread_c0[np.random.randint(0, CHRVL_LEN - 1, 100)]
-        
+
         assert np.all(samples < 2.5)
         assert np.all(samples > -2.5)
 
@@ -49,7 +49,7 @@ class TestSpread:
         spread = Spread(chrm_vl._df["C0"].to_numpy(), chrm_vl._chr_id)
         spread_c0 = spread._weighted_covering_seq()
         assert spread_c0.shape == (CHRV_TOTAL_BP,)
-        
+
         samples = spread_c0[np.random.randint(0, CHRVL_LEN - 1, 100)]
         assert np.all(samples < 2.5)
         assert np.all(samples > -2.5)
@@ -75,14 +75,14 @@ class TestChromosome:
         assert mn[1] > -1
         assert mn[1] < 1
 
-    def test_get_spread_saving(self, chrm_i : Chromosome):
+    def test_c0_spread_saving(self, chrm_i: Chromosome):
         t = time.time()
-        sp_one = chrm_i.get_spread()
+        sp_one = chrm_i.c0_spread()
         dr_one = time.time() - t
         assert hasattr(chrm_i, "_c0_spread")
 
         t = time.time()
-        sp_two = chrm_i.get_spread()
+        sp_two = chrm_i.c0_spread()
         assert len(sp_one) == len(sp_two)
 
         dr_two = time.time() - t
