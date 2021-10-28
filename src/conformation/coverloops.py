@@ -26,7 +26,8 @@ class CoverLoops:
 
     def __init__(self, loops: Loops):
         self._chrm = loops.chrm
-        self._cloops = self._coverloops_with_c0(loops)
+        self.covermask = loops.covermask()
+        self._cloops = self._coverloops_with_c0()
 
     def __len__(self):
         return len(self._cloops)
@@ -42,11 +43,17 @@ class CoverLoops:
 
         raise KeyError
 
-    def _coverloops_with_c0(
-        self, loops: Loops
+    @property
+    def mean_c0(self) -> float:
+        if not hasattr(self, "_mean_c0"):
+            self._mean_c0 = self._chrm.get_spread()[self.covermask].mean()
+
+        return self._mean_c0
+
+    def _coverloops_with_c0(self
     ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:
         def _calc_mean_c0() -> pd.DataFrame:
-            cloops = self._coverloops(loops)
+            cloops = self._coverloops()
             cloops[COL_MEAN_C0_FULL] = cloops.apply(
                 lambda cl: self._chrm.mean_c0_segment(*cl[[COL_START, COL_END]]), axis=1
             )
@@ -57,15 +64,9 @@ class CoverLoops:
             _calc_mean_c0,
         )
 
-    def _coverloops(self, loops: Loops) -> pd.DataFrame[COL_START:int, COL_END:int]:
-        lcv = loops.get_loop_cover()
-        return self._loops_from_cover(lcv)
-
-    def _loops_from_cover(
-        self, lcv: NDArray[(Any,)]
-    ) -> pd.DataFrame[COL_START:int, COL_END:int]:
-        clstarts = NumpyTool.match_pattern(lcv, [False, True]) + 1 + ONE_INDEX_START
-        clends = NumpyTool.match_pattern(lcv, [True, False]) + ONE_INDEX_START
+    def _coverloops(self) -> pd.DataFrame[COL_START:int, COL_END:int]:
+        clstarts = NumpyTool.match_pattern(self.covermask, [False, True]) + 1 + ONE_INDEX_START
+        clends = NumpyTool.match_pattern(self.covermask, [True, False]) + ONE_INDEX_START
         assert len(clstarts) == len(clends)
 
         return pd.DataFrame({COL_START: clstarts, COL_END: clends})
@@ -90,13 +91,22 @@ class NonCoverLoops:
 
         raise KeyError
 
+    @property
+    def mean_c0(self) -> float:
+        if not hasattr(self, "_mean_c0"):
+            c0_spread = self._chrm.get_spread()
+            self._mean_c0 = c0_spread[~self._boundaries.cover_mask()].mean()
+
+        return self._mean_c0
+
     def _noncoverloops_with_c0(
         self, cloops: CoverLoops
     ) -> pd.DataFrame[COL_START:int, COL_END:int, COL_MEAN_C0_FULL:float]:
         def _calc_mean_c0() -> pd.DataFrame:
             ncloops = self._noncoverloops(cloops)
             ncloops[COL_MEAN_C0_FULL] = ncloops.apply(
-                lambda ncl: self._chrm.mean_c0_segment(*ncl[[COL_START, COL_END]]), axis=1
+                lambda ncl: self._chrm.mean_c0_segment(*ncl[[COL_START, COL_END]]),
+                axis=1,
             )
             return ncloops
 
@@ -189,15 +199,17 @@ class PlotMCCoverLoops:
             [
                 MCCoverLoops(self._mcloops)[COL_MEAN_C0_FULL],
                 MCNonCoverLoops(self._mcloops)[COL_MEAN_C0_FULL],
-            ], 
-            showfliers=showfliers
+            ],
+            showfliers=showfliers,
         )
         plt.xticks(ticks=[1, 2], labels=["Loops", "Non-loops"])
         plt.ylabel("Mean C0")
         plt.title(
             "Comparison of mean c0 distribution of loops and non-loops in all chromosomes"
         )
-        return FileSave.figure_in_figdir(f"mcloops/box_plot_fl_{showfliers}_{self._mcloops}.png")
+        return FileSave.figure_in_figdir(
+            f"mcloops/box_plot_fl_{showfliers}_{self._mcloops}.png"
+        )
 
     def plot_histogram_c0(self):
         num_bins = 40
@@ -230,7 +242,7 @@ class LoopsCover:
         nucs = Nucleosome(loops._chr)
 
         self._nuc_cover = nucs.get_nuc_regions()
-        self._loop_cover = loops.get_loop_cover(loops._loop_df)
+        self._loop_cover = loops.covermask(loops._loop_df)
 
     def in_loop_nuc(self) -> float:
         return (self._loop_cover & self._nuc_cover).mean()

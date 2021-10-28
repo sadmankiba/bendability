@@ -23,9 +23,9 @@ def cloops_vl(loops_vl):
 
 
 class TestCoverLoops:
-    def test_loops_from_cover(self, cloops_vl):
-        lcv = np.array([False, False, True, False, True, True, False, True, False])
-        df = cloops_vl._loops_from_cover(lcv)
+    def test_coverloops(self, cloops_vl: CoverLoops):
+        cloops_vl.covermask = np.array([False, False, True, False, True, True, False, True, False])
+        df = cloops_vl._coverloops()
         assert df[COL_START].tolist() == [3, 5, 8]
         assert df[COL_END].tolist() == [3, 6, 8]
 

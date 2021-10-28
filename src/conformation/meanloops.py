@@ -44,14 +44,14 @@ class MeanLoops:
             loop_df = self._loops._loop_df
 
         return round(
-            self._loops._chr.get_spread()[self._loops.get_loop_cover(loop_df)].mean(), 3
+            self._loops._chr.get_spread()[self._loops.covermask(loop_df)].mean(), 3
         )
 
     def in_complete_non_loop(self) -> float:
         """Find single average c0 of non-loop cover in a chromosome."""
         return round(
             self._loops._chr.get_spread()[
-                ~self._loops.get_loop_cover(self._loops._loop_df)
+                ~self._loops.covermask(self._loops._loop_df)
             ].mean(),
             3,
         )
@@ -155,7 +155,7 @@ class MeanLoops:
         """
         nuc_cover = Nucleosome(self._loops._chr).get_nuc_regions(nuc_half)
 
-        loop_cover = self._loops.get_loop_cover(self._loops._loop_df)
+        loop_cover = self._loops.covermask(self._loops._loop_df)
         return (
             np.round(self._loops._chr.get_spread()[loop_cover & nuc_cover].mean(), 3),
             np.round(self._loops._chr.get_spread()[loop_cover & ~nuc_cover].mean(), 3),
@@ -164,11 +164,15 @@ class MeanLoops:
     def in_non_loop_nuc_linker(self, nuc_half: int = 73):
         nuc_cover = Nucleosome(self._loops._chr).get_nuc_regions(nuc_half)
 
-        loop_cover = self._loops.get_loop_cover(self._loops._loop_df)
+        loop_cover = self._loops.covermask(self._loops._loop_df)
         return (
             np.round(self._loops._chr.get_spread()[~loop_cover & nuc_cover].mean(), 3),
             np.round(self._loops._chr.get_spread()[~loop_cover & ~nuc_cover].mean(), 3),
         )
+
+
+class MCMeanLoops:
+    pass
 
 
 class MultiChrmMeanLoopsCollector:
@@ -178,6 +182,7 @@ class MultiChrmMeanLoopsCollector:
     Result is stored in a dataframe for side-by-side comparison. The dataframe
     contains a row for each chromosome.
     """
+
     # TODO: Use MultiChrm, MultiLoops
     OP_CHRM_MEAN = 0
     OP_CHRM_NUC_LINKER_MEAN = 1
@@ -253,7 +258,7 @@ class MultiChrmMeanLoopsCollector:
 
     def _add_loop_cover_frac(self) -> None:
         self._mcloop_df["cover"] = self._mcmloops.apply(
-            lambda mloops: mloops._loops.get_loop_cover().mean()
+            lambda mloops: mloops._loops.covermask().mean()
         )
 
     def _add_loop_mean(self) -> None:

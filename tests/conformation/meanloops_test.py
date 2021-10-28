@@ -8,6 +8,7 @@ from chromosome.chromosome import Chromosome
 
 import pandas as pd
 import numpy as np
+from numpy.testing import assert_almost_equal
 
 from pathlib import Path
 
@@ -20,8 +21,8 @@ class TestMeanLoops:
         assert -0.3 < mean < 0
 
     def test_in_complete_non_loop(self):
-        mean = MeanLoops(Loops(Chromosome("VL", None))).in_complete_non_loop()
-        assert -0.4 < mean < 0
+        mean = MeanLoops(Loops(Chromosome("VL", spread_str="mean7"))).in_complete_non_loop()
+        assert_almost_equal(mean, -0.161, decimal=3)
 
     def test_validate_complete_loop_non_loop(self):
         chrm = Chromosome("VL", None)

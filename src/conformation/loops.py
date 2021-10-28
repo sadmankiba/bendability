@@ -118,7 +118,7 @@ class Loops:
     def exclude_above_len(self, mxlen: int) -> None:
         self._loop_df = self._loop_df.loc[self._loop_df["len"] <= mxlen].reset_index()
 
-    def get_loop_cover(
+    def covermask(
         self, loop_df: pd.DataFrame[COL_START:float, COL_END:float] | None = None
     ) -> NDArray[(Any,), bool]:
         if loop_df is None:
@@ -344,7 +344,7 @@ class PlotLoops:
         linker vs. loop length"""
         nucs = Nucleosome(self._chrm)
         nucs_cover = nucs.get_nuc_regions()
-        loops_cover = self._loops.get_loop_cover()
+        loops_cover = self._loops.covermask()
         c0_spread = self._chrm.get_spread()
 
         mean_cols = self._loops.add_mean_c0()
