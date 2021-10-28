@@ -15,8 +15,8 @@ from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
 
 @pytest.fixture
-def mloops_vl_mean7():
-    return MeanLoops(Loops(Chromosome("VL", spread_str="mean7")))
+def mloops_vl_mean7(chrm_vl_mean7):
+    return MeanLoops(Loops(chrm_vl_mean7))
 
 class TestMeanLoops:
     def test_in_complete_loop(self):

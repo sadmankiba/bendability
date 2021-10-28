@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Literal, NamedTuple, Iterable
+from typing import Callable, Literal, NamedTuple, Iterable
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,7 +10,7 @@ from chromosome.chromosome import Chromosome, MultiChrm
 from chromosome.genes import Genes
 from models.prediction import Prediction
 from util.util import FileSave, PlotUtil, PathObtain
-from util.custom_types import ChrId, PositiveInt
+from util.custom_types import ChrId, PositiveInt, NonNegativeInt
 from util.constants import ChrIdList
 
 
@@ -23,6 +23,13 @@ MIDDLE = "middle"
 SCORE = "score"
 IN_PROMOTER = "in_promoter"
 MEAN_C0 = "mean_c0"
+
+
+class BoundaryNT(NamedTuple):
+    LEFT: int
+    RIGHT: int
+    MIDDLE: int
+    SCORE: float
 
 
 class BoundariesHE:
@@ -39,33 +46,35 @@ class BoundariesHE:
         Args:
             lim: Limit around boundary middle bp to include in boundary
         """
+        # TODO: Make bndrs_df private
         self._chrm = chrm
-        self._res = res
+        self.res = res
         self.bndrs_df = self._read_boundaries()
-        self._lim = lim
+        self.lim = lim
         self._add_mean_c0_col()
         self._add_in_promoter_col()
 
-    def __iter__(
-        self,
-    ) -> Iterable[NamedTuple[LEFT:int, RIGHT:int, MIDDLE:int, SCORE:float,]]:
+    def __iter__(self) -> Iterable[BoundaryNT]:
         return self.bndrs_df.itertuples()
 
-    def __getitem__(self, key: str) -> pd.Series:
+    def __getitem__(self, key: NonNegativeInt | str) -> pd.Series:
+        if isinstance(key, NonNegativeInt):
+            return self.bndrs_df.iloc[key]
+
         if key in self.bndrs_df.columns:
             return self.bndrs_df[key]
 
         raise KeyError
 
     def __str__(self):
-        return f"res_{self._res}_lim_{self._lim}_{self._chrm}"
+        return f"res_{self.res}_lim_{self.lim}_{self._chrm}"
 
     def _read_boundaries(
         self,
     ) -> pd.DataFrame[LEFT:int, RIGHT:int, MIDDLE:int, SCORE:float]:
         df = pd.read_table(
             f"{PathObtain.input_dir()}/domains/"
-            f"{self._chrm.number}_res_{self._res}_hicexpl_boundaries.bed",
+            f"{self._chrm.number}_res_{self.res}_hicexpl_boundaries.bed",
             delim_whitespace=True,
             header=None,
             names=["chromosome", LEFT, RIGHT, "id", SCORE, "_"],
@@ -78,7 +87,7 @@ class BoundariesHE:
         """Add mean c0 of each bndry"""
         self.bndrs_df = self.bndrs_df.assign(
             mean_c0=lambda df: self._chrm.mean_c0_at_bps(
-                df["middle"], self._lim, self._lim
+                df["middle"], self.lim, self.lim
             )
         )
 
@@ -88,69 +97,101 @@ class BoundariesHE:
         )
 
     def cover_mask(self):
-        return self._chrm.get_cvr_mask(self.bndrs_df[MIDDLE], self._lim, self._lim)
+        return self._chrm.get_cvr_mask(self.bndrs_df[MIDDLE], self.lim, self.lim)
+
+    def _calc_attr(self, attr: str, calc: Callable):
+        if not hasattr(self, attr):
+            setattr(self, attr, calc())
+
+        return getattr(self, attr)
 
     @property
-    def mean_c0(self) -> tuple[float, float]:
-        """
-        Returns:
-            A tuple: bndry cvr mean, domain cvr mean
-        """
-        if not hasattr(self, "_mean_c0"):
-            c0_spread = self._chrm.c0_spread()
-            self._mean_c0 = c0_spread[self.cover_mask()].mean()
+    def mean_c0(self) -> float:
+        def calc_mean_c0():
+            return self._chrm.c0_spread()[self.cover_mask()].mean()
 
-        return self._mean_c0
+        return self._calc_attr("_mean_c0", calc_mean_c0)
 
     def prmtr_bndrs(self) -> BoundariesHE:
-        bndrs = BoundariesHE(self._chrm, self._res, self._lim)
-        bndrs.bndrs_df = pd.DataFrame([bndry for bndry in self if getattr(bndry, IN_PROMOTER)])
-        return bndrs
+        def calc_prmtr_bndrs():
+            bndrs = BoundariesHE(self._chrm, self.res, self.lim)
+            bndrs.bndrs_df = pd.DataFrame(
+                [bndry for bndry in self if getattr(bndry, IN_PROMOTER)]
+            )
+            return bndrs
+
+        return self._calc_attr("_prmtr_bndrs", calc_prmtr_bndrs)
 
     def non_prmtr_bndrs(self) -> BoundariesHE:
-        bndrs = BoundariesHE(self._chrm, self._res, self._lim)
-        bndrs.bndrs_df = pd.DataFrame(
-            [bndry for bndry in self if not getattr(bndry, IN_PROMOTER)]
-        )
-        return bndrs
+        def calc_np_bndrs():
+            bndrs = BoundariesHE(self._chrm, self.res, self.lim)
+            bndrs.bndrs_df = pd.DataFrame(
+                [bndry for bndry in self if not getattr(bndry, IN_PROMOTER)]
+            )
+            return bndrs
 
-    def plot_scatter_mean_c0_each_bndry(self) -> Path:
+        return self._calc_attr("_np_bndrs", calc_np_bndrs)
+
+
+class PlotBoundariesHE:
+    def __init__(self, chrm: Chromosome) -> None:
+        self._chrm = chrm
+        self._bndrs = BoundariesHE(chrm)
+
+    def line_c0_around_indiv(self) -> None:
+        for bndry in self._bndrs.prmtr_bndrs():
+            self._line_c0_around_indiv(bndry, "prmtr")
+
+        for bndry in self._bndrs.non_prmtr_bndrs():
+            self._line_c0_around_indiv(bndry, "nonprmtr")
+
+    def _line_c0_around_indiv(self, bndry: BoundaryNT, pstr: str):
+        mid = getattr(bndry, MIDDLE)
+        lim = self._bndrs.lim
+        self._chrm.plot_moving_avg(mid - lim, mid + lim)
+        plt.xticks(ticks=[mid - lim, mid, mid + lim], labels=[-lim, 0, +lim])
+        plt.xlabel(f"Distance from boundary middle")
+        plt.ylabel("Intrinsic Cyclizability")
+        plt.title(
+            f"C0 around {pstr} boundary at {mid} bp of chromosome {self._chrm.number}."
+            f"Found with res {self._bndrs.res}"
+        )
+
+        return FileSave.figure_in_figdir(
+            f"domains/{self._chrm._chr_id}/{pstr}_indiv_{mid}.png"
+        )
+
+    def scatter_mean_c0_at_indiv(self) -> Path:
         markers = ["o", "s"]
         labels = ["promoter", "non-promoter"]
         colors = ["tab:blue", "tab:orange"]
 
-        plt.close()
-        plt.clf()
-
+        PlotUtil.clearfig()
         PlotUtil.show_grid()
 
-        prmtr_bndrs = self.prmtr_bndrs()
-        nonprmtr_bndrs = self.non_prmtr_bndrs()
-        p_x = self.bndrs_df.query(IN_PROMOTER)[MIDDLE]
-        np_x = self.bndrs_df.query(f"not {IN_PROMOTER}")[MIDDLE]
+        p_x = self._bndrs.prmtr_bndrs()[MIDDLE]
+        np_x = self._bndrs.non_prmtr_bndrs()[MIDDLE]
         plt.scatter(
             p_x,
-            self.bndrs_df.query(IN_PROMOTER)[MEAN_C0],
+            self._bndrs.prmtr_bndrs()[MEAN_C0],
             marker=markers[0],
             label=labels[0],
             color=colors[0],
         )
         plt.scatter(
             np_x,
-            self.bndrs_df.query("not in_promoter")["mean_c0"],
+            self._bndrs.non_prmtr_bndrs()[MEAN_C0],
             marker=markers[1],
             label=labels[1],
             color=colors[1],
         )
 
-        # Plot horizontal lines for mean C0 of non-loop nuc, linker
         horiz_colors = ["tab:green", "tab:red", "tab:purple"]
         chrm_mean_c0 = self._chrm.c0_spread().mean()
         PlotUtil.horizline(DomainsHE(self._chrm).mean_c0, horiz_colors[0], "domains")
         PlotUtil.horizline(chrm_mean_c0, horiz_colors[1], "chromosome")
-        PlotUtil.horizline(self.mean_c0, horiz_colors[2], "boundaries")
+        PlotUtil.horizline(self._bndrs.mean_c0, horiz_colors[2], "boundaries")
 
-        # Decorate
         plt.xlabel("Position along chromosome (bp)")
         plt.ylabel("Mean C0")
         plt.title(
@@ -159,13 +200,7 @@ class BoundariesHE:
         )
         plt.legend()
 
-        return FileSave.figure(
-            f"{PathObtain.figure_dir()}/domains/mean_c0_scatter_{self}.png"
-        )
-
-
-class PlotBoundariesHE:
-    pass
+        return FileSave.figure_in_figdir(f"domains/mean_c0_scatter_{self._bndrs}.png")
 
 
 START = "start"

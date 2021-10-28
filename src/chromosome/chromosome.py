@@ -316,7 +316,7 @@ class Chromosome:
         """
         PlotUtil.plot_avg_horiz_line(self._df["C0"].mean())
 
-    def plot_moving_avg(self, start: int, end: int) -> None:
+    def plot_moving_avg(self, start: int, end: int, plotnuc: bool = False) -> None:
         """
         Plot C0, a few moving averages of C0 and nuc. centers in a segment of chr.
 
@@ -327,18 +327,13 @@ class Chromosome:
             start: Start position in the chromosome
             end: End position in the chromosome
         """
-        # TODO: Use spread
-        df_sel = self.read_chr_lib_segment(start, end)
+        PlotUtil.clearfig()
+        PlotUtil.show_grid()
 
-        plt.close()
-        plt.clf()
+        x = np.arange(start - 1, end)
+        y = self.c0_spread()[start - 1:end]
+        plt.plot(x, y, color="blue", alpha=0.5, label=1)
 
-        # Plot C0 of each sequence in Chr library
-        x = (df_sel["Sequence #"] - 1) * 7 + SEQ_LEN / 2
-        y = df_sel["C0"].to_numpy()
-        plt.plot(x, y, color="blue", alpha=0.2, label=1)
-
-        # Plot mean C0 of either side of a central value
         k = [10]  # , 25, 50]
         colors = ["green"]  # , 'red', 'black']
         alpha = [0.7]  # , 0.8, 0.9]
@@ -354,19 +349,17 @@ class Chromosome:
 
         self.plot_avg()
 
-        # Find and plot nuc. centers
-        nuc_df = DNASequenceReader().read_nuc_center()
-        centers = nuc_df.loc[nuc_df["Chromosome ID"] == f"chr{self.number}"][
-            "Position"
-        ].to_numpy()
-        centers = centers[centers > start]
-        centers = centers[centers < end]
+        if plotnuc:
+            nuc_df = DNASequenceReader().read_nuc_center()
+            centers = nuc_df.loc[nuc_df["Chromosome ID"] == f"chr{self.number}"][
+                "Position"
+            ].to_numpy()
+            centers = centers[start < centers < end]
 
-        for c in centers:
-            plt.axvline(x=c, color="grey", linestyle="--")
+            for c in centers:
+                plt.axvline(x=c, color="grey", linestyle="--")
 
         plt.legend()
-        plt.grid()
 
     def plot_c0(self, start: int, end: int) -> None:
         """Plot C0, moving avg., nuc. centers of a segment in chromosome

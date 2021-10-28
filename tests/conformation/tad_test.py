@@ -4,6 +4,7 @@ from numpy.testing import assert_almost_equal
 
 from conformation.tad import (
     BoundariesHE,
+    PlotBoundariesHE,
     IN_PROMOTER,
     LEFT,
     MEAN_C0,
@@ -21,6 +22,11 @@ from chromosome.genes import Genes
 pytest.mark.skip(reason="Updating tad")
 
 
+@pytest.fixture
+def bndrs_r500_l250_vl_mean7(chrm_vl_mean7):
+    return BoundariesHE(chrm_vl_mean7, res=500, lim=250)
+
+
 class TestBoundariesHE:
     def test_read_boundaries_of(self):
         bndrs = BoundariesHE(Chromosome("VIII", Prediction(30)), res=500)
@@ -35,6 +41,10 @@ class TestBoundariesHE:
             ]
         )
         assert len(bndrs.bndrs_df) == 53
+
+    def test_mean_c0(self, bndrs_r500_l250_vl_mean7: BoundariesHE):
+        mc0 = bndrs_r500_l250_vl_mean7.mean_c0
+        assert mc0 == pytest.approx(-0.179, rel=1e-3)
 
     def test_get_domains(self):
         bndrs = BoundariesHE(Chromosome("XV", Prediction(30)))
@@ -90,12 +100,16 @@ class TestBoundariesHE:
         non_prmtr_bndrs_gt = bndrs.num_non_prmtr_bndry_mean_c0_greater_than_dmns()
         assert bndrs_gt == prmtr_bndrs_gt + non_prmtr_bndrs_gt
 
-    def test_plot_scatter_mean_c0_each_bndry(self, chrm_vl):
-        figpath = BoundariesHE(chrm_vl).plot_scatter_mean_c0_each_bndry()
-        assert figpath.is_file()
 
 class TestPlotBoundariesHE:
-    pass
+    def test_plot_scatter_mean_c0_each_bndry(self, chrm_vl):
+        figpath = PlotBoundariesHE(chrm_vl).plot_scatter_mean_c0_each_bndry()
+        assert figpath.is_file()
+
+    def test_line_c0_around_indiv(self, chrm_vl):
+        pbndrs = PlotBoundariesHE(chrm_vl)
+        assert pbndrs._line_c0_around_indiv(pbndrs._bndrs[7]).is_file()
+
 
 class TestMCBoundariesHECollector:
     def test_add_dmns_mean(self):
