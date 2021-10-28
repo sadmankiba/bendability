@@ -1,3 +1,4 @@
+from matplotlib.pyplot import plot
 import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal
@@ -100,15 +101,20 @@ class TestBoundariesHE:
         non_prmtr_bndrs_gt = bndrs.num_non_prmtr_bndry_mean_c0_greater_than_dmns()
         assert bndrs_gt == prmtr_bndrs_gt + non_prmtr_bndrs_gt
 
+@pytest.fixture
+def plotbndrs_vl(chrm_vl):
+    return PlotBoundariesHE(chrm_vl)
 
 class TestPlotBoundariesHE:
-    def test_plot_scatter_mean_c0_each_bndry(self, chrm_vl):
-        figpath = PlotBoundariesHE(chrm_vl).plot_scatter_mean_c0_each_bndry()
+    def test_line_c0_around(self, plotbndrs_vl: PlotBoundariesHE):
+        assert plotbndrs_vl.line_c0_around().is_file()
+
+    def test_plot_scatter_mean_c0_each_bndry(self, plotbndrs_vl: PlotBoundariesHE):
+        figpath = plotbndrs_vl.scatter_mean_c0_at_indiv()
         assert figpath.is_file()
 
-    def test_line_c0_around_indiv(self, chrm_vl):
-        pbndrs = PlotBoundariesHE(chrm_vl)
-        assert pbndrs._line_c0_around_indiv(pbndrs._bndrs[7]).is_file()
+    def test_line_c0_around_indiv(self, plotbndrs_vl: PlotBoundariesHE):
+        assert plotbndrs_vl._line_c0_around_indiv(plotbndrs_vl._bndrs[7], "").is_file()
 
 
 class TestMCBoundariesHECollector:
