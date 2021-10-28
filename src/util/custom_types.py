@@ -5,8 +5,8 @@ OneIdxPos = int
 DNASeq = str
 C0 = float
 
-PositiveInt = NewType("PositiveInt", int)
-NonNegativeInt = NewType("NonNegativeInt", int)
+PositiveInt = int
+NonNegativeInt = int
 
 LIBRARY_NAMES = Literal["cnl", "rl", "tl", "chrvl", "libl"]
 

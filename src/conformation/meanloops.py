@@ -11,6 +11,7 @@ from skimage.transform import resize
 import numpy as np
 
 from chromosome.nucleosome import Nucleosome
+from conformation.coverloops import NonCoverLoops
 from util.custom_types import ChrId
 from models.prediction import Prediction
 from util.constants import ChrIdList
@@ -48,14 +49,8 @@ class MeanLoops:
         )
 
     def in_complete_non_loop(self) -> float:
-        """Find single average c0 of non-loop cover in a chromosome."""
-        return round(
-            self._loops._chr.c0_spread()[
-                ~self._loops.covermask(self._loops._loop_df)
-            ].mean(),
-            3,
-        )
-
+        return round(NonCoverLoops(self._loops).mean_c0, 3)
+        
     def in_quartile_by_len(self) -> list[float]:
         """Find average c0 of collection of loops by dividing them into
         quartiles by length"""

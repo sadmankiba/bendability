@@ -80,7 +80,10 @@ class CoverLoops:
 class NonCoverLoops:
     def __init__(self, loops: Loops):
         self._chrm = loops.chrm
-        self._ncloops = self._noncoverloops_with_c0(CoverLoops(loops))
+        
+        cloops = CoverLoops(loops)
+        self.covermask = ~cloops.covermask
+        self._ncloops = self._noncoverloops_with_c0(cloops)
 
     def __len__(self):
         return len(self._ncloops)
@@ -99,8 +102,7 @@ class NonCoverLoops:
     @property
     def mean_c0(self) -> float:
         if not hasattr(self, "_mean_c0"):
-            c0_spread = self._chrm.c0_spread()
-            self._mean_c0 = c0_spread[~self._boundaries.cover_mask()].mean()
+            self._mean_c0 = self._chrm.c0_spread()[self.covermask].mean()
 
         return self._mean_c0
 

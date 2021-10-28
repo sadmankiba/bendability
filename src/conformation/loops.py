@@ -72,6 +72,17 @@ class Loops:
     def __len__(self) -> int:
         return len(self._loop_df)
 
+    def __getitem__(self, key: NonNegativeInt | str) -> pd.Series:
+        if key in self._ncloops.columns:
+            return self._ncloops[key]
+        
+        # TODO: Check if required
+        if isinstance(key, NonNegativeInt):
+            assert key < len(self)
+            return self._loop_df.iloc[key]
+        
+        raise KeyError
+
     def __getitem__(self, key: NonNegativeInt) -> pd.Series:
         assert key < len(self)
         return self._loop_df.iloc[key]
