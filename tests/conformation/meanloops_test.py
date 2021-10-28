@@ -1,3 +1,10 @@
+from pathlib import Path
+
+import pytest
+import pandas as pd
+import numpy as np
+from numpy.testing import assert_almost_equal
+
 from conformation.loops import Loops
 from conformation.meanloops import (
     MeanLoops,
@@ -5,25 +12,19 @@ from conformation.meanloops import (
     MultiChrmMeanLoopsCollector,
 )
 from chromosome.chromosome import Chromosome
-
-import pandas as pd
-import numpy as np
-from numpy.testing import assert_almost_equal
-
-from pathlib import Path
-
 from models.prediction import Prediction
 
+@pytest.fixture
+def mloops_vl_mean7():
+    return MeanLoops(Loops(Chromosome("VL", spread_str="mean7")))
 
 class TestMeanLoops:
     def test_in_complete_loop(self):
         mean = MeanLoops(Loops(Chromosome("VL", None))).in_complete_loop()
         assert -0.3 < mean < 0
 
-    def test_in_complete_non_loop(self):
-        mean = MeanLoops(
-            Loops(Chromosome("VL", spread_str="mean7"))
-        ).in_complete_non_loop()
+    def test_in_complete_non_loop(self, mloops_vl_mean7: MeanLoops):
+        mean = mloops_vl_mean7.in_complete_non_loop()
         assert_almost_equal(mean, -0.161, decimal=3)
 
     def test_validate_complete_loop_non_loop(self):
@@ -37,9 +38,12 @@ class TestMeanLoops:
             loop_mean > chrm_mean > non_loop_mean
         )
 
+    def test_in_quartile_by_len(self, mloops_vl_mean7: MeanLoops):
+        arr = mloops_vl_mean7.in_quartile_by_len()
+        assert_almost_equal(arr, [-0.152, -0.181, -0.176, -0.182], decimal=3)
+
     def test_in_quartile_by_pos(self):
         arr = MeanLoops(Loops(Chromosome("VL", None))).in_quartile_by_pos()
-        print(arr)
         assert arr.shape == (4,)
 
     def test_around_anc(self):

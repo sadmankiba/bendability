@@ -11,7 +11,7 @@ from skimage.transform import resize
 import numpy as np
 
 from chromosome.nucleosome import Nucleosome
-from conformation.coverloops import NonCoverLoops
+from conformation.coverloops import CoverLoops, NonCoverLoops
 from util.custom_types import ChrId
 from models.prediction import Prediction
 from util.constants import ChrIdList
@@ -26,15 +26,34 @@ class MeanLoops:
     def __init__(self, loops: Loops):
         self._loops = loops
 
-    def _get_quartile_dfs(self, df: pd.DataFrame):
+    def _get_quartile_dfs(self, loops: Loops) -> tuple[Loops]:
         """Split a dataframe into 4 representing quartile on column len"""
-        quart1, quart2, quart3 = df["len"].quantile([0.25, 0.5, 0.75]).tolist()
+        quart1, quart2, quart3 = loops["len"].quantile([0.25, 0.5, 0.75]).tolist()
         return (
-            df.loc[df["len"] <= quart1],
-            df.loc[(quart1 < df["len"]) & (df["len"] <= quart2)],
-            df.loc[(quart2 < df["len"]) & (df["len"] <= quart3)],
-            df.loc[quart3 < df["len"]],
+            loops[list(filter(lambda i: loops[i]["len"] <= quart1, loops.index))],
+            loops[
+                list(
+                    filter(
+                        lambda i: quart1 < loops[i]["len"] <= quart2, loops.index
+                    )
+                )
+            ],
+            loops[
+                list(
+                    filter(
+                        lambda i: quart2 < loops[i]["len"] <= quart3, loops.index
+                    )
+                )
+            ],
+            loops[list(filter(lambda i: quart3 < loops[i]["len"], loops.index))],
         )
+        # quart1, quart2, quart3 = df["len"].quantile([0.25, 0.5, 0.75]).tolist()
+        # return (
+        #     df.loc[df["len"] <= quart1],
+        #     df.loc[(quart1 < df["len"]) & (df["len"] <= quart2)],
+        #     df.loc[(quart2 < df["len"]) & (df["len"] <= quart3)],
+        #     df.loc[quart3 < df["len"]],
+        # )
 
     def in_complete_loop(
         self, loop_df: pd.DataFrame[COL_START:float, COL_END:float] | None = None
@@ -50,12 +69,12 @@ class MeanLoops:
 
     def in_complete_non_loop(self) -> float:
         return round(NonCoverLoops(self._loops).mean_c0, 3)
-        
+
     def in_quartile_by_len(self) -> list[float]:
         """Find average c0 of collection of loops by dividing them into
         quartiles by length"""
-        quart_loop_df = self._get_quartile_dfs(self._loops._loop_df)
-        return list(map(self.in_complete_loop, quart_loop_df))
+        quart_loops = self._get_quartile_dfs(self._loops)
+        return list(map(lambda loops: CoverLoops(loops).mean_c0, quart_loops))
 
     def in_quartile_by_pos(self, loop_df: pd.DataFrame = None) -> np.ndarray:
         """Find average c0 of different positions in collection of loops

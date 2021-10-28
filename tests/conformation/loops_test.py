@@ -7,7 +7,7 @@ from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
 
 
-class TestLoops(unittest.TestCase):
+class TestLoops:
     def test_len(self):
         loops = Loops(Chromosome("VL", None))
         assert len(loops) == len(loops._loop_df)
@@ -60,6 +60,12 @@ class TestLoops(unittest.TestCase):
         perc = chrm_arr.sum() / CHRV_TOTAL_BP * 100
         assert 10 < perc < 90
 
+    def test_slice(self, loops_vl: Loops):
+        subloops = loops_vl[5:10]
+        assert isinstance(subloops, Loops)
+        assert len(subloops) == 5 
+        subloops._loop_df = None 
+        assert loops_vl._loop_df is not None
 
 class TestPlotLoops:
     def test_line_plot_mean_c0(self):

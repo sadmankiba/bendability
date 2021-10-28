@@ -1,8 +1,6 @@
 from __future__ import annotations
-from ast import Num
 from pathlib import Path
-from typing import Iterable, Literal, Any, NamedTuple
-from util.custom_types import NonNegativeInt
+from typing import Iterable, Literal, Any, Sequence
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -12,8 +10,8 @@ from nptyping import NDArray
 
 from chromosome.nucleosome import Nucleosome
 from chromosome.chromosome import Chromosome, MultiChrm
-from util.util import FileSave, PlotUtil, PathObtain, NumpyTool
-from util.constants import ONE_INDEX_START
+from util.util import FileSave, PlotUtil, PathObtain
+from util.custom_types import NonNegativeInt
 
 COL_RES = "res"
 COL_START = "start"
@@ -22,6 +20,8 @@ COL_LEN = "len"
 COL_MEAN_C0_FULL = "mean_c0_full"
 COL_MEAN_C0_NUC = "mean_c0_nuc"
 COL_MEAN_C0_LINKER = "mean_c0_linker"
+
+Loop = pd.Series
 
 
 class Loops:
@@ -37,6 +37,8 @@ class Loops:
         self._mxlen = mxlen
         if mxlen:
             self.exclude_above_len(mxlen)
+
+        self.index = self._loop_df.index
 
     def _read_loops(self) -> pd.DataFrame:
         """
@@ -72,20 +74,21 @@ class Loops:
     def __len__(self) -> int:
         return len(self._loop_df)
 
-    def __getitem__(self, key: NonNegativeInt | str) -> pd.Series:
-        if key in self._ncloops.columns:
-            return self._ncloops[key]
-        
-        # TODO: Check if required
-        if isinstance(key, NonNegativeInt):
-            assert key < len(self)
-            return self._loop_df.iloc[key]
-        
-        raise KeyError
+    def __getitem__(
+        self, key: slice | Sequence[int] | NonNegativeInt | str
+    ) -> pd.Series | pd.DataFrame:
+        if isinstance(key, slice) or (
+            isinstance(key, Sequence) and isinstance(key[0], int)
+        ):
+            return self._subloops(pd.DataFrame(self._loop_df.iloc[key]))
 
-    def __getitem__(self, key: NonNegativeInt) -> pd.Series:
-        assert key < len(self)
-        return self._loop_df.iloc[key]
+        if isinstance(key, NonNegativeInt):
+            return self._loop_df.iloc[key]
+
+        if key in self._loop_df.columns:
+            return self._loop_df[key]
+
+        raise KeyError
 
     def __iter__(self) -> Iterable[tuple[int, pd.Series]]:
         # TODO: Return only series. Use itertuples()
@@ -166,6 +169,11 @@ class Loops:
         plt.savefig(
             f"{fig_dir}/loop_highres_hist_maxlen_{max_loop_length}.png", dpi=200
         )
+
+    def _subloops(self, subloopseq: Sequence[Loop] | pd.DataFrame) -> Loops:
+        loops = Loops(self._chr, self._mxlen)
+        loops._loop_df = pd.DataFrame(subloopseq)
+        return loops
 
 
 class PlotLoops:
