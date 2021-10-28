@@ -411,4 +411,4 @@ class MCLoops:
         return iter(self._loops)
 
     def __str__(self):
-        return str(self._multichrm)
+        return str(self._mchrm)

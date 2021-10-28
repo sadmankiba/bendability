@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from chromosome.chromosome import Chromosome
+from chromosome.chromosome import Chromosome, MultiChrm
 from chromosome.genes import Genes
 from models.prediction import Prediction
 from util.util import FileSave, PlotUtil, PathObtain
@@ -234,11 +234,27 @@ class BoundariesDomainsHEQuery:
 
 
 class MCBoundariesHE:
-    pass
+    def __init__(self, mchrm: MultiChrm):
+        self._mchrm = mchrm
+        self._bndrs = list(map(lambda c: BoundariesHE(c), mchrm))
+        
+    def __iter__(self):
+        return iter(self._bndrs)
+    
+    def __str__(self):
+        return str(self._mchrm)
 
 
 class MCDomainsHE:
-    pass
+    def __init__(self, mchrm: MultiChrm):
+        self._mchrm = mchrm
+        self._dmns = list(map(lambda c: DomainsHE(c), mchrm))
+        
+    def __iter__(self):
+        return iter(self._dmns)
+    
+    def __str__(self):
+        return str(self._mchrm)
 
 
 # TODO:
