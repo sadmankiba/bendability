@@ -8,10 +8,26 @@ We identify domains and boundaries from 500bp resolution Hi-C data. A bp is eith
 
 We predict bendability of short sequences of all chromosomes in yeast. We then measure bendability of long sequences. 
 
+## Check mean C0 around boundary region 
+
+Procedure: `conformation.tad.PlotBoundariesHE.line_c0_around()`
+
+Figure:
+![Mean c0 around boundaries in chrm III](../figures/domains/mean_c0_bndrs_III.png)
+
+- Promoter boundaries: 
+  - In most chrms, a rigid region than surrounding region. Probably Nucleosome Free Region (NFR). 
+  - In big chromosomes (e.g. IV), the dip is not much observable. Because of misalignment of boundaries.
+
+- Non-promoter boundaries: 
+  - Usual fluctuation for nucleosomes.
+  - Surprisingly, in all chrms, one/two clearly visible rigid region exists.  
 
 ## Comparison of mean C0 of TADs and boundaries 
 
-`conformation.tad.MCBoundariesHECollector.plot_scatter_mean_c0()`
+Procedure: `conformation.tad.MCBoundariesHECollector.plot_scatter_mean_c0()`
+
+Figure
 
 ![Mean c0 of tads and boundaries in all chrm](../figures/mcdomains/bndrs_dmns_c0_res_200_lim_500_md_30_without_vl.png)
 
