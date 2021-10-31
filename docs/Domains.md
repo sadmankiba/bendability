@@ -1,5 +1,11 @@
 # Domains
 
+## Acronyms
+
+NPB = Non-promoter boundaries
+PB = Promoter boundaries
+BN = Boundaries
+
 ## Experiments
 
 **Method**
@@ -39,10 +45,15 @@ Taekjip Ha group showed that promoter regions are more bendable. It is a known f
 **Motivation**
 Samin saw a peak in boundary compared to regions in domain. 
 
+## Try 1
 **Procedure**
+Take mean c0 at each bp for a long segment (6000 bp) around boundary. 
 
-**Result**
-
+**Observations**
+- Too many fluctuations to see any pattern.
+- C0 at NPB varies more than PB.  
+- Sinusoidal pattern shown by Samin, high on left of mid and low on right of mid, is seen at more boundaries (5 / 7 I saw). But not in some, e.g. VI
+- Nice peak of C0 when smoothed shown by Samin was observed in raw eyes only at a few BN. ( 2 / 7 I saw)
 
 ## Code References
 [C1] `conformation.tad.PlotBoundariesHE.line_c0_around()`

@@ -138,19 +138,18 @@ class PlotBoundariesHE:
         self._chrm = chrm
         self._bndrs = BoundariesHE(chrm)
 
-    def line_c0_around(self):
+    def line_c0_around(self, pltlim=250):
         bndrs_mid = self._bndrs[MIDDLE]
         pbndrs_mid = self._bndrs.prmtr_bndrs()[MIDDLE]
         npbndrs_mid = self._bndrs.non_prmtr_bndrs()[MIDDLE]
 
-        lim = self._bndrs.lim
-        mc0_bndrs = self._chrm.mean_c0_around_bps(bndrs_mid, lim, lim)
-        mc0_pbndrs = self._chrm.mean_c0_around_bps(pbndrs_mid, lim, lim)
-        mc0_npbndrs = self._chrm.mean_c0_around_bps(npbndrs_mid, lim, lim)
+        mc0_bndrs = self._chrm.mean_c0_around_bps(bndrs_mid, pltlim, pltlim)
+        mc0_pbndrs = self._chrm.mean_c0_around_bps(pbndrs_mid, pltlim, pltlim)
+        mc0_npbndrs = self._chrm.mean_c0_around_bps(npbndrs_mid, pltlim, pltlim)
 
         PlotUtil.clearfig()
 
-        x = np.arange(2 * lim + 1) - lim
+        x = np.arange(2 * pltlim + 1) - pltlim
         plt.plot(x, mc0_bndrs, color="tab:green", label="all")
         plt.plot(x, mc0_pbndrs, color="tab:orange", label="promoter")
         plt.plot(x, mc0_npbndrs, color="tab:blue", label="non-promoter")
@@ -166,7 +165,7 @@ class PlotBoundariesHE:
         )
 
         return FileSave.figure_in_figdir(
-            f"domains/mean_c0_bndrs_{self._chrm._chr_id}.png"
+            f"domains/mean_c0_bndrs_{self._chrm._chr_id}_plt_{pltlim}.png"
         )
 
     def line_c0_around_indiv(self) -> None:
