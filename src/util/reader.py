@@ -132,6 +132,7 @@ class DNASequenceReader:
 
 
 class GeneReader:
+    @classmethod
     def read_genes_of(self, chrm_num: YeastChrNum) -> pd.DataFrame:
         genes_file = f"{PathObtain.data_dir()}/input_data/gene/yeast_genes.tsv"
         rename_map = {
@@ -147,6 +148,7 @@ class GeneReader:
 
         return gene_df.loc[gene_df["chrm"] == f"chr{chrm_num}"].drop(columns="chrm")
 
+    @classmethod
     def read_transcription_regions_of(self, chrm_num: YeastChrNum) -> pd.DataFrame:
         """
         Read trascripted regions.
@@ -167,7 +169,6 @@ class GeneReader:
             "Gene.chromosomeLocation.strand": "strand",
             # 'Gene.transcripts.UTRs.primaryIdentifier': 'utr_id'
         }
-        # Read file and rename columns
         tr_df = pd.read_csv(gene_utrs_file, sep="\t")[list(rename_map.keys())].rename(
             columns=rename_map
         )

@@ -9,12 +9,11 @@ import pandas as pd
 from chromosome.chromosome import Chromosome, MultiChrm
 from chromosome.genes import Genes
 from models.prediction import Prediction
-from util.util import FileSave, PlotUtil, PathObtain
+from util.util import FileSave, PlotUtil, PathObtain, Attr
 from util.custom_types import ChrId, PositiveInt, NonNegativeInt
 from util.constants import ChrIdList
 
 
-# TODO: Rename tad to domain?
 # TODO: Inherit dataframe wrapper
 
 LEFT = "left"
@@ -96,21 +95,16 @@ class BoundariesHE:
             in_promoter=lambda df: Genes(self._chrm).in_promoter(df["middle"])
         )
 
-    def cover_mask(self):
+    def cover_mask(self) -> np.ndarray:
         return self._chrm.get_cvr_mask(self.bndrs_df[MIDDLE], self.lim, self.lim)
 
-    def _calc_attr(self, attr: str, calc: Callable):
-        if not hasattr(self, attr):
-            setattr(self, attr, calc())
-
-        return getattr(self, attr)
 
     @property
     def mean_c0(self) -> float:
         def calc_mean_c0():
             return self._chrm.c0_spread()[self.cover_mask()].mean()
 
-        return self._calc_attr("_mean_c0", calc_mean_c0)
+        return Attr.calc_attr(self, "_mean_c0", calc_mean_c0)
 
     def prmtr_bndrs(self) -> BoundariesHE:
         def calc_prmtr_bndrs():
@@ -120,7 +114,7 @@ class BoundariesHE:
             )
             return bndrs
 
-        return self._calc_attr("_prmtr_bndrs", calc_prmtr_bndrs)
+        return Attr.calc_attr(self, "_prmtr_bndrs", calc_prmtr_bndrs)
 
     def non_prmtr_bndrs(self) -> BoundariesHE:
         def calc_np_bndrs():
@@ -130,7 +124,7 @@ class BoundariesHE:
             )
             return bndrs
 
-        return self._calc_attr("_np_bndrs", calc_np_bndrs)
+        return Attr.calc_attr(self, "_np_bndrs", calc_np_bndrs)
 
 
 class PlotBoundariesHE:

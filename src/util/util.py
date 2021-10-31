@@ -185,6 +185,15 @@ def roman_to_num(chr_num: YeastChrNum) -> int:
     return rom_num_map[chr_num]
 
 
+class Attr:
+    @classmethod
+    def calc_attr(self, obj: object, attr: str, calc: Callable):
+        if not hasattr(obj, attr):
+            setattr(obj, attr, calc())
+
+        return getattr(obj, attr)
+
+
 # TODO: Move PathObtain, FileSave to util.file module
 class PathObtain:
     """

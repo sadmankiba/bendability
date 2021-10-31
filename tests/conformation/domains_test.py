@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from conformation.tad import (
+from conformation.domains import (
     BoundariesHE,
     PlotBoundariesHE,
     IN_PROMOTER,
@@ -20,7 +20,7 @@ from models.prediction import Prediction
 from chromosome.genes import Genes
 
 
-pytest.mark.skip(reason="Updating tad")
+pytest.mark.skip(reason="Updating domains")
 
 
 @pytest.fixture
@@ -101,9 +101,11 @@ class TestBoundariesHE:
         non_prmtr_bndrs_gt = bndrs.num_non_prmtr_bndry_mean_c0_greater_than_dmns()
         assert bndrs_gt == prmtr_bndrs_gt + non_prmtr_bndrs_gt
 
+
 @pytest.fixture
 def plotbndrs_vl(chrm_vl):
     return PlotBoundariesHE(chrm_vl)
+
 
 class TestPlotBoundariesHE:
     def test_line_c0_around(self, plotbndrs_vl: PlotBoundariesHE):
