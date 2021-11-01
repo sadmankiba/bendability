@@ -1,6 +1,6 @@
 from __future__ import annotations
 from .chromosome import Chromosome
-from util.reader import DNASequenceReader
+from util.reader import DNASequenceReader, NucsReader
 from util.util import FileSave, PathObtain
 
 import numpy as np
@@ -15,10 +15,7 @@ from typing import Literal
 class Nucleosomes:
     def __init__(self, chrm: Chromosome):
         self._chrm = chrm
-        # TODO: Remove redundant _centers. Get single chromosome dyads when
-        # reading
-        self._nuc_df = DNASequenceReader().read_nuc_center()
-        self._centers = self._get_nuc_centers()
+        self._centers = NucsReader.read_nuc_center()
 
     def _plot_c0_vs_dist_from_dyad(
         self, x: np.ndarray, y: np.ndarray, dist: int, spread_str: str
@@ -64,10 +61,6 @@ class Nucleosomes:
             f"{PathObtain.figure_dir()}/nucleosome/dist_{dist}_s_{spread_str}_m_{self._chrm.predict_model_no()}_{self._chrm._chr_id}.png"
         )
 
-    def _get_nuc_centers(self) -> list[int]:
-        return self._nuc_df.loc[
-            self._nuc_df["Chromosome ID"] == f"chr{self._chrm.number}"
-        ]["Position"].tolist()
 
     def _filter_at_least_depth(self, depth: int):
         """Remove center positions at each end that aren't in at least certain depth"""
@@ -86,10 +79,7 @@ class Nucleosomes:
         Args:
             dist: +-distance from dyad to plot (1-indexed)
         """
-        centers = self._nuc_df.loc[
-            self._nuc_df["Chromosome ID"] == f"chr{self._chrm.number}"
-        ]["Position"].tolist()
-
+        centers = self._centers
         # Read C0 of -dist to +dist sequences
         c0_at_nuc: list[list[float]] = list(
             map(
@@ -145,10 +135,7 @@ class Nucleosomes:
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep="\t")["nuc_occupancy"].to_numpy()
 
-        nuc_df = DNASequenceReader().read_nuc_center()
-        centers = nuc_df.loc[nuc_df["Chromosome ID"] == f"chr{self._chrm.number}"][
-            "Position"
-        ].tolist()
+        centers = self._centers
 
         t = time.time()
         nuc_occ = np.full((self._chrm.total_bp,), fill_value=0)

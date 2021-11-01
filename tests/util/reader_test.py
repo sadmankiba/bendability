@@ -68,9 +68,6 @@ class TestReader(unittest.TestCase):
         self.assertEqual(len(sequences[0]), 50)
         self.assertEqual(len(sequences[1]), 50)
 
-    def test_read_nuc_center(self):
-        nuc_df = DNASequenceReader().read_nuc_center()
-        self.assertEqual(len(nuc_df), 67548)
 
     def test_read_yeast_genome(self):
         reader = DNASequenceReader()

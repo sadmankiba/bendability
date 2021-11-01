@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from util.constants import CNL, RL, SEQ_LEN, TL, CHRVL, LIBL
-from util.custom_types import YeastChrNum
+from util.custom_types import PosOneIdx, YeastChrNum
 from util.util import roman_to_num, PathObtain
 
 import pandas as pd
@@ -9,8 +9,6 @@ from Bio import SeqIO
 import numpy as np
 
 import math
-import inspect
-from pathlib import Path
 
 CNL_FILE = "41586_2020_3052_MOESM4_ESM.txt"
 RL_FILE = "41586_2020_3052_MOESM6_ESM.txt"
@@ -27,7 +25,6 @@ class DNASequenceReader:
     def __init__(self):
         # TODO: Move to class attribute
         self._bendability_data_dir = f"{PathObtain.data_dir()}/input_data/bendability"
-        self._nuc_center_file = f"{PathObtain.data_dir()}/input_data/nucleosome_position/41586_2012_BFnature11142_MOESM263_ESM.txt"
 
     def _get_raw_data(self):
         cnl_df_raw = pd.read_table(f"{self._bendability_data_dir}/{CNL_FILE}", sep="\t")
@@ -75,25 +72,6 @@ class DNASequenceReader:
 
         return {CNL: cnl_df, RL: rl_df, TL: tl_df, CHRVL: chrvl_df, LIBL: libl_df}
 
-    # TODO:
-    # nuc_center in separate class
-    # should take chromosome number as argument
-    def read_nuc_center(self) -> pd.DataFrame:
-        """
-        Read nucleosome center position data.
-
-        Data is provided by paper "A map of nucleosome positions in yeast at base-pair resolution"
-
-        Returns:
-            A `pandas.DataFrame` with columns ['Chromosome ID', 'Position', 'NCP score', 'NCP score/noise']
-        """
-        return pd.read_table(
-            self._nuc_center_file,
-            delim_whitespace=True,
-            header=None,
-            names=["Chromosome ID", "Position", "NCP score", "NCP score/noise"],
-        )
-
     # TODO: read_genome_sequence_of
     def read_yeast_genome(self, chr_num: YeastChrNum) -> pd.DataFrame:
         """
@@ -131,23 +109,33 @@ class DNASequenceReader:
         )
 
 
-class GeneReader:
-    @classmethod
-    def read_genes_of(self, chrm_num: YeastChrNum) -> pd.DataFrame:
-        genes_file = f"{PathObtain.data_dir()}/input_data/gene/yeast_genes.tsv"
-        rename_map = {
-            "Gene.length": "length",
-            "Gene.chromosome.primaryIdentifier": "chrm",
-            "Gene.chromosomeLocation.start": "start",
-            "Gene.chromosomeLocation.end": "end",
-            "Gene.chromosomeLocation.strand": "strand",
-        }
-        gene_df = pd.read_csv(genes_file, sep="\t")[list(rename_map.keys())].rename(
-            columns=rename_map
+CHROMOSOME_ID = "Chromosome ID"
+POSITION = "Position"
+NCP_SCORE = "NCP score"
+NCP_SCORE_BY_NOISE = "NCP score/noise"
+
+
+class NucsReader:
+    def read_nuc_center(
+        self, chrmnum: YeastChrNum
+    ) -> list[PosOneIdx]:
+        """
+        Read nucleosome center position data.
+        """
+        nuc_center_file = f"{PathObtain.data_dir()}/input_data/nucleosome_position/"\
+            f"41586_2012_BFnature11142_MOESM263_ESM.txt"
+        df = pd.read_table(
+            nuc_center_file,
+            delim_whitespace=True,
+            header=None,
+            names=[CHROMOSOME_ID, POSITION, NCP_SCORE, NCP_SCORE_BY_NOISE],
         )
+        return df.loc[
+            df[CHROMOSOME_ID] == f"chr{chrmnum}"
+        ][POSITION].tolist()
 
-        return gene_df.loc[gene_df["chrm"] == f"chr{chrm_num}"].drop(columns="chrm")
 
+class GeneReader:
     @classmethod
     def read_transcription_regions_of(self, chrm_num: YeastChrNum) -> pd.DataFrame:
         """
@@ -203,3 +191,19 @@ class GeneReader:
         assert len(agg_tr_df) == len(tr_df) / 2
 
         return agg_tr_df
+
+    @classmethod
+    def read_genes_of(self, chrm_num: YeastChrNum) -> pd.DataFrame:
+        genes_file = f"{PathObtain.data_dir()}/input_data/gene/yeast_genes.tsv"
+        rename_map = {
+            "Gene.length": "length",
+            "Gene.chromosome.primaryIdentifier": "chrm",
+            "Gene.chromosomeLocation.start": "start",
+            "Gene.chromosomeLocation.end": "end",
+            "Gene.chromosomeLocation.strand": "strand",
+        }
+        gene_df = pd.read_csv(genes_file, sep="\t")[list(rename_map.keys())].rename(
+            columns=rename_map
+        )
+
+        return gene_df.loc[gene_df["chrm"] == f"chr{chrm_num}"].drop(columns="chrm")
