@@ -1,16 +1,17 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Callable, Literal, NamedTuple, Iterable
+from typing import Literal, NamedTuple, Iterable
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 
 from chromosome.chromosome import Chromosome, MultiChrm
-from chromosome.genes import Genes
+from chromosome.genes import Genes, Promoters
 from models.prediction import Prediction
 from util.util import FileSave, PlotUtil, PathObtain, Attr
-from util.custom_types import ChrId, PositiveInt, NonNegativeInt
+from util.custom_types import ChrId, PositiveInt, NonNegativeInt, PosOneIdx
 from util.constants import ChrIdList
 
 
@@ -25,9 +26,9 @@ MEAN_C0 = "mean_c0"
 
 
 class BoundaryNT(NamedTuple):
-    left: int
-    right: int
-    middle: int
+    left: PosOneIdx
+    right: PosOneIdx
+    middle: PosOneIdx
     score: float
 
 
@@ -50,6 +51,9 @@ class BoundariesHE:
         self.res = res
         self.bndrs_df = self._read_boundaries()
         self.lim = lim
+        self._mean_c0 = None 
+        self._prmtr_bndrs = None 
+        self._np_bndrs = None
         self._add_mean_c0_col()
         self._add_in_promoter_col()
 
@@ -66,7 +70,7 @@ class BoundariesHE:
         raise KeyError
 
     def __str__(self):
-        return f"res_{self.res}_lim_{self.lim}_{self._chrm}"
+        return f"res_{self.res}_lim_{self.lim}"
 
     def _read_boundaries(
         self,
@@ -86,18 +90,17 @@ class BoundariesHE:
         """Add mean c0 of each bndry"""
         self.bndrs_df = self.bndrs_df.assign(
             mean_c0=lambda df: self._chrm.mean_c0_at_bps(
-                df["middle"], self.lim, self.lim
+                df[MIDDLE], self.lim, self.lim
             )
         )
 
     def _add_in_promoter_col(self) -> None:
         self.bndrs_df = self.bndrs_df.assign(
-            in_promoter=lambda df: Genes(self._chrm).in_promoter(df["middle"])
+            in_promoter=lambda df: Promoters(self._chrm).is_in_prmtr(df[MIDDLE])
         )
 
     def cover_mask(self) -> np.ndarray:
         return self._chrm.get_cvr_mask(self.bndrs_df[MIDDLE], self.lim, self.lim)
-
 
     @property
     def mean_c0(self) -> float:
@@ -127,10 +130,74 @@ class BoundariesHE:
         return Attr.calc_attr(self, "_np_bndrs", calc_np_bndrs)
 
 
+START = "start"
+END = "end"
+LEN = "len"
+MEAN_C0 = "mean_c0"
+
+
+class DomainNT:
+    start: PosOneIdx
+    end: PosOneIdx
+    len: int
+    mean_c0: float
+
+
+class DomainsHE:
+    def __init__(self, chrm: Chromosome):
+        self._chrm = chrm
+        self._boundaries = BoundariesHE(chrm)
+        self._domains = self._get_domains()
+        self._add_mean_c0()
+
+    def __iter__(self) -> Iterable[NamedTuple[START:int, END:int, LEN:int]]:
+        return self._domains.itertuples()
+
+    def __getitem__(self, key: str) -> pd.Series:
+        if key in self._domains.columns:
+            return self._domains[key]
+
+        raise KeyError
+
+    def _add_mean_c0(self) -> None:
+        self._domains[MEAN_C0] = self._domains.apply(
+            lambda domain: self._chrm.mean_c0_segment(domain[START], domain[END]),
+            axis=1,
+        )
+
+    @property
+    def mean_c0(self) -> float:
+        if not hasattr(self, "_mean_c0"):
+            c0_spread = self._chrm.c0_spread()
+            self._mean_c0 = c0_spread[~self._boundaries.cover_mask()].mean()
+
+        return self._mean_c0
+
+    def _get_domains(self) -> pd.DataFrame[START:int, END:int, LEN:int]:
+        return pd.DataFrame(
+            {
+                "start": self._boundaries[RIGHT].tolist()[:-1],
+                "end": self._boundaries[LEFT].tolist()[1:],
+            }
+        ).assign(len=lambda df: df["end"] - df["start"])
+
+
 class PlotBoundariesHE:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
         self._bndrs = BoundariesHE(chrm)
+        self._figsubdir = "domains"
+
+    def density(self):
+        sns.distplot(self._bndrs[MEAN_C0], hist=False, kde=True, label="boundaries")
+        prmtrs = Promoters(self._chrm)
+        sns.distplot(prmtrs[MEAN_C0], hist=False, kde=True, label="promoters")
+        sns.distplot(self._bndrs.prmtr_bndrs()[MEAN_C0], hist=False, kde=True, label="prm boundaries")
+        sns.distplot(self._bndrs.non_prmtr_bndrs()[MEAN_C0], hist=False, kde=True, label="nonprm boundaries")
+        plt.legend()
+        return FileSave.figure_in_figdir(
+            f"{self._figsubdir}/boundaries_density_c0_{self._bndrs}_{prmtrs}_{self._chrm}.png"
+        )
 
     def line_c0_around(self, pltlim=250):
         bndrs_mid = self._bndrs[MIDDLE]
@@ -159,7 +226,7 @@ class PlotBoundariesHE:
         )
 
         return FileSave.figure_in_figdir(
-            f"domains/mean_c0_bndrs_{self._chrm._chr_id}_plt_{pltlim}.png"
+            f"{self._figsubdir}/mean_c0_bndrs_{self._chrm._chr_id}_plt_{pltlim}.png"
         )
 
     def line_c0_around_indiv(self) -> None:
@@ -182,7 +249,7 @@ class PlotBoundariesHE:
         )
 
         return FileSave.figure_in_figdir(
-            f"domains/{self._chrm._chr_id}/{pstr}_indiv_{mid}.png"
+            f"{self._figsubdir}/{self._chrm._chr_id}/{pstr}_indiv_{mid}.png"
         )
 
     def scatter_mean_c0_at_indiv(self) -> Path:
@@ -224,44 +291,9 @@ class PlotBoundariesHE:
         )
         plt.legend()
 
-        return FileSave.figure_in_figdir(f"domains/mean_c0_scatter_{self._bndrs}.png")
-
-
-START = "start"
-END = "end"
-LEN = "len"
-
-
-class DomainsHE:
-    def __init__(self, chrm: Chromosome):
-        self._chrm = chrm
-        self._boundaries = BoundariesHE(chrm)
-        self._domains = self._get_domains()
-
-    def __iter__(self) -> Iterable[NamedTuple[START:int, END:int, LEN:int]]:
-        return self._domains.itertuples()
-
-    def __getitem__(self, key: str) -> pd.Series:
-        if key in self._domains.columns:
-            return self._domains[key]
-
-        raise KeyError
-
-    @property
-    def mean_c0(self) -> float:
-        if not hasattr(self, "_mean_c0"):
-            c0_spread = self._chrm.c0_spread()
-            self._mean_c0 = c0_spread[~self._boundaries.cover_mask()].mean()
-
-        return self._mean_c0
-
-    def _get_domains(self) -> pd.DataFrame[START:int, END:int, LEN:int]:
-        return pd.DataFrame(
-            {
-                "start": self._boundaries[RIGHT].tolist()[:-1],
-                "end": self._boundaries[LEFT].tolist()[1:],
-            }
-        ).assign(len=lambda df: df["end"] - df["start"])
+        return FileSave.figure_in_figdir(
+            f"{self._figsubdir}/mean_c0_scatter_{self._bndrs}.png"
+        )
 
 
 class BoundariesDomainsHEQuery:
@@ -552,8 +584,8 @@ class MCBoundariesHECollector:
         chrms = self._chrms
         mc_bndrs = chrms.apply(lambda chrm: BoundariesHE(chrm, self._res))
         perc_in_prmtrs = mc_bndrs.apply(
-            lambda bndrs: Genes(bndrs._chrm)
-            .in_promoter(bndrs.bndrs_df["middle"])
+            lambda bndrs: Promoters(bndrs._chrm)
+            .is_in_prmtr(bndrs.bndrs_df["middle"])
             .mean()
             * 100
         )

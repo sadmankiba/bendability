@@ -188,7 +188,7 @@ def roman_to_num(chr_num: YeastChrNum) -> int:
 class Attr:
     @classmethod
     def calc_attr(self, obj: object, attr: str, calc: Callable):
-        if not hasattr(obj, attr):
+        if not hasattr(obj, attr) or getattr(obj, attr) is None:
             setattr(obj, attr, calc())
 
         return getattr(obj, attr)

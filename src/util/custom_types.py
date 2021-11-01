@@ -1,6 +1,6 @@
 from typing import Literal, Union, NewType
 
-OneIdxPos = int
+PosOneIdx = int
 
 DNASeq = str
 C0 = float

@@ -13,7 +13,7 @@ from nptyping import NDArray
 from models.prediction import Prediction
 from util.reader import DNASequenceReader
 from util.constants import CHRVL, SEQ_LEN, ChrIdList
-from util.custom_types import ChrId, OneIdxPos, YeastChrNum, PositiveInt
+from util.custom_types import ChrId, PosOneIdx, YeastChrNum, PositiveInt
 from util.util import FileSave, PathObtain, PlotUtil
 
 
@@ -331,7 +331,7 @@ class Chromosome:
         PlotUtil.show_grid()
 
         x = np.arange(start - 1, end)
-        y = self.c0_spread()[start - 1:end]
+        y = self.c0_spread()[start - 1 : end]
         plt.plot(x, y, color="blue", alpha=0.5, label=1)
 
         k = [10]  # , 25, 50]
@@ -440,7 +440,7 @@ class Chromosome:
 
         return cvr_arr
 
-    def mean_c0_segment(self, start: OneIdxPos, end: OneIdxPos) -> float:
+    def mean_c0_segment(self, start: PosOneIdx, end: PosOneIdx) -> float:
         return self.c0_spread()[start - 1 : end].mean()
 
     def mean_c0_of_segments(

@@ -12,7 +12,7 @@ from .chromosome import Chromosome
 from .nucleosome import Nucleosome
 from util.reader import GeneReader
 from util.util import FileSave, PlotUtil, PathObtain, Attr
-from util.custom_types import NonNegativeInt
+from util.custom_types import NonNegativeInt, PosOneIdx
 
 START = "start"
 END = "end"
@@ -103,34 +103,12 @@ class Genes:
             f"{PathObtain.figure_dir()}/genes/dist_p1_dyad_{self._chrm}.png"
         )
 
-    def in_promoter(self, bps: np.ndarray | list[int] | pd.Series) -> np.ndarray:
-        """
-        Find whether some bps lies in promoter
-
-        Promoter is defined as +-400bp from TSS
-        """
-        frwrd_prmtr_rgn = self._frwrd_tr_df()[START].apply(
-            lambda tss: np.arange(tss - 400, tss + 400 + 1)
-        )
-        rvrs_prmtr_rgn = self._rvrs_tr_df()[END].apply(
-            lambda tss: np.arange(tss - 400, tss + 400 + 1)
-        )
-
-        prmtr_rgn = np.concatenate(
-            (
-                np.array(frwrd_prmtr_rgn.tolist()).flatten(),
-                np.array(rvrs_prmtr_rgn.tolist()).flatten(),
-            )
-        )
-
-        return np.array([bp in prmtr_rgn for bp in bps])
-
 
 class Promoters:
-    def __init__(self, chrm: Chromosome) -> None:
+    def __init__(self, chrm: Chromosome, ustr_tss: int = 500, dstr_tss: int = 0) -> None:
         self.chrm = chrm
-        self._ustr_tss = 500
-        self._dstr_tss = 0
+        self._ustr_tss = ustr_tss
+        self._dstr_tss = dstr_tss
         self._promoters = self._get_promoters()
         self._add_mean_c0()
 
@@ -169,7 +147,7 @@ class Promoters:
         raise KeyError
 
     def __str__(self) -> str:
-        return f"{self._ustr_tss}_{self._dstr_tss}"
+        return f"ustr_{self._ustr_tss}_dstr_{self._dstr_tss}"
 
     @property
     def mean_c0(self):
@@ -193,6 +171,9 @@ class Promoters:
                 df[START], 0, self._ustr_tss + self._dstr_tss
             )
         )
+
+    def is_in_prmtr(self, bps: np.ndarray | list[PosOneIdx] | pd.Series) -> np.ndarray:
+        return np.array([self.cover_mask[bp] for bp in bps])
 
 
 class PromotersPlot:

@@ -9,12 +9,6 @@ class TestGenes:
         path = Genes(chrm_vl).plot_mean_c0_vs_dist_from_dyad()
         assert path.is_file()
 
-    def test_in_promoter(self):
-        genes = Genes(Chromosome("II"))
-        assert list(
-            genes.in_promoter([741800, 742000, 742500, 634700, 636900, 636400])
-        ) == [False, False, True, True, False, False]
-
 
 @pytest.fixture
 def prmtrs_vl(chrm_vl):
@@ -24,6 +18,7 @@ def prmtrs_vl(chrm_vl):
 class TestPromoters:
     def test_mean_c0(self, prmtrs_vl: Promoters):
         assert -0.3 < prmtrs_vl.mean_c0 < -0.1
+        
 
 @pytest.fixture
 def prmtrsplt_vl(chrm_vl):
