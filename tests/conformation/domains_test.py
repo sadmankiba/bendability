@@ -4,6 +4,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 from conformation.domains import (
+    BoundariesDomainsHEQuery,
     BoundariesHE,
     PlotBoundariesHE,
     IN_PROMOTER,
@@ -17,21 +18,18 @@ from conformation.domains import (
 )
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
-from chromosome.genes import Genes
+from chromosome.genes import Genes, Promoters
 
-
-pytest.mark.skip(reason="Updating domains")
 
 
 @pytest.fixture
-def bndrs_r500_l250_vl_mean7(chrm_vl_mean7):
+def bndrs_vl(chrm_vl_mean7):
     return BoundariesHE(chrm_vl_mean7, res=500, lim=250)
 
 
 class TestBoundariesHE:
-    def test_read_boundaries_of(self):
-        bndrs = BoundariesHE(Chromosome("VIII", Prediction(30)), res=500)
-        assert set(bndrs.bndrs_df.columns) == set(
+    def test_read_boundaries_of(self, bndrs_vl: BoundariesHE):
+        assert set(bndrs_vl.bndrs_df.columns) == set(
             [
                 LEFT,
                 RIGHT,
@@ -41,59 +39,35 @@ class TestBoundariesHE:
                 MEAN_C0,
             ]
         )
-        assert len(bndrs.bndrs_df) == 53
+        assert len(bndrs_vl.bndrs_df) == 57
 
-    def test_mean_c0(self, bndrs_r500_l250_vl_mean7: BoundariesHE):
-        mc0 = bndrs_r500_l250_vl_mean7.mean_c0
+    def test_mean_c0(self, bndrs_vl: BoundariesHE):
+        mc0 = bndrs_vl.mean_c0
         assert mc0 == pytest.approx(-0.179, rel=1e-3)
 
-    def test_get_domains(self):
-        bndrs = BoundariesHE(Chromosome("XV", Prediction(30)))
-        dmns_df = bndrs.get_domains()
-        assert len(dmns_df) == len(bndrs.bndrs_df) - 1
-        assert dmns_df.iloc[9]["start"] == bndrs.bndrs_df.iloc[9]["right"]
-        assert dmns_df.iloc[9]["end"] == bndrs.bndrs_df.iloc[10]["left"]
-
-    def test_add_mean_c0_col(self):
-        bndrs = BoundariesHE(Chromosome("X", Prediction(30)))
-        mn = bndrs.bndrs_df["mean_c0"]
+    def test_add_mean_c0_col(self, bndrs_vl: BoundariesHE):
+        mn = bndrs_vl.bndrs_df[MEAN_C0]
         assert np.all((mn > -0.7) & (mn < 0.2))
 
-    def test_add_in_promoter_col(self):
-        bndrs = BoundariesHE(Chromosome("X", Prediction(30)))
-        assert len(bndrs.bndrs_df.query("in_promoter")) > len(
-            bndrs.bndrs_df.query("not in_promoter")
+    def test_add_in_promoter_col(self, bndrs_vl: BoundariesHE):
+        assert len(bndrs_vl.bndrs_df.query(IN_PROMOTER)) > len(
+            bndrs_vl.bndrs_df.query(f"not {IN_PROMOTER}")
         )
 
-    def test_bndry_domain_mean_c0(self):
-        bndrs = BoundariesHE(Chromosome("VL"))
-        bndry_c0, dmn_c0 = bndrs.bndry_domain_mean_c0()
-        assert -0.3 < bndry_c0 < 0
-        assert -0.3 < dmn_c0 < 0
+    def test_prmtr_non_prmtr_bndrs(self, bndrs_vl: BoundariesHE):
+        prmtr_bndrs = bndrs_vl.prmtr_bndrs()
+        non_prmtr_bndrs = bndrs_vl.non_prmtr_bndrs()
+        assert -0.5 < prmtr_bndrs.mean_c0 < 0
+        assert -0.5 < non_prmtr_bndrs.mean_c0 < 0
+        assert prmtr_bndrs.mean_c0 > non_prmtr_bndrs.mean_c0
 
-    def test_prmtr_non_prmtr_mean(self):
-        chrm = Chromosome("VI", Prediction(30))
-        bndrs = BoundariesHE(chrm)
-        prmtr_bndry_c0 = bndrs.prmtr_bndrs_mean_c0()
-        non_prmtr_bndry_c0 = bndrs.non_prmtr_bndrs_mean_c0()
-        assert -0.5 < prmtr_bndry_c0 < 0
-        assert -0.5 < non_prmtr_bndry_c0 < 0
-        assert prmtr_bndry_c0 > non_prmtr_bndry_c0
+        assert bndrs_vl.mean_c0 == pytest.approx((prmtr_bndrs.mean_c0 * len(prmtr_bndrs)
+                + non_prmtr_bndrs.mean_c0 * len(non_prmtr_bndrs))
+            / len(bndrs_vl),
+            rel=1e-3)
 
-        # Check mathematically if two groups make up total boundaries mean
-        bndrs_c0, _ = bndrs.bndry_domain_mean_c0()
-        num_prmtr_bndrs = Genes(chrm).in_promoter(bndrs.bndrs_df["middle"]).sum()
-        num_non_prmtr_bndrs = len(bndrs.bndrs_df) - num_prmtr_bndrs
-        assert_almost_equal(
-            bndrs_c0,
-            (
-                prmtr_bndry_c0 * num_prmtr_bndrs
-                + non_prmtr_bndry_c0 * num_non_prmtr_bndrs
-            )
-            / len(bndrs.bndrs_df),
-            decimal=6,
-        )
-
+@pytest.mark.skip(reason="Updating domains")
+class TestBoundariesDomainsHEQuery:
     def test_num_greater_than_dmns(self):
         bndrs = BoundariesHE(Chromosome("VI", Prediction(30)))
         bndrs_gt = bndrs.num_bndry_mean_c0_greater_than_dmn()
@@ -110,7 +84,7 @@ def plotbndrs_vl(chrm_vl):
 class TestPlotBoundariesHE:
     def test_density(self, plotbndrs_vl: PlotBoundariesHE):
         assert plotbndrs_vl.density().is_file()
-        
+
     def test_line_c0_around(self, plotbndrs_vl: PlotBoundariesHE):
         assert plotbndrs_vl.line_c0_around().is_file()
 
@@ -121,7 +95,7 @@ class TestPlotBoundariesHE:
     def test_line_c0_around_indiv(self, plotbndrs_vl: PlotBoundariesHE):
         assert plotbndrs_vl._line_c0_around_indiv(plotbndrs_vl._bndrs[7], "").is_file()
 
-
+@pytest.mark.skip(reason="Updating domains")
 class TestMCBoundariesHECollector:
     def test_add_dmns_mean(self):
         coll = MCBoundariesHECollector(Prediction(30), ("VI", "VII"))
@@ -168,7 +142,7 @@ class TestMCBoundariesHECollector:
         assert xi_ii_mean_dmn > 7000
         assert xi_ii_mean_dmn < 12000
 
-
+@pytest.mark.skip(reason="Updating domains")
 class TestMCBoundariesHEAggregator:
     def test_save_stat(self):
         aggr = MCBoundariesHEAggregator(

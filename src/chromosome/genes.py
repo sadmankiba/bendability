@@ -10,7 +10,7 @@ import seaborn as sns
 
 from .chromosome import Chromosome
 from .nucleosome import Nucleosome
-import regions
+from .regions import Regions
 from util.reader import GeneReader
 from util.util import FileSave, PlotUtil, PathObtain, Attr
 from util.custom_types import NonNegativeInt, PosOneIdx
@@ -24,7 +24,7 @@ MEAN_C0 = "mean_c0"
 
 class GeneNT(NamedTuple):
     """
-    Representation of position of a gene.
+    Representation of a gene region.
 
     'start' is lower bp, 'end' is higher bp irrespective of 'strand'.
     """
@@ -105,6 +105,19 @@ class Genes:
         )
 
 
+class PromoterNT(NamedTuple):
+    """
+    Representation of a promoter region.
+
+    'start' is lower bp, 'end' is higher bp irrespective of 'strand'.
+    """
+
+    start: int
+    end: int
+    strand: int
+    mean_c0: float
+
+
 class Promoters:
     def __init__(self, chrm: Chromosome, ustr_tss: int = 500, dstr_tss: int = 0) -> None:
         self.chrm = chrm
@@ -177,7 +190,7 @@ class Promoters:
         return np.array([self.cover_mask[bp] for bp in bps])
 
     def and_x(self, bps: Iterable[PosOneIdx], with_x: bool):
-        cntns = regions.contains(self, bps)
+        cntns = Regions.contains(self, bps)
         prmtrs = Promoters(self.chrm, self._ustr_tss, self._dstr_tss)
         prmtrs._promoters = self._promoters.iloc[cntns if with_x else ~cntns]
         return prmtrs

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Sequence, Any
+from typing import Iterable, NamedTuple, Sequence, Any
 
 import pandas as pd
 import numpy as np
@@ -12,16 +12,21 @@ regions = pd.DataFrame
 START = "start"
 END = "end"
 
+class Regions:
+    @classmethod
+    def is_in(self, bps: Iterable[PosOneIdx], containers: regions[START:int, END:int]):
+        pass
 
-def contains(
-    containers: regions[START:int, END:int], bps: Sequence[PosOneIdx]
-) -> NDArray[(Any,), bool]:
-    def _contains_bps(region: pd.Series):
-        cntns = False
-        for bp in bps:
-            if region[START] <= bp <= region[END]:
-                cntns = True 
+    @classmethod
+    def contains(
+        self, containers: regions[START:PosOneIdx, END:PosOneIdx], bps: Iterable[PosOneIdx]
+    ) -> NDArray[(Any,), bool]:
+        def _contains_bps(region: NamedTuple[START: PosOneIdx, END: PosOneIdx]):
+            cntns = False
+            for bp in bps:
+                if getattr(region, START) <= bp <= getattr(region, END):
+                    cntns = True 
+            
+            return cntns 
         
-        return cntns 
-    
-    return containers.apply(lambda region: _contains_bps(region), axis = 1).to_numpy()
+        return np.array(list(map(lambda cnt: _contains_bps(cnt), containers)))

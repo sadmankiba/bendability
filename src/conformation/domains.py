@@ -69,6 +69,9 @@ class BoundariesHE:
 
         raise KeyError
 
+    def __len__(self) -> int:
+        return len(self.bndrs_df)
+        
     def __str__(self):
         return f"res_{self.res}_lim_{self.lim}"
 
@@ -182,6 +185,7 @@ class DomainsHE:
         ).assign(len=lambda df: df["end"] - df["start"])
 
 
+
 class PlotBoundariesHE:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
@@ -189,11 +193,16 @@ class PlotBoundariesHE:
         self._figsubdir = "domains"
 
     def density(self):
+        PlotUtil.show_grid()
         sns.distplot(self._bndrs[MEAN_C0], hist=False, kde=True, label="boundaries")
         prmtrs = Promoters(self._chrm)
         sns.distplot(prmtrs[MEAN_C0], hist=False, kde=True, label="promoters")
         sns.distplot(self._bndrs.prmtr_bndrs()[MEAN_C0], hist=False, kde=True, label="prm boundaries")
         sns.distplot(self._bndrs.non_prmtr_bndrs()[MEAN_C0], hist=False, kde=True, label="nonprm boundaries")
+        prmtrs_with_bndrs = prmtrs.and_x(self._bndrs[MIDDLE], True)
+        prmtrs_wo_bndrs = prmtrs.and_x(self._bndrs[MIDDLE], False)
+        sns.distplot(prmtrs_with_bndrs[MEAN_C0], hist=False, kde=True, label="promoters with bndry")
+        sns.distplot(prmtrs_wo_bndrs[MEAN_C0], hist=False, kde=True, label="promoters w/o bndry")
         plt.legend()
         return FileSave.figure_in_figdir(
             f"{self._figsubdir}/boundaries_density_c0_{self._bndrs}_{prmtrs}_{self._chrm}.png"
