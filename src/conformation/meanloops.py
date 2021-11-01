@@ -484,7 +484,6 @@ class MultiChrmMeanLoopsCollector:
             self.OP_NON_LOOP_NUC_LINKER_MEAN: self._add_non_loop_nuc_linker_mean,
             self.OP_QUARTILE_BY_LEN: self._add_quartile_by_len,
             self.OP_QUARTILE_BY_POS: self._add_quartile_by_pos,
-            self.OP_QUARTILE_BY_LEN_POS: self._add_quartile_by_len_pos,
             self.OP_ANCHOR_CENTER_BP: self._add_anchor_center_bp,
             self.OP_QUARTILE_LEN_ANCHOR_CENTER_BP: self._add_quartile_len_anchor_center_bp,
             self.OP_NUM_LOOPS: self._add_num_loops,
@@ -493,7 +492,6 @@ class MultiChrmMeanLoopsCollector:
             self.OP_NUM_LOOPS_N_LT_NLN: self._add_num_loops_n_lt_nln,
         }
 
-        # Select all
         if mean_methods is None:
             mean_methods = list(method_map.keys())
 

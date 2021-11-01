@@ -418,9 +418,9 @@ class PlotLoops:
 
 
 class MCLoops:
-    def __init__(self, multichrm: MultiChrm):
-        self._multichrm = multichrm
-        self._loops = list(map(lambda c: Loops(c), multichrm))
+    def __init__(self, mchrm: MultiChrm):
+        self._mchrm = mchrm
+        self._loops = list(map(lambda c: Loops(c), mchrm))
 
     def __iter__(self):
         return iter(self._loops)
