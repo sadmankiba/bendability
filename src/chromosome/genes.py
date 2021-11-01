@@ -1,7 +1,7 @@
 from __future__ import annotations
 import random
 from pathlib import Path
-from typing import Iterable, NamedTuple
+from typing import Iterable, NamedTuple, Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,6 +10,7 @@ import seaborn as sns
 
 from .chromosome import Chromosome
 from .nucleosome import Nucleosome
+import regions
 from util.reader import GeneReader
 from util.util import FileSave, PlotUtil, PathObtain, Attr
 from util.custom_types import NonNegativeInt, PosOneIdx
@@ -172,9 +173,15 @@ class Promoters:
             )
         )
 
-    def is_in_prmtr(self, bps: np.ndarray | list[PosOneIdx] | pd.Series) -> np.ndarray:
+    def is_in_prmtr(self, bps: Iterable[PosOneIdx]) -> np.ndarray:
         return np.array([self.cover_mask[bp] for bp in bps])
 
+    def and_x(self, bps: Iterable[PosOneIdx], with_x: bool):
+        cntns = regions.contains(self, bps)
+        prmtrs = Promoters(self.chrm, self._ustr_tss, self._dstr_tss)
+        prmtrs._promoters = self._promoters.iloc[cntns if with_x else ~cntns]
+        return prmtrs
+    
 
 class PromotersPlot:
     def __init__(self, chrm: Chromosome) -> None:
