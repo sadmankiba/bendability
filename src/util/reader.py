@@ -116,6 +116,7 @@ NCP_SCORE_BY_NOISE = "NCP score/noise"
 
 
 class NucsReader:
+    @classmethod
     def read_nuc_center(
         self, chrmnum: YeastChrNum
     ) -> list[PosOneIdx]:

@@ -15,7 +15,7 @@ from typing import Literal
 class Nucleosomes:
     def __init__(self, chrm: Chromosome):
         self._chrm = chrm
-        self._centers = NucsReader.read_nuc_center()
+        self._centers = NucsReader.read_nuc_center(self._chrm.number)
 
     def _plot_c0_vs_dist_from_dyad(
         self, x: np.ndarray, y: np.ndarray, dist: int, spread_str: str
@@ -109,11 +109,10 @@ class Nucleosomes:
             dist: +-distance from dyad to plot (1-indexed)
         """
         spread_c0 = self._chrm.c0_spread()
-        centers = self._get_nuc_centers()
 
         # Read C0 of -dist to +dist sequences
         c0_at_nuc: list[np.ndarray] = list(
-            map(lambda c: spread_c0[c - 1 - dist : c + dist], centers)
+            map(lambda c: spread_c0[c - 1 - dist : c + dist], self._centers)
         )
         assert c0_at_nuc[0].size == 2 * dist + 1
         assert c0_at_nuc[-1].size == 2 * dist + 1
