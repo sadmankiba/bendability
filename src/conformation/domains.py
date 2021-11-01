@@ -71,7 +71,7 @@ class BoundariesHE:
 
     def __len__(self) -> int:
         return len(self.bndrs_df)
-        
+
     def __str__(self):
         return f"res_{self.res}_lim_{self.lim}"
 
@@ -192,7 +192,8 @@ class PlotBoundariesHE:
         self._bndrs = BoundariesHE(chrm)
         self._figsubdir = "domains"
 
-    def density(self):
+    def density_c0(self):
+        PlotUtil.clearfig()
         PlotUtil.show_grid()
         sns.distplot(self._bndrs[MEAN_C0], hist=False, kde=True, label="boundaries")
         prmtrs = Promoters(self._chrm)

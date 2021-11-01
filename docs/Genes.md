@@ -20,8 +20,8 @@ CH = Chromosome
 Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH
 
 **Observations**
-- Promoters in general, have a preference for higher bendability. This preference is present in promoters without boundaries but not in those with boundaries. Rather, promoters that form boundaries have a visible preference for rigidity. 
-- Boundaries, both in and not in promoters, show similar distribution. In-promoter ones are more concentrated near avg.  
+- Promoters in general, have a preference for higher bendability. This preference is more visible in promoters without boundaries but not in those with boundaries. In majority chromosomes (about 3 out of 5), promoters that form boundaries showed a preference for rigidity. 
+- Boundaries, both in and not in promoters, show similar bell-curve distribution. In-promoter ones are more concentrated near avg. 
 
 Observed in chrm VL 
 

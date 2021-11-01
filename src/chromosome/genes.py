@@ -160,6 +160,9 @@ class Promoters:
 
         raise KeyError
 
+    def __len__(self):
+        return len(self._promoters)
+
     def __str__(self) -> str:
         return f"ustr_{self._ustr_tss}_dstr_{self._dstr_tss}"
 
@@ -187,7 +190,7 @@ class Promoters:
         )
 
     def is_in_prmtr(self, bps: Iterable[PosOneIdx]) -> np.ndarray:
-        return np.array([self.cover_mask[bp] for bp in bps])
+        return np.array([self.cover_mask[bp - 1] for bp in bps])
 
     def and_x(self, bps: Iterable[PosOneIdx], with_x: bool):
         cntns = Regions.contains(self, bps)

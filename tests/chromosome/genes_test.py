@@ -2,6 +2,7 @@ import pytest
 
 from chromosome.chromosome import Chromosome
 from chromosome.genes import Genes, Promoters, PromotersPlot
+from conformation.domains import BoundariesHE, MIDDLE
 
 
 class TestGenes:
@@ -11,18 +12,29 @@ class TestGenes:
 
 
 @pytest.fixture
-def prmtrs_vl(chrm_vl):
-    return Promoters(chrm_vl)
+def prmtrs_vl(chrm_vl_mean7):
+    return Promoters(chrm_vl_mean7, ustr_tss=500, dstr_tss=0)
 
 
 class TestPromoters:
     def test_mean_c0(self, prmtrs_vl: Promoters):
         assert -0.3 < prmtrs_vl.mean_c0 < -0.1
+    
+    def test_and_x(self, prmtrs_vl: Promoters):
+        bndrs = BoundariesHE(prmtrs_vl.chrm, 500, 250)
+        prmtrs_wb = prmtrs_vl.and_x(bndrs[MIDDLE], True)
+        prmtrs_wob = prmtrs_vl.and_x(bndrs[MIDDLE], False)
+        assert len(prmtrs_wb) + len(prmtrs_wob) == len(prmtrs_vl)
+
+        assert pytest.approx((prmtrs_wb.mean_c0 * len(prmtrs_wb)
+                + prmtrs_wob.mean_c0 * len(prmtrs_wob))
+            / len(prmtrs_vl),
+            rel=2e-3) == prmtrs_vl.mean_c0
         
 
 @pytest.fixture
-def prmtrsplt_vl(chrm_vl):
-    return PromotersPlot(chrm_vl)
+def prmtrsplt_vl(chrm_vl_mean7):
+    return PromotersPlot(chrm_vl_mean7)
 
 class TestPromotersPlot:
     def test_density(self, prmtrsplt_vl: PromotersPlot):

@@ -8,6 +8,10 @@ def chrm_vl():
     return Chromosome('VL')
 
 @pytest.fixture
+def chrm_vl_mean7():
+    return Chromosome("VL", spread_str="mean7")
+
+@pytest.fixture
 def chrm_i():
     return Chromosome('I')
 

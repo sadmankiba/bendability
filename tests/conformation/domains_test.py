@@ -82,8 +82,8 @@ def plotbndrs_vl(chrm_vl):
 
 
 class TestPlotBoundariesHE:
-    def test_density(self, plotbndrs_vl: PlotBoundariesHE):
-        assert plotbndrs_vl.density().is_file()
+    def test_density_c0(self, plotbndrs_vl: PlotBoundariesHE):
+        assert plotbndrs_vl.density_c0().is_file()
 
     def test_line_c0_around(self, plotbndrs_vl: PlotBoundariesHE):
         assert plotbndrs_vl.line_c0_around().is_file()
