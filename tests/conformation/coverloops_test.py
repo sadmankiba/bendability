@@ -24,7 +24,9 @@ def cloops_vl(loops_vl):
 
 class TestCoverLoops:
     def test_coverloops(self, cloops_vl: CoverLoops):
-        cloops_vl.covermask = np.array([False, False, True, False, True, True, False, True, False])
+        cloops_vl.covermask = np.array(
+            [False, False, True, False, True, True, False, True, False]
+        )
         df = cloops_vl._coverloops()
         assert df[COL_START].tolist() == [3, 5, 8]
         assert df[COL_END].tolist() == [3, 6, 8]
@@ -50,9 +52,11 @@ class TestPlotCoverLoops:
         figpath = ploops.plot_histogram_c0()
         assert figpath.is_file()
 
+
 @pytest.fixture
 def mchrm_vl_i():
     return MultiChrm(("VL", "I"))
+
 
 class TestMCCoverLoops:
     def test_creation(self, mchrm_vl_i, cloops_vl, chrm_i):
@@ -71,11 +75,9 @@ class TestPlotMCCoverLoops:
 
 
 class TestMultiChrmLoopsCoverCollector:
-    @pytest.fixture 
+    @pytest.fixture
     def mclccoll_vl(self):
-        return MultiChrmLoopsCoverCollector(
-                ("VL",), 1000000
-            )
+        return MultiChrmLoopsCoverCollector(("VL",), 1000000)
 
     def test_get_cover_stat(self, mclccoll_vl):
         colt_df, path_str = mclccoll_vl.get_cover_stat()

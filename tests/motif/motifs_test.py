@@ -1,5 +1,6 @@
 from motif.motifs import Motifs
 
+
 class TestMotifs:
     def test_plot_ranked_tf(self):
         motifs = Motifs()

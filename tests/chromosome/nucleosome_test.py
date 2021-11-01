@@ -5,9 +5,10 @@ from chromosome.nucleosomes import Nucleosomes
 from chromosome.chromosome import Chromosome
 from util.constants import CHRV_TOTAL_BP
 
+
 @pytest.fixture
 def nucs_vl(chrm_vl_mean7):
-    return Nucleosomes(Chromosome('VL'))
+    return Nucleosomes(Chromosome("VL"))
 
 
 class TestNucleosomes:

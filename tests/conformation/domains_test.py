@@ -21,7 +21,6 @@ from models.prediction import Prediction
 from chromosome.genes import Genes, Promoters
 
 
-
 @pytest.fixture
 def bndrs_vl(chrm_vl_mean7):
     return BoundariesHE(chrm_vl_mean7, res=500, lim=250)
@@ -61,10 +60,15 @@ class TestBoundariesHE:
         assert -0.5 < non_prmtr_bndrs.mean_c0 < 0
         assert prmtr_bndrs.mean_c0 > non_prmtr_bndrs.mean_c0
 
-        assert bndrs_vl.mean_c0 == pytest.approx((prmtr_bndrs.mean_c0 * len(prmtr_bndrs)
-                + non_prmtr_bndrs.mean_c0 * len(non_prmtr_bndrs))
+        assert bndrs_vl.mean_c0 == pytest.approx(
+            (
+                prmtr_bndrs.mean_c0 * len(prmtr_bndrs)
+                + non_prmtr_bndrs.mean_c0 * len(non_prmtr_bndrs)
+            )
             / len(bndrs_vl),
-            rel=1e-3)
+            rel=1e-3,
+        )
+
 
 @pytest.mark.skip(reason="Updating domains")
 class TestBoundariesDomainsHEQuery:
@@ -94,6 +98,7 @@ class TestPlotBoundariesHE:
 
     def test_line_c0_around_indiv(self, plotbndrs_vl: PlotBoundariesHE):
         assert plotbndrs_vl._line_c0_around_indiv(plotbndrs_vl._bndrs[7], "").is_file()
+
 
 @pytest.mark.skip(reason="Updating domains")
 class TestMCBoundariesHECollector:
@@ -141,6 +146,7 @@ class TestMCBoundariesHECollector:
         assert xi_ii_mean_dmn < vii_mean_dmn * 1.1
         assert xi_ii_mean_dmn > 7000
         assert xi_ii_mean_dmn < 12000
+
 
 @pytest.mark.skip(reason="Updating domains")
 class TestMCBoundariesHEAggregator:

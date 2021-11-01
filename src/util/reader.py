@@ -117,23 +117,21 @@ NCP_SCORE_BY_NOISE = "NCP score/noise"
 
 class NucsReader:
     @classmethod
-    def read_nuc_center(
-        self, chrmnum: YeastChrNum
-    ) -> list[PosOneIdx]:
+    def read_nuc_center(self, chrmnum: YeastChrNum) -> list[PosOneIdx]:
         """
         Read nucleosome center position data.
         """
-        nuc_center_file = f"{PathObtain.data_dir()}/input_data/nucleosome_position/"\
+        nuc_center_file = (
+            f"{PathObtain.data_dir()}/input_data/nucleosome_position/"
             f"41586_2012_BFnature11142_MOESM263_ESM.txt"
+        )
         df = pd.read_table(
             nuc_center_file,
             delim_whitespace=True,
             header=None,
             names=[CHROMOSOME_ID, POSITION, NCP_SCORE, NCP_SCORE_BY_NOISE],
         )
-        return df.loc[
-            df[CHROMOSOME_ID] == f"chr{chrmnum}"
-        ][POSITION].tolist()
+        return df.loc[df[CHROMOSOME_ID] == f"chr{chrmnum}"][POSITION].tolist()
 
 
 class GeneReader:

@@ -61,7 +61,6 @@ class Nucleosomes:
             f"{PathObtain.figure_dir()}/nucleosome/dist_{dist}_s_{spread_str}_m_{self._chrm.predict_model_no()}_{self._chrm._chr_id}.png"
         )
 
-
     def _filter_at_least_depth(self, depth: int):
         """Remove center positions at each end that aren't in at least certain depth"""
         self._centers = list(

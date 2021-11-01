@@ -51,8 +51,8 @@ class BoundariesHE:
         self.res = res
         self.bndrs_df = self._read_boundaries()
         self.lim = lim
-        self._mean_c0 = None 
-        self._prmtr_bndrs = None 
+        self._mean_c0 = None
+        self._prmtr_bndrs = None
         self._np_bndrs = None
         self._add_mean_c0_col()
         self._add_in_promoter_col()
@@ -92,9 +92,7 @@ class BoundariesHE:
     def _add_mean_c0_col(self) -> None:
         """Add mean c0 of each bndry"""
         self.bndrs_df = self.bndrs_df.assign(
-            mean_c0=lambda df: self._chrm.mean_c0_at_bps(
-                df[MIDDLE], self.lim, self.lim
-            )
+            mean_c0=lambda df: self._chrm.mean_c0_at_bps(df[MIDDLE], self.lim, self.lim)
         )
 
     def _add_in_promoter_col(self) -> None:
@@ -185,7 +183,6 @@ class DomainsHE:
         ).assign(len=lambda df: df["end"] - df["start"])
 
 
-
 class PlotBoundariesHE:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
@@ -198,12 +195,29 @@ class PlotBoundariesHE:
         sns.distplot(self._bndrs[MEAN_C0], hist=False, kde=True, label="boundaries")
         prmtrs = Promoters(self._chrm)
         sns.distplot(prmtrs[MEAN_C0], hist=False, kde=True, label="promoters")
-        sns.distplot(self._bndrs.prmtr_bndrs()[MEAN_C0], hist=False, kde=True, label="prm boundaries")
-        sns.distplot(self._bndrs.non_prmtr_bndrs()[MEAN_C0], hist=False, kde=True, label="nonprm boundaries")
+        sns.distplot(
+            self._bndrs.prmtr_bndrs()[MEAN_C0],
+            hist=False,
+            kde=True,
+            label="prm boundaries",
+        )
+        sns.distplot(
+            self._bndrs.non_prmtr_bndrs()[MEAN_C0],
+            hist=False,
+            kde=True,
+            label="nonprm boundaries",
+        )
         prmtrs_with_bndrs = prmtrs.and_x(self._bndrs[MIDDLE], True)
         prmtrs_wo_bndrs = prmtrs.and_x(self._bndrs[MIDDLE], False)
-        sns.distplot(prmtrs_with_bndrs[MEAN_C0], hist=False, kde=True, label="promoters with bndry")
-        sns.distplot(prmtrs_wo_bndrs[MEAN_C0], hist=False, kde=True, label="promoters w/o bndry")
+        sns.distplot(
+            prmtrs_with_bndrs[MEAN_C0],
+            hist=False,
+            kde=True,
+            label="promoters with bndry",
+        )
+        sns.distplot(
+            prmtrs_wo_bndrs[MEAN_C0], hist=False, kde=True, label="promoters w/o bndry"
+        )
         plt.legend()
         return FileSave.figure_in_figdir(
             f"{self._figsubdir}/boundaries_density_c0_{self._bndrs}_{prmtrs}_{self._chrm}.png"
