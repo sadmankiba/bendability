@@ -9,7 +9,7 @@ import pandas as pd
 import seaborn as sns
 
 from .chromosome import Chromosome
-from .nucleosome import Nucleosome
+from .nucleosomes import Nucleosomes
 from .regions import Regions
 from util.reader import GeneReader
 from util.util import FileSave, PlotUtil, PathObtain, Attr
@@ -56,7 +56,7 @@ class Genes:
         raise KeyError
 
     def _add_dyads(self) -> None:
-        nucs = Nucleosome(self._chrm)
+        nucs = Nucleosomes(self._chrm)
         # TODO: Nucs need not know about strand
         self._genes[DYADS] = self._genes.apply(
             lambda tr: nucs.dyads_between(tr[START], tr[END], tr[STRAND]), axis=1
@@ -119,7 +119,9 @@ class PromoterNT(NamedTuple):
 
 
 class Promoters:
-    def __init__(self, chrm: Chromosome, ustr_tss: int = 500, dstr_tss: int = 0) -> None:
+    def __init__(
+        self, chrm: Chromosome, ustr_tss: int = 500, dstr_tss: int = 0
+    ) -> None:
         self.chrm = chrm
         self._ustr_tss = ustr_tss
         self._dstr_tss = dstr_tss
@@ -197,7 +199,7 @@ class Promoters:
         prmtrs = Promoters(self.chrm, self._ustr_tss, self._dstr_tss)
         prmtrs._promoters = self._promoters.iloc[cntns if with_x else ~cntns]
         return prmtrs
-    
+
 
 class PromotersPlot:
     def __init__(self, chrm: Chromosome) -> None:

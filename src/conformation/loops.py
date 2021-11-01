@@ -8,7 +8,7 @@ from skimage.transform import resize
 import numpy as np
 from nptyping import NDArray
 
-from chromosome.nucleosome import Nucleosome
+from chromosome.nucleosomes import Nucleosomes
 from chromosome.chromosome import Chromosome, MultiChrm
 from util.util import FileSave, PlotUtil, PathObtain
 from util.custom_types import NonNegativeInt
@@ -113,7 +113,7 @@ class Loops:
             return pd.Series(mean_cols)
 
         c0_spread = self._chr.c0_spread()
-        nucs = Nucleosome(self._chr)
+        nucs = Nucleosomes(self._chr)
         nucs_cover = nucs.get_nuc_regions()
 
         def _mean_of(loop: pd.Series) -> pd.Series:
@@ -190,7 +190,7 @@ class PlotLoops:
 
     def plot_mean_nuc_occupancy_across_loops(self, total_perc=150) -> Path:
         return self._plot_mean_across_loops(
-            total_perc, Nucleosome(self._chrm).get_nucleosome_occupancy(), "nuc_occ"
+            total_perc, Nucleosomes(self._chrm).get_nucleosome_occupancy(), "nuc_occ"
         )
 
     def _plot_mean_across_loops(
@@ -361,7 +361,7 @@ class PlotLoops:
     def plot_scatter_mean_c0_vs_length(self) -> Path:
         """Create scatter plot of mean C0 of total loop, loop nuc and loop
         linker vs. loop length"""
-        nucs = Nucleosome(self._chrm)
+        nucs = Nucleosomes(self._chrm)
         nucs_cover = nucs.get_nuc_regions()
         loops_cover = self._loops.covermask()
         c0_spread = self._chrm.c0_spread()

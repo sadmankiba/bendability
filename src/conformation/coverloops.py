@@ -12,7 +12,7 @@ from conformation.loops import MCLoops
 
 from .loops import Loops, COL_START, COL_END, COL_MEAN_C0_FULL
 from chromosome.chromosome import Chromosome, MultiChrm
-from chromosome.nucleosome import Nucleosome
+from chromosome.nucleosomes import Nucleosomes
 from util.constants import ONE_INDEX_START
 from util.util import DataCache, NumpyTool, PathObtain, FileSave, PlotUtil
 from util.custom_types import ChrId
@@ -246,7 +246,7 @@ class PlotMCCoverLoops:
 
 class LoopsCover:
     def __init__(self, loops: Loops):
-        nucs = Nucleosome(loops._chr)
+        nucs = Nucleosomes(loops._chr)
 
         self._nuc_cover = nucs.get_nuc_regions()
         self._loop_cover = loops.covermask(loops._loop_df)

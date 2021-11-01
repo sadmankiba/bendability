@@ -12,15 +12,9 @@ import time
 from typing import Literal
 
 
-# TODO: Should be Nucleosomes
-class Nucleosome:
-    """
-    Class for representing nucleosomes in a chromosome
-    """
-
-    def __init__(self, chr: Chromosome):
-        self._chr = chr
-
+class Nucleosomes:
+    def __init__(self, chrm: Chromosome):
+        self._chrm = chrm
         # TODO: Remove redundant _centers. Get single chromosome dyads when
         # reading
         self._nuc_df = DNASequenceReader().read_nuc_center()
@@ -59,7 +53,7 @@ class Nucleosome:
             va="center",
         )
 
-        self._chr.plot_avg()
+        self._chrm.plot_avg()
         plt.grid()
 
         plt.xlabel("Distance from dyad(bp)")
@@ -67,19 +61,19 @@ class Nucleosome:
         plt.title(f"C0 of +-{dist} bp from nuclesome dyad")
 
         return FileSave.figure(
-            f"{PathObtain.figure_dir()}/nucleosome/dist_{dist}_s_{spread_str}_m_{self._chr.predict_model_no()}_{self._chr._chr_id}.png"
+            f"{PathObtain.figure_dir()}/nucleosome/dist_{dist}_s_{spread_str}_m_{self._chrm.predict_model_no()}_{self._chrm._chr_id}.png"
         )
 
     def _get_nuc_centers(self) -> list[int]:
         return self._nuc_df.loc[
-            self._nuc_df["Chromosome ID"] == f"chr{self._chr.number}"
+            self._nuc_df["Chromosome ID"] == f"chr{self._chrm.number}"
         ]["Position"].tolist()
 
     def _filter_at_least_depth(self, depth: int):
         """Remove center positions at each end that aren't in at least certain depth"""
         self._centers = list(
             filter(
-                lambda i: i > depth and i < self._chr.total_bp - depth, self._centers
+                lambda i: i > depth and i < self._chrm.total_bp - depth, self._centers
             )
         )
 
@@ -93,13 +87,13 @@ class Nucleosome:
             dist: +-distance from dyad to plot (1-indexed)
         """
         centers = self._nuc_df.loc[
-            self._nuc_df["Chromosome ID"] == f"chr{self._chr.number}"
+            self._nuc_df["Chromosome ID"] == f"chr{self._chrm.number}"
         ]["Position"].tolist()
 
         # Read C0 of -dist to +dist sequences
         c0_at_nuc: list[list[float]] = list(
             map(
-                lambda c: self._chr.read_chr_lib_segment(c - dist, c + dist)[
+                lambda c: self._chrm.read_chr_lib_segment(c - dist, c + dist)[
                     "C0"
                 ].tolist(),
                 centers,
@@ -124,7 +118,7 @@ class Nucleosome:
         Args:
             dist: +-distance from dyad to plot (1-indexed)
         """
-        spread_c0 = self._chr.c0_spread()
+        spread_c0 = self._chrm.c0_spread()
         centers = self._get_nuc_centers()
 
         # Read C0 of -dist to +dist sequences
@@ -137,7 +131,7 @@ class Nucleosome:
         x = np.arange(dist * 2 + 1) - dist
         mean_c0 = np.array(c0_at_nuc).mean(axis=0)
 
-        return self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, self._chr.spread_str)
+        return self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, self._chrm.spread_str)
 
     def get_nucleosome_occupancy(self) -> np.ndarray:
         """Returns estimated nucleosome occupancy across whole chromosome
@@ -146,18 +140,18 @@ class Nucleosome:
         of 101 bp for each nucleosome.
         """
         saved_data = Path(
-            f"{PathObtain.data_dir()}/generated_data/nucleosome/nuc_occ_{self._chr._chr_id}.tsv"
+            f"{PathObtain.data_dir()}/generated_data/nucleosome/nuc_occ_{self._chrm._chr_id}.tsv"
         )
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep="\t")["nuc_occupancy"].to_numpy()
 
         nuc_df = DNASequenceReader().read_nuc_center()
-        centers = nuc_df.loc[nuc_df["Chromosome ID"] == f"chr{self._chr.number}"][
+        centers = nuc_df.loc[nuc_df["Chromosome ID"] == f"chr{self._chrm.number}"][
             "Position"
         ].tolist()
 
         t = time.time()
-        nuc_occ = np.full((self._chr.total_bp,), fill_value=0)
+        nuc_occ = np.full((self._chrm.total_bp,), fill_value=0)
         for c in centers:
             nuc_occ[c - 1 - 50 : c + 50] = 1
 
@@ -167,7 +161,7 @@ class Nucleosome:
         if not saved_data.parents[0].is_dir():
             saved_data.parents[0].mkdir(parents=True, exist_ok=True)
         pd.DataFrame(
-            {"position": np.arange(self._chr.total_bp) + 1, "nuc_occupancy": nuc_occ}
+            {"position": np.arange(self._chrm.total_bp) + 1, "nuc_occupancy": nuc_occ}
         ).to_csv(saved_data, sep="\t", index=False)
 
         return nuc_occ
@@ -184,7 +178,7 @@ class Nucleosome:
             is within +-nuc_half bp of nucleosome dyad.
         """
         self._filter_at_least_depth(nuc_half)
-        return self._chr.get_cvr_mask(self._centers, nuc_half, nuc_half)
+        return self._chrm.get_cvr_mask(self._centers, nuc_half, nuc_half)
 
     def find_avg_nuc_linker_c0(self, nuc_half: int = 73) -> tuple[float, float]:
         """
@@ -193,7 +187,7 @@ class Nucleosome:
             nuc_half < 73 would mean including some nuc region with linker.
             might give less difference.
         """
-        spread_c0 = self._chr.c0_spread()
+        spread_c0 = self._chrm.c0_spread()
         nuc_regions = self.get_nuc_regions(nuc_half)
         nuc_avg = spread_c0[nuc_regions].mean()
         linker_avg = spread_c0[~nuc_regions].mean()

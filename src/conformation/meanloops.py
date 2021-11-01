@@ -10,7 +10,7 @@ import pandas as pd
 from skimage.transform import resize
 import numpy as np
 
-from chromosome.nucleosome import Nucleosome
+from chromosome.nucleosomes import Nucleosomes
 from conformation.coverloops import CoverLoops, NonCoverLoops
 from util.custom_types import ChrId
 from models.prediction import Prediction
@@ -159,7 +159,7 @@ class MeanLoops:
         Returns:
             A tuple: nuc mean C0, linker mean C0
         """
-        nuc_cover = Nucleosome(self._loops._chr).get_nuc_regions(nuc_half)
+        nuc_cover = Nucleosomes(self._loops._chr).get_nuc_regions(nuc_half)
 
         loop_cover = self._loops.covermask(self._loops._loop_df)
         return (
@@ -168,7 +168,7 @@ class MeanLoops:
         )
 
     def in_non_loop_nuc_linker(self, nuc_half: int = 73):
-        nuc_cover = Nucleosome(self._loops._chr).get_nuc_regions(nuc_half)
+        nuc_cover = Nucleosomes(self._loops._chr).get_nuc_regions(nuc_half)
 
         loop_cover = self._loops.covermask(self._loops._loop_df)
         return (
@@ -220,7 +220,7 @@ class MultiChrmMeanLoopsCollector:
 
         self._mcloops = self._chrs.apply(lambda chrm: Loops(chrm, mxlen))
         self._mcmloops = self._mcloops.apply(lambda loops: MeanLoops(loops))
-        self._mcnucs = self._chrs.apply(lambda chrm: Nucleosome(chrm))
+        self._mcnucs = self._chrs.apply(lambda chrm: Nucleosomes(chrm))
         self._mxlen = mxlen
 
     def __str__(self):

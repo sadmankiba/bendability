@@ -1,5 +1,5 @@
 from chromosome.chromosome import Chromosome
-from chromosome.nucleosome import Nucleosome
+from chromosome.nucleosomes import Nucleosomes
 
 if __name__ == "__main__":
-    Nucleosome(Chromosome("VL")).plot_c0_vs_dist_from_dyad_spread()
+    Nucleosomes(Chromosome("VL")).plot_c0_vs_dist_from_dyad_spread()
