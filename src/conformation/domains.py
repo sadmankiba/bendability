@@ -25,10 +25,10 @@ MEAN_C0 = "mean_c0"
 
 
 class BoundaryNT(NamedTuple):
-    LEFT: int
-    RIGHT: int
-    MIDDLE: int
-    SCORE: float
+    left: int
+    right: int
+    middle: int
+    score: float
 
 
 class BoundariesHE:
