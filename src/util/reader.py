@@ -1,14 +1,16 @@
 from __future__ import annotations
+import math
+from typing import Any 
+
+import pandas as pd
+import numpy as np
+from Bio import SeqIO
+from nptyping import NDArray
 
 from util.constants import CNL, RL, SEQ_LEN, TL, CHRVL, LIBL
 from util.custom_types import PosOneIdx, YeastChrNum
 from util.util import roman_to_num, PathObtain
 
-import pandas as pd
-from Bio import SeqIO
-import numpy as np
-
-import math
 
 CNL_FILE = "41586_2020_3052_MOESM4_ESM.txt"
 RL_FILE = "41586_2020_3052_MOESM6_ESM.txt"
@@ -117,7 +119,7 @@ NCP_SCORE_BY_NOISE = "NCP score/noise"
 
 class NucsReader:
     @classmethod
-    def read_nuc_center(self, chrmnum: YeastChrNum) -> list[PosOneIdx]:
+    def read(self, chrmnum: YeastChrNum) -> NDArray[(Any,), PosOneIdx]:
         """
         Read nucleosome center position data.
         """
@@ -131,7 +133,7 @@ class NucsReader:
             header=None,
             names=[CHROMOSOME_ID, POSITION, NCP_SCORE, NCP_SCORE_BY_NOISE],
         )
-        return df.loc[df[CHROMOSOME_ID] == f"chr{chrmnum}"][POSITION].tolist()
+        return df.loc[df[CHROMOSOME_ID] == f"chr{chrmnum}"][POSITION].to_numpy()
 
 
 class GeneReader:

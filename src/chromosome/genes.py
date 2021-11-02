@@ -10,7 +10,7 @@ import seaborn as sns
 
 from .chromosome import Chromosome
 from .nucleosomes import Nucleosomes
-from .regions import Regions
+from .regions import RegionsContain
 from util.reader import GeneReader
 from util.util import FileSave, PlotUtil, PathObtain, Attr
 from util.custom_types import NonNegativeInt, PosOneIdx
@@ -195,7 +195,7 @@ class Promoters:
         return np.array([self.cover_mask[bp - 1] for bp in bps])
 
     def and_x(self, bps: Iterable[PosOneIdx], with_x: bool):
-        cntns = Regions.contains(self, bps)
+        cntns = RegionsContain.contains(self, bps)
         prmtrs = Promoters(self.chrm, self._ustr_tss, self._dstr_tss)
         prmtrs._promoters = self._promoters.iloc[cntns if with_x else ~cntns]
         return prmtrs

@@ -253,6 +253,10 @@ class Chromosome:
     def __str__(self):
         return f"s_{self.spread_str}_m_{self.predict_model_no()}_{self._chr_id}"
 
+    @property 
+    def mean_c0(self):
+        return self.c0_spread().mean()
+        
     @property
     def total_bp(self):
         return ChrmCalc.total_bp(len(self._df))
@@ -426,7 +430,7 @@ class Chromosome:
 
     def get_cvr_mask(
         self,
-        bps: np.ndarray | list[int] | pd.Series,
+        bps: Iterable[PosOneIdx],
         neg_lim: PositiveInt,
         pos_lim: PositiveInt,
     ) -> np.ndarray:
@@ -500,3 +504,17 @@ class MultiChrm:
             return "VL"
 
         return ""
+
+
+class ChrmOperator:
+    def __init__(self, chrm: Chromosome) -> None:
+        self._chrm = chrm
+
+    def create_cover_mask(
+        self, starts: Iterable[PosOneIdx], ends: Iterable[PosOneIdx]
+    ) -> NDArray[(Any,), bool]:
+        cvrmask = np.full((self._chrm.total_bp,), False)
+        for i in range(len(starts)):
+            cvrmask[starts[i] - 1: ends[i]] = True
+
+        return cvrmask

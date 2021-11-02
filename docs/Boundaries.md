@@ -71,6 +71,12 @@ Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3] [F4]
 
 Observed in chrm VL 
 
+## Comparison of C0 of promoters and boundaries w/ or w/o NDRs 
+
+**Procedure**
+
+**Observations**
+
 
 ## Code References
 [C1] `conformation.domains.PlotBoundariesHE.line_c0_around()`

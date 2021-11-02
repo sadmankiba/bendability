@@ -1,21 +1,64 @@
 from __future__ import annotations
-from .chromosome import Chromosome
-from util.reader import DNASequenceReader, NucsReader
-from util.util import FileSave, PathObtain
+from pathlib import Path
+import time
+from typing import Literal
 
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from pathlib import Path
-import time
-from typing import Literal
+from chromosome.regions import Regions, RegionsInternal, START, END, MIDDLE
+from .chromosome import Chromosome
+from util.reader import NucsReader
+from util.util import FileSave, PathObtain
+from util.constants import ONE_INDEX_START
+
+NUC_WIDTH = 147
 
 
-class Nucleosomes:
+class Nucleosomes(Regions):
     def __init__(self, chrm: Chromosome):
-        self._chrm = chrm
-        self._centers = NucsReader.read_nuc_center(self._chrm.number)
+        self._centers: np.ndarray = NucsReader.read(chrm.number)
+        super().__init__(chrm)
+
+    def _get_regions(self) -> RegionsInternal:
+        return pd.DataFrame(
+            {
+                START: self._centers - int(NUC_WIDTH / 2),
+                END: self._centers + int(NUC_WIDTH / 2),
+                MIDDLE: self._centers,
+            }
+        )
+
+    def _filter_at_least_depth(self, depth: int):
+        """Remove center positions at each end that aren't in at least certain depth"""
+        self._centers = list(
+            filter(
+                lambda i: i > depth and i < self.chrm.total_bp - depth, self._centers
+            )
+        )
+
+    def plot_c0_vs_dist_from_dyad_spread(self, dist=150) -> Path:
+        """
+        Plot C0 vs. distance from dyad of nucleosomes in chromosome by
+        spreading 50-bp sequence C0
+
+        Args:
+            dist: +-distance from dyad to plot (1-indexed)
+        """
+        spread_c0 = self.chrm.c0_spread()
+
+        # Read C0 of -dist to +dist sequences
+        c0_at_nuc: list[np.ndarray] = list(
+            map(lambda c: spread_c0[c - 1 - dist : c + dist], self._centers)
+        )
+        assert c0_at_nuc[0].size == 2 * dist + 1
+        assert c0_at_nuc[-1].size == 2 * dist + 1
+
+        x = np.arange(dist * 2 + 1) - dist
+        mean_c0 = np.array(c0_at_nuc).mean(axis=0)
+
+        return self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, self.chrm.spread_str)
 
     def _plot_c0_vs_dist_from_dyad(
         self, x: np.ndarray, y: np.ndarray, dist: int, spread_str: str
@@ -50,7 +93,7 @@ class Nucleosomes:
             va="center",
         )
 
-        self._chrm.plot_avg()
+        self.chrm.plot_avg()
         plt.grid()
 
         plt.xlabel("Distance from dyad(bp)")
@@ -58,68 +101,8 @@ class Nucleosomes:
         plt.title(f"C0 of +-{dist} bp from nuclesome dyad")
 
         return FileSave.figure(
-            f"{PathObtain.figure_dir()}/nucleosome/dist_{dist}_s_{spread_str}_m_{self._chrm.predict_model_no()}_{self._chrm._chr_id}.png"
+            f"{PathObtain.figure_dir()}/nucleosome/dist_{dist}_s_{spread_str}_m_{self.chrm.predict_model_no()}_{self.chrm._chr_id}.png"
         )
-
-    def _filter_at_least_depth(self, depth: int):
-        """Remove center positions at each end that aren't in at least certain depth"""
-        self._centers = list(
-            filter(
-                lambda i: i > depth and i < self._chrm.total_bp - depth, self._centers
-            )
-        )
-
-    def plot_c0_vs_dist_from_dyad_no_spread(self, dist=150) -> Path:
-        """
-        Plot C0 vs. distance from dyad of nucleosomes in chromosome V from 50-bp sequence C0
-
-        Currently, giving horizontally shifted graph. (incorrect)
-
-        Args:
-            dist: +-distance from dyad to plot (1-indexed)
-        """
-        centers = self._centers
-        # Read C0 of -dist to +dist sequences
-        c0_at_nuc: list[list[float]] = list(
-            map(
-                lambda c: self._chrm.read_chr_lib_segment(c - dist, c + dist)[
-                    "C0"
-                ].tolist(),
-                centers,
-            )
-        )
-
-        # Make lists of same length
-        min_len = min(map(len, c0_at_nuc))
-        max_len = max(map(len, c0_at_nuc))
-        assert max_len - min_len <= 1
-        c0_at_nuc = list(map(lambda l: l[:min_len], c0_at_nuc))
-        mean_c0 = np.array(c0_at_nuc).mean(axis=0)
-        x = (np.arange(mean_c0.size) - mean_c0.size / 2) * 7 + 1
-
-        return self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, "no_spread")
-
-    def plot_c0_vs_dist_from_dyad_spread(self, dist=150) -> Path:
-        """
-        Plot C0 vs. distance from dyad of nucleosomes in chromosome by
-        spreading 50-bp sequence C0
-
-        Args:
-            dist: +-distance from dyad to plot (1-indexed)
-        """
-        spread_c0 = self._chrm.c0_spread()
-
-        # Read C0 of -dist to +dist sequences
-        c0_at_nuc: list[np.ndarray] = list(
-            map(lambda c: spread_c0[c - 1 - dist : c + dist], self._centers)
-        )
-        assert c0_at_nuc[0].size == 2 * dist + 1
-        assert c0_at_nuc[-1].size == 2 * dist + 1
-
-        x = np.arange(dist * 2 + 1) - dist
-        mean_c0 = np.array(c0_at_nuc).mean(axis=0)
-
-        return self._plot_c0_vs_dist_from_dyad(x, mean_c0, dist, self._chrm.spread_str)
 
     def get_nucleosome_occupancy(self) -> np.ndarray:
         """Returns estimated nucleosome occupancy across whole chromosome
@@ -128,7 +111,7 @@ class Nucleosomes:
         of 101 bp for each nucleosome.
         """
         saved_data = Path(
-            f"{PathObtain.data_dir()}/generated_data/nucleosome/nuc_occ_{self._chrm._chr_id}.tsv"
+            f"{PathObtain.data_dir()}/generated_data/nucleosome/nuc_occ_{self.chrm._chr_id}.tsv"
         )
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep="\t")["nuc_occupancy"].to_numpy()
@@ -136,7 +119,7 @@ class Nucleosomes:
         centers = self._centers
 
         t = time.time()
-        nuc_occ = np.full((self._chrm.total_bp,), fill_value=0)
+        nuc_occ = np.full((self.chrm.total_bp,), fill_value=0)
         for c in centers:
             nuc_occ[c - 1 - 50 : c + 50] = 1
 
@@ -146,7 +129,7 @@ class Nucleosomes:
         if not saved_data.parents[0].is_dir():
             saved_data.parents[0].mkdir(parents=True, exist_ok=True)
         pd.DataFrame(
-            {"position": np.arange(self._chrm.total_bp) + 1, "nuc_occupancy": nuc_occ}
+            {"position": np.arange(self.chrm.total_bp) + 1, "nuc_occupancy": nuc_occ}
         ).to_csv(saved_data, sep="\t", index=False)
 
         return nuc_occ
@@ -163,7 +146,7 @@ class Nucleosomes:
             is within +-nuc_half bp of nucleosome dyad.
         """
         self._filter_at_least_depth(nuc_half)
-        return self._chrm.get_cvr_mask(self._centers, nuc_half, nuc_half)
+        return self.chrm.get_cvr_mask(self._centers, nuc_half, nuc_half)
 
     def find_avg_nuc_linker_c0(self, nuc_half: int = 73) -> tuple[float, float]:
         """
@@ -172,7 +155,7 @@ class Nucleosomes:
             nuc_half < 73 would mean including some nuc region with linker.
             might give less difference.
         """
-        spread_c0 = self._chrm.c0_spread()
+        spread_c0 = self.chrm.c0_spread()
         nuc_regions = self.get_nuc_regions(nuc_half)
         nuc_avg = spread_c0[nuc_regions].mean()
         linker_avg = spread_c0[~nuc_regions].mean()
@@ -197,3 +180,18 @@ class Nucleosomes:
         in_between = dyad_arr[(dyad_arr >= start) & (dyad_arr <= end)]
 
         return in_between[::-1] if strand == -1 else in_between
+
+
+class Linkers(Regions):
+    def __init__(self, chrm: Chromosome) -> None:
+        super().__init__(chrm)
+
+    def _get_regions(self) -> RegionsInternal:
+        nucs = Nucleosomes(self.chrm).cover_regions()
+        
+        df = pd.DataFrame({
+            START: np.append([ONE_INDEX_START], nucs[END] + 1), 
+            END: np.append(nucs[START] - 1, self.chrm.total_bp)
+        })
+        df[MIDDLE] = ((df[START] + df[END]) / 2).astype(int)
+        return df
