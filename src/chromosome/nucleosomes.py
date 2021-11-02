@@ -195,3 +195,13 @@ class Linkers(Regions):
         })
         df[MIDDLE] = ((df[START] + df[END]) / 2).astype(int)
         return df
+    
+
+class PlotLinkers:
+    def __init__(self, chrm: Chromosome) -> None:
+        self._linkers = Linkers(chrm)
+        
+    def prob_density_len_in_prmtrs():
+        
+        pass
+    pass

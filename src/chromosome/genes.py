@@ -1,16 +1,17 @@
 from __future__ import annotations
 import random
 from pathlib import Path
-from typing import Iterable, NamedTuple, Sequence
+from typing import Iterable, NamedTuple, Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from nptyping import NDArray
 
 from .chromosome import Chromosome
 from .nucleosomes import Nucleosomes
-from .regions import RegionsContain
+from .regions import Regions, RegionsContain, RegionsInternal
 from util.reader import GeneReader
 from util.util import FileSave, PlotUtil, PathObtain, Attr
 from util.custom_types import NonNegativeInt, PosOneIdx
@@ -105,30 +106,19 @@ class Genes:
         )
 
 
-class PromoterNT(NamedTuple):
-    """
-    Representation of a promoter region.
-
-    'start' is lower bp, 'end' is higher bp irrespective of 'strand'.
-    """
-
-    start: int
-    end: int
-    strand: int
-    mean_c0: float
-
-
-class Promoters:
+class Promoters(Regions):
     def __init__(
-        self, chrm: Chromosome, ustr_tss: int = 500, dstr_tss: int = 0
+        self,
+        chrm: Chromosome,
+        ustr_tss: int = 500,
+        dstr_tss: int = -1,
+        regions: RegionsInternal = None,
     ) -> None:
-        self.chrm = chrm
         self._ustr_tss = ustr_tss
         self._dstr_tss = dstr_tss
-        self._promoters = self._get_promoters()
-        self._add_mean_c0()
+        super().__init__(chrm, regions)
 
-    def _get_promoters(self) -> pd.DataFrame[START:int, END:int, STRAND:int]:
+    def _get_regions(self) -> pd.DataFrame[START:int, END:int, STRAND:int]:
         genes = Genes(self.chrm)
         return pd.DataFrame(
             {
@@ -136,68 +126,34 @@ class Promoters:
                     [
                         genes.frwrd_genes()[START] - self._ustr_tss,
                         genes.rvrs_genes()[END] - self._dstr_tss,
-                    ]
+                    ],
+                    ignore_index=True,
                 ),
                 END: pd.concat(
                     [
                         genes.frwrd_genes()[START] + self._dstr_tss,
                         genes.rvrs_genes()[END] + self._ustr_tss,
-                    ]
+                    ],
+                    ignore_index=True,
                 ),
                 STRAND: pd.concat(
-                    [genes.frwrd_genes()[STRAND], genes.rvrs_genes()[STRAND]]
+                    [genes.frwrd_genes()[STRAND], genes.rvrs_genes()[STRAND]],
+                    ignore_index=True,
                 ),
             }
         )
 
-    def __iter__(self) -> Iterable[GeneNT]:
-        return self._promoters.itertuples()
-
-    def __getitem__(self, key: NonNegativeInt | str) -> pd.Series:
-        if isinstance(key, NonNegativeInt):
-            return self._promoters.iloc[key]
-
-        if key in self._promoters.columns:
-            return self._promoters[key]
-
-        raise KeyError
-
-    def __len__(self):
-        return len(self._promoters)
-
     def __str__(self) -> str:
         return f"ustr_{self._ustr_tss}_dstr_{self._dstr_tss}"
 
-    @property
-    def mean_c0(self):
-        def _calc_mean_c0():
-            return self.chrm.c0_spread()[self.cover_mask].mean()
-
-        return Attr.calc_attr(self, "_mean_c0", _calc_mean_c0)
-
-    @property
-    def cover_mask(self) -> np.ndarray:
-        def _calc_cover_mask():
-            return self.chrm.get_cvr_mask(
-                self._promoters[START], 0, self._ustr_tss + self._dstr_tss
-            )
-
-        return Attr.calc_attr(self, "_cover_mask", _calc_cover_mask)
-
-    def _add_mean_c0(self) -> None:
-        self._promoters = self._promoters.assign(
-            mean_c0=lambda df: self.chrm.mean_c0_at_bps(
-                df[START], 0, self._ustr_tss + self._dstr_tss
-            )
-        )
-
-    def is_in_prmtr(self, bps: Iterable[PosOneIdx]) -> np.ndarray:
-        return np.array([self.cover_mask[bp - 1] for bp in bps])
-
     def and_x(self, bps: Iterable[PosOneIdx], with_x: bool):
-        cntns = RegionsContain.contains(self, bps)
-        prmtrs = Promoters(self.chrm, self._ustr_tss, self._dstr_tss)
-        prmtrs._promoters = self._promoters.iloc[cntns if with_x else ~cntns]
+        cntns = self.contains(bps)
+        prmtrs = Promoters(
+            self.chrm,
+            self._ustr_tss,
+            self._dstr_tss,
+            self._regions.iloc[cntns if with_x else ~cntns],
+        )
         return prmtrs
 
 
@@ -205,10 +161,10 @@ class PromotersPlot:
     def __init__(self, chrm: Chromosome) -> None:
         self._prmtrs = Promoters(chrm)
 
-    def density_c0(self) -> Path:
+    def prob_distrib_c0(self) -> Path:
         sns.distplot(self._prmtrs[MEAN_C0], hist=False, kde=True)
         return FileSave.figure_in_figdir(
-            f"genes/promoters_density_c0_{self._prmtrs}_{self._prmtrs.chrm}.png"
+            f"genes/promoters_prob_distrib_c0_{self._prmtrs}_{self._prmtrs.chrm}.png"
         )
 
     def hist_c0(self) -> Path:

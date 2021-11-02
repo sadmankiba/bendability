@@ -45,8 +45,8 @@ def prmtrsplt_vl(chrm_vl_mean7):
 
 
 class TestPromotersPlot:
-    def test_density(self, prmtrsplt_vl: PromotersPlot):
-        assert prmtrsplt_vl.density_c0().is_file()
+    def test_prob_distrib(self, prmtrsplt_vl: PromotersPlot):
+        assert prmtrsplt_vl.prob_distrib_c0().is_file()
 
     def test_hist(self, prmtrsplt_vl: PromotersPlot):
         assert prmtrsplt_vl.hist_c0().is_file()

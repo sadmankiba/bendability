@@ -81,7 +81,7 @@ Observed in chrm VL
 ## Code References
 [C1] `conformation.domains.PlotBoundariesHE.line_c0_around()`
 [C2] `conformation.domains.MCBoundariesHECollector.plot_scatter_mean_c0()`
-[C3] `conformation.domains.PlotBoundariesHE.density()`
+[C3] `conformation.domains.PlotBoundariesHE.prob_distrib()`
 
 ## Figure References
 [F1] 

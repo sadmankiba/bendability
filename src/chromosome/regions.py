@@ -14,21 +14,26 @@ RegionsInternal = pd.DataFrame
 START = "start"
 END = "end"
 MIDDLE = "middle"
+MEAN_C0 = "mean_c0"
 
 
 class RegionNT(NamedTuple):
     start: PosOneIdx
     end: PosOneIdx
+    middle: PosOneIdx
+    mean_c0: float
 
 
 class Regions:
-    def __init__(self, chrm: Chromosome) -> None:
+    def __init__(self, chrm: Chromosome, regions: RegionsInternal = None) -> None:
         self.chrm = chrm
-        self._regions = self._get_regions()
-        self._mean_c0 = None 
+        self._regions = regions if regions is not None else self._get_regions()
+        self._add_middle()
+        self._add_mean_c0()
+        self._mean_c0 = None
         self._cvrmask = None
 
-    def _get_regions(self) -> RegionsInternal:
+    def _get_regions(self) -> None:
         pass
 
     def __iter__(self) -> Iterable[RegionNT]:
@@ -51,9 +56,9 @@ class Regions:
         def calc_mean_c0():
             return self.chrm.c0_spread()[self.cover_mask].mean()
 
-        return Attr.calc_attr(self, "_mean_c0", calc_mean_c0) 
+        return Attr.calc_attr(self, "_mean_c0", calc_mean_c0)
 
-    @property 
+    @property
     def total_bp(self) -> int:
         return self.cover_mask.sum()
 
@@ -63,26 +68,49 @@ class Regions:
             return ChrmOperator(self.chrm).create_cover_mask(
                 self._regions[START], self._regions[END]
             )
-        
+
         return Attr.calc_attr(self, "_cvrmask", calc_cvrmask)
+
+    def is_in_regions(
+        self, bps: Iterable[PosOneIdx]
+    ) -> NDArray[[Any,], bool]:
+        return np.array([self.cover_mask[bp - 1] for bp in bps])
 
     def cover_regions(self) -> Regions:
         starts = (
-            NumpyTool.match_pattern(self.cover_mask, [False, True]) + 1 + ONE_INDEX_START
+            NumpyTool.match_pattern(self.cover_mask, [False, True])
+            + 1
+            + ONE_INDEX_START
         )
-        ends = (
-            NumpyTool.match_pattern(self.cover_mask, [True, False]) + ONE_INDEX_START
-        )
+        ends = NumpyTool.match_pattern(self.cover_mask, [True, False]) + ONE_INDEX_START
         assert len(starts) == len(ends)
 
-        rgns = Regions(self.chrm)
-        rgns._regions = self.with_middle(pd.DataFrame({START: starts, END: ends}))
+        rgns = Regions(self.chrm, pd.DataFrame({START: starts, END: ends}))
         return rgns
-    
-    @classmethod
-    def with_middle(self, rgns: RegionsInternal) -> RegionsInternal:
-        rgns[MIDDLE] = ((rgns[START] + rgns[END]) / 2).astype(int)
-        return rgns
+
+    def contains(self, bps: Iterable[PosOneIdx]) -> NDArray[(Any,), bool]:
+        def _contains_bps(region: RegionNT) -> bool:
+            cntns = False
+            for bp in bps:
+                if getattr(region, START) <= bp <= getattr(region, END):
+                    cntns = True
+                    break
+
+            return cntns
+
+        return np.array(list(map(lambda rgn: _contains_bps(rgn), self)))
+
+    def _add_middle(self) -> None:
+        self._regions[MIDDLE] = (
+            (self._regions[START] + self._regions[END]) / 2
+        ).astype(int)
+
+    def _add_mean_c0(self) -> None:
+        self._regions = self._regions.assign(
+            mean_c0=lambda rgns: ChrmOperator(self.chrm).mean_c0_regions_indiv(
+                rgns[START], rgns[END]
+            )
+        )
 
 
 class RegionsContain:
@@ -91,19 +119,3 @@ class RegionsContain:
         self, bps: Iterable[PosOneIdx], containers: RegionsInternal[START:int, END:int]
     ):
         pass
-
-    @classmethod
-    def contains(
-        self,
-        containers: RegionsInternal[START:PosOneIdx, END:PosOneIdx],
-        bps: Iterable[PosOneIdx],
-    ) -> NDArray[(Any,), bool]:
-        def _contains_bps(region: NamedTuple[START:PosOneIdx, END:PosOneIdx]):
-            cntns = False
-            for bp in bps:
-                if getattr(region, START) <= bp <= getattr(region, END):
-                    cntns = True
-
-            return cntns
-
-        return np.array(list(map(lambda cnt: _contains_bps(cnt), containers)))

@@ -97,7 +97,7 @@ class BoundariesHE:
 
     def _add_in_promoter_col(self) -> None:
         self.bndrs_df = self.bndrs_df.assign(
-            in_promoter=lambda df: Promoters(self._chrm).is_in_prmtr(df[MIDDLE])
+            in_promoter=lambda df: Promoters(self._chrm).is_in_regions(df[MIDDLE])
         )
 
     def cover_mask(self) -> np.ndarray:
@@ -189,7 +189,7 @@ class PlotBoundariesHE:
         self._bndrs = BoundariesHE(chrm)
         self._figsubdir = "domains"
 
-    def density_c0(self):
+    def prob_distrib_c0(self):
         PlotUtil.clearfig()
         PlotUtil.show_grid()
         sns.distplot(self._bndrs[MEAN_C0], hist=False, kde=True, label="boundaries")
@@ -220,7 +220,7 @@ class PlotBoundariesHE:
         )
         plt.legend()
         return FileSave.figure_in_figdir(
-            f"{self._figsubdir}/boundaries_density_c0_{self._bndrs}_{prmtrs}_{self._chrm}.png"
+            f"{self._figsubdir}/boundaries_prob_distrib_c0_{self._bndrs}_{prmtrs}_{self._chrm}.png"
         )
 
     def line_c0_around(self, pltlim=250):
@@ -609,7 +609,7 @@ class MCBoundariesHECollector:
         mc_bndrs = chrms.apply(lambda chrm: BoundariesHE(chrm, self._res))
         perc_in_prmtrs = mc_bndrs.apply(
             lambda bndrs: Promoters(bndrs._chrm)
-            .is_in_prmtr(bndrs.bndrs_df["middle"])
+            .is_in_regions(bndrs.bndrs_df["middle"])
             .mean()
             * 100
         )
