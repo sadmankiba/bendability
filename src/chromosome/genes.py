@@ -1,19 +1,17 @@
 from __future__ import annotations
-import random
 from pathlib import Path
-from typing import Iterable, NamedTuple, Any
+from typing import Iterable, NamedTuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from nptyping import NDArray
 
 from .chromosome import Chromosome
 from .nucleosomes import Nucleosomes
-from .regions import Regions, RegionsContain, RegionsInternal
+from .regions import Regions, RegionsInternal
 from util.reader import GeneReader
-from util.util import FileSave, PlotUtil, PathObtain, Attr
+from util.util import FileSave, PlotUtil, PathObtain
 from util.custom_types import NonNegativeInt, PosOneIdx
 
 START = "start"
@@ -146,8 +144,8 @@ class Promoters(Regions):
     def __str__(self) -> str:
         return f"ustr_{self._ustr_tss}_dstr_{self._dstr_tss}"
 
-    def and_x(self, bps: Iterable[PosOneIdx], with_x: bool):
-        cntns = self.contains(bps)
+    def and_x(self, locs: Iterable[PosOneIdx], with_x: bool):
+        cntns = self.contains_locs(locs)
         prmtrs = Promoters(
             self.chrm,
             self._ustr_tss,

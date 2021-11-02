@@ -91,4 +91,4 @@ Observed in chrm VL
 [F3]
 ![+-3000 bp](../figures/domains/mean_c0_bndrs_IX_plt_3000.png)
 [F4]
-![Prob dist PM, BN](../figures/domains/boundaries_density_c0_res_500_lim_250_ustr_500_dstr_0_s_mean7_m_None_VL.png)
+![Prob dist PM, BN](../figures/domains/boundaries_prob_distrib_c0_res_500_lim_250_ustr_500_dstr_0_s_mean7_m_None_VL.png)

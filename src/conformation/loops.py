@@ -264,10 +264,10 @@ class PlotLoops:
 
         if total_perc >= 100:
             for pos in [0, 100]:
-                PlotUtil.plot_vertical_line(pos, "tab:green", "anchor")
+                PlotUtil.vertline(pos, "tab:green", "anchor")
 
         center = 50
-        PlotUtil.plot_vertical_line(center, "tab:orange", "center")
+        PlotUtil.vertline(center, "tab:orange", "center")
 
         plt.xlabel("Position along loop (percentage)")
         plt.ylabel(val_type)

@@ -91,14 +91,14 @@ class TestFileSave:
 
 
 class TestPlotUtil:
-    def test_plot_stacked_bar(self):
+    def test_bar_stacked(self):
         series_labels = ["Series 1", "Series 2"]
 
         data = [[0.2, 0.3, 0.35, 0.3], [0.8, 0.7, 0.6, 0.5]]
 
         category_labels = ["Cat A", "Cat B", "Cat C", "Cat D"]
 
-        PlotUtil.plot_stacked_bar(
+        PlotUtil.bar_stacked(
             data,
             series_labels,
             category_labels,

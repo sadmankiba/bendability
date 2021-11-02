@@ -192,32 +192,15 @@ class PlotBoundariesHE:
     def prob_distrib_c0(self):
         PlotUtil.clearfig()
         PlotUtil.show_grid()
-        sns.distplot(self._bndrs[MEAN_C0], hist=False, kde=True, label="boundaries")
+        PlotUtil.prob_distrib(self._bndrs[MEAN_C0], "boundaries")
         prmtrs = Promoters(self._chrm)
-        sns.distplot(prmtrs[MEAN_C0], hist=False, kde=True, label="promoters")
-        sns.distplot(
-            self._bndrs.prmtr_bndrs()[MEAN_C0],
-            hist=False,
-            kde=True,
-            label="prm boundaries",
-        )
-        sns.distplot(
-            self._bndrs.non_prmtr_bndrs()[MEAN_C0],
-            hist=False,
-            kde=True,
-            label="nonprm boundaries",
-        )
+        PlotUtil.prob_distrib(prmtrs[MEAN_C0], "promoters")
+        PlotUtil.prob_distrib(self._bndrs.prmtr_bndrs()[MEAN_C0], "prm boundaries")
+        PlotUtil.prob_distrib(self._bndrs.non_prmtr_bndrs()[MEAN_C0], "nonprm boundaries")
         prmtrs_with_bndrs = prmtrs.and_x(self._bndrs[MIDDLE], True)
         prmtrs_wo_bndrs = prmtrs.and_x(self._bndrs[MIDDLE], False)
-        sns.distplot(
-            prmtrs_with_bndrs[MEAN_C0],
-            hist=False,
-            kde=True,
-            label="promoters with bndry",
-        )
-        sns.distplot(
-            prmtrs_wo_bndrs[MEAN_C0], hist=False, kde=True, label="promoters w/o bndry"
-        )
+        PlotUtil.prob_distrib(prmtrs_with_bndrs[MEAN_C0], "promoters with bndry")
+        PlotUtil.prob_distrib(prmtrs_wo_bndrs[MEAN_C0], "promoters w/o bndry")
         plt.legend()
         return FileSave.figure_in_figdir(
             f"{self._figsubdir}/boundaries_prob_distrib_c0_{self._bndrs}_{prmtrs}_{self._chrm}.png"

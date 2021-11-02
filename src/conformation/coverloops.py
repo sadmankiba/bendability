@@ -301,7 +301,7 @@ class MultiChrmLoopsCoverCollector:
         colt_df = self.get_cover_stat()[0]
         colt_arr = colt_df[labels].values
         mpl.rcParams.update({"font.size": 12})
-        PlotUtil.plot_stacked_bar(
+        PlotUtil.bar_stacked(
             colt_arr.transpose() * 100,
             labels,
             colt_df["ChrID"].tolist(),

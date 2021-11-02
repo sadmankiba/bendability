@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from chromosome.regions import Regions, RegionsInternal, START, END, MIDDLE
+from chromosome.regions import Regions, RegionsInternal, START, END, MIDDLE, LEN
 from .chromosome import Chromosome
 from util.reader import NucsReader
 from util.util import FileSave, PathObtain
@@ -183,25 +183,20 @@ class Nucleosomes(Regions):
 
 
 class Linkers(Regions):
-    def __init__(self, chrm: Chromosome) -> None:
-        super().__init__(chrm)
+    def __init__(self, chrm: Chromosome, regions: RegionsInternal = None) -> None:
+        super().__init__(chrm, regions)
 
     def _get_regions(self) -> RegionsInternal:
         nucs = Nucleosomes(self.chrm).cover_regions()
-        
-        df = pd.DataFrame({
-            START: np.append([ONE_INDEX_START], nucs[END] + 1), 
-            END: np.append(nucs[START] - 1, self.chrm.total_bp)
-        })
+
+        df = pd.DataFrame(
+            {
+                START: np.append([ONE_INDEX_START], nucs[END] + 1),
+                END: np.append(nucs[START] - 1, self.chrm.total_bp),
+            }
+        )
         df[MIDDLE] = ((df[START] + df[END]) / 2).astype(int)
         return df
     
-
-class PlotLinkers:
-    def __init__(self, chrm: Chromosome) -> None:
-        self._linkers = Linkers(chrm)
-        
-    def prob_density_len_in_prmtrs():
-        
-        pass
-    pass
+    def len_at_least(self, len: int) -> Linkers:
+        return Linkers(self.chrm, self._regions.query(f"{LEN} >= {len}"))

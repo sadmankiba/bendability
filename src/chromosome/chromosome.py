@@ -310,7 +310,7 @@ class Chromosome:
 
     def horizline(self, *args) -> None:
         # TODO: Remove middle
-        PlotUtil.plot_avg_horiz_line(*args)
+        PlotUtil.avg_horizline(*args)
 
     def plot_avg(self) -> None:
         """
@@ -318,7 +318,7 @@ class Chromosome:
 
         Best to draw after x limit is set.
         """
-        PlotUtil.plot_avg_horiz_line(self._df["C0"].mean())
+        PlotUtil.avg_horizline(self._df["C0"].mean())
 
     def plot_moving_avg(self, start: int, end: int, plotnuc: bool = False) -> None:
         """

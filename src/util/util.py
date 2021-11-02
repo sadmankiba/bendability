@@ -3,17 +3,16 @@ import math
 import random
 import string
 import re as bre  # built-in re
-import itertools as it
 from pathlib import Path
 import logging
 import inspect
 from types import FrameType
-from typing import Union, Any, Callable
+from typing import Union, Any, Callable, Iterable
 
 import pandas as pd
 import numpy as np
-import regex as re
 import matplotlib.pyplot as plt
+import seaborn as sns
 from nptyping import NDArray
 
 from .custom_types import YeastChrNum
@@ -314,7 +313,11 @@ class DataCache:
 
 class PlotUtil:
     @classmethod
-    def plot_avg_horiz_line(self, y: float) -> None:
+    def prob_distrib(self, var: Iterable, label=None):
+        sns.distplot(var, hist=False, kde=True, label=label)
+
+    @classmethod
+    def avg_horizline(self, y: float) -> None:
         """
         Plot a horizontal red line denoting avg
         """
@@ -334,7 +337,7 @@ class PlotUtil:
         )
 
     @classmethod
-    def plot_vertical_line(self, x: float, color: str, text: str):
+    def vertline(self, x: float, color: str, text: str):
         plt.axvline(x=x, color=color, linestyle="--")
         y_lim = plt.gca().get_ylim()
         plt.text(
@@ -352,7 +355,7 @@ class PlotUtil:
         plt.clf()
 
     @classmethod
-    def plot_stacked_bar(
+    def bar_stacked(
         self,
         data,
         series_labels,

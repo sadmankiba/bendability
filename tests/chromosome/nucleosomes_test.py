@@ -1,7 +1,7 @@
 import pytest
 from chromosome.chromosome import Chromosome
 
-from chromosome.nucleosomes import Linkers, Nucleosomes
+from chromosome.nucleosomes import Linkers, LinkersPlot, Nucleosomes
 from util.constants import CHRV_TOTAL_BP
 
 
