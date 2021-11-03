@@ -16,7 +16,29 @@ class CrossRegionsPlot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
 
-    def prob_distrib_bndry_nearest_ndr_distnc(
+    def distrib_cuml_bndrs_nearest_ndr_distnc(
+        self, min_lnker_len: list[int] = [80, 60, 40, 30]
+    ) -> Path:
+        bndrs = BoundariesHE(self._chrm)
+        lnkrs = Linkers(self._chrm)
+        for llen in min_lnker_len:
+            distns = bndrs.nearest_locs_distnc(lnkrs.ndrs(llen)[MIDDLE])
+            PlotUtil.distrib_cuml(distns, label=str(llen))
+
+        plt.legend()
+        plt.xlim(-1000, 1000)
+        PlotUtil.show_grid()
+        plt.xlabel("Distance")
+        plt.ylabel("Percentage")
+        plt.title(
+            f"Cumulative perc. of distance from boundary res={bndrs.res} bp " 
+            f"middle to nearest NDR >= x bp"
+        )
+        return FileSave.figure_in_figdir(
+            f"boundaries/distnc_ndr_distrib_cuml_res_{bndrs.res}_{self._chrm.number}.png"
+        )
+
+    def prob_distrib_bndrs_nearest_ndr_distnc(
         self, min_lnker_len: list[int] = [80, 60, 40, 30]
     ) -> Path:
         bndrs = BoundariesHE(self._chrm)
@@ -27,10 +49,12 @@ class CrossRegionsPlot:
 
         plt.legend()
         plt.xlim(-1000, 1000)
+        PlotUtil.show_grid()
         plt.xlabel("Distance")
         plt.ylabel("Prob distrib")
         plt.title(
-            "Prob distrib of distance from boundary middle to nearest NDR >= x bp"
+            f"Prob distrib of distance from boundary res={bndrs.res} bp "
+            f"middle to nearest NDR >= x bp"
         )
         return FileSave.figure_in_figdir(
             f"boundaries/distnc_ndr_prob_distrib_res_{bndrs.res}_{self._chrm.number}.png"

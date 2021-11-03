@@ -314,7 +314,11 @@ class DataCache:
 class PlotUtil:
     @classmethod
     def prob_distrib(self, var: Iterable, label=None):
-        sns.displot(var, hist=False, kde=True, label=label)
+        sns.displot(var, kind="kde", label=label)
+    
+    @classmethod 
+    def distrib_cuml(self, var: Iterable, label=None):
+        sns.displot(var, kind="ecdf", label=label)
 
     @classmethod
     def avg_horizline(self, y: float) -> None:

@@ -8,9 +8,12 @@ def crplt_vl(chrm_vl_mean7: Chromosome):
     return CrossRegionsPlot(chrm_vl_mean7)
 
 class TestCrossRegionsPlot:
-    def test_prob_distrib_bndry_nearest_ndr_distnc(self, crplt_vl: CrossRegionsPlot):
-        assert crplt_vl.prob_distrib_bndry_nearest_ndr_distnc().is_file()
-        
+    def test_prob_distrib_bndrs_nearest_ndr_distnc(self, crplt_vl: CrossRegionsPlot):
+        assert crplt_vl.prob_distrib_bndrs_nearest_ndr_distnc().is_file()
+    
+    def test_distrib_cuml_bndrs_nearest_ndr_distnc(self, crplt_vl: CrossRegionsPlot):
+        assert crplt_vl.distrib_cuml_bndrs_nearest_ndr_distnc().is_file()
+
     def test_num_prmtrs_bndrs_ndrs(self, crplt_vl: CrossRegionsPlot):
         assert crplt_vl.num_prmtrs_bndrs_ndrs().is_file()
 
