@@ -83,15 +83,22 @@ Promoters with and without any linkers >= 80 bp were considered. Number [C4] [F5
 ## Closest NDR distance from boundary
 
 **Procedure**
+Closest distance from boundary middle to a long linker (>=40 bp) middle was recorded. [C5, C6][F6, F7]
 
 **Observations**
+- Significantly higher numbers of linkers >=30 or 40 bp are close to boundaries than linkers >= 60 or 80 bp. Suggests that 40bp linker is a good threshold to find NDRs near boundaries. 
+- When only strong boundaries are considered (stronger 2 quartiles), about 90% boundaries have a linker >=40 bp within +- 250 bp. 
 
+**Future Directions**
+- See nearest long linker distance from random positions or whole chromosome.
 
 ## Code References
 [C1] `conformation.domains.PlotBoundariesHE.line_c0_around()`
 [C2] `conformation.domains.MCBoundariesHECollector.plot_scatter_mean_c0()`
 [C3] `conformation.domains.PlotBoundariesHE.prob_distrib()`
 [C4] `chromosome.crossregions.CrossRegionsPlot.prob_distrib_linkers_len_prmtrs`
+[C5] `chromosome.crossregions.CrossRegionsPlot.prob_distrib_bndrs_nearest_ndr_distnc` 
+[C6] `chromosome.crossregions.CrossRegionsPlot.distrib_cuml_bndrs_nearest_ndr_distnc`
 
 ## Figure References
 [F1] 
@@ -104,3 +111,7 @@ Promoters with and without any linkers >= 80 bp were considered. Number [C4] [F5
 ![Prob dist PM, BN](../figures/domains/boundaries_prob_distrib_c0_res_500_lim_250_ustr_500_dstr_0_s_mean7_m_None_VL.png)
 [F5]
 ![Num Prmtrs Bndrs NDRs](../figures/genes/num_prmtrs_bndrs_ndr_V.png)
+[F6]
+![Prob distrib bndry nearest NDR](../figures/boundaries/distnc_ndr_prob_distrib_res_500_V.png)
+[F7]
+![Cumulative percentage bndry nearest NDR](figures/boundaries/distnc_ndr_distrib_cuml_res_200_perc_0.5_40_V.png)
