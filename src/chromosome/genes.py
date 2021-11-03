@@ -144,17 +144,9 @@ class Promoters(Regions):
     def __str__(self) -> str:
         return f"ustr_{self._ustr_tss}_dstr_{self._dstr_tss}"
 
-    def and_x(self, locs: Iterable[PosOneIdx], with_x: bool):
-        cntns = self.contains_locs(locs)
-        prmtrs = Promoters(
-            self.chrm,
-            self._ustr_tss,
-            self._dstr_tss,
-            self._regions.iloc[cntns if with_x else ~cntns],
-        )
-        return prmtrs
-
-
+    def _new(self, rgns: RegionsInternal) -> Promoters:
+        return Promoters(self.chrm, self._ustr_tss, self._dstr_tss, rgns)
+    
 class PromotersPlot:
     def __init__(self, chrm: Chromosome) -> None:
         self._prmtrs = Promoters(chrm)

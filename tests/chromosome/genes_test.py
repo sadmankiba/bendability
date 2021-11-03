@@ -20,10 +20,10 @@ class TestPromoters:
     def test_mean_c0(self, prmtrs_vl: Promoters):
         assert -0.3 < prmtrs_vl.mean_c0 < -0.1
 
-    def test_and_x(self, prmtrs_vl: Promoters):
+    def test_with_loc(self, prmtrs_vl: Promoters):
         bndrs = BoundariesHE(prmtrs_vl.chrm, 500, 250)
-        prmtrs_wb = prmtrs_vl.and_x(bndrs[MIDDLE], True)
-        prmtrs_wob = prmtrs_vl.and_x(bndrs[MIDDLE], False)
+        prmtrs_wb = prmtrs_vl.with_loc(bndrs[MIDDLE], True)
+        prmtrs_wob = prmtrs_vl.with_loc(bndrs[MIDDLE], False)
         assert len(prmtrs_wb) + len(prmtrs_wob) == len(prmtrs_vl)
 
         assert (

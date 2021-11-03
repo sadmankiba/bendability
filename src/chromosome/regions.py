@@ -35,9 +35,6 @@ class Regions:
         self._mean_c0 = None
         self._cvrmask = None
 
-    def _get_regions(self) -> None:
-        pass
-
     def __iter__(self) -> Iterable[RegionNT]:
         return self._regions.itertuples()
 
@@ -54,13 +51,13 @@ class Regions:
         return len(self._regions)
 
     def __sub__(self, other: Regions):
-        excld = []
-        for rgn in self:
-            for orgn in other:
-                if (getattr(orgn, START) == getattr(rgn, START) and 
-                    getattr(orgn, END) == getattr(rgn, END)):
-                    excld.append(rgn)
-
+        result_rgns = self._regions[
+            ~(
+                self._regions[START].isin(other._regions[START])
+                & self._regions[END].isin(other._regions[END])
+            )
+        ]
+        return self._new(result_rgns)
 
     @property
     def mean_c0(self) -> float:
@@ -99,12 +96,12 @@ class Regions:
         rgns = Regions(self.chrm, pd.DataFrame({START: starts, END: ends}))
         return rgns
 
-    def rgns_contain_any_rgn(self, rgns: Regions, *args) -> Regions:
-        cntns = self._contains_any_rgn(rgns)
-        return type(self)(self.chrm, self._regions.iloc[cntns], *args)
+    def with_rgn(self, rgns: Regions) -> Regions:
+        cntns = self._contains_rgn(rgns)
+        return self._new(self._regions.iloc[cntns])
 
-    def _contains_any_rgn(self, rgns: Regions) -> NDArray[(Any,), bool]:
-        def _contains_rgns(cntn: RegionNT) -> bool:
+    def _contains_rgn(self, rgns: Regions) -> NDArray[(Any,), bool]:
+        def _rgn_contains_rgn(cntn: RegionNT) -> bool:
             cntns = False
             for rgn in rgns:
                 if getattr(cntn, START) <= getattr(rgn, START) and getattr(
@@ -114,10 +111,14 @@ class Regions:
                     break
             return cntns
 
-        return np.array(list(map(lambda cntn: _contains_rgns(cntn), self)))
+        return np.array(list(map(lambda cntn: _rgn_contains_rgn(cntn), self)))
 
-    def contains_locs(self, locs: Iterable[PosOneIdx]) -> NDArray[(Any,), bool]:
-        def _contains_locs(region: RegionNT) -> bool:
+    def with_loc(self, locs: Iterable[PosOneIdx], with_x: bool) -> Regions:
+        cntns = self._contains_loc(locs)
+        return self._new(self._regions.iloc[cntns if with_x else ~cntns])
+
+    def _contains_loc(self, locs: Iterable[PosOneIdx]) -> NDArray[(Any,), bool]:
+        def _rgn_contains_loc(region: RegionNT) -> bool:
             cntns = False
             for loc in locs:
                 if getattr(region, START) <= loc <= getattr(region, END):
@@ -126,11 +127,11 @@ class Regions:
 
             return cntns
 
-        return np.array(list(map(lambda rgn: _contains_locs(rgn), self)))
+        return np.array(list(map(lambda rgn: _rgn_contains_loc(rgn), self)))
 
     def rgns_contained_in(self, containers: Regions) -> Regions:
         cntnd = self.contained_in(containers)
-        return type(self)(self.chrm, self._regions.iloc[cntnd])
+        return self._new(self._regions.iloc[cntnd])
 
     def contained_in(self, containers: Regions) -> NDArray[(Any,), bool]:
         def _in_containers(rgn: RegionNT):
@@ -145,6 +146,15 @@ class Regions:
             return inc
 
         return np.array(list(map(lambda rgn: _in_containers(rgn), self)))
+
+    def len_at_least(self, len: int) -> Regions:
+        return self._new(self._regions.query(f"{LEN} >= {len}"))
+
+    def _get_regions(self) -> RegionsInternal:
+        pass
+
+    def _new(self, rgns: RegionsInternal) -> Regions:
+        return type(self)(self.chrm, rgns)
 
     def _add_len(self) -> None:
         self._regions[LEN] = self._regions[END] - self._regions[START] + 1

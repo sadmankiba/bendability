@@ -5,17 +5,15 @@ from typing import Literal, NamedTuple, Iterable
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 
 from chromosome.chromosome import Chromosome, MultiChrm
-from chromosome.genes import Genes, Promoters
+from chromosome.genes import Promoters
+from chromosome.regions import Regions, RegionsInternal
 from models.prediction import Prediction
 from util.util import FileSave, PlotUtil, PathObtain, Attr
 from util.custom_types import ChrId, PositiveInt, NonNegativeInt, PosOneIdx
 from util.constants import ChrIdList
 
-
-# TODO: Inherit dataframe wrapper
 
 LEFT = "left"
 RIGHT = "right"
@@ -32,7 +30,7 @@ class BoundaryNT(NamedTuple):
     score: float
 
 
-class BoundariesHE:
+class BoundariesHE(Regions):
     """
     Represenation of boundaries in a chromosome found with Hi-C Explorer
 
@@ -40,14 +38,13 @@ class BoundariesHE:
     """
 
     def __init__(
-        self, chrm: Chromosome, res: PositiveInt = 500, lim: PositiveInt = 250
+        self,
+        chrm: Chromosome,
+        res: PositiveInt = 500,
+        lim: PositiveInt = 250,
+        regions: RegionsInternal = None,
     ):
-        """
-        Args:
-            lim: Limit around boundary middle bp to include in boundary
-        """
         # TODO: Make bndrs_df private
-        self._chrm = chrm
         self.res = res
         self.bndrs_df = self._read_boundaries()
         self.lim = lim
@@ -56,6 +53,7 @@ class BoundariesHE:
         self._np_bndrs = None
         self._add_mean_c0_col()
         self._add_in_promoter_col()
+        super().__init__(chrm, regions)
 
     def __iter__(self) -> Iterable[BoundaryNT]:
         return self.bndrs_df.itertuples()
@@ -75,12 +73,12 @@ class BoundariesHE:
     def __str__(self):
         return f"res_{self.res}_lim_{self.lim}"
 
-    def _read_boundaries(
+    def _get_regions(
         self,
     ) -> pd.DataFrame[LEFT:int, RIGHT:int, MIDDLE:int, SCORE:float]:
         df = pd.read_table(
             f"{PathObtain.input_dir()}/domains/"
-            f"{self._chrm.number}_res_{self.res}_hicexpl_boundaries.bed",
+            f"{self.chrm.number}_res_{self.res}_hicexpl_boundaries.bed",
             delim_whitespace=True,
             header=None,
             names=["chromosome", LEFT, RIGHT, "id", SCORE, "_"],
@@ -92,27 +90,27 @@ class BoundariesHE:
     def _add_mean_c0_col(self) -> None:
         """Add mean c0 of each bndry"""
         self.bndrs_df = self.bndrs_df.assign(
-            mean_c0=lambda df: self._chrm.mean_c0_at_bps(df[MIDDLE], self.lim, self.lim)
+            mean_c0=lambda df: self.chrm.mean_c0_at_bps(df[MIDDLE], self.lim, self.lim)
         )
 
     def _add_in_promoter_col(self) -> None:
         self.bndrs_df = self.bndrs_df.assign(
-            in_promoter=lambda df: Promoters(self._chrm).is_in_regions(df[MIDDLE])
+            in_promoter=lambda df: Promoters(self.chrm).is_in_regions(df[MIDDLE])
         )
 
     def cover_mask(self) -> np.ndarray:
-        return self._chrm.get_cvr_mask(self.bndrs_df[MIDDLE], self.lim, self.lim)
+        return self.chrm.get_cvr_mask(self.bndrs_df[MIDDLE], self.lim, self.lim)
 
     @property
     def mean_c0(self) -> float:
         def calc_mean_c0():
-            return self._chrm.c0_spread()[self.cover_mask()].mean()
+            return self.chrm.c0_spread()[self.cover_mask()].mean()
 
         return Attr.calc_attr(self, "_mean_c0", calc_mean_c0)
 
     def prmtr_bndrs(self) -> BoundariesHE:
         def calc_prmtr_bndrs():
-            bndrs = BoundariesHE(self._chrm, self.res, self.lim)
+            bndrs = BoundariesHE(self.chrm, self.res, self.lim)
             bndrs.bndrs_df = pd.DataFrame(
                 [bndry for bndry in self if getattr(bndry, IN_PROMOTER)]
             )
@@ -122,7 +120,7 @@ class BoundariesHE:
 
     def non_prmtr_bndrs(self) -> BoundariesHE:
         def calc_np_bndrs():
-            bndrs = BoundariesHE(self._chrm, self.res, self.lim)
+            bndrs = BoundariesHE(self.chrm, self.res, self.lim)
             bndrs.bndrs_df = pd.DataFrame(
                 [bndry for bndry in self if not getattr(bndry, IN_PROMOTER)]
             )
@@ -196,9 +194,11 @@ class PlotBoundariesHE:
         prmtrs = Promoters(self._chrm)
         PlotUtil.prob_distrib(prmtrs[MEAN_C0], "promoters")
         PlotUtil.prob_distrib(self._bndrs.prmtr_bndrs()[MEAN_C0], "prm boundaries")
-        PlotUtil.prob_distrib(self._bndrs.non_prmtr_bndrs()[MEAN_C0], "nonprm boundaries")
-        prmtrs_with_bndrs = prmtrs.and_x(self._bndrs[MIDDLE], True)
-        prmtrs_wo_bndrs = prmtrs.and_x(self._bndrs[MIDDLE], False)
+        PlotUtil.prob_distrib(
+            self._bndrs.non_prmtr_bndrs()[MEAN_C0], "nonprm boundaries"
+        )
+        prmtrs_with_bndrs = prmtrs.with_loc(self._bndrs[MIDDLE], True)
+        prmtrs_wo_bndrs = prmtrs.with_loc(self._bndrs[MIDDLE], False)
         PlotUtil.prob_distrib(prmtrs_with_bndrs[MEAN_C0], "promoters with bndry")
         PlotUtil.prob_distrib(prmtrs_wo_bndrs[MEAN_C0], "promoters w/o bndry")
         plt.legend()
