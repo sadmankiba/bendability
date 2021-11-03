@@ -31,7 +31,7 @@ class CrossRegionsPlot:
         plt.xlabel("Distance")
         plt.ylabel("Percentage")
         plt.title(
-            f"Cumulative perc. of distance from boundary res={bndrs.res} bp " 
+            f"Cumulative perc. of distance from boundary res={bndrs.res} bp "
             f"middle to nearest NDR >= x bp"
         )
         return FileSave.figure_in_figdir(

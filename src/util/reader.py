@@ -1,6 +1,6 @@
 from __future__ import annotations
 import math
-from typing import Any 
+from typing import Any
 
 import pandas as pd
 import numpy as np

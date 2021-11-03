@@ -146,7 +146,8 @@ class Promoters(Regions):
 
     def _new(self, rgns: RegionsInternal) -> Promoters:
         return Promoters(self.chrm, self._ustr_tss, self._dstr_tss, rgns)
-    
+
+
 class PromotersPlot:
     def __init__(self, chrm: Chromosome) -> None:
         self._prmtrs = Promoters(chrm)

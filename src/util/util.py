@@ -315,8 +315,8 @@ class PlotUtil:
     @classmethod
     def prob_distrib(self, var: Iterable, label=None):
         sns.displot(var, kind="kde", label=label)
-    
-    @classmethod 
+
+    @classmethod
     def distrib_cuml(self, var: Iterable, label=None):
         sns.displot(var, kind="ecdf", label=label)
 

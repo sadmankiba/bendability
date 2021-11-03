@@ -67,7 +67,7 @@ class BoundariesHE(Regions):
     def _new(self, regions: RegionsInternal) -> BoundariesHE:
         return BoundariesHE(self.chrm, self.res, self.lim, regions)
 
-    def nearest_locs_distnc(self, locs: Iterable[PosOneIdx]) -> NDArray[(Any, ), float]:
+    def nearest_locs_distnc(self, locs: Iterable[PosOneIdx]) -> NDArray[(Any,), float]:
         locs = sorted(locs)
         distncs = []
         for bndry in self:
@@ -79,7 +79,7 @@ class BoundariesHE(Regions):
                 if abs(dst) < abs(min_dst):
                     min_dst = dst
             distncs.append(min_dst)
-        
+
         return np.array(distncs)
 
     def prmtr_bndrs(self) -> BoundariesHE:
