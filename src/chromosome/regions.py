@@ -130,11 +130,11 @@ class Regions:
         return np.array(list(map(lambda rgn: _rgn_contains_loc(rgn), self)))
 
     def rgns_contained_in(self, containers: Regions) -> Regions:
-        cntnd = self.contained_in(containers)
+        cntnd = self._rgns_contained_in(containers)
         return self._new(self._regions.iloc[cntnd])
 
-    def contained_in(self, containers: Regions) -> NDArray[(Any,), bool]:
-        def _in_containers(rgn: RegionNT):
+    def _rgns_contained_in(self, containers: Regions) -> NDArray[(Any,), bool]:
+        def _rgn_in_containers(rgn: RegionNT) -> bool:
             inc = False
             for cntn in containers:
                 if getattr(cntn, START) <= getattr(rgn, START) and getattr(
@@ -145,7 +145,20 @@ class Regions:
 
             return inc
 
-        return np.array(list(map(lambda rgn: _in_containers(rgn), self)))
+        return np.array(list(map(lambda rgn: _rgn_in_containers(rgn), self)))
+
+    def mid_contained_in(self, containers: Regions) -> Regions:
+        def _mid_in_containers(mid: PosOneIdx) -> bool:
+            inc = False
+            for cntn in containers:
+                if getattr(cntn, START) <= mid <= getattr(cntn, END):
+                    inc = True
+                    break
+
+            return inc
+
+        cntnd = list(map(lambda rgn: _mid_in_containers(getattr(rgn, MIDDLE)), self))
+        return self._new(self._regions.iloc[cntnd])
 
     def len_at_least(self, len: int) -> Regions:
         return self._new(self._regions.query(f"{LEN} >= {len}"))

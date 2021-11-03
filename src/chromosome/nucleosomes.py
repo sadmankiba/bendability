@@ -197,3 +197,6 @@ class Linkers(Regions):
         )
         df[MIDDLE] = ((df[START] + df[END]) / 2).astype(int)
         return df
+    
+    def ndrs(self, len: int = 80) -> Linkers:
+        return self.len_at_least(len) 

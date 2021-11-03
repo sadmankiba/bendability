@@ -8,19 +8,14 @@ import pandas as pd
 
 from chromosome.chromosome import Chromosome, MultiChrm
 from chromosome.genes import Promoters
-from chromosome.regions import Regions, RegionsInternal
+from chromosome.regions import Regions, RegionsInternal, START, END, MEAN_C0, MIDDLE
 from models.prediction import Prediction
 from util.util import FileSave, PlotUtil, PathObtain, Attr
-from util.custom_types import ChrId, PositiveInt, NonNegativeInt, PosOneIdx
+from util.custom_types import ChrId, PositiveInt, PosOneIdx
 from util.constants import ChrIdList
 
 
-LEFT = "left"
-RIGHT = "right"
-MIDDLE = "middle"
 SCORE = "score"
-IN_PROMOTER = "in_promoter"
-MEAN_C0 = "mean_c0"
 
 
 class BoundaryNT(NamedTuple):
@@ -44,95 +39,37 @@ class BoundariesHE(Regions):
         lim: PositiveInt = 250,
         regions: RegionsInternal = None,
     ):
-        # TODO: Make bndrs_df private
         self.res = res
-        self.bndrs_df = self._read_boundaries()
         self.lim = lim
-        self._mean_c0 = None
         self._prmtr_bndrs = None
-        self._np_bndrs = None
-        self._add_mean_c0_col()
-        self._add_in_promoter_col()
         super().__init__(chrm, regions)
-
-    def __iter__(self) -> Iterable[BoundaryNT]:
-        return self.bndrs_df.itertuples()
-
-    def __getitem__(self, key: NonNegativeInt | str) -> pd.Series:
-        if isinstance(key, NonNegativeInt):
-            return self.bndrs_df.iloc[key]
-
-        if key in self.bndrs_df.columns:
-            return self.bndrs_df[key]
-
-        raise KeyError
-
-    def __len__(self) -> int:
-        return len(self.bndrs_df)
 
     def __str__(self):
         return f"res_{self.res}_lim_{self.lim}"
 
     def _get_regions(
         self,
-    ) -> pd.DataFrame[LEFT:int, RIGHT:int, MIDDLE:int, SCORE:float]:
+    ) -> pd.DataFrame[START:int, END:int, SCORE:float]:
         df = pd.read_table(
             f"{PathObtain.input_dir()}/domains/"
             f"{self.chrm.number}_res_{self.res}_hicexpl_boundaries.bed",
             delim_whitespace=True,
             header=None,
-            names=["chromosome", LEFT, RIGHT, "id", SCORE, "_"],
+            names=["chromosome", START, END, "id", SCORE, "_"],
         )
-        return df.assign(
-            middle=lambda df: ((df[LEFT] + df[RIGHT]) / 2).astype(int)
-        ).drop(columns=["chromosome", "id", "_"])
+        return df.drop(columns=["chromosome", "id", "_"])
 
-    def _add_mean_c0_col(self) -> None:
-        """Add mean c0 of each bndry"""
-        self.bndrs_df = self.bndrs_df.assign(
-            mean_c0=lambda df: self.chrm.mean_c0_at_bps(df[MIDDLE], self.lim, self.lim)
-        )
-
-    def _add_in_promoter_col(self) -> None:
-        self.bndrs_df = self.bndrs_df.assign(
-            in_promoter=lambda df: Promoters(self.chrm).is_in_regions(df[MIDDLE])
-        )
-
-    def cover_mask(self) -> np.ndarray:
-        return self.chrm.get_cvr_mask(self.bndrs_df[MIDDLE], self.lim, self.lim)
-
-    @property
-    def mean_c0(self) -> float:
-        def calc_mean_c0():
-            return self.chrm.c0_spread()[self.cover_mask()].mean()
-
-        return Attr.calc_attr(self, "_mean_c0", calc_mean_c0)
+    def _new(self, regions: RegionsInternal) -> BoundariesHE:
+        return BoundariesHE(self.chrm, self.res, self.lim, regions)
 
     def prmtr_bndrs(self) -> BoundariesHE:
-        def calc_prmtr_bndrs():
-            bndrs = BoundariesHE(self.chrm, self.res, self.lim)
-            bndrs.bndrs_df = pd.DataFrame(
-                [bndry for bndry in self if getattr(bndry, IN_PROMOTER)]
-            )
-            return bndrs
-
-        return Attr.calc_attr(self, "_prmtr_bndrs", calc_prmtr_bndrs)
+        prmtrs = Promoters(self.chrm)
+        return Attr.calc_attr(
+            self, "_prmtr_bndrs", lambda _: self.mid_contained_in(prmtrs)
+        )
 
     def non_prmtr_bndrs(self) -> BoundariesHE:
-        def calc_np_bndrs():
-            bndrs = BoundariesHE(self.chrm, self.res, self.lim)
-            bndrs.bndrs_df = pd.DataFrame(
-                [bndry for bndry in self if not getattr(bndry, IN_PROMOTER)]
-            )
-            return bndrs
-
-        return Attr.calc_attr(self, "_np_bndrs", calc_np_bndrs)
-
-
-START = "start"
-END = "end"
-LEN = "len"
-MEAN_C0 = "mean_c0"
+        return self - self.prmtr_bndrs()
 
 
 class DomainNT:
@@ -142,43 +79,18 @@ class DomainNT:
     mean_c0: float
 
 
-class DomainsHE:
-    def __init__(self, chrm: Chromosome):
-        self._chrm = chrm
-        self._boundaries = BoundariesHE(chrm)
-        self._domains = self._get_domains()
-        self._add_mean_c0()
+class DomainsHE(Regions):
+    def __init__(self, chrm: Chromosome, regions: RegionsInternal):
+        super.__init__(chrm, regions)
 
-    def __iter__(self) -> Iterable[NamedTuple[START:int, END:int, LEN:int]]:
-        return self._domains.itertuples()
-
-    def __getitem__(self, key: str) -> pd.Series:
-        if key in self._domains.columns:
-            return self._domains[key]
-
-        raise KeyError
-
-    def _add_mean_c0(self) -> None:
-        self._domains[MEAN_C0] = self._domains.apply(
-            lambda domain: self._chrm.mean_c0_segment(domain[START], domain[END]),
-            axis=1,
-        )
-
-    @property
-    def mean_c0(self) -> float:
-        if not hasattr(self, "_mean_c0"):
-            c0_spread = self._chrm.c0_spread()
-            self._mean_c0 = c0_spread[~self._boundaries.cover_mask()].mean()
-
-        return self._mean_c0
-
-    def _get_domains(self) -> pd.DataFrame[START:int, END:int, LEN:int]:
+    def _get_regions(self) -> pd.DataFrame[START:int, END:int]:
+        bndrs = BoundariesHE(self.chrm)
         return pd.DataFrame(
             {
-                "start": self._boundaries[RIGHT].tolist()[:-1],
-                "end": self._boundaries[LEFT].tolist()[1:],
+                START: bndrs[END].tolist()[:-1],
+                END: bndrs[START].tolist()[1:],
             }
-        ).assign(len=lambda df: df["end"] - df["start"])
+        )
 
 
 class PlotBoundariesHE:
