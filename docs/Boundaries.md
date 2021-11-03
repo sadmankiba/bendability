@@ -74,6 +74,15 @@ Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3] [F4]
 ## Number and Comparison of C0 in boundaries w/ or w/o NDRs 
 
 **Procedure**
+Promoters with and without any linkers >= 80 bp were considered. Number [C4] [F5]
+
+**Observations**
+*Number*
+- With NDRs 22 (40%), without NDRs 37 (60%)
+
+## Closest NDR distance from boundary
+
+**Procedure**
 
 **Observations**
 
@@ -82,6 +91,7 @@ Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3] [F4]
 [C1] `conformation.domains.PlotBoundariesHE.line_c0_around()`
 [C2] `conformation.domains.MCBoundariesHECollector.plot_scatter_mean_c0()`
 [C3] `conformation.domains.PlotBoundariesHE.prob_distrib()`
+[C4] `chromosome.crossregions.CrossRegionsPlot.prob_distrib_linkers_len_prmtrs`
 
 ## Figure References
 [F1] 
@@ -92,3 +102,5 @@ Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3] [F4]
 ![+-3000 bp](../figures/domains/mean_c0_bndrs_IX_plt_3000.png)
 [F4]
 ![Prob dist PM, BN](../figures/domains/boundaries_prob_distrib_c0_res_500_lim_250_ustr_500_dstr_0_s_mean7_m_None_VL.png)
+[F5]
+![Num Prmtrs Bndrs NDRs](../figures/genes/num_prmtrs_bndrs_ndr_V.png)

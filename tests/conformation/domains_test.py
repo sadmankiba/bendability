@@ -1,25 +1,15 @@
-from matplotlib.pyplot import plot
 import pytest
-import numpy as np
-from numpy.testing import assert_almost_equal
+import pandas as pd
 
 from conformation.domains import (
-    BoundariesDomainsHEQuery,
     BoundariesHE,
     PlotBoundariesHE,
-    IN_PROMOTER,
-    LEFT,
-    MEAN_C0,
-    MIDDLE,
     MCBoundariesHEAggregator,
     MCBoundariesHECollector,
-    RIGHT,
-    SCORE,
 )
+from chromosome.regions import MIDDLE
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
-from chromosome.genes import Genes, Promoters
-
 
 @pytest.fixture
 def bndrs_vl(chrm_vl_mean7):
@@ -27,31 +17,16 @@ def bndrs_vl(chrm_vl_mean7):
 
 
 class TestBoundariesHE:
+    def test_nearest_locs_distnc(self, bndrs_vl: BoundariesHE):
+        bndrs_vl._regions = pd.DataFrame({MIDDLE: [18, 40, 4]})
+        assert bndrs_vl.nearest_locs_distnc([30, 9, 26]).tolist() == [8, -10, 5]
+
     def test_read_boundaries_of(self, bndrs_vl: BoundariesHE):
-        assert set(bndrs_vl.bndrs_df.columns) == set(
-            [
-                LEFT,
-                RIGHT,
-                SCORE,
-                MIDDLE,
-                IN_PROMOTER,
-                MEAN_C0,
-            ]
-        )
-        assert len(bndrs_vl.bndrs_df) == 57
+        assert len(bndrs_vl) == 57
 
     def test_mean_c0(self, bndrs_vl: BoundariesHE):
         mc0 = bndrs_vl.mean_c0
         assert mc0 == pytest.approx(-0.179, rel=1e-3)
-
-    def test_add_mean_c0_col(self, bndrs_vl: BoundariesHE):
-        mn = bndrs_vl.bndrs_df[MEAN_C0]
-        assert np.all((mn > -0.7) & (mn < 0.2))
-
-    def test_add_in_promoter_col(self, bndrs_vl: BoundariesHE):
-        assert len(bndrs_vl.bndrs_df.query(IN_PROMOTER)) > len(
-            bndrs_vl.bndrs_df.query(f"not {IN_PROMOTER}")
-        )
 
     def test_prmtr_non_prmtr_bndrs(self, bndrs_vl: BoundariesHE):
         prmtr_bndrs = bndrs_vl.prmtr_bndrs()

@@ -1,10 +1,11 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Literal, NamedTuple, Iterable
+from typing import Iterable, Literal, NamedTuple, Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from nptyping import NDArray
 
 from chromosome.chromosome import Chromosome, MultiChrm
 from chromosome.genes import Promoters
@@ -61,6 +62,21 @@ class BoundariesHE(Regions):
 
     def _new(self, regions: RegionsInternal) -> BoundariesHE:
         return BoundariesHE(self.chrm, self.res, self.lim, regions)
+
+    def nearest_locs_distnc(self, locs: Iterable[PosOneIdx]) -> NDArray[(Any, ), float]:
+        locs = sorted(locs)
+        distncs = []
+        for bndry in self:
+            min_dst = self.chrm.total_bp
+            for loc in locs:
+                dst = loc - getattr(bndry, MIDDLE)
+                if abs(dst) > abs(min_dst):
+                    break
+                if abs(dst) < abs(min_dst):
+                    min_dst = dst
+            distncs.append(min_dst)
+        
+        return np.array(distncs)
 
     def prmtr_bndrs(self) -> BoundariesHE:
         prmtrs = Promoters(self.chrm)
