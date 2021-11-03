@@ -95,6 +95,7 @@ Or, create a cool file with single resolution.
 hicConvertFormat --matrices data/GSE151553_A364_merged.hic --outFileName data/GSE151553_A364_merged.cool --inputFormat hic --outputFormat cool --resolutions 500
 ```
 
+### TADs
 **Find TADs**
 
 ```sh
@@ -108,6 +109,14 @@ This will divide whole chromosome into regions(domains). So, there are no non-do
 ```sh
 hicPlotTADs --tracks track.ini -o figures/ix_domains_hicexp.png --region chrIX:1-434000
 ```
+
+**Data**
+*TAD separation score* 
+- Reaches a local minimum between TADs. 
+- Informs about the degree of TAD separation:
+  - Adjacent TADs with more of Hi-C contacts between them receive a larger score compared to TADs having fewer contacts. 
+
+
 
 ## FAN-C
 

@@ -19,7 +19,7 @@ class CrossRegionsPlot:
     def distrib_cuml_bndrs_nearest_ndr_distnc(
         self, min_lnker_len: list[int] = [80, 60, 40, 30]
     ) -> Path:
-        bndrs = BoundariesHE(self._chrm)
+        bndrs = BoundariesHE(self._chrm, res=200, score_perc=0.75)
         lnkrs = Linkers(self._chrm)
         for llen in min_lnker_len:
             distns = bndrs.nearest_locs_distnc(lnkrs.ndrs(llen)[MIDDLE])
@@ -35,7 +35,9 @@ class CrossRegionsPlot:
             f"middle to nearest NDR >= x bp"
         )
         return FileSave.figure_in_figdir(
-            f"boundaries/distnc_ndr_distrib_cuml_res_{bndrs.res}_{self._chrm.number}.png"
+            f"boundaries/distnc_ndr_distrib_cuml_res_{bndrs.res}_"
+            f"perc_{bndrs.score_perc}_{'_'.join(str(i) for i in min_lnker_len)}"
+            f"_{self._chrm.number}.png"
         )
 
     def prob_distrib_bndrs_nearest_ndr_distnc(

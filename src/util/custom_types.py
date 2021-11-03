@@ -7,6 +7,7 @@ C0 = float
 
 PositiveInt = int
 NonNegativeInt = int
+ZeroToOne = float
 
 LIBRARY_NAMES = Literal["cnl", "rl", "tl", "chrvl", "libl"]
 

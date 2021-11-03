@@ -12,7 +12,7 @@ from chromosome.genes import Promoters
 from chromosome.regions import Regions, RegionsInternal, START, END, MEAN_C0, MIDDLE
 from models.prediction import Prediction
 from util.util import FileSave, PlotUtil, PathObtain, Attr
-from util.custom_types import ChrId, PositiveInt, PosOneIdx
+from util.custom_types import ChrId, PositiveInt, PosOneIdx, ZeroToOne
 from util.constants import ChrIdList
 
 
@@ -38,10 +38,12 @@ class BoundariesHE(Regions):
         chrm: Chromosome,
         res: PositiveInt = 500,
         lim: PositiveInt = 250,
+        score_perc: ZeroToOne = 1,
         regions: RegionsInternal = None,
     ):
         self.res = res
         self.lim = lim
+        self.score_perc = score_perc
         self._prmtr_bndrs = None
         super().__init__(chrm, regions)
 
@@ -51,14 +53,16 @@ class BoundariesHE(Regions):
     def _get_regions(
         self,
     ) -> pd.DataFrame[START:int, END:int, SCORE:float]:
+        """lower score = higher separation"""
         df = pd.read_table(
             f"{PathObtain.input_dir()}/domains/"
             f"{self.chrm.number}_res_{self.res}_hicexpl_boundaries.bed",
             delim_whitespace=True,
             header=None,
             names=["chromosome", START, END, "id", SCORE, "_"],
-        )
-        return df.drop(columns=["chromosome", "id", "_"])
+        ).drop(columns=["chromosome", "id", "_"])
+
+        return df.loc[df[SCORE] <= df[SCORE].quantile(self.score_perc)]
 
     def _new(self, regions: RegionsInternal) -> BoundariesHE:
         return BoundariesHE(self.chrm, self.res, self.lim, regions)
