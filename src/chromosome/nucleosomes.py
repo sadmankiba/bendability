@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from chromosome.regions import Regions, RegionsInternal, START, END, MIDDLE, LEN
+from chromosome.regions import Regions, RegionsInternal, PlotRegions, START, END, MIDDLE, LEN
 from .chromosome import Chromosome, PlotChrm
 from util.reader import NucsReader
 from util.util import FileSave, PathObtain
@@ -200,3 +200,19 @@ class Linkers(Regions):
 
     def ndrs(self, len: int = 80) -> Linkers:
         return self.len_at_least(len)
+
+
+class PlotLinkers:
+    def __init__(self, chrm: Chromosome) -> None:
+        self._lnkrs = Linkers(chrm)
+
+    def line_c0_indiv(self) -> None:
+        for lnkr in self._lnkrs:
+            PlotRegions(self._prmtrs.chrm).line_c0_indiv(lnkr)
+            fr = "frw" if getattr(prmtr, STRAND) == 1 else "rvs"
+            plt.title(
+                f"C0 in {fr} promoter {getattr(prmtr, START)}-{getattr(prmtr, END)}"
+            )
+            FileSave.figure_in_figdir(
+                f"{FigSubDir.PROMOTERS}/{self._prmtrs.chrm.id}/"
+                f"{fr}_{getattr(prmtr, START)}_{getattr(prmtr, END)}.png"

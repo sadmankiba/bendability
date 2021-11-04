@@ -7,7 +7,6 @@ from chromosome.regions import MIDDLE
 from .genes import Promoters
 from .nucleosomes import Linkers
 from conformation.domains import BoundariesHE
-
 from util.util import PlotUtil, FileSave
 from .regions import LEN, MEAN_C0
 

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from pathlib import Path 
+from pathlib import Path
 from typing import Iterable, NamedTuple, Any
 
 import pandas as pd
@@ -174,7 +174,10 @@ class Regions:
         return self._new(self._regions.query(f"{LEN} >= {len}"))
 
     def save_regions(self) -> Path:
-        return FileSave.tsv_gdatadir(self._regions, f"{self.gdata_savedir}/regions.tsv")
+        return FileSave.tsv_gdatadir(
+            self._regions.sort_values(START),
+            f"{self.gdata_savedir}/{type(self).__name__}.tsv",
+        )
 
     def _get_regions(self) -> RegionsInternal:
         pass
@@ -202,7 +205,8 @@ class Regions:
             lambda rgn: np.quantile(
                 ChrmOperator(self.chrm).c0(rgn[START], rgn[END]),
                 [0, 0.25, 0.5, 0.75, 1],
-            ), axis=1
+            ),
+            axis=1,
         )
 
 

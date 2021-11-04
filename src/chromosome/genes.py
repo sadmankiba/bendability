@@ -157,7 +157,7 @@ class PlotPromoters:
     def __init__(self, chrm: Chromosome) -> None:
         self._prmtrs = Promoters(chrm)
 
-    def line_c0_indiv(self):
+    def line_c0_indiv(self) -> None:
         for prmtr in self._prmtrs:
             PlotRegions(self._prmtrs.chrm).line_c0_indiv(prmtr)
             fr = "frw" if getattr(prmtr, STRAND) == 1 else "rvs"
