@@ -19,7 +19,7 @@ class TestChrmCalc(unittest.TestCase):
 
 class TestSpread:
     def test_covering_sequences_at(self, chrm_vl):
-        spread = Spread(chrm_vl._df["C0"].to_numpy(), chrm_vl._chr_id)
+        spread = Spread(chrm_vl._df["C0"].to_numpy(), chrm_vl.id)
         arr = spread._covering_sequences_at(30)
         assert arr.tolist() == [1, 2, 3, 4, 5]
         arr = spread._covering_sequences_at(485)
@@ -28,7 +28,7 @@ class TestSpread:
         assert arr.tolist() == [82403, 82404]
 
     def test_mean_of_7(self, chrm_vl: Chromosome):
-        spread = Spread(chrm_vl._df["C0"].to_numpy(), chrm_vl._chr_id)
+        spread = Spread(chrm_vl._df["C0"].to_numpy(), chrm_vl.id)
         spread_c0 = spread._mean_of_7()
         assert spread_c0.shape == (CHRV_TOTAL_BP,)
         samples = spread_c0[np.random.randint(0, CHRVL_LEN - 1, 100)]
@@ -37,7 +37,7 @@ class TestSpread:
         assert np.all(samples > -2.5)
 
     def test_mean_of_covering_seq(self, chrm_vl: Chromosome):
-        spread = Spread(chrm_vl._df["C0"].to_numpy(), chrm_vl._chr_id)
+        spread = Spread(chrm_vl._df["C0"].to_numpy(), chrm_vl.id)
         spread_c0 = spread._mean_of_covering_seq()
         assert spread_c0.shape == (CHRV_TOTAL_BP,)
 
@@ -46,7 +46,7 @@ class TestSpread:
         assert np.all(samples > -2.5)
 
     def test_spread_c0_weighted(self, chrm_vl: Chromosome):
-        spread = Spread(chrm_vl._df["C0"].to_numpy(), chrm_vl._chr_id)
+        spread = Spread(chrm_vl._df["C0"].to_numpy(), chrm_vl.id)
         spread_c0 = spread._weighted_covering_seq()
         assert spread_c0.shape == (CHRV_TOTAL_BP,)
 

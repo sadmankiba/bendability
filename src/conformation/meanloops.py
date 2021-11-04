@@ -231,9 +231,9 @@ class MultiChrmMeanLoopsCollector:
     def _get_chromosomes(self) -> pd.Series:
         """Create a Pandas Series of Chromosomes"""
         return self._mcloop_df["ChrID"].apply(
-            lambda chr_id: Chromosome(chr_id, self._prediction)
-            if chr_id != "VL"
-            else Chromosome(chr_id, None)
+            lambda id: Chromosome(id, self._prediction)
+            if id != "VL"
+            else Chromosome(id, None)
         )
 
     def _create_multiple_col(self, func: Callable, *args) -> np.ndarray:

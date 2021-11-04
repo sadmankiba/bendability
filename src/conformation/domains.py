@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from nptyping import NDArray
 
-from chromosome.chromosome import Chromosome, MultiChrm
+from chromosome.chromosome import Chromosome, MultiChrm, PlotChrm
 from chromosome.genes import Promoters
 from chromosome.regions import Regions, RegionsInternal, START, END, MEAN_C0, MIDDLE
 from models.prediction import Prediction
@@ -92,13 +92,6 @@ class BoundariesHE(Regions):
         return self - self.prmtr_bndrs()
 
 
-class DomainNT:
-    start: PosOneIdx
-    end: PosOneIdx
-    len: int
-    mean_c0: float
-
-
 class DomainsHE(Regions):
     def __init__(self, chrm: Chromosome, regions: RegionsInternal):
         super.__init__(chrm, regions)
@@ -154,7 +147,7 @@ class PlotBoundariesHE:
         plt.plot(x, mc0_pbndrs, color="tab:orange", label="promoter")
         plt.plot(x, mc0_npbndrs, color="tab:blue", label="non-promoter")
 
-        self._chrm.plot_avg()
+        PlotChrm(self._chrm).plot_avg()
 
         plt.legend()
         PlotUtil.show_grid()
@@ -165,7 +158,7 @@ class PlotBoundariesHE:
         )
 
         return FileSave.figure_in_figdir(
-            f"{self._figsubdir}/mean_c0_bndrs_{self._chrm._chr_id}_plt_{pltlim}.png"
+            f"{self._figsubdir}/mean_c0_bndrs_{self._chrm.id}_plt_{pltlim}.png"
         )
 
     def line_c0_around_indiv(self) -> None:
@@ -188,7 +181,7 @@ class PlotBoundariesHE:
         )
 
         return FileSave.figure_in_figdir(
-            f"{self._figsubdir}/{self._chrm._chr_id}/{pstr}_indiv_{mid}.png"
+            f"{self._figsubdir}/{self._chrm.id}/{pstr}_indiv_{mid}.png"
         )
 
     def scatter_mean_c0_at_indiv(self) -> Path:

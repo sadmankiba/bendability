@@ -1,4 +1,13 @@
-# Chromosome Numbers
+class GDataSubDir:
+    PROMOTERS = "promoters"
+    TEST = "test"
+
+
+class FigSubDir:
+    PROMOTERS = "promoters"
+    TEST = "test"
+
+
 YeastChrNumList = (
     "I",
     "II",
@@ -20,14 +29,12 @@ YeastChrNumList = (
 
 ChrIdList = YeastChrNumList + ("VL",)
 
-# Library names
 CNL = "cnl"
 RL = "rl"
 TL = "tl"
 CHRVL = "chrvl"
 LIBL = "libl"
 
-# Library length
 CNL_LEN = 19907
 RL_LEN = 12472
 TL_LEN = 82368
@@ -37,6 +44,4 @@ LIBL_LEN = 92918
 SEQ_LEN = 50
 ONE_INDEX_START = 1
 
-
-# Chromosome V
 CHRV_TOTAL_BP = 576871

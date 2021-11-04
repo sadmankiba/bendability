@@ -128,7 +128,7 @@ class FancBoundaryAnalysis:
         """
         # First, find for chr V actual
         chrm = Chromosome(chrm_id, Prediction(30))
-        one_eighth_regions = self._boundary.get_one_eighth_regions_in(chrm._chr_id)
+        one_eighth_regions = self._boundary.get_one_eighth_regions_in(chrm.id)
         assert len(one_eighth_regions) == 8
 
         c0_spread = chrm.c0_spread()

@@ -7,11 +7,14 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
+from util.constants import FigSubDir
+
 from .chromosome import Chromosome
 from .nucleosomes import Nucleosomes
-from .regions import Regions, RegionsInternal
+from .regions import PlotRegions, Regions, RegionsInternal
 from util.reader import GeneReader
 from util.util import FileSave, PlotUtil, PathObtain
+from util.constants import GDataSubDir
 from util.custom_types import NonNegativeInt, PosOneIdx
 
 START = "start"
@@ -116,6 +119,8 @@ class Promoters(Regions):
         self._dstr_tss = dstr_tss
         super().__init__(chrm, regions)
 
+    gdata_savedir = GDataSubDir.PROMOTERS
+
     def _get_regions(self) -> pd.DataFrame[START:int, END:int, STRAND:int]:
         genes = Genes(self.chrm)
         return pd.DataFrame(
@@ -148,9 +153,21 @@ class Promoters(Regions):
         return Promoters(self.chrm, self._ustr_tss, self._dstr_tss, rgns)
 
 
-class PromotersPlot:
+class PlotPromoters:
     def __init__(self, chrm: Chromosome) -> None:
         self._prmtrs = Promoters(chrm)
+
+    def line_c0_indiv(self):
+        for prmtr in self._prmtrs:
+            PlotRegions(self._prmtrs.chrm).line_c0_indiv(prmtr)
+            fr = "frw" if getattr(prmtr, STRAND) == 1 else "rvs"
+            plt.title(
+                f"C0 in {fr} promoter {getattr(prmtr, START)}-{getattr(prmtr, END)}"
+            )
+            FileSave.figure_in_figdir(
+                f"{FigSubDir.PROMOTERS}/{self._prmtrs.chrm.id}/"
+                f"{fr}_{getattr(prmtr, START)}_{getattr(prmtr, END)}.png"
+            )
 
     def prob_distrib_c0(self) -> Path:
         sns.distplot(self._prmtrs[MEAN_C0], hist=False, kde=True)

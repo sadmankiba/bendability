@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from chromosome.regions import Regions, RegionsInternal, START, END, MIDDLE, LEN
-from .chromosome import Chromosome
+from .chromosome import Chromosome, PlotChrm
 from util.reader import NucsReader
 from util.util import FileSave, PathObtain
 from util.constants import ONE_INDEX_START
@@ -93,7 +93,7 @@ class Nucleosomes(Regions):
             va="center",
         )
 
-        self.chrm.plot_avg()
+        PlotChrm(self.chrm).plot_avg()
         plt.grid()
 
         plt.xlabel("Distance from dyad(bp)")
@@ -101,7 +101,7 @@ class Nucleosomes(Regions):
         plt.title(f"C0 of +-{dist} bp from nuclesome dyad")
 
         return FileSave.figure(
-            f"{PathObtain.figure_dir()}/nucleosome/dist_{dist}_s_{spread_str}_m_{self.chrm.predict_model_no()}_{self.chrm._chr_id}.png"
+            f"{PathObtain.figure_dir()}/nucleosome/dist_{dist}_s_{spread_str}_m_{self.chrm.predict_model_no()}_{self.chrm.id}.png"
         )
 
     def get_nucleosome_occupancy(self) -> np.ndarray:
@@ -111,7 +111,7 @@ class Nucleosomes(Regions):
         of 101 bp for each nucleosome.
         """
         saved_data = Path(
-            f"{PathObtain.data_dir()}/generated_data/nucleosome/nuc_occ_{self.chrm._chr_id}.tsv"
+            f"{PathObtain.data_dir()}/generated_data/nucleosome/nuc_occ_{self.chrm.id}.tsv"
         )
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep="\t")["nuc_occupancy"].to_numpy()

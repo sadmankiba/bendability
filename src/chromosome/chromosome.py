@@ -2,7 +2,7 @@ from __future__ import annotations
 import math
 from pathlib import Path
 import time
-from typing import IO, Iterable, Literal, Union, Any
+from typing import Iterable, Literal, Union, Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,7 +14,7 @@ from models.prediction import Prediction
 from util.reader import DNASequenceReader
 from util.constants import CHRVL, SEQ_LEN, ChrIdList
 from util.custom_types import ChrId, PosOneIdx, YeastChrNum, PositiveInt
-from util.util import FileSave, PathObtain, PlotUtil
+from util.util import Attr, FileSave, PathObtain, PlotUtil
 
 
 SpreadType = Literal["mean7", "mean_cover", "weighted", "single"]
@@ -25,17 +25,17 @@ SpreadType = Literal["mean7", "mean_cover", "weighted", "single"]
 class Spread:
     """Spread C0 at each bp from C0 of 50-bp sequences at 7-bp resolution"""
 
-    def __init__(self, seq_c0_res7: np.ndarray, chr_id: ChrId, model_no: int = 6):
+    def __init__(self, seq_c0_res7: np.ndarray, id: ChrId, model_no: int = 6):
         """
         Construct a spread object
 
         Args:
             seq_c0_res7: C0 of 50-bp sequences at 7-bp resolution
-            chr_id: Chromosome ID
+            id: Chromosome ID
         """
         self._seq_c0_res7 = seq_c0_res7
         self.total_bp = ChrmCalc.total_bp(seq_c0_res7.size)
-        self._chr_id = chr_id
+        self.id = id
         self._model_no = model_no
 
     def _covering_sequences_at(self, pos: int) -> np.ndarray:
@@ -75,7 +75,7 @@ class Spread:
         cover a bp, nearest 7-seq mean is used.
         """
         saved_data = Path(
-            f"{PathObtain.data_dir()}/generated_data/spread/spread_c0_mean7_{self._chr_id}_m_{self._model_no}.tsv"
+            f"{PathObtain.data_dir()}/generated_data/spread/spread_c0_mean7_{self.id}_m_{self._model_no}.tsv"
         )
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep="\t")["c0_mean7"].to_numpy()
@@ -105,7 +105,7 @@ class Spread:
         """Determine C0 at each bp by average of covering 50-bp sequences around"""
         # TODO: HOF to wrap check and save data?
         saved_data = Path(
-            f"{PathObtain.data_dir()}/generated_data/spread/spread_c0_balanced_{self._chr_id}_m_{self._model_no}.tsv"
+            f"{PathObtain.data_dir()}/generated_data/spread/spread_c0_balanced_{self.id}_m_{self._model_no}.tsv"
         )
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep="\t")["c0_balanced"].to_numpy()
@@ -130,7 +130,7 @@ class Spread:
     def _weighted_covering_seq(self) -> np.ndarray:
         """Determine C0 at each bp by weighted average of covering 50-bp sequences around"""
         saved_data = Path(
-            f"{PathObtain.data_dir()}/generated_data/spread/spread_c0_weighted_{self._chr_id}_m_{self._model_no}.tsv"
+            f"{PathObtain.data_dir()}/generated_data/spread/spread_c0_weighted_{self.id}_m_{self._model_no}.tsv"
         )
         if saved_data.is_file():
             return pd.read_csv(saved_data, sep="\t")["c0_weighted"].to_numpy()
@@ -227,7 +227,7 @@ class Chromosome:
 
     def __init__(
         self,
-        chr_id: Union[YeastChrNum, Literal["VL"]],
+        id: Union[YeastChrNum, Literal["VL"]],
         prediction: Prediction | None = None,
         spread_str: SpreadType = "mean7",
     ):
@@ -235,13 +235,13 @@ class Chromosome:
         Create a Chromosome object
 
         Args:
-            chr_id: For Roman Numbers, predicted C0 is used. 'VL' represents
+            id: For Roman Numbers, predicted C0 is used. 'VL' represents
                 chr V library of bendability data.
             spread_str: Which type of spread to use.
         """
-        self._chr_id = chr_id
+        self.id = id
 
-        if chr_id == "VL":
+        if id == "VL":
             self._prediction = None
             self._df = DNASequenceReader().get_processed_data()[CHRVL]
         else:
@@ -249,13 +249,14 @@ class Chromosome:
             self._df = self._get_chrm_df()
 
         self.spread_str = spread_str
+        self._mean_c0 = None
 
     def __str__(self):
-        return f"s_{self.spread_str}_m_{self.predict_model_no()}_{self._chr_id}"
+        return f"s_{self.spread_str}_m_{self.predict_model_no()}_{self.id}"
 
     @property
     def mean_c0(self):
-        return self.c0_spread().mean()
+        return Attr.calc_attr(self, "_mean_c0", lambda: self.c0_spread().mean())
 
     @property
     def total_bp(self):
@@ -263,11 +264,11 @@ class Chromosome:
 
     @property
     def c0_type(self):
-        return "actual" if self._chr_id == "VL" else "predicted"
+        return "actual" if self.id == "VL" else "predicted"
 
     @property
     def number(self):
-        return "V" if self._chr_id == "VL" else self._chr_id
+        return "V" if self.id == "VL" else self.id
 
     def _get_chrm_df(self) -> pd.DataFrame:
         """
@@ -312,14 +313,6 @@ class Chromosome:
         # TODO: Remove middle
         PlotUtil.avg_horizline(*args)
 
-    def plot_avg(self) -> None:
-        """
-        Plot a horizontal red line denoting avg. C0 in whole chromosome
-
-        Best to draw after x limit is set.
-        """
-        PlotUtil.avg_horizline(self._df["C0"].mean())
-
     def plot_moving_avg(self, start: int, end: int, plotnuc: bool = False) -> None:
         """
         Plot C0, a few moving averages of C0 and nuc. centers in a segment of chr.
@@ -351,7 +344,7 @@ class Chromosome:
                 label=p[0],
             )
 
-        self.plot_avg()
+        PlotChrm(self).plot_avg()
 
         if plotnuc:
             nuc_df = DNASequenceReader().read_nuc_center()
@@ -380,7 +373,7 @@ class Chromosome:
 
         # Save figure
         plt.gcf().set_size_inches(12, 6)
-        ma_fig_dir = f"{PathObtain.figure_dir()}/chromosome/{self._chr_id}"
+        ma_fig_dir = f"{PathObtain.figure_dir()}/chromosome/{self.id}"
         if not Path(ma_fig_dir).is_dir():
             Path(ma_fig_dir).mkdir(parents=True, exist_ok=True)
 
@@ -394,13 +387,13 @@ class Chromosome:
     def c0_spread(self) -> np.ndarray:
         if not hasattr(self, "_c0_spread"):
             self._c0_spread = Spread(
-                self._df["C0"].values, self._chr_id, self.predict_model_no()
+                self._df["C0"].values, self.id, self.predict_model_no()
             ).c0_spread(self.spread_str)
 
         return self._c0_spread
 
     def predict_model_no(self) -> int:
-        return self._prediction._model_no if self._chr_id != "VL" else None
+        return self._prediction._model_no if self.id != "VL" else None
 
     def mean_c0_around_bps(
         self,
@@ -488,6 +481,19 @@ class Chromosome:
         return result
 
 
+class PlotChrm:
+    def __init__(self, chrm: Chromosome) -> None:
+        self._chrm = chrm
+
+    def plot_avg(self) -> None:
+        """
+        Plot a horizontal red line denoting avg. C0 in whole chromosome
+
+        Best to draw after x limit is set.
+        """
+        PlotUtil.avg_horizline(self._chrm.mean_c0)
+
+
 class MultiChrm:
     def __init__(self, chrmids: tuple[ChrId] = ChrIdList):
         self._chrmids = chrmids
@@ -509,6 +515,9 @@ class MultiChrm:
 class ChrmOperator:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
+
+    def c0(self, start: float | PosOneIdx, end: float | PosOneIdx) -> NDArray[(Any,), float]:
+        return self._chrm.c0_spread()[int(start - 1) : int(end)]
 
     def mean_c0_regions_indiv(
         self, starts: Iterable[PosOneIdx], ends: Iterable[PosOneIdx]

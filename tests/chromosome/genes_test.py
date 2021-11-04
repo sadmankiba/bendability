@@ -1,7 +1,7 @@
 import pytest
 
 from chromosome.chromosome import Chromosome
-from chromosome.genes import Genes, Promoters, PromotersPlot
+from chromosome.genes import Genes, Promoters, PlotPromoters
 from conformation.domains import BoundariesHE, MIDDLE
 
 
@@ -13,7 +13,7 @@ class TestGenes:
 
 @pytest.fixture
 def prmtrs_vl(chrm_vl_mean7):
-    return Promoters(chrm_vl_mean7, ustr_tss=500, dstr_tss=0)
+    return Promoters(chrm_vl_mean7, ustr_tss=500, dstr_tss=-1)
 
 
 class TestPromoters:
@@ -41,12 +41,12 @@ class TestPromoters:
 
 @pytest.fixture
 def prmtrsplt_vl(chrm_vl_mean7):
-    return PromotersPlot(chrm_vl_mean7)
+    return PlotPromoters(chrm_vl_mean7)
 
 
 class TestPromotersPlot:
-    def test_prob_distrib(self, prmtrsplt_vl: PromotersPlot):
+    def test_prob_distrib(self, prmtrsplt_vl: PlotPromoters):
         assert prmtrsplt_vl.prob_distrib_c0().is_file()
 
-    def test_hist(self, prmtrsplt_vl: PromotersPlot):
+    def test_hist(self, prmtrsplt_vl: PlotPromoters):
         assert prmtrsplt_vl.hist_c0().is_file()

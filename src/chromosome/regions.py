@@ -1,11 +1,15 @@
 from __future__ import annotations
+from pathlib import Path 
 from typing import Iterable, NamedTuple, Any
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from nptyping import NDArray
-from chromosome.chromosome import ChrmOperator, Chromosome
-from util.util import Attr, NumpyTool
+
+
+from chromosome.chromosome import ChrmOperator, Chromosome, PlotChrm
+from util.util import Attr, FileSave, NumpyTool, PlotUtil
 from util.constants import ONE_INDEX_START
 from util.custom_types import PosOneIdx, NonNegativeInt
 
@@ -16,13 +20,16 @@ END = "end"
 LEN = "len"
 MIDDLE = "middle"
 MEAN_C0 = "mean_c0"
+C0_QUARTILE = "c0_quartile"
 
 
 class RegionNT(NamedTuple):
     start: PosOneIdx
     end: PosOneIdx
+    len: int
     middle: PosOneIdx
     mean_c0: float
+    c0_quartile: list[float]
 
 
 class Regions:
@@ -32,8 +39,11 @@ class Regions:
         self._add_len()
         self._add_middle()
         self._add_mean_c0()
+        self._add_c0_quartile()
         self._mean_c0 = None
         self._cvrmask = None
+
+    gdata_savedir = None
 
     def __iter__(self) -> Iterable[RegionNT]:
         return self._regions.itertuples()
@@ -163,6 +173,9 @@ class Regions:
     def len_at_least(self, len: int) -> Regions:
         return self._new(self._regions.query(f"{LEN} >= {len}"))
 
+    def save_regions(self) -> Path:
+        return FileSave.tsv_gdatadir(self._regions, f"{self.gdata_savedir}/regions.tsv")
+
     def _get_regions(self) -> RegionsInternal:
         pass
 
@@ -183,3 +196,26 @@ class Regions:
                 rgns[START], rgns[END]
             )
         )
+
+    def _add_c0_quartile(self) -> None:
+        self._regions[C0_QUARTILE] = self._regions.apply(
+            lambda rgn: np.quantile(
+                ChrmOperator(self.chrm).c0(rgn[START], rgn[END]),
+                [0, 0.25, 0.5, 0.75, 1],
+            ), axis=1
+        )
+
+
+class PlotRegions:
+    def __init__(self, chrm: Chromosome) -> None:
+        self._chrm = chrm
+
+    def line_c0_indiv(self, rgn: RegionNT) -> None:
+        PlotUtil.clearfig()
+        PlotUtil.show_grid(which="both")
+        x = np.arange(getattr(rgn, START), getattr(rgn, END) + 1)
+        y = self._chrm.c0_spread()[getattr(rgn, START) - 1 : getattr(rgn, END)]
+        plt.plot(x, y)
+        PlotChrm(self._chrm).plot_avg()
+        plt.xlabel("Position (bp)")
+        plt.ylabel("C0")

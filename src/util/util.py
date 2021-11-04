@@ -7,7 +7,7 @@ from pathlib import Path
 import logging
 import inspect
 from types import FrameType
-from typing import Union, Any, Callable, Iterable
+from typing import Literal, Union, Any, Callable, Iterable
 
 import pandas as pd
 import numpy as np
@@ -235,7 +235,11 @@ class PathObtain:
 
 class FileSave:
     @classmethod
-    def figure(self, path_str: Union[str, Path]) -> Path:
+    def figure_in_figdir(self, path_str: str | Path) -> Path:
+        return self.figure(Path(f"{PathObtain.figure_dir()}/{path_str}"))
+
+    @classmethod
+    def figure(self, path_str: str | Path) -> Path:
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -245,18 +249,10 @@ class FileSave:
 
         logging.info(f"Figure saved at: {path}")
         return path
-
+    
     @classmethod
-    def figure_in_figdir(self, path_str: str | Path) -> Path:
-        path = Path(f"{PathObtain.figure_dir()}/{path_str}")
-        if not path.parent.is_dir():
-            path.parent.mkdir(parents=True, exist_ok=True)
-
-        plt.gcf().set_size_inches(12, 6)
-        plt.savefig(path, dpi=200)
-
-        logging.info(f"Figure saved at: {path}")
-        return path
+    def tsv_gdatadir(self, df: pd.DataFrame, rel_path: str | Path) -> Path:
+        return self.tsv(df, Path(f"{PathObtain.gen_data_dir()}/{rel_path}"))
 
     @classmethod
     def tsv(self, df: pd.DataFrame, path_str: Union[str, Path]) -> Path:
@@ -437,10 +433,12 @@ class PlotUtil:
                     )
 
     @classmethod
-    def show_grid(self, *args, **kwargs) -> None:
+    def show_grid(
+        self, which: Literal["major", "minor", "both"] = "major", **kwargs: Any
+    ) -> None:
         """Wrapper function to be called before plotting to show grid below"""
         plt.rc("axes", axisbelow=True)
-        plt.grid(*args, **kwargs)
+        plt.grid(which=which, **kwargs)
 
 
 class NumpyTool:

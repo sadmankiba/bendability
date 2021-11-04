@@ -9,7 +9,7 @@ import numpy as np
 from nptyping import NDArray
 
 from chromosome.nucleosomes import Nucleosomes
-from chromosome.chromosome import Chromosome, MultiChrm
+from chromosome.chromosome import Chromosome, MultiChrm, PlotChrm
 from util.util import FileSave, PlotUtil, PathObtain
 from util.custom_types import NonNegativeInt
 
@@ -297,7 +297,7 @@ class PlotLoops:
         plt.plot(x, mean_c0_start, color="tab:green", label="start")
         plt.plot(x, mean_c0_end, color="tab:orange", label="end")
         plt.plot(x, mean_c0_all, color="tab:blue", label="all")
-        self._chrm.plot_avg()
+        PlotChrm(self._chrm).plot_avg()
 
         plt.legend()
         PlotUtil.show_grid()
@@ -327,7 +327,7 @@ class PlotLoops:
                 )
 
                 path = FileSave.figure(
-                    f"{PathObtain.figure_dir()}/loops/{self._chrm._chr_id}/individual_anchor_{col}_{pos}.png"
+                    f"{PathObtain.figure_dir()}/loops/{self._chrm.id}/individual_anchor_{col}_{pos}.png"
                 )
                 paths.append(path)
 
@@ -352,7 +352,7 @@ class PlotLoops:
 
             paths.append(
                 FileSave.figure(
-                    f"{PathObtain.figure_dir()}/loops/{self._chrm._chr_id}/individual_mean_c0_{loop[COL_START]}_{loop[COL_END]}_{self._loops}.png"
+                    f"{PathObtain.figure_dir()}/loops/{self._chrm.id}/individual_mean_c0_{loop[COL_START]}_{loop[COL_END]}_{self._loops}.png"
                 )
             )
 
