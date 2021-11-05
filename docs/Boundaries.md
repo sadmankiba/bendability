@@ -92,6 +92,24 @@ Closest distance from boundary middle to a long linker (>=40 bp) middle was reco
 **Future Directions**
 - See nearest long linker distance from random positions or whole chromosome.
 
+## Plot c0, boundary, nuc and tss position on same plot
+
+**Procedure**
+Plot c0 with imp pos. [C7][]
+
+**Observations**
+- Are boundaries near rigid linkers?
+  - From quick glance, no such relation was found.
+
+- How are boundaries distanced from TSS?
+  - Strong boundaries are close to TSS. Often at promoters. For example, at 322.2k and 342.6k. 
+
+- Any pattern in C0 that differentiates strong boundaries to weak boundaries? 
+
+**Future directions**
+- TSS distnc from bndry prob distrib
+- C0 region around bndry 
+
 ## Code References
 [C1] `conformation.domains.PlotBoundariesHE.line_c0_around()`
 [C2] `conformation.domains.MCBoundariesHECollector.plot_scatter_mean_c0()`
@@ -99,6 +117,7 @@ Closest distance from boundary middle to a long linker (>=40 bp) middle was reco
 [C4] `chromosome.crossregions.CrossRegionsPlot.prob_distrib_linkers_len_prmtrs`
 [C5] `chromosome.crossregions.CrossRegionsPlot.prob_distrib_bndrs_nearest_ndr_distnc` 
 [C6] `chromosome.crossregions.CrossRegionsPlot.distrib_cuml_bndrs_nearest_ndr_distnc`
+[C7] `chromosome.crossregions.CrossRegionsPlot.line_c0_toppings`
 
 ## Figure References
 [F1] 
@@ -114,4 +133,6 @@ Closest distance from boundary middle to a long linker (>=40 bp) middle was reco
 [F6]
 ![Prob distrib bndry nearest NDR](../figures/boundaries/distnc_ndr_prob_distrib_res_500_V.png)
 [F7]
-![Cumulative percentage bndry nearest NDR](figures/boundaries/distnc_ndr_distrib_cuml_res_200_perc_0.5_40_V.png)
+![Cumulative percentage bndry nearest NDR](../figures/boundaries/distnc_ndr_distrib_cuml_res_200_perc_0.5_40_V.png)
+[F8] 
+![C0 with imp pos](../figures/crossregions/line_c0_toppings_339k_345k.png)

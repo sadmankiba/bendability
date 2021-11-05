@@ -485,6 +485,12 @@ class PlotChrm:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
 
+    def line_c0(self, start: PosOneIdx, end: PosOneIdx) -> None: 
+        x = np.arange(start, end + 1)
+        y = self._chrm.c0_spread()[start - 1 : end]
+        plt.plot(x, y)
+        self.plot_avg()
+
     def plot_avg(self) -> None:
         """
         Plot a horizontal red line denoting avg. C0 in whole chromosome

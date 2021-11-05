@@ -11,99 +11,77 @@ from util.constants import FigSubDir
 
 from .chromosome import Chromosome
 from .nucleosomes import Nucleosomes
-from .regions import PlotRegions, Regions, RegionsInternal
+from .regions import PlotRegions, Regions, RegionsInternal, START, END
 from util.reader import GeneReader
 from util.util import FileSave, PlotUtil, PathObtain
 from util.constants import GDataSubDir
 from util.custom_types import NonNegativeInt, PosOneIdx
 
-START = "start"
-END = "end"
+
 STRAND = "strand"
 DYADS = "dyads"
-MEAN_C0 = "mean_c0"
 
 
-class GeneNT(NamedTuple):
-    """
-    Representation of a gene region.
+class Genes(Regions):
+    "Gene is taken as transcription region including UTR."
 
-    'start' is lower bp, 'end' is higher bp irrespective of 'strand'.
-    """
+    def __init__(self, chrm: Chromosome, regions: RegionsInternal = None):
+        super().__init__(chrm, regions)
 
-    start: int
-    end: int
-    strand: int
-    dyads: np.ndarray
-    mean_c0: float
+    def _get_regions(
+        self,
+    ) -> RegionsInternal[
+        START:PosOneIdx, END:PosOneIdx, STRAND:int, DYADS : list[PosOneIdx]
+    ]:
+        genes = GeneReader().read_transcription_regions_of(self.chrm.number)
+        return self._add_dyads(genes)
 
-
-class Genes:
-    def __init__(self, chrm: Chromosome):
-        self._chrm = chrm
-        self._genes = GeneReader().read_transcription_regions_of(chrm.number)
-        self._add_dyads()
-        self._add_mean_c0()
-
-    def __iter__(self) -> Iterable[GeneNT]:
-        return self._genes.itertuples()
-
-    def __getitem__(self, key: NonNegativeInt | str) -> pd.Series:
-        if isinstance(key, NonNegativeInt):
-            return self._genes.iloc[key]
-
-        if key in self._genes.columns:
-            return self._genes[key]
-
-        raise KeyError
-
-    def _add_dyads(self) -> None:
-        nucs = Nucleosomes(self._chrm)
+    def _add_dyads(self, genes: RegionsInternal) -> RegionsInternal:
+        nucs = Nucleosomes(self.chrm)
         # TODO: Nucs need not know about strand
-        self._genes[DYADS] = self._genes.apply(
-            lambda tr: nucs.dyads_between(tr[START], tr[END], tr[STRAND]), axis=1
+        genes[DYADS] = genes.apply(
+            lambda gene: nucs.dyads_between(gene[START], gene[END], gene[STRAND]),
+            axis=1,
         )
-
-    def _add_mean_c0(self) -> None:
-        self._genes[MEAN_C0] = self._genes.apply(
-            lambda gene: self._chrm.mean_c0_segment(gene[START], gene[END]), axis=1
-        )
+        return genes
 
     def frwrd_genes(self) -> Genes:
-        genes = Genes(self._chrm)
-        genes._genes = self._genes.query(f"{STRAND} == 1").copy()
-        return genes
+        return self._new(self._regions.query(f"{STRAND} == 1"))
 
     def rvrs_genes(self) -> Genes:
-        genes = Genes(self._chrm)
-        genes._genes = self._genes.query(f"{STRAND} == -1").copy()
-        return genes
+        return self._new(self._regions.query(f"{STRAND} == -1"))
+
+
+class PlotGenes:
+    def __init__(self, chrm: Chromosome) -> None:
+        self._genes = Genes(chrm)
 
     def plot_mean_c0_vs_dist_from_dyad(self) -> Path:
-        frwrd_p1_dyads = self.frwrd_genes()[DYADS].apply(lambda dyads: dyads[0])
-        frwrd_mean_c0 = self._chrm.mean_c0_around_bps(frwrd_p1_dyads, 600, 400)
+        frwrd_p1_dyads = self._genes.frwrd_genes()[DYADS].apply(lambda dyads: dyads[0])
+        frwrd_mean_c0 = self._genes.chrm.mean_c0_around_bps(frwrd_p1_dyads, 600, 400)
 
-        rvrs_p1_dyads = self.rvrs_genes()[DYADS].apply(lambda dyads: dyads[0])
-        rvrs_mean_c0 = self._chrm.mean_c0_around_bps(rvrs_p1_dyads, 400, 600)[::-1]
+        rvrs_p1_dyads = self._genes.rvrs_genes()[DYADS].apply(lambda dyads: dyads[0])
+        rvrs_mean_c0 = self._genes.chrm.mean_c0_around_bps(rvrs_p1_dyads, 400, 600)[
+            ::-1
+        ]
 
         mean_c0 = (
             frwrd_mean_c0 * len(frwrd_p1_dyads) + rvrs_mean_c0 * len(rvrs_p1_dyads)
-        ) / len(self._genes)
+        ) / (len(frwrd_p1_dyads) + len(rvrs_p1_dyads))
 
-        plt.close()
-        plt.clf()
+        PlotUtil.clearfig()
         PlotUtil.show_grid()
         plt.plot(np.arange(-600, 400 + 1), mean_c0)
 
         plt.xlabel("Distance from dyad (bp)")
         plt.ylabel("Mean C0")
         plt.title(
-            f"{self._chrm.c0_type} Mean C0 around +1 dyad"
-            f" in chromosome {self._chrm.number}"
+            f"{self._genes.chrm.c0_type} Mean C0 around +1 dyad"
+            f" in chromosome {self._genes.chrm.number}"
         )
 
         return FileSave.figure(
-            f"{PathObtain.figure_dir()}/genes/dist_p1_dyad_{self._chrm}.png"
+            f"{PathObtain.figure_dir()}/genes/dist_p1_dyad_{self._genes.chrm}.png"
         )
 
 

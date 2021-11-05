@@ -6,6 +6,8 @@ class GDataSubDir:
 class FigSubDir:
     PROMOTERS = "promoters"
     TEST = "test"
+    LINKERS = "linkers"
+    CROSSREGIONS = "crossregions"
 
 
 YeastChrNumList = (

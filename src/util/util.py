@@ -12,6 +12,7 @@ from typing import Literal, Union, Any, Callable, Iterable
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import seaborn as sns
 from nptyping import NDArray
 
@@ -249,7 +250,7 @@ class FileSave:
 
         logging.info(f"Figure saved at: {path}")
         return path
-    
+
     @classmethod
     def tsv_gdatadir(self, df: pd.DataFrame, rel_path: str | Path) -> Path:
         return self.tsv(df, Path(f"{PathObtain.gen_data_dir()}/{rel_path}"))
@@ -337,22 +338,30 @@ class PlotUtil:
         )
 
     @classmethod
-    def vertline(self, x: float, color: str, text: str):
-        plt.axvline(x=x, color=color, linestyle="--")
-        y_lim = plt.gca().get_ylim()
-        plt.text(
-            x,
-            y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75,
-            text,
-            color=color,
-            ha="left",
-            va="center",
-        )
+    def vertline(
+        self, x: float, color: str = None, text: str = None, label: str = None
+    ):
+        plt.axvline(x=x, color=color, linestyle="--", label=label)
+        if text:
+            y_lim = plt.gca().get_ylim()
+            plt.text(
+                x,
+                y_lim[0] + (y_lim[1] - y_lim[0]) * 0.75,
+                text,
+                color=color,
+                ha="left",
+                va="center",
+            )
 
     @classmethod
     def clearfig(self):
         plt.close()
         plt.clf()
+
+    @classmethod
+    def legend_custom(self, colors: list[str], labels: list[str]):
+        handles = [mpatches.Patch(color=c, label=l) for c, l in zip(colors, labels)]
+        plt.legend(handles=handles)
 
     @classmethod
     def bar_stacked(

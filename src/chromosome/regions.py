@@ -183,7 +183,7 @@ class Regions:
         pass
 
     def _new(self, rgns: RegionsInternal) -> Regions:
-        return type(self)(self.chrm, rgns)
+        return type(self)(self.chrm, rgns.copy())
 
     def _add_len(self) -> None:
         self._regions[LEN] = self._regions[END] - self._regions[START] + 1
@@ -216,10 +216,8 @@ class PlotRegions:
 
     def line_c0_indiv(self, rgn: RegionNT) -> None:
         PlotUtil.clearfig()
-        PlotUtil.show_grid(which="both")
-        x = np.arange(getattr(rgn, START), getattr(rgn, END) + 1)
-        y = self._chrm.c0_spread()[getattr(rgn, START) - 1 : getattr(rgn, END)]
-        plt.plot(x, y)
-        PlotChrm(self._chrm).plot_avg()
+        PlotUtil.show_grid(which="minor")
+        pltchrm = PlotChrm(self._chrm)
+        pltchrm.line_c0(getattr(rgn, START), getattr(rgn, END))
         plt.xlabel("Position (bp)")
         plt.ylabel("C0")
