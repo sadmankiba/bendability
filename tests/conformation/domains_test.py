@@ -18,6 +18,10 @@ def bndrs_vl(chrm_vl_mean7):
 
 
 class TestBoundariesHE:
+    def test_hires_strong(self, chrm_vl_mean7):
+        bndrs = BoundariesHE(chrm_vl_mean7, res=200, score_perc=0.5)
+        assert len(bndrs) > 0
+
     def test_nearest_locs_distnc(self, bndrs_vl: BoundariesHE):
         bndrs_vl._regions = pd.DataFrame({MIDDLE: [18, 40, 4]})
         assert bndrs_vl.nearest_locs_distnc([30, 9, 26]).tolist() == [8, -10, 5]
@@ -27,7 +31,7 @@ class TestBoundariesHE:
 
     def test_mean_c0(self, bndrs_vl: BoundariesHE):
         mc0 = bndrs_vl.mean_c0
-        assert mc0 == pytest.approx(-0.179, rel=1e-3)
+        assert mc0 == pytest.approx(-0.180, rel=1e-3)
 
     def test_prmtr_non_prmtr_bndrs(self, bndrs_vl: BoundariesHE):
         prmtr_bndrs = bndrs_vl.prmtr_bndrs()

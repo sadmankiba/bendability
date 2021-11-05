@@ -17,6 +17,7 @@ from util.constants import ChrIdList
 
 
 SCORE = "score"
+SCORE_MEDIAN_V_RES_200 = -0.22432
 
 
 class BoundaryNT(NamedTuple):
@@ -38,7 +39,7 @@ class BoundariesHE(Regions):
         chrm: Chromosome,
         res: PositiveInt = 500,
         lim: PositiveInt = 250,
-        score_perc: ZeroToOne = 1,
+        score_perc: ZeroToOne = 1.0,
         regions: RegionsInternal = None,
     ):
         self.res = res
@@ -48,7 +49,7 @@ class BoundariesHE(Regions):
         super().__init__(chrm, regions)
 
     def __str__(self):
-        return f"res_{self.res}_lim_{self.lim}"
+        return f"res_{self.res}_lim_{self.lim}_perc_{self.score_perc}"
 
     def _get_regions(
         self,
@@ -62,7 +63,8 @@ class BoundariesHE(Regions):
             names=["chromosome", START, END, "id", SCORE, "_"],
         ).drop(columns=["chromosome", "id", "_"])
 
-        return df.loc[df[SCORE] <= df[SCORE].quantile(self.score_perc)]
+        df = df.loc[df[SCORE] <= np.quantile(df[SCORE].to_numpy(), self.score_perc)]
+        return df
 
     def _new(self, regions: RegionsInternal) -> BoundariesHE:
         return BoundariesHE(self.chrm, self.res, self.lim, regions)
@@ -85,7 +87,7 @@ class BoundariesHE(Regions):
     def prmtr_bndrs(self) -> BoundariesHE:
         prmtrs = Promoters(self.chrm)
         return Attr.calc_attr(
-            self, "_prmtr_bndrs", lambda _: self.mid_contained_in(prmtrs)
+            self, "_prmtr_bndrs", lambda: self.mid_contained_in(prmtrs)
         )
 
     def non_prmtr_bndrs(self) -> BoundariesHE:
@@ -93,7 +95,7 @@ class BoundariesHE(Regions):
 
 
 class DomainsHE(Regions):
-    def __init__(self, chrm: Chromosome, regions: RegionsInternal):
+    def __init__(self, chrm: Chromosome, regions: RegionsInternal = None):
         super.__init__(chrm, regions)
 
     def _get_regions(self) -> pd.DataFrame[START:int, END:int]:

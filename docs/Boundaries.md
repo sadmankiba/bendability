@@ -74,11 +74,17 @@ Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3] [F4]
 ## Number and Comparison of C0 in boundaries w/ or w/o NDRs 
 
 **Procedure**
-Promoters with and without any linkers >= 80 bp were considered. Number [C4] [F5]
+Promoters with and without any linkers >= x bp were considered. Number [C4] [F5]
 
 **Observations**
 *Number*
-- With NDRs 22 (40%), without NDRs 37 (60%)
+- Bndry: res 500bp, width 500bp, score perc: 1 linker: >= 80bp: 
+  - With NDRs 22 (40%), without NDRs 37 (60%)
+- Bndry: res 200bp, width 500bp, score perc: 0.5 linker: >= 40bp:
+  - 
+  
+*C0*
+?
 
 ## Closest NDR distance from boundary
 
@@ -88,6 +94,7 @@ Closest distance from boundary middle to a long linker (>=40 bp) middle was reco
 **Observations**
 - Significantly higher numbers of linkers >=30 or 40 bp are close to boundaries than linkers >= 60 or 80 bp. Suggests that 40bp linker is a good threshold to find NDRs near boundaries. 
 - When only strong boundaries are considered (stronger 2 quartiles), about 90% boundaries have a linker >=40 bp within +- 250 bp. 
+- Only 60% random locs are within +- 250bp of a long linker (>=40bp).
 
 **Future Directions**
 - See nearest long linker distance from random positions or whole chromosome.
@@ -110,6 +117,15 @@ Plot c0 with imp pos. [C7][]
 - TSS distnc from bndry prob distrib
 - C0 region around bndry 
 
+## Closest TSS Distance from Boundary 
+
+**Procedure**
+[C8][F9]
+
+**Observations**
+- About 60% strong boundaries are within +- 250 bp of a TSS. 
+- Only 20% random locs are within +- 250bp of a TSS.
+
 ## Code References
 [C1] `conformation.domains.PlotBoundariesHE.line_c0_around()`
 [C2] `conformation.domains.MCBoundariesHECollector.plot_scatter_mean_c0()`
@@ -118,6 +134,7 @@ Plot c0 with imp pos. [C7][]
 [C5] `chromosome.crossregions.CrossRegionsPlot.prob_distrib_bndrs_nearest_ndr_distnc` 
 [C6] `chromosome.crossregions.CrossRegionsPlot.distrib_cuml_bndrs_nearest_ndr_distnc`
 [C7] `chromosome.crossregions.CrossRegionsPlot.line_c0_toppings`
+[C8] `chromosome.crossregions.CrossRegionsPlot.distrib_cuml_bndrs_nearest_tss_distnc`
 
 ## Figure References
 [F1] 
@@ -136,3 +153,5 @@ Plot c0 with imp pos. [C7][]
 ![Cumulative percentage bndry nearest NDR](../figures/boundaries/distnc_ndr_distrib_cuml_res_200_perc_0.5_40_V.png)
 [F8] 
 ![C0 with imp pos](../figures/crossregions/line_c0_toppings_339k_345k.png)
+[F9]
+![Closest TSS from bndry](../figures/boundaries/distnc_tss_distrib_cuml_res_200_perc_0.5_V.png)

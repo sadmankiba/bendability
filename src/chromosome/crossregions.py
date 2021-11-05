@@ -171,11 +171,12 @@ class CrossRegionsPlot:
         )
 
     def num_prmtrs_bndrs_ndrs(self) -> Path:
-        ndrs = Linkers(self._chrm).ndrs()
+        min_lnkr_len = 40
+        ndrs = Linkers(self._chrm).ndrs(min_lnkr_len)
         prmtrs = Promoters(self._chrm)
         prmtrs_with_ndr = prmtrs.with_rgn(ndrs)
         prmtrs_wo_ndr = prmtrs - prmtrs_with_ndr
-        bndrs = BoundariesHE(self._chrm)
+        bndrs = BoundariesHE(self._chrm, res=200)
         bndrs_with_ndr = bndrs.with_rgn(ndrs)
         bndrs_wo_ndr = bndrs - bndrs_with_ndr
         PlotUtil.clearfig()
@@ -201,7 +202,7 @@ class CrossRegionsPlot:
             f"Promoters and Boundaries with and without NDR in {self._chrm.number}"
         )
         return FileSave.figure_in_figdir(
-            f"genes/num_prmtrs_bndrs_ndr_{self._chrm.number}.png"
+            f"genes/num_prmtrs_bndrs_{bndrs}_ndr_{min_lnkr_len}_{self._chrm.number}.png"
         )
 
     def prob_distrib_prmtr_ndrs(self) -> Path:
