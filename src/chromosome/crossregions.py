@@ -21,7 +21,9 @@ class CrossRegionsPlot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
 
-    def line_c0_toppings(self, start: PosOneIdx, end: PosOneIdx, show: bool = False) -> Path:
+    def line_c0_toppings(
+        self, start: PosOneIdx, end: PosOneIdx, show: bool = False
+    ) -> Path:
         def _within(pos: pd.Series) -> pd.Series:
             return pos.loc[(start <= pos) & (pos <= end)]
 
@@ -36,7 +38,14 @@ class CrossRegionsPlot:
         dyads = Nucleosomes(self._chrm)[MIDDLE]
         genes = Genes(self._chrm)
 
-        colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown']
+        colors = [
+            "tab:blue",
+            "tab:orange",
+            "tab:green",
+            "tab:red",
+            "tab:purple",
+            "tab:brown",
+        ]
         labels = ["dyad", "-73bp", "+73bp", "bndrs", "frw tss", "rvs tss"]
         _topping(dyads, colors[0])
         _topping(dyads - NUC_HALF, colors[1])
@@ -53,10 +62,81 @@ class CrossRegionsPlot:
             f"{FigSubDir.CROSSREGIONS}/line_c0_toppings.png"
         )
 
+    def distrib_cuml_bndrs_nearest_tss_distnc(self) -> Path:
+        bndrs = BoundariesHE(self._chrm, res=200, score_perc=0.5)
+        self._distrib_cuml_nearest_tss_distnc(bndrs)
+        plt.title(
+            f"Cumulative perc. of distance from boundary res={bndrs.res} bp "
+            f"middle to nearest TSS"
+        )
+        return FileSave.figure_in_figdir(
+            f"boundaries/distnc_tss_distrib_cuml_res_{bndrs.res}_"
+            f"perc_{bndrs.score_perc}"
+            f"_{self._chrm.number}.png"
+        )
+
+    def distrib_cuml_random_locs_nearest_tss_distnc(self) -> Path:
+        rndlocs = [
+            random.randint(ONE_INDEX_START, self._chrm.total_bp) for _ in range(1000)
+        ]
+        locs = BoundariesHE(
+            self._chrm, regions=pd.DataFrame({START: rndlocs, END: rndlocs})
+        )
+        self._distrib_cuml_nearest_tss_distnc(locs)
+        plt.title(f"Cumulative perc. of distance from random pos to nearest TSS")
+        return FileSave.figure_in_figdir(
+            f"boundaries/distnc_tss_random_pos_distrib_cuml_{self._chrm.number}.png"
+        )
+
+    def _distrib_cuml_nearest_tss_distnc(self, bndrs: BoundariesHE):
+        genes = Genes(self._chrm)
+        distns = bndrs.nearest_locs_distnc(
+            pd.concat([genes.frwrd_genes()[START], genes.rvrs_genes()[END]])
+        )
+
+        PlotUtil.distrib_cuml(distns)
+        plt.xlim(-1000, 1000)
+        PlotUtil.show_grid()
+        plt.xlabel("Distance")
+        plt.ylabel("Percentage")
+
     def distrib_cuml_bndrs_nearest_ndr_distnc(
         self, min_lnker_len: list[int] = [80, 60, 40, 30]
     ) -> Path:
-        bndrs = BoundariesHE(self._chrm, res=200, score_perc=0.75)
+        bndrs = BoundariesHE(self._chrm, res=200, score_perc=0.5)
+        self._distrib_cuml_nearest_ndr_distnc(bndrs, min_lnker_len)
+        plt.title(
+            f"Cumulative perc. of distance from boundary res={bndrs.res} bp "
+            f"middle to nearest NDR >= x bp"
+        )
+        return FileSave.figure_in_figdir(
+            f"boundaries/distnc_ndr_distrib_cuml_res_{bndrs.res}_"
+            f"perc_{bndrs.score_perc}_{'_'.join(str(i) for i in min_lnker_len)}"
+            f"_{self._chrm.number}.png"
+        )
+
+    def distrib_cuml_random_locs_nearest_ndr_distnc(
+        self, min_lnker_len: list[int] = [80, 60, 40, 30]
+    ) -> Path:
+        rndlocs = [
+            random.randint(ONE_INDEX_START, self._chrm.total_bp) for _ in range(1000)
+        ]
+        locs = BoundariesHE(
+            self._chrm, regions=pd.DataFrame({START: rndlocs, END: rndlocs})
+        )
+        self._distrib_cuml_nearest_ndr_distnc(locs, min_lnker_len)
+        plt.title(
+            f"Cumulative perc. of distance from random pos" f" to nearest NDR >= x bp"
+        )
+        return FileSave.figure_in_figdir(
+            f"boundaries/distnc_ndr_random_pos_distrib_cuml"
+            f"_{'_'.join(str(i) for i in min_lnker_len)}"
+            f"_{self._chrm.number}.png"
+        )
+
+    def _distrib_cuml_nearest_ndr_distnc(
+        self, bndrs: BoundariesHE, min_lnker_len: list[int]
+    ):
         lnkrs = Linkers(self._chrm)
         for llen in min_lnker_len:
             distns = bndrs.nearest_locs_distnc(lnkrs.ndrs(llen)[MIDDLE])
@@ -67,40 +147,6 @@ class CrossRegionsPlot:
         PlotUtil.show_grid()
         plt.xlabel("Distance")
         plt.ylabel("Percentage")
-        plt.title(
-            f"Cumulative perc. of distance from boundary res={bndrs.res} bp "
-            f"middle to nearest NDR >= x bp"
-        )
-        return FileSave.figure_in_figdir(
-            f"boundaries/distnc_ndr_distrib_cuml_res_{bndrs.res}_"
-            f"perc_{bndrs.score_perc}_{'_'.join(str(i) for i in min_lnker_len)}"
-            f"_{self._chrm.number}.png"
-        )
-    
-    def distrib_cuml_random_locs_nearest_ndr_distnc(
-        self, min_lnker_len: list[int] = [80, 60, 40, 30]
-    ) -> Path:
-        rndlocs = [random.randint(ONE_INDEX_START, self._chrm.total_bp) for _ in range(1000)]
-        locs = BoundariesHE(self._chrm, regions=pd.DataFrame({START: rndlocs, END: rndlocs}))
-        lnkrs = Linkers(self._chrm)
-        for llen in min_lnker_len:
-            distns = locs.nearest_locs_distnc(lnkrs.ndrs(llen)[MIDDLE])
-            PlotUtil.distrib_cuml(distns, label=str(llen))
-
-        plt.legend()
-        plt.xlim(-1000, 1000)
-        PlotUtil.show_grid()
-        plt.xlabel("Distance")
-        plt.ylabel("Percentage")
-        plt.title(
-            f"Cumulative perc. of distance from random pos"
-            f" to nearest NDR >= x bp"
-        )
-        return FileSave.figure_in_figdir(
-            f"boundaries/distnc_ndr_random_pos_distrib_cuml"
-            f"_{'_'.join(str(i) for i in min_lnker_len)}"
-            f"_{self._chrm.number}.png"
-        )
 
     def prob_distrib_bndrs_nearest_ndr_distnc(
         self, min_lnker_len: list[int] = [80, 60, 40, 30]
