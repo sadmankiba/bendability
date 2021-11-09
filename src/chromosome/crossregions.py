@@ -10,7 +10,7 @@ from chromosome.genes import Genes
 from util.constants import FigSubDir, ONE_INDEX_START
 from .chromosome import Chromosome
 from chromosome.regions import END, MIDDLE, START
-from .genes import Promoters
+from .genes import Promoters, STRAND
 from .nucleosomes import Linkers, NUC_HALF, Nucleosomes
 from conformation.domains import BoundariesHE, SCORE
 from .regions import LEN, MEAN_C0
@@ -22,8 +22,21 @@ class CrossRegionsPlot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
 
+    def line_c0_prmtrs_indiv_toppings(self) -> None:
+        prmtrs = Promoters(self._chrm)
+        for prmtr in prmtrs:
+            self.line_c0_toppings(getattr(prmtr, START), getattr(prmtr, END), save=False)
+            fr = "frw" if getattr(prmtr, STRAND) == 1 else "rvs"
+            plt.title(
+                f"C0 in {fr} promoter {getattr(prmtr, START)}-{getattr(prmtr, END)}"
+            )
+            FileSave.figure_in_figdir(
+                f"{FigSubDir.PROMOTERS}/{self._chrm.id}/"
+                f"{fr}_{getattr(prmtr, START)}_{getattr(prmtr, END)}.png"
+            )
+
     def line_c0_toppings(
-        self, start: PosOneIdx, end: PosOneIdx, show: bool = False
+        self, start: PosOneIdx, end: PosOneIdx, show: bool = False, save: bool = True
     ) -> Path:
         def _within(pos: pd.Series) -> pd.Series:
             return pos.loc[(start <= pos) & (pos <= end)]
@@ -75,19 +88,20 @@ class CrossRegionsPlot:
             "tab:purple",
         ]
         labels = ["dyad", "bndrs", "tss"]
-        _nuc_ellipse(dyads, colors[0])
-        _bndrs(bndrs[MIDDLE], bndrs[SCORE], colors[1])
-        _tss(genes.frwrd_genes()[START], True, colors[2])
-        _tss(genes.rvrs_genes()[END], False, colors[2])
+        _nuc_ellipse(_within(dyads), colors[0])
+        _bndrs(_within(bndrs[MIDDLE]), bndrs[SCORE], colors[1])
+        _tss(_within(genes.frwrd_genes()[START]), True, colors[2])
+        _tss(_within(genes.rvrs_genes()[END]), False, colors[2])
 
         PlotUtil.legend_custom(colors, labels)
 
         if show:
             plt.show()
 
-        return FileSave.figure_in_figdir(
-            f"{FigSubDir.CROSSREGIONS}/line_c0_toppings.png"
-        )
+        if save:
+            return FileSave.figure_in_figdir(
+                f"{FigSubDir.CROSSREGIONS}/line_c0_toppings.png"
+            )
 
     def distrib_cuml_bndrs_nearest_tss_distnc(self) -> Path:
         bndrs = BoundariesHE(self._chrm, res=200, score_perc=0.5)

@@ -8,6 +8,7 @@ class FigSubDir:
     TEST = "test"
     LINKERS = "linkers"
     CROSSREGIONS = "crossregions"
+    BOUNDARIES = "boundaries"
 
 
 YeastChrNumList = (

@@ -13,7 +13,7 @@ from chromosome.regions import Regions, RegionsInternal, START, END, MEAN_C0, MI
 from models.prediction import Prediction
 from util.util import FileSave, PlotUtil, PathObtain, Attr
 from util.custom_types import ChrId, PositiveInt, PosOneIdx, ZeroToOne
-from util.constants import ChrIdList
+from util.constants import ChrIdList, FigSubDir
 
 
 SCORE = "score"
@@ -67,7 +67,7 @@ class BoundariesHE(Regions):
         return df
 
     def _new(self, regions: RegionsInternal) -> BoundariesHE:
-        return BoundariesHE(self.chrm, self.res, self.lim, regions)
+        return BoundariesHE(self.chrm, self.res, self.lim, self.score_perc, regions)
 
     def nearest_locs_distnc(self, locs: Iterable[PosOneIdx]) -> NDArray[(Any,), float]:
         locs = sorted(locs)
@@ -111,8 +111,8 @@ class DomainsHE(Regions):
 class PlotBoundariesHE:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
-        self._bndrs = BoundariesHE(chrm)
-        self._figsubdir = "domains"
+        self._bndrs = BoundariesHE(chrm, res=200, score_perc=0.5)
+        self._figsubdir = FigSubDir.BOUNDARIES
 
     def prob_distrib_c0(self):
         PlotUtil.clearfig()
@@ -129,10 +129,13 @@ class PlotBoundariesHE:
         PlotUtil.prob_distrib(prmtrs_with_bndrs[MEAN_C0], "promoters with bndry")
         PlotUtil.prob_distrib(prmtrs_wo_bndrs[MEAN_C0], "promoters w/o bndry")
         plt.legend()
+        print("Prm bndrs", len(self._bndrs.prmtr_bndrs()))
+        print("Nonprm bndrs", len(self._bndrs.non_prmtr_bndrs()))
+        print("Prmtrs with bndry", len(prmtrs_with_bndrs))
+        print("Prmtrs w/o bndry", len(prmtrs_wo_bndrs))
         return FileSave.figure_in_figdir(
-            f"{self._figsubdir}/boundaries_prob_distrib_c0_{self._bndrs}_{prmtrs}_{self._chrm}.png"
+            f"{self._figsubdir}/bndrs_prmtrs_prob_distrib_c0_{self._bndrs}_{prmtrs}_{self._chrm.id}.png"
         )
-        
 
     def line_c0_around(self, pltlim=250):
         bndrs_mid = self._bndrs[MIDDLE]
