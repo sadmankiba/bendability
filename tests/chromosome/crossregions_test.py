@@ -11,7 +11,7 @@ def crplt_vl(chrm_vl_mean7: Chromosome):
 
 class TestCrossRegionsPlot:
     def test_line_c0_toppings(self, crplt_vl: CrossRegionsPlot):
-        assert crplt_vl.line_c0_toppings(40000, 41000).is_file()
+        assert crplt_vl.line_c0_toppings(342000, 343000).is_file()
 
     def test_prob_distrib_bndrs_nearest_ndr_distnc(self, crplt_vl: CrossRegionsPlot):
         assert crplt_vl.prob_distrib_bndrs_nearest_ndr_distnc().is_file()

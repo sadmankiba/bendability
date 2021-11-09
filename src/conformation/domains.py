@@ -132,6 +132,7 @@ class PlotBoundariesHE:
         return FileSave.figure_in_figdir(
             f"{self._figsubdir}/boundaries_prob_distrib_c0_{self._bndrs}_{prmtrs}_{self._chrm}.png"
         )
+        
 
     def line_c0_around(self, pltlim=250):
         bndrs_mid = self._bndrs[MIDDLE]

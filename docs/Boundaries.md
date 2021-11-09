@@ -69,7 +69,8 @@ Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3] [F4]
 - PMs in general, have a preference for higher bendability. This preference is more visible in PMoB but not in PMwBs. In majority chromosomes (about 3 out of 5) including actual chr V, PMwBs showed a preference for rigidity. 
 - Boundaries, both in and not in promoters, show similar bell-curve distribution. In-promoter ones are more concentrated near avg. 
 
- 
+**Future Directions**
+Number
 
 ## Number and Comparison of C0 in boundaries w/ or w/o NDRs 
 
@@ -125,6 +126,12 @@ Plot c0 with imp pos. [C7][]
 **Observations**
 - About 60% strong boundaries are within +- 250 bp of a TSS. 
 - Only 20% random locs are within +- 250bp of a TSS.
+
+## Inspect linker positions, length and their C0 in promoters
+
+**Procedure**
+
+**Observations**
 
 ## Code References
 [C1] `conformation.domains.PlotBoundariesHE.line_c0_around()`

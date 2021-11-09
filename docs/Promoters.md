@@ -57,6 +57,13 @@ Promoters data object saved. [C4]
       - most in boundaries, but not strong.
 - Are min in quartiles very low?
 
+## Inspect linker positions, length and their C0 in promoters
+
+**Procedure**
+
+**Observations**
+
+
 ## Code References
 [C1] `chromosome.crossregions.CrossRegionsPlot.prob_distrib_prmtr_ndrs`  
 [C2] `chromosome.crossregions.CrossRegionsPlot.num_prmtrs_bndrs_ndrs`  

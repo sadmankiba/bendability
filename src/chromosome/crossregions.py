@@ -2,6 +2,7 @@ import random
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+from matplotlib.patches import Ellipse
 import pandas as pd
 
 from chromosome.chromosome import PlotChrm
@@ -11,8 +12,8 @@ from .chromosome import Chromosome
 from chromosome.regions import END, MIDDLE, START
 from .genes import Promoters
 from .nucleosomes import Linkers, NUC_HALF, Nucleosomes
-from conformation.domains import BoundariesHE
-from .regions import LEN, MEAN_C0, Regions
+from conformation.domains import BoundariesHE, SCORE
+from .regions import LEN, MEAN_C0
 from util.util import PlotUtil, FileSave
 from util.custom_types import PosOneIdx
 
@@ -30,29 +31,55 @@ class CrossRegionsPlot:
         def _topping(pos: pd.Series, color: str) -> None:
             for p in _within(pos):
                 PlotUtil.vertline(p, color=color)
+        
+        gnd = self._chrm.mean_c0
+        def _nuc_ellipse(dyads: pd.Series, clr: str) -> None:
+            for d in dyads:
+                ellipse = Ellipse(
+                    xy=(d, gnd),
+                    width=146,
+                    height=0.2,
+                    edgecolor=clr,
+                    fc="None",
+                    lw=1,
+                )
+                plt.gca().add_patch(ellipse)
+        
+        def _bndrs(mids: pd.Series, scr: pd.Series, clr: str) -> None: 
+            strngth = 1 - scr
+            wb = 150
+            hb = 0.1
+            for m, s in zip(mids, strngth): 
+                points = [[m - wb * s, gnd + hb * s], [m, gnd], [m + wb * s, gnd + hb * s]]
+                line = plt.Polygon(points, closed=None, fill=None, edgecolor=clr, lw=2)
+                plt.gca().add_patch(line)
 
+        def _tss(tss: pd.Series, frw: bool, clr: str) -> None:
+            diru = 1 if frw else -1
+            for t in tss:
+                points = [[t, gnd], [t, gnd + 0.15], [t + 50 * diru, gnd + 0.15]]
+                line = plt.Polygon(points, closed=None, fill=None, edgecolor=clr, lw=3)
+                plt.gca().add_patch(line)
+        
         PlotUtil.clearfig()
-        PlotUtil.show_grid(which="minor")
+        PlotUtil.show_grid(which="both")
         pltchrm = PlotChrm(self._chrm)
         pltchrm.line_c0(start, end)
         dyads = Nucleosomes(self._chrm)[MIDDLE]
         genes = Genes(self._chrm)
+        bndrs = BoundariesHE(self._chrm, res=200, score_perc=0.5)
 
         colors = [
-            "tab:blue",
             "tab:orange",
-            "tab:green",
-            "tab:red",
-            "tab:purple",
             "tab:brown",
+            "tab:purple",
         ]
-        labels = ["dyad", "-73bp", "+73bp", "bndrs", "frw tss", "rvs tss"]
-        _topping(dyads, colors[0])
-        _topping(dyads - NUC_HALF, colors[1])
-        _topping(dyads + NUC_HALF, colors[2])
-        _topping(BoundariesHE(self._chrm, res=200, score_perc=0.5)[MIDDLE], colors[3])
-        _topping(genes.frwrd_genes()[START], colors[4])
-        _topping(genes.rvrs_genes()[END], colors[5])
+        labels = ["dyad", "bndrs", "tss"]
+        _nuc_ellipse(dyads, colors[0])
+        _bndrs(bndrs[MIDDLE], bndrs[SCORE], colors[1])
+        _tss(genes.frwrd_genes()[START], True, colors[2])
+        _tss(genes.rvrs_genes()[END], False, colors[2])
+
         PlotUtil.legend_custom(colors, labels)
 
         if show:
