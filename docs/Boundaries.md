@@ -60,7 +60,7 @@ Take mean c0 at each bp for a long segment (6000 bp) around boundary. [C1] [F3]
 - Sinusoidal pattern shown by Samin, high on left of mid and low on right of mid, is seen at more boundaries (5 / 7 I saw). But not in some, e.g. VI
 - Nice peak of C0 when smoothed shown by Samin was observed in raw eyes only at a few BN. ( 2 / 7 I saw)
 
-## Probability distribution of C0 in various comb. of promoters and boundaries
+## Number and Probability distribution of C0 in various comb. of promoters and boundaries
 
 **Procedure**
 Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3] [F4]
@@ -68,9 +68,7 @@ Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3] [F4]
 **Observations**
 - PMs in general, have a preference for higher bendability. This preference is more visible in PMoB but not in PMwBs. In majority chromosomes (about 3 out of 5) including actual chr V, PMwBs showed a preference for rigidity. 
 - Boundaries, both in and not in promoters, show similar bell-curve distribution. In-promoter ones are more concentrated near avg. 
-
-**Future Directions**
-Number
+- Number: With Bndry(res=200bp, score_perc=0.5) Prm bndrs - 42, Nonprm bndrs - 25, Prm w/ bndrs - 54, Prm w/o bndrs - 196
 
 ## Number and Comparison of C0 in boundaries w/ or w/o NDRs 
 
