@@ -14,7 +14,7 @@ from models.prediction import Prediction
 from util.reader import DNASequenceReader
 from util.constants import CHRVL, SEQ_LEN, ChrIdList
 from util.custom_types import ChrId, PosOneIdx, YeastChrNum, PositiveInt
-from util.util import Attr, FileSave, PathObtain, PlotUtil
+from util.util import Attr, DataCache, FileSave, PathObtain, PlotUtil
 
 
 SpreadType = Literal["mean7", "mean_cover", "weighted", "single"]
@@ -222,6 +222,11 @@ class ChrmCalc:
         return (num_seq - 1) * 7 + SEQ_LEN
 
 
+SEQUENCE_NUM = "Sequence #"
+SEQUENCE = "Sequence"
+C0 = "c0"
+
+
 class Chromosome:
     "Analysis of Chromosome in yeast"
 
@@ -250,6 +255,7 @@ class Chromosome:
 
         self.spread_str = spread_str
         self._mean_c0 = None
+        self._seq = None
 
     def __str__(self):
         return f"s_{self.spread_str}_m_{self.predict_model_no()}_{self.id}"
@@ -270,28 +276,22 @@ class Chromosome:
     def number(self):
         return "V" if self.id == "VL" else self.id
 
-    def _get_chrm_df(self) -> pd.DataFrame:
-        """
-        Read chromosome sequence. If prediction object is provided, predict C0
-        by a model
-        """
-        df = DNASequenceReader().read_yeast_genome(self.number)
+    @property
+    def seq(self):
+        def _seq():
+            return self._df[SEQUENCE][0] + "".join(self._df[SEQUENCE][1:].str[-7:])
 
-        if self._prediction is None:
-            return df
+        return Attr.calc_attr(self, "_seq", _seq)
 
-        saved_predict_data = Path(
-            f"{PathObtain.data_dir()}/generated_data/predictions/chr{self.number}_pred_m_{self._prediction._model_no}.tsv"
+    def _get_chrm_df(self) -> pd.DataFrame[SEQUENCE_NUM:int, SEQUENCE:str, C0:float]:
+        def _chrm_df():
+            df = DNASequenceReader().read_yeast_genome(self.number)
+            return self._prediction.predict(df).rename(columns={"c0_predict": "C0"})
+
+        return DataCache.dataframe(
+            f"predictions/chr{self.number}_pred_m_{self._prediction._model_no}.tsv",
+            _chrm_df,
         )
-        if saved_predict_data.is_file():
-            return pd.read_csv(saved_predict_data, sep="\t")
-
-        predict_df = self._prediction.predict(df).rename(columns={"c0_predict": "C0"})
-
-        # Save data
-        FileSave.tsv(predict_df, saved_predict_data)
-
-        return predict_df
 
     def read_chr_lib_segment(self, start: int, end: int) -> pd.DataFrame:
         """
@@ -485,7 +485,7 @@ class PlotChrm:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
 
-    def line_c0(self, start: PosOneIdx, end: PosOneIdx) -> None: 
+    def line_c0(self, start: PosOneIdx, end: PosOneIdx) -> None:
         x = np.arange(start, end + 1)
         y = self._chrm.c0_spread()[start - 1 : end]
         plt.plot(x, y)
@@ -522,7 +522,9 @@ class ChrmOperator:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
 
-    def c0(self, start: float | PosOneIdx, end: float | PosOneIdx) -> NDArray[(Any,), float]:
+    def c0(
+        self, start: float | PosOneIdx, end: float | PosOneIdx
+    ) -> NDArray[(Any,), float]:
         return self._chrm.c0_spread()[int(start - 1) : int(end)]
 
     def mean_c0_regions_indiv(

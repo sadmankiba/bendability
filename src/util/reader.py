@@ -74,8 +74,9 @@ class DNASequenceReader:
 
         return {CNL: cnl_df, RL: rl_df, TL: tl_df, CHRVL: chrvl_df, LIBL: libl_df}
 
-    # TODO: read_genome_sequence_of
-    def read_yeast_genome(self, chr_num: YeastChrNum) -> pd.DataFrame:
+    # TODO: Rename read_genome_sequence_of
+    @classmethod
+    def read_yeast_genome(self, chr_num: YeastChrNum) -> pd.DataFrame["Sequence #": int, "Sequence": str]:
         """
         Read reference sequence of a yeast chromosome. Transforms it into 50-bp
         sequences at 7-bp resolution.
@@ -83,19 +84,10 @@ class DNASequenceReader:
         Returns:
             A pandas DataFrame with columns ['Sequence #', 'Sequence']
         """
-        chr = roman_to_num(chr_num)
-        assert chr >= 1 and chr <= 16
+        chrmnum = roman_to_num(chr_num)
+        assert chrmnum >= 1 and chrmnum <= 16
 
-        # Read file
-        genome_file = open(
-            f"{PathObtain.data_dir()}/input_data/yeast_genome/S288C_reference_sequence_R64-3-1_20210421.fsa"
-        )
-        fasta_sequences = SeqIO.parse(genome_file, "fasta")
-
-        # Get sequence of a chromosome
-        ref_str = f"ref|NC_00{str(1132 + chr)}|"
-        seq = list(filter(lambda fasta: fasta.id == ref_str, fasta_sequences))[0].seq
-        genome_file.close()
+        seq = self._read_yeast_genome_file(chrmnum)
 
         # Split into 50-bp sequences
         num_50bp_seqs = math.ceil((len(seq) - SEQ_LEN + 1) / 7)
@@ -109,6 +101,19 @@ class DNASequenceReader:
         return pd.DataFrame(
             {"Sequence #": np.arange(num_50bp_seqs) + 1, "Sequence": seqs_50bp}
         )
+
+    @classmethod
+    def _read_yeast_genome_file(self, chrmnum:int) -> str:
+        genome_file = open(
+            f"{PathObtain.data_dir()}/input_data/yeast_genome/S288C_reference_sequence_R64-3-1_20210421.fsa"
+        )
+        fasta_sequences = SeqIO.parse(genome_file, "fasta")
+
+        # Get sequence of a chromosome
+        ref_str = f"ref|NC_00{str(1132 + chrmnum)}|"
+        seq = list(filter(lambda fasta: fasta.id == ref_str, fasta_sequences))[0].seq
+        genome_file.close()
+        return seq
 
 
 CHROMOSOME_ID = "Chromosome ID"

@@ -4,6 +4,7 @@ import time
 import numpy as np
 
 from chromosome.chromosome import Chromosome, ChrmCalc, Spread
+from util.reader import DNASequenceReader
 from util.constants import CHRVL_LEN, CHRV_TOTAL_BP
 
 
@@ -59,6 +60,14 @@ class TestChromosome:
     def test_get_chr_prediction(self, chrm_i: Chromosome):
         predict_df = chrm_i._get_chrm_df()
         assert predict_df.columns.tolist() == ["Sequence #", "Sequence", "C0"]
+
+    def test_seq(self, chrm_vl: Chromosome):
+        seq = chrm_vl.seq
+        assert len(seq) == CHRV_TOTAL_BP
+        assert (
+            seq[60000:60100]
+            == DNASequenceReader._read_yeast_genome_file(5)[60000:60100]
+        )
 
     def test_mean_c0_around_bps(self, chrm_i: Chromosome):
         mean = chrm_i.mean_c0_around_bps([5000, 10000, 12000], 60, 40)

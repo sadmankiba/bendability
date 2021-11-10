@@ -77,13 +77,13 @@ class TestReader(unittest.TestCase):
 
         sample_idx = random.sample(range(len(chrv_df)), 100)
         self.assertListEqual(
-            chrv_df.iloc[sample_idx]["Sequence #"].tolist(),
-            chrv_genome_read_df.iloc[sample_idx]["Sequence #"].tolist(),
+            chrv_df.iloc[sample_idx]["Sequence #"].tolist()[1500:1600],
+            chrv_genome_read_df.iloc[sample_idx]["Sequence #"].tolist()[1500:1600],
         )
 
         self.assertListEqual(
-            chrv_df.iloc[sample_idx]["Sequence"].tolist(),
-            chrv_genome_read_df.iloc[sample_idx]["Sequence"].tolist(),
+            chrv_df.iloc[sample_idx]["Sequence"].tolist()[7500:7600],
+            chrv_genome_read_df.iloc[sample_idx]["Sequence"].tolist()[7500:7600],
         )
 
 

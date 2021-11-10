@@ -41,7 +41,7 @@ class CrossRegionsPlot:
         def _within(pos: pd.Series) -> pd.Series:
             return pos.loc[(start <= pos) & (pos <= end)]
 
-        def _topping(pos: pd.Series, color: str) -> None:
+        def _vertline(pos: pd.Series, color: str) -> None:
             for p in _within(pos):
                 PlotUtil.vertline(p, color=color)
         
@@ -74,6 +74,10 @@ class CrossRegionsPlot:
                 line = plt.Polygon(points, closed=None, fill=None, edgecolor=clr, lw=3)
                 plt.gca().add_patch(line)
         
+        def _text() -> None:
+            for p in range(start, end + 1):
+                plt.text(p, gnd + 0.05, "A")
+            
         PlotUtil.clearfig()
         PlotUtil.show_grid(which="both")
         pltchrm = PlotChrm(self._chrm)

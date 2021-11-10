@@ -53,8 +53,9 @@ class Prediction:
         model.load_weights(weight_file)
         return model
 
-    # TODO: Use CedricFR/dataenforce for DF type hints
-    def predict(self, df: pd.DataFrame) -> pd.DataFrame:
+    def predict(
+        self, df: pd.DataFrame
+    ) -> pd.DataFrame["Sequence #":int, "Sequence":str, "c0_predict":float]:
         prep = Preprocess(df)
         data = prep.one_hot_encode()
 
