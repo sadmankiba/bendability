@@ -1,6 +1,6 @@
 numpy
 keras
-tensorflow
+tensorflow==2.6.0
 imbalanced-learn
 Boruta==0.3
 regex
