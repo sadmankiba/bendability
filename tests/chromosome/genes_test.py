@@ -11,11 +11,6 @@ class TestGenes:
         assert path.is_file()
 
 
-@pytest.fixture
-def prmtrs_vl(chrm_vl_mean7):
-    return Promoters(chrm_vl_mean7, ustr_tss=500, dstr_tss=-1)
-
-
 class TestPromoters:
     def test_mean_c0(self, prmtrs_vl: Promoters):
         assert -0.3 < prmtrs_vl.mean_c0 < -0.1

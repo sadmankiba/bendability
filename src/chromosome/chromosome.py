@@ -277,8 +277,8 @@ class Chromosome:
         return "V" if self.id == "VL" else self.id
 
     @property
-    def seq(self):
-        def _seq():
+    def seq(self) -> str:
+        def _seq() -> str:
             return self._df[SEQUENCE][0] + "".join(self._df[SEQUENCE][1:].str[-7:])
 
         return Attr.calc_attr(self, "_seq", _seq)

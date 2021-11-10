@@ -57,7 +57,13 @@ Promoters data object saved. [C4]
       - most in boundaries, but not strong.
 - Are min in quartiles very low?
 
-## Inspect linker positions, length and their C0 in promoters
+## Inspect long linker positions, length, seq and C0 in promoters
+
+**Research Question**
+- Do long linkers show rigidity?
+- Do long linkers have any pattern in seq?
+- How long are long linkers?
+- Where are long linkers positioned?
 
 **Procedure**
 

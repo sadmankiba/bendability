@@ -26,6 +26,11 @@ class BoundaryNT(NamedTuple):
     middle: PosOneIdx
     score: float
 
+bnd_prm_hirs = {
+    "res": 200, 
+    "lim": 250,
+    "score_perc": 0.5
+}
 
 class BoundariesHE(Regions):
     """

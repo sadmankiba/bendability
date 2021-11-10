@@ -1,5 +1,7 @@
 import random
+import math
 from pathlib import Path
+from typing import Iterator
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
@@ -12,7 +14,7 @@ from .chromosome import Chromosome
 from chromosome.regions import END, MIDDLE, START
 from .genes import Promoters, STRAND
 from .nucleosomes import Linkers, NUC_HALF, Nucleosomes
-from conformation.domains import BoundariesHE, SCORE
+from conformation.domains import BoundariesHE, SCORE, bnd_prm_hirs
 from .regions import LEN, MEAN_C0
 from util.util import PlotUtil, FileSave
 from util.custom_types import PosOneIdx
@@ -22,18 +24,30 @@ class CrossRegionsPlot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
 
+    def line_c0_bndrs_indiv_toppings(self) -> None:
+        bndrs = BoundariesHE(self._chrm, **bnd_prm_hirs)
+        for bndry in bndrs:
+            self._line_c0_bndry_indiv_toppings(bndry, str(bndrs))
+
+    def _line_c0_bndry_indiv_toppings(self, bndry: pd.Series, bndprp: str) -> Path:
+        self.line_c0_toppings(getattr(bndry, START), getattr(bndry, END), save=False)
+        plt.title()
+        return FileSave.figure_in_figdir(f"{FigSubDir.BOUNDARIES}/{self._chrm.id}/"
+            f"{getattr(bndry, MIDDLE)}_{bndprp}.png")
+
     def line_c0_prmtrs_indiv_toppings(self) -> None:
         prmtrs = Promoters(self._chrm)
         for prmtr in prmtrs:
-            self.line_c0_toppings(getattr(prmtr, START), getattr(prmtr, END), save=False)
-            fr = "frw" if getattr(prmtr, STRAND) == 1 else "rvs"
-            plt.title(
-                f"C0 in {fr} promoter {getattr(prmtr, START)}-{getattr(prmtr, END)}"
-            )
-            FileSave.figure_in_figdir(
-                f"{FigSubDir.PROMOTERS}/{self._chrm.id}/"
-                f"{fr}_{getattr(prmtr, START)}_{getattr(prmtr, END)}.png"
-            )
+            self._line_c0_prmtr_indiv_toppings(prmtr)
+
+    def _line_c0_prmtr_indiv_toppings(self, prmtr: pd.Series) -> Path:
+        self.line_c0_toppings(getattr(prmtr, START), getattr(prmtr, END), save=False)
+        fr = "frw" if getattr(prmtr, STRAND) == 1 else "rvs"
+        plt.title(f"C0 in {fr} promoter {getattr(prmtr, START)}-{getattr(prmtr, END)}")
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.PROMOTERS}/{self._chrm.id}/"
+            f"{fr}_{getattr(prmtr, START)}_{getattr(prmtr, END)}.png"
+        )
 
     def line_c0_toppings(
         self, start: PosOneIdx, end: PosOneIdx, show: bool = False, save: bool = True
@@ -44,8 +58,9 @@ class CrossRegionsPlot:
         def _vertline(pos: pd.Series, color: str) -> None:
             for p in _within(pos):
                 PlotUtil.vertline(p, color=color)
-        
+
         gnd = self._chrm.mean_c0
+
         def _nuc_ellipse(dyads: pd.Series, clr: str) -> None:
             for d in dyads:
                 ellipse = Ellipse(
@@ -57,13 +72,17 @@ class CrossRegionsPlot:
                     lw=1,
                 )
                 plt.gca().add_patch(ellipse)
-        
-        def _bndrs(mids: pd.Series, scr: pd.Series, clr: str) -> None: 
+
+        def _bndrs(mids: pd.Series, scr: pd.Series, clr: str) -> None:
             strngth = 1 - scr
             wb = 150
             hb = 0.1
-            for m, s in zip(mids, strngth): 
-                points = [[m - wb * s, gnd + hb * s], [m, gnd], [m + wb * s, gnd + hb * s]]
+            for m, s in zip(mids, strngth):
+                points = [
+                    [m - wb * s, gnd + hb * s],
+                    [m, gnd],
+                    [m + wb * s, gnd + hb * s],
+                ]
                 line = plt.Polygon(points, closed=None, fill=None, edgecolor=clr, lw=2)
                 plt.gca().add_patch(line)
 
@@ -73,11 +92,11 @@ class CrossRegionsPlot:
                 points = [[t, gnd], [t, gnd + 0.15], [t + 50 * diru, gnd + 0.15]]
                 line = plt.Polygon(points, closed=None, fill=None, edgecolor=clr, lw=3)
                 plt.gca().add_patch(line)
-        
+
         def _text() -> None:
-            for p in range(start, end + 1):
-                plt.text(p, gnd + 0.05, "A")
-            
+            for x, y in self._text_pos_calc(start, end, 0.1):
+                plt.text(x, gnd + y, self._chrm.seq[x - 1 : x + 3], fontsize="xx-small")
+
         PlotUtil.clearfig()
         PlotUtil.show_grid(which="both")
         pltchrm = PlotChrm(self._chrm)
@@ -96,6 +115,7 @@ class CrossRegionsPlot:
         _bndrs(_within(bndrs[MIDDLE]), bndrs[SCORE], colors[1])
         _tss(_within(genes.frwrd_genes()[START]), True, colors[2])
         _tss(_within(genes.rvrs_genes()[END]), False, colors[2])
+        _text()
 
         PlotUtil.legend_custom(colors, labels)
 
@@ -106,6 +126,14 @@ class CrossRegionsPlot:
             return FileSave.figure_in_figdir(
                 f"{FigSubDir.CROSSREGIONS}/line_c0_toppings.png"
             )
+
+    def _text_pos_calc(
+        self, start: PosOneIdx, end: PosOneIdx, amp: float
+    ) -> Iterator[tuple[PosOneIdx, float]]:
+        return zip(
+            range(start, end, 4),
+            [amp, amp / 2, -amp / 2, -amp] * math.ceil((end - start) / 4 / 4),
+        )
 
     def distrib_cuml_bndrs_nearest_tss_distnc(self) -> Path:
         bndrs = BoundariesHE(self._chrm, res=200, score_perc=0.5)
