@@ -19,7 +19,7 @@ We identify domains and boundaries from 500bp resolution Hi-C data. A bp is eith
 
 We predict bendability of short sequences of all chromosomes in yeast. We then measure bendability of long sequences. 
 
-## Check mean C0 around boundary region 
+## Exp 1. Check mean C0 around boundary region 
 
 **Procedure** 
 Take mean of +- 250 bp around boundary mid. [C1] [F1]
@@ -34,7 +34,7 @@ Take mean of +- 250 bp around boundary mid. [C1] [F1]
   - Surprisingly, in all chrms, one/two clearly visible rigid region exists.
   
 
-## Comparison of mean C0 of TADs and boundaries 
+## Exp 2. Comparison of mean C0 of TADs and boundaries 
 
 **Procedure** 
 Compare mean C0 of all, promoter, non-promoter boundaries and domains in all chromosomes. [C2] [F2]
@@ -45,12 +45,11 @@ Compare mean C0 of all, promoter, non-promoter boundaries and domains in all chr
 
 Taekjip Ha group showed that promoter regions are more bendable. It is a known fact that most boundaries reside in promoter regions (~70% in our analysis). So, boundaries are ought to be more bendable. 
 
-## Plot mean C0 of a few kbp regions around boundary
+## Exp 3. Plot mean C0 of a few kbp regions around boundary
 
 **Motivation**
 Samin saw a peak in boundary compared to regions in domain. 
 
-## Try 1
 **Procedure**
 Take mean c0 at each bp for a long segment (6000 bp) around boundary. [C1] [F3] 
 
@@ -60,7 +59,7 @@ Take mean c0 at each bp for a long segment (6000 bp) around boundary. [C1] [F3]
 - Sinusoidal pattern shown by Samin, high on left of mid and low on right of mid, is seen at more boundaries (5 / 7 I saw). But not in some, e.g. VI
 - Nice peak of C0 when smoothed shown by Samin was observed in raw eyes only at a few BN. ( 2 / 7 I saw)
 
-## Number and Probability distribution of C0 in various comb. of promoters and boundaries
+## Exp 4. Number and Probability distribution of C0 in various comb. of promoters and boundaries
 
 **Procedure**
 Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3] [F4]
@@ -70,7 +69,7 @@ Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3] [F4]
 - Boundaries, both in and not in promoters, show similar bell-curve distribution. In-promoter ones are more concentrated near avg. 
 - Number: With Bndry(res=200bp, score_perc=0.5) Prm bndrs - 42, Nonprm bndrs - 25, Prm w/ bndrs - 54, Prm w/o bndrs - 196
 
-## Number and Comparison of C0 in boundaries w/ or w/o NDRs 
+## Exp 5. Number and Comparison of C0 in boundaries w/ or w/o NDRs 
 
 **Procedure**
 Promoters with and without any linkers >= x bp were considered. Number [C4] [F5]
@@ -85,7 +84,7 @@ Promoters with and without any linkers >= x bp were considered. Number [C4] [F5]
 *C0*
 ?
 
-## Closest NDR distance from boundary
+## Exp 6. Closest NDR distance from boundary
 
 **Procedure**
 Closest distance from boundary middle to a long linker (>=40 bp) middle was recorded. [C5, C6][F6, F7]
@@ -98,7 +97,7 @@ Closest distance from boundary middle to a long linker (>=40 bp) middle was reco
 **Future Directions**
 - See nearest long linker distance from random positions or whole chromosome.
 
-## Plot c0, boundary, nuc and tss position on same plot
+## Exp 7. Plot c0, boundary, nuc and tss position on same plot
 
 **Procedure**
 Plot c0 with imp pos. [C7][]
@@ -116,7 +115,7 @@ Plot c0 with imp pos. [C7][]
 - TSS distnc from bndry prob distrib
 - C0 region around bndry 
 
-## Closest TSS Distance from Boundary 
+## Exp 8. Closest TSS Distance from Boundary 
 
 **Procedure**
 [C8][F9]
@@ -125,11 +124,23 @@ Plot c0 with imp pos. [C7][]
 - About 60% strong boundaries are within +- 250 bp of a TSS. 
 - Only 20% random locs are within +- 250bp of a TSS.
 
-## Inspect linker positions, length and their C0 in promoters
+## Exp 9. Inspect long linker positions, length, seq, C0; rigid/flexible region around each boundary.
+**Research Question**
+*Long Linker*
+1. Occur. Prob. of long linkers 
+2. length of long linkers. 
+3. seq pattern of long linkers. 
+4. C0 of long linkers. 
+
+*Sharp Dip / Bendable*
+1. Occur prob. of sharp dip / bendable.
+2. Width of these regions
+3. within nuc / linker?
 
 **Procedure**
 
 **Observations**
+
 
 ## Code References
 [C1] `conformation.domains.PlotBoundariesHE.line_c0_around()`

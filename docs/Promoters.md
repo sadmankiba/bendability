@@ -29,20 +29,6 @@ Length of linkers completely within promoters. [C3][F3]
 **Future Directions**
 Find percentile of distrib.
 
-## Position of sharp dip of C0 regions in each promoter
-
-**Procedure**
-line plot of C0 of each promoter plotted. [C5][F4]
-
-**Observations**
-- >90% contains a rigid area (C0 around (-0.6 - -0.8))
-- Rigid areas 
-  - vary in size - 50bp to 400bp, mostly 200bp.  
-  - vary in position. Mostly middle, but sometimes near TSS, sometimes far.  
-
-**Future directions**
-Need to know linker positions. 
-
 ## Mean and Quartiles of C0 in each promoter
 
 **Procedure**
@@ -57,25 +43,41 @@ Promoters data object saved. [C4]
       - most in boundaries, but not strong.
 - Are min in quartiles very low?
 
-## Inspect long linker positions, length, seq and C0 in promoters
+## Inspect long linker positions, length, seq and C0; Rigid/sharp dip regions in each promoter.
 
 **Research Question**
-- Do long linkers show rigidity?
-- Do long linkers have any pattern in seq?
-- How long are long linkers?
-- Where are long linkers positioned?
+*Long Linker*
+1. Do long linkers show rigidity?
+2. Do long linkers have any pattern in seq?
+3. How long are long linkers?
+4. Where are long linkers positioned?
+
+*Sharp Dip*
+1. Occurence probability
+2. Position 
+3. Length
 
 **Procedure**
+Line plot c0 of each promoter along with nuc pos. [C5][F4]
 
 **Observations**
+*Long Linker*
+1. About 70% of these have a downward hill of C0. Most hills are 50-90bp in width with lowest point at -0.4 - -0.8. If linker is longer than that, then a upward hill follows or occurs before.
+2. Seems to have  poly A and poly T in 50% of these. But, these are also present in a less extent in nucs.
+3. About 40-50% very high 200 - >500bp. 
+4. >60% are within -250bp of TSS.  
 
+*Sharp Dip*
+1. >90% contains a rigid area (C0 around (-0.6 - -0.8))
+2. About 60% rigid areas are close to TSS.
+3. Most are a downward hill. width 50bp to 100bp.
 
 ## Code References
 [C1] `chromosome.crossregions.CrossRegionsPlot.prob_distrib_prmtr_ndrs`  
 [C2] `chromosome.crossregions.CrossRegionsPlot.num_prmtrs_bndrs_ndrs`  
 [C3] `chromosome.crossregions.CrossRegionsPlot.prob_distrib_linkers_len_prmtrs`
 [C4] `chromosome.regions.Regions.save_regions`
-[C5] `chromosome.genes.PlotPromoters.line_c0_indiv`
+[C5] `chromosome.crossregions.CrossRegionsPlot.line_c0_prmtrs_indiv`
 
 ## Figure References 
 [F1] 
