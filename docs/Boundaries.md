@@ -181,10 +181,10 @@ Bndry indiv plotted with nuc, linker pos. Bndrs by HicExpl. [C9][F10]
 [C1] `conformation.domains.PlotBoundariesHE.line_c0_around()`
 [C2] `conformation.domains.MCBoundariesHECollector.plot_scatter_mean_c0()`
 [C3] `conformation.domains.PlotBoundariesHE.prob_distrib()`
-[C4] `chromosome.crossregions.CrossRegionsPlot.prob_distrib_linkers_len_prmtrs`
-[C5] `chromosome.crossregions.CrossRegionsPlot.prob_distrib_bndrs_nearest_ndr_distnc` 
-[C6] `chromosome.crossregions.CrossRegionsPlot.distrib_cuml_bndrs_nearest_ndr_distnc`
-[C8] `chromosome.crossregions.CrossRegionsPlot.distrib_cuml_bndrs_nearest_tss_distnc`
+[C4] `chromosome.crossregions.DistribPlot.prob_distrib_linkers_len_prmtrs`
+[C5] `chromosome.crossregions.DistribPlot.prob_distrib_bndrs_nearest_ndr_distnc` 
+[C6] `chromosome.crossregions.DistribPlot.distrib_cuml_bndrs_nearest_ndr_distnc`
+[C8] `chromosome.crossregions.DistribPlot.distrib_cuml_bndrs_nearest_tss_distnc`
 [C9] `chromosome.crossregions.LineC0Plot.line_c0_bndrs_indiv_toppings`
 
 ## Figure References

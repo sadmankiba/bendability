@@ -20,7 +20,7 @@ from util.util import PlotUtil, FileSave
 from util.custom_types import PosOneIdx
 
 
-class CrossRegionsPlot:
+class DistribPlot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
 
@@ -143,21 +143,21 @@ class CrossRegionsPlot:
             prmtrs[MEAN_C0],
             bndrs.prmtr_bndrs()[MEAN_C0],
             bndrs.non_prmtr_bndrs()[MEAN_C0],
-            prmtrs_with_bndrs[MEAN_C0], 
-            prmtrs_wo_bndrs[MEAN_C0]
+            prmtrs_with_bndrs[MEAN_C0],
+            prmtrs_wo_bndrs[MEAN_C0],
         ]
         labels = [
             "boundaries",
             "promoters",
             "prm boundaries",
             "nonprm boundaries",
-            "promoters with bndry", 
-            "promoters w/o bndry"
+            "promoters with bndry",
+            "promoters w/o bndry",
         ]
 
         PlotUtil.clearfig()
         PlotUtil.show_grid()
-    
+
         for d, l in zip(distribs, labels):
             PlotUtil.prob_distrib(d, l)
 

@@ -73,11 +73,11 @@ Line plot c0 of each promoter along with nuc pos. [C5][F4]
 3. Most are a downward hill. width 50bp to 100bp.
 
 ## Code References
-[C1] `chromosome.crossregions.CrossRegionsPlot.prob_distrib_prmtr_ndrs`  
-[C2] `chromosome.crossregions.CrossRegionsPlot.num_prmtrs_bndrs_ndrs`  
-[C3] `chromosome.crossregions.CrossRegionsPlot.prob_distrib_linkers_len_prmtrs`
+[C1] `chromosome.crossregions.DistribPlot.prob_distrib_prmtr_ndrs`  
+[C2] `chromosome.crossregions.DistribPlot.num_prmtrs_bndrs_ndrs`  
+[C3] `chromosome.crossregions.DistribPlot.prob_distrib_linkers_len_prmtrs`
 [C4] `chromosome.regions.Regions.save_regions`
-[C5] `chromosome.crossregions.CrossRegionsPlot.line_c0_prmtrs_indiv`
+[C5] `chromosome.crossregions.DistribPlot.line_c0_prmtrs_indiv`
 
 ## Figure References 
 [F1] 
