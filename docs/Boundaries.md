@@ -19,7 +19,34 @@ We identify domains and boundaries from 500bp resolution Hi-C data. A bp is eith
 
 We predict bendability of short sequences of all chromosomes in yeast. We then measure bendability of long sequences. 
 
-## Exp 1. Check mean C0 around boundary region 
+
+
+
+## C1. Boundaries and Promoters
+
+### Exp 1.1. Number and Prob distrib of C0 in various comb. of promoters and boundaries
+
+**Research Questions**
+1. Any diff in C0 distrib between prmtr bndry and non-prmtr bndry? 
+2. Any diff in C0 distrib between prmtr w/ bndry and prmtr w/o bndry?
+3. Number 
+
+**Procedure**
+Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3] 
+- Density: Bndry res = 500bp, lim = 250bp, score_perc = 1.0 [F4]
+- Density: Bndry res = 200bp, lim = 100bp, score_perc = 0.5 []
+- Box plot: Bndry res = 200bp, lim = 100bp, score_perc = 0.5 []
+
+**Observations**
+1. Boundaries, both in and not in promoters, show similar bell-curve distribution. In-promoter ones are more concentrated near avg.
+2. PMs in general, have a preference for higher bendability. This preference is more visible in PMoB but not in PMwBs. In majority chromosomes (about 3 out of 5) including actual chr V, PMwBs showed a preference for rigidity. 
+3. Number: With Bndry(res=200bp, score_perc=0.5) Prm bndrs - 42, Nonprm bndrs - 25, Prm w/ bndrs - 54, Prm w/o bndrs - 196
+
+
+
+## C2. Miscellaneous
+
+### Exp 2.1. Check mean C0 around boundary region 
 
 **Procedure** 
 Take mean of +- 250 bp around boundary mid. [C1] [F1]
@@ -34,7 +61,7 @@ Take mean of +- 250 bp around boundary mid. [C1] [F1]
   - Surprisingly, in all chrms, one/two clearly visible rigid region exists.
   
 
-## Exp 2. Comparison of mean C0 of TADs and boundaries 
+### Exp 2.2. Comparison of mean C0 of TADs and boundaries 
 
 **Procedure** 
 Compare mean C0 of all, promoter, non-promoter boundaries and domains in all chromosomes. [C2] [F2]
@@ -45,7 +72,7 @@ Compare mean C0 of all, promoter, non-promoter boundaries and domains in all chr
 
 Taekjip Ha group showed that promoter regions are more bendable. It is a known fact that most boundaries reside in promoter regions (~70% in our analysis). So, boundaries are ought to be more bendable. 
 
-## Exp 3. Plot mean C0 of a few kbp regions around boundary
+### Exp 2.3. Plot mean C0 of a few kbp regions around boundary
 
 **Motivation**
 Samin saw a peak in boundary compared to regions in domain. 
@@ -59,32 +86,23 @@ Take mean c0 at each bp for a long segment (6000 bp) around boundary. [C1] [F3]
 - Sinusoidal pattern shown by Samin, high on left of mid and low on right of mid, is seen at more boundaries (5 / 7 I saw). But not in some, e.g. VI
 - Nice peak of C0 when smoothed shown by Samin was observed in raw eyes only at a few BN. ( 2 / 7 I saw)
 
-## Exp 4. Number and Probability distribution of C0 in various comb. of promoters and boundaries
 
-**Procedure**
-Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3] [F4]
-
-**Observations**
-- PMs in general, have a preference for higher bendability. This preference is more visible in PMoB but not in PMwBs. In majority chromosomes (about 3 out of 5) including actual chr V, PMwBs showed a preference for rigidity. 
-- Boundaries, both in and not in promoters, show similar bell-curve distribution. In-promoter ones are more concentrated near avg. 
-- Number: With Bndry(res=200bp, score_perc=0.5) Prm bndrs - 42, Nonprm bndrs - 25, Prm w/ bndrs - 54, Prm w/o bndrs - 196
-
-## Exp 5. Number and Comparison of C0 in boundaries w/ or w/o NDRs 
+### Exp 2.4. Number and Comparison of C0 in boundaries w/ or w/o NDRs 
 
 **Procedure**
 Promoters with and without any linkers >= x bp were considered. Number [C4] [F5]
 
 **Observations**
 *Number*
-- Bndry: res 500bp, width 500bp, score perc: 1 linker: >= 80bp: 
+1. Bndry: res 500bp, width 500bp, score perc: 1 linker: >= 80bp: 
   - With NDRs 22 (40%), without NDRs 37 (60%)
-- Bndry: res 200bp, width 500bp, score perc: 0.5 linker: >= 40bp:
+2. Bndry: res 200bp, width 500bp, score perc: 0.5 linker: >= 40bp:
   - 
   
 *C0*
 ?
 
-## Exp 6. Closest NDR distance from boundary
+### Exp 2.5. Closest NDR distance from boundary
 
 **Procedure**
 Closest distance from boundary middle to a long linker (>=40 bp) middle was recorded. [C5, C6][F6, F7]
@@ -99,7 +117,7 @@ Closest distance from boundary middle to a long linker (>=40 bp) middle was reco
 
 
 
-## Exp 7. Closest TSS Distance from Boundary 
+### Exp 2.6. Closest TSS Distance from Boundary 
 
 **Procedure**
 [C8][F9]
@@ -108,7 +126,7 @@ Closest distance from boundary middle to a long linker (>=40 bp) middle was reco
 - About 60% strong boundaries are within +- 250 bp of a TSS. 
 - Only 20% random locs are within +- 250bp of a TSS.
 
-## Exp 8. Inspect long linker positions, length, seq, C0; rigid/flexible region around each boundary.
+### Exp 2.7. Inspect long linker positions, length, seq, C0; rigid/flexible region around each boundary.
 
 **Research Question**
 *Long Linker*
