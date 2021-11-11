@@ -210,14 +210,17 @@ class LineC0Plot:
             for bndry in bndrs:
                 self._line_c0_bndry_indiv_toppings(bndry, bndrs.res, pstr)
 
-    def _line_c0_bndry_indiv_toppings(self, bndry: pd.Series, res: int, pstr: str) -> Path:
-        self.line_c0_toppings(bndry[START], bndry[END], save=False)
+    def _line_c0_bndry_indiv_toppings(
+        self, bndry: pd.Series, res: int, pstr: str
+    ) -> Path:
+        self.line_c0_toppings(getattr(bndry, START), getattr(bndry, END), save=False)
         plt.title(
-            f"C0 around {pstr} boundary at {bndry[MIDDLE]} bp of chrm {self._chrm.id}"
+            f"C0 around {pstr} boundary at {getattr(bndry, MIDDLE)} bp of chrm {self._chrm.id}"
         )
         return FileSave.figure_in_figdir(
             f"{FigSubDir.BOUNDARIES}/{self._chrm.id}/"
-            f"bndry_{pstr}_{bndry[START]}_{bndry[END]}_score_{round(bndry[SCORE], 2)}_res_{res}.png"
+            f"bndry_{pstr}_{getattr(bndry, START)}_{getattr(bndry, END)}_score_"
+            f"{round(getattr(bndry, SCORE), 2)}_res_{res}.png"
         )
 
     def line_c0_prmtrs_indiv_toppings(self) -> None:
@@ -244,7 +247,14 @@ class LineC0Plot:
             return pos.loc[(start <= pos) & (pos <= end)]
 
         def _end_within(rgns: Regions) -> Regions:
-            return rgns[_within_bool(rgns[START]) | _within_bool(rgns[END])] 
+            return rgns[(_within_bool(rgns[START])) | (_within_bool(rgns[END]))]
+
+        def _clip(starts: pd.Series, ends: pd.Series) -> tuple[pd.Series, pd.Series]:
+            scp = starts.copy()
+            ecp = ends.copy()
+            scp.loc[scp < start] = start
+            ecp.loc[ecp > end] = end
+            return scp, ecp
 
         def _vertline(pos: pd.Series, color: str) -> None:
             for p in _within(pos):
@@ -277,9 +287,12 @@ class LineC0Plot:
                 line = plt.Polygon(points, closed=None, fill=None, edgecolor=clr, lw=2)
                 plt.gca().add_patch(line)
 
-        def _lng_linkrs(starts: pd.Series, ends: pd.Series, clr: str) -> None:
-            for s, e in zip(starts, ends):
-                rectangle = plt.Rectangle((s, -0.05), e - s, 0.1, fc=clr, alpha=0.5)
+        def _lng_linkrs(lnks: Linkers, clr: str) -> None:
+            sc, ec = _clip(lnks[START], lnks[END])
+            for s, e in zip(sc, ec):
+                rectangle = plt.Rectangle(
+                    (s, gnd - 0.05), e - s, 0.1, fc=clr, alpha=0.5
+                )
                 plt.gca().add_patch(rectangle)
 
         def _tss(tss: pd.Series, frw: bool, clr: str) -> None:
@@ -302,17 +315,13 @@ class LineC0Plot:
         bndrs = BoundariesHE(self._chrm, res=200, score_perc=0.5)
         lng_lnkers = Linkers(self._chrm).ndrs(40)
 
-        colors = [
-            "tab:orange",
-            "tab:brown",
-            "tab:purple",
-        ]
-        labels = ["dyad", "bndrs", "tss"]
+        colors = ["tab:orange", "tab:brown", "tab:purple", "tab:green"]
+        labels = ["nuc", "bndrs", "tss", "lng lnk"]
         _nuc_ellipse(_within(dyads), colors[0])
         _bndrs(_within(bndrs[MIDDLE]), bndrs[SCORE], colors[1])
         _tss(_within(genes.frwrd_genes()[START]), True, colors[2])
         _tss(_within(genes.rvrs_genes()[END]), False, colors[2])
-        _lng_linkrs(_within())
+        _lng_linkrs(_end_within(lng_lnkers), colors[3])
         _text()
 
         PlotUtil.legend_custom(colors, labels)

@@ -97,25 +97,9 @@ Closest distance from boundary middle to a long linker (>=40 bp) middle was reco
 **Future Directions**
 - See nearest long linker distance from random positions or whole chromosome.
 
-## Exp 7. Plot c0, boundary, nuc and tss position on same plot
 
-**Procedure**
-Plot c0 with imp pos. [C7][]
 
-**Observations**
-- Are boundaries near rigid linkers?
-  - From quick glance, no such relation was found.
-
-- How are boundaries distanced from TSS?
-  - Strong boundaries are close to TSS. Often at promoters. For example, at 322.2k and 342.6k. 
-
-- Any pattern in C0 that differentiates strong boundaries to weak boundaries? 
-
-**Future directions**
-- TSS distnc from bndry prob distrib
-- C0 region around bndry 
-
-## Exp 8. Closest TSS Distance from Boundary 
+## Exp 7. Closest TSS Distance from Boundary 
 
 **Procedure**
 [C8][F9]
@@ -124,7 +108,8 @@ Plot c0 with imp pos. [C7][]
 - About 60% strong boundaries are within +- 250 bp of a TSS. 
 - Only 20% random locs are within +- 250bp of a TSS.
 
-## Exp 9. Inspect long linker positions, length, seq, C0; rigid/flexible region around each boundary.
+## Exp 8. Inspect long linker positions, length, seq, C0; rigid/flexible region around each boundary.
+
 **Research Question**
 *Long Linker*
 1. Occur. Prob. of long linkers 
@@ -137,10 +122,30 @@ Plot c0 with imp pos. [C7][]
 2. Width of these regions
 3. within nuc / linker?
 
+*Strong vs. weak*
+1. Position
+2. C0
+
 **Procedure**
+Bndry indiv plotted with nuc, linker pos. Bndrs by HicExpl. [C9][F10]
 
 **Observations**
+*Long Linker*
+1. In prmtr bndry, >80% times close. In non-prmtr bndry, >60% times close. 
+2. >60% long linkers were very long (>100bp)
+3. 30% times runs of A, runs of T. Other times no pattern, specially very long linkers. (prob missing nuc)
+4. In promoters, about 50% times downward hill. In non-promoters, about 50% times downward. 
 
+*Sharp Dip/Bendable*
+1. 
+- In prmtr bndrs, About 60% times sharp dip in or close to bndry mid. 
+- In non prmtr bndrs, in those with long linkers, about 70% times sharp dip. In those with nuc, about 30% times sharp dip. 
+2. 50-100 bp
+3. 80% times sharp dip are within linker. 
+
+*Strong vs. weak*
+1. Strong boundaries are close to TSS. Often at promoters. For example, at 322.2k and 342.6k. 
+2. About 25% strong do have long linkers + sharp dip. Same for weaks (~-0.4). So, no correlation between sharp dip + strongness. But, >50% strong have long linkers. About 40% weak have long linkers. 
 
 ## Code References
 [C1] `conformation.domains.PlotBoundariesHE.line_c0_around()`
@@ -149,8 +154,8 @@ Plot c0 with imp pos. [C7][]
 [C4] `chromosome.crossregions.CrossRegionsPlot.prob_distrib_linkers_len_prmtrs`
 [C5] `chromosome.crossregions.CrossRegionsPlot.prob_distrib_bndrs_nearest_ndr_distnc` 
 [C6] `chromosome.crossregions.CrossRegionsPlot.distrib_cuml_bndrs_nearest_ndr_distnc`
-[C7] `chromosome.crossregions.CrossRegionsPlot.line_c0_toppings`
 [C8] `chromosome.crossregions.CrossRegionsPlot.distrib_cuml_bndrs_nearest_tss_distnc`
+[C9] `chromosome.crossregions.LineC0Plot.line_c0_bndrs_indiv_toppings`
 
 ## Figure References
 [F1] 
@@ -171,3 +176,5 @@ Plot c0 with imp pos. [C7][]
 ![C0 with imp pos](../figures/crossregions/line_c0_toppings_339k_345k.png)
 [F9]
 ![Closest TSS from bndry](../figures/boundaries/distnc_tss_distrib_cuml_res_200_perc_0.5_V.png)
+[F10]
+![A bndry indiv](../figures/boundaries/VL/bndry_prmtr_82750_83250_score_-0.26_res_200.png)

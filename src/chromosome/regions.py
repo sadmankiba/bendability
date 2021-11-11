@@ -52,7 +52,7 @@ class Regions:
         if isinstance(key, NonNegativeInt):
             return self._regions.iloc[key]
 
-        if isinstance(key, Iterable):
+        if isinstance(key, Iterable) and isinstance(list(key)[0], bool):
             return self._new(self._regions.loc[key])
 
         if key in self._regions.columns:
@@ -204,13 +204,14 @@ class Regions:
         )
 
     def _add_c0_quartile(self) -> None:
-        self._regions[C0_QUARTILE] = self._regions.apply(
-            lambda rgn: np.quantile(
-                ChrmOperator(self.chrm).c0(rgn[START], rgn[END]),
-                [0, 0.25, 0.5, 0.75, 1],
-            ),
-            axis=1,
-        )
+        if len(self._regions) > 0:
+            self._regions[C0_QUARTILE] = self._regions.apply(
+                lambda rgn: np.quantile(
+                    ChrmOperator(self.chrm).c0(rgn[START], rgn[END]),
+                    [0, 0.25, 0.5, 0.75, 1],
+                ),
+                axis=1,
+            )
 
 
 class PlotRegions:
