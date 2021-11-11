@@ -26,7 +26,7 @@ class BoundaryNT(NamedTuple):
     middle: PosOneIdx
     score: float
 
-class BndParmT(TypedDict):
+class BndParmT(TypedDict, total=False):
     res: int 
     lim: int 
     score_perc: float

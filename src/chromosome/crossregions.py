@@ -14,10 +14,45 @@ from .chromosome import Chromosome
 from chromosome.regions import END, MIDDLE, START
 from .genes import Promoters, STRAND
 from .nucleosomes import Linkers, Nucleosomes
-from conformation.domains import BoundariesHE, SCORE, BndParm
+from conformation.domains import BndParmT, BoundariesHE, SCORE, BndParm
 from .regions import LEN, MEAN_C0, Regions
-from util.util import PlotUtil, FileSave
+from util.util import Attr, PlotUtil, FileSave
 from util.custom_types import PosOneIdx
+
+
+class SubRegions:
+    def __init__(self, chrm: Chromosome) -> None:
+        self._chrm = chrm
+        self.bnd_parm = BndParmT()
+        self._prmtrs = None
+        self._bndrs = None
+
+    @property
+    def bndrs(self) -> BoundariesHE:
+        def _bndrs():
+            return BoundariesHE(self._chrm, **self.bnd_parm)
+
+        return Attr.calc_attr(self, "_bndrs", _bndrs)
+
+    @property
+    def prmtrs(self) -> Promoters:
+        def _prmtrs():
+            return Promoters(self._chrm)
+
+        return Attr.calc_attr(self, "_prmtrs", _prmtrs)
+
+    @property
+    def genes(self) -> Genes:
+        def _genes():
+            return Genes(self._chrm)
+
+        return Attr.calc_attr(self, "_genes", _genes)
+
+    def prmtrs_with_bndrs(self):
+        return self.prmtrs.with_loc(self.bndrs[MIDDLE], True)
+
+    def prmtrs_wo_bndrs(self):
+        return self.prmtrs.with_loc(self._bndrs[MIDDLE], False)
 
 
 class DistribPlot:
@@ -130,6 +165,36 @@ class DistribPlot:
         )
         return FileSave.figure_in_figdir(
             f"boundaries/distnc_ndr_prob_distrib_res_{bndrs.res}_{self._chrm.number}.png"
+        )
+
+    def box_mean_c0_bndrs_prmtrs(self):
+        sr = SubRegions(self._chrm)
+        sr.bnd_parm = BndParm.HIRS_SHR
+        distribs = [
+            sr.bndrs[MEAN_C0],
+            sr.prmtrs[MEAN_C0],
+            sr.genes[MEAN_C0],
+            sr.bndrs.prmtr_bndrs()[MEAN_C0],
+            sr.bndrs.non_prmtr_bndrs()[MEAN_C0],
+            sr.prmtrs_with_bndrs()[MEAN_C0],
+            sr.prmtrs_wo_bndrs()[MEAN_C0],
+        ]
+        labels = [
+            "bndrs",
+            "prmtrs",
+            "genes",
+            "p bndrs",
+            "np bndrs",
+            "prmtrs w b",
+            "prmtrs wo b",
+        ]
+        PlotUtil.show_grid(which="both")
+        plt.boxplot(distribs, showfliers=False)
+        plt.xticks(ticks=range(1, 8), labels=labels)
+        plt.ylabel("Mean C0")
+        plt.title("Mean C0 distrib of comb of prmtrs and bndrs")
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.CROSSREGIONS}/box_bndrs_prmtrs_{sr.bndrs}_{sr.prmtrs}.png"
         )
 
     def prob_distrib_mean_c0_bndrs_prmtrs(self):
