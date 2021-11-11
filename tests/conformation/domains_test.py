@@ -2,6 +2,7 @@ import pytest
 import pandas as pd
 
 from conformation.domains import (
+    BND_PARM_HIRS,
     BoundariesHE,
     PlotBoundariesHE,
     MCBoundariesHEAggregator,
@@ -11,7 +12,6 @@ from chromosome.regions import MIDDLE
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
 
-
 @pytest.fixture
 def bndrs_vl(chrm_vl_mean7):
     return BoundariesHE(chrm_vl_mean7, res=500, lim=250)
@@ -19,7 +19,7 @@ def bndrs_vl(chrm_vl_mean7):
 
 class TestBoundariesHE:
     def test_hires_strong(self, chrm_vl_mean7):
-        bndrs = BoundariesHE(chrm_vl_mean7, res=200, score_perc=0.5)
+        bndrs = BoundariesHE(chrm_vl_mean7, **BND_PARM_HIRS)
         assert len(bndrs) > 0
 
     def test_nearest_locs_distnc(self, bndrs_vl: BoundariesHE):

@@ -26,7 +26,7 @@ class BoundaryNT(NamedTuple):
     middle: PosOneIdx
     score: float
 
-bnd_prm_hirs = {
+BND_PARM_HIRS = {
     "res": 200, 
     "lim": 250,
     "score_perc": 0.5
@@ -65,9 +65,14 @@ class BoundariesHE(Regions):
             f"{self.chrm.number}_res_{self.res}_hicexpl_boundaries.bed",
             delim_whitespace=True,
             header=None,
-            names=["chromosome", START, END, "id", SCORE, "_"],
+            names=["chromosome", "resl", "resr", "id", SCORE, "_"],
         ).drop(columns=["chromosome", "id", "_"])
-
+        
+        mids = ((df["resl"] + df["resr"]) / 2).astype(int)
+        df[START] = mids - self.lim
+        df[END] = mids + self.lim
+        df = df.drop(columns=["resl", "resr"])
+        
         df = df.loc[df[SCORE] <= np.quantile(df[SCORE].to_numpy(), self.score_perc)]
         return df
 

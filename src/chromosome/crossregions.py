@@ -14,8 +14,8 @@ from .chromosome import Chromosome
 from chromosome.regions import END, MIDDLE, START
 from .genes import Promoters, STRAND
 from .nucleosomes import Linkers, NUC_HALF, Nucleosomes
-from conformation.domains import BoundariesHE, SCORE, bnd_prm_hirs
-from .regions import LEN, MEAN_C0
+from conformation.domains import BoundariesHE, SCORE, BND_PARM_HIRS
+from .regions import LEN, MEAN_C0, Regions
 from util.util import PlotUtil, FileSave
 from util.custom_types import PosOneIdx
 
@@ -23,117 +23,6 @@ from util.custom_types import PosOneIdx
 class CrossRegionsPlot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
-
-    def line_c0_bndrs_indiv_toppings(self) -> None:
-        bndrs = BoundariesHE(self._chrm, **bnd_prm_hirs)
-        for bndry in bndrs:
-            self._line_c0_bndry_indiv_toppings(bndry, str(bndrs))
-
-    def _line_c0_bndry_indiv_toppings(self, bndry: pd.Series, bndprp: str) -> Path:
-        self.line_c0_toppings(getattr(bndry, START), getattr(bndry, END), save=False)
-        plt.title()
-        return FileSave.figure_in_figdir(f"{FigSubDir.BOUNDARIES}/{self._chrm.id}/"
-            f"{getattr(bndry, MIDDLE)}_{bndprp}.png")
-
-    def line_c0_prmtrs_indiv_toppings(self) -> None:
-        prmtrs = Promoters(self._chrm)
-        for prmtr in prmtrs:
-            self._line_c0_prmtr_indiv_toppings(prmtr)
-
-    def _line_c0_prmtr_indiv_toppings(self, prmtr: pd.Series) -> Path:
-        self.line_c0_toppings(getattr(prmtr, START), getattr(prmtr, END), save=False)
-        fr = "frw" if getattr(prmtr, STRAND) == 1 else "rvs"
-        plt.title(f"C0 in {fr} promoter {getattr(prmtr, START)}-{getattr(prmtr, END)}")
-        return FileSave.figure_in_figdir(
-            f"{FigSubDir.PROMOTERS}/{self._chrm.id}/"
-            f"{fr}_{getattr(prmtr, START)}_{getattr(prmtr, END)}.png"
-        )
-
-    def line_c0_toppings(
-        self, start: PosOneIdx, end: PosOneIdx, show: bool = False, save: bool = True
-    ) -> Path:
-        def _within(pos: pd.Series) -> pd.Series:
-            return pos.loc[(start <= pos) & (pos <= end)]
-
-        def _vertline(pos: pd.Series, color: str) -> None:
-            for p in _within(pos):
-                PlotUtil.vertline(p, color=color)
-
-        gnd = self._chrm.mean_c0
-
-        def _nuc_ellipse(dyads: pd.Series, clr: str) -> None:
-            for d in dyads:
-                ellipse = Ellipse(
-                    xy=(d, gnd),
-                    width=146,
-                    height=0.2,
-                    edgecolor=clr,
-                    fc="None",
-                    lw=1,
-                )
-                plt.gca().add_patch(ellipse)
-
-        def _bndrs(mids: pd.Series, scr: pd.Series, clr: str) -> None:
-            strngth = 1 - scr
-            wb = 150
-            hb = 0.1
-            for m, s in zip(mids, strngth):
-                points = [
-                    [m - wb * s, gnd + hb * s],
-                    [m, gnd],
-                    [m + wb * s, gnd + hb * s],
-                ]
-                line = plt.Polygon(points, closed=None, fill=None, edgecolor=clr, lw=2)
-                plt.gca().add_patch(line)
-
-        def _tss(tss: pd.Series, frw: bool, clr: str) -> None:
-            diru = 1 if frw else -1
-            for t in tss:
-                points = [[t, gnd], [t, gnd + 0.15], [t + 50 * diru, gnd + 0.15]]
-                line = plt.Polygon(points, closed=None, fill=None, edgecolor=clr, lw=3)
-                plt.gca().add_patch(line)
-
-        def _text() -> None:
-            for x, y in self._text_pos_calc(start, end, 0.1):
-                plt.text(x, gnd + y, self._chrm.seq[x - 1 : x + 3], fontsize="xx-small")
-
-        PlotUtil.clearfig()
-        PlotUtil.show_grid(which="both")
-        pltchrm = PlotChrm(self._chrm)
-        pltchrm.line_c0(start, end)
-        dyads = Nucleosomes(self._chrm)[MIDDLE]
-        genes = Genes(self._chrm)
-        bndrs = BoundariesHE(self._chrm, res=200, score_perc=0.5)
-
-        colors = [
-            "tab:orange",
-            "tab:brown",
-            "tab:purple",
-        ]
-        labels = ["dyad", "bndrs", "tss"]
-        _nuc_ellipse(_within(dyads), colors[0])
-        _bndrs(_within(bndrs[MIDDLE]), bndrs[SCORE], colors[1])
-        _tss(_within(genes.frwrd_genes()[START]), True, colors[2])
-        _tss(_within(genes.rvrs_genes()[END]), False, colors[2])
-        _text()
-
-        PlotUtil.legend_custom(colors, labels)
-
-        if show:
-            plt.show()
-
-        if save:
-            return FileSave.figure_in_figdir(
-                f"{FigSubDir.CROSSREGIONS}/line_c0_toppings.png"
-            )
-
-    def _text_pos_calc(
-        self, start: PosOneIdx, end: PosOneIdx, amp: float
-    ) -> Iterator[tuple[PosOneIdx, float]]:
-        return zip(
-            range(start, end, 4),
-            [amp, amp / 2, -amp / 2, -amp] * math.ceil((end - start) / 4 / 4),
-        )
 
     def distrib_cuml_bndrs_nearest_tss_distnc(self) -> Path:
         bndrs = BoundariesHE(self._chrm, res=200, score_perc=0.5)
@@ -306,4 +195,140 @@ class CrossRegionsPlot:
         plt.xlim(0, 300)
         return FileSave.figure_in_figdir(
             f"linkers/prob_distr_len_prmtrs_{self._chrm.number}.png"
+        )
+
+
+class LineC0Plot:
+    def __init__(self, chrm: Chromosome) -> None:
+        self._chrm = chrm
+
+    def line_c0_bndrs_indiv_toppings(self) -> None:
+        bndrsall = BoundariesHE(self._chrm, **BND_PARM_HIRS)
+        for bndrs, pstr in zip(
+            [bndrsall.prmtr_bndrs(), bndrsall.non_prmtr_bndrs()], ["prmtr", "nonprmtr"]
+        ):
+            for bndry in bndrs:
+                self._line_c0_bndry_indiv_toppings(bndry, bndrs.res, pstr)
+
+    def _line_c0_bndry_indiv_toppings(self, bndry: pd.Series, res: int, pstr: str) -> Path:
+        self.line_c0_toppings(bndry[START], bndry[END], save=False)
+        plt.title(
+            f"C0 around {pstr} boundary at {bndry[MIDDLE]} bp of chrm {self._chrm.id}"
+        )
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.BOUNDARIES}/{self._chrm.id}/"
+            f"bndry_{pstr}_{bndry[START]}_{bndry[END]}_score_{round(bndry[SCORE], 2)}_res_{res}.png"
+        )
+
+    def line_c0_prmtrs_indiv_toppings(self) -> None:
+        prmtrs = Promoters(self._chrm)
+        for prmtr in prmtrs:
+            self._line_c0_prmtr_indiv_toppings(prmtr)
+
+    def _line_c0_prmtr_indiv_toppings(self, prmtr: pd.Series) -> Path:
+        self.line_c0_toppings(getattr(prmtr, START), getattr(prmtr, END), save=False)
+        fr = "frw" if getattr(prmtr, STRAND) == 1 else "rvs"
+        plt.title(f"C0 in {fr} promoter {getattr(prmtr, START)}-{getattr(prmtr, END)}")
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.PROMOTERS}/{self._chrm.id}/"
+            f"{fr}_{getattr(prmtr, START)}_{getattr(prmtr, END)}.png"
+        )
+
+    def line_c0_toppings(
+        self, start: PosOneIdx, end: PosOneIdx, show: bool = False, save: bool = True
+    ) -> Path:
+        def _within_bool(pos: pd.Series) -> pd.Series:
+            return (start <= pos) & (pos <= end)
+
+        def _within(pos: pd.Series) -> pd.Series:
+            return pos.loc[(start <= pos) & (pos <= end)]
+
+        def _end_within(rgns: Regions) -> Regions:
+            return rgns[_within_bool(rgns[START]) | _within_bool(rgns[END])] 
+
+        def _vertline(pos: pd.Series, color: str) -> None:
+            for p in _within(pos):
+                PlotUtil.vertline(p, color=color)
+
+        gnd = self._chrm.mean_c0
+
+        def _nuc_ellipse(dyads: pd.Series, clr: str) -> None:
+            for d in dyads:
+                ellipse = Ellipse(
+                    xy=(d, gnd),
+                    width=146,
+                    height=0.2,
+                    edgecolor=clr,
+                    fc="None",
+                    lw=1,
+                )
+                plt.gca().add_patch(ellipse)
+
+        def _bndrs(mids: pd.Series, scr: pd.Series, clr: str) -> None:
+            strngth = 1 - scr
+            wb = 150
+            hb = 0.1
+            for m, s in zip(mids, strngth):
+                points = [
+                    [m - wb * s, gnd + hb * s],
+                    [m, gnd],
+                    [m + wb * s, gnd + hb * s],
+                ]
+                line = plt.Polygon(points, closed=None, fill=None, edgecolor=clr, lw=2)
+                plt.gca().add_patch(line)
+
+        def _lng_linkrs(starts: pd.Series, ends: pd.Series, clr: str) -> None:
+            for s, e in zip(starts, ends):
+                rectangle = plt.Rectangle((s, -0.05), e - s, 0.1, fc=clr, alpha=0.5)
+                plt.gca().add_patch(rectangle)
+
+        def _tss(tss: pd.Series, frw: bool, clr: str) -> None:
+            diru = 1 if frw else -1
+            for t in tss:
+                points = [[t, gnd], [t, gnd + 0.15], [t + 50 * diru, gnd + 0.15]]
+                line = plt.Polygon(points, closed=None, fill=None, edgecolor=clr, lw=3)
+                plt.gca().add_patch(line)
+
+        def _text() -> None:
+            for x, y in self._text_pos_calc(start, end, 0.1):
+                plt.text(x, gnd + y, self._chrm.seq[x - 1 : x + 3], fontsize="xx-small")
+
+        PlotUtil.clearfig()
+        PlotUtil.show_grid(which="both")
+        pltchrm = PlotChrm(self._chrm)
+        pltchrm.line_c0(start, end)
+        dyads = Nucleosomes(self._chrm)[MIDDLE]
+        genes = Genes(self._chrm)
+        bndrs = BoundariesHE(self._chrm, res=200, score_perc=0.5)
+        lng_lnkers = Linkers(self._chrm).ndrs(40)
+
+        colors = [
+            "tab:orange",
+            "tab:brown",
+            "tab:purple",
+        ]
+        labels = ["dyad", "bndrs", "tss"]
+        _nuc_ellipse(_within(dyads), colors[0])
+        _bndrs(_within(bndrs[MIDDLE]), bndrs[SCORE], colors[1])
+        _tss(_within(genes.frwrd_genes()[START]), True, colors[2])
+        _tss(_within(genes.rvrs_genes()[END]), False, colors[2])
+        _lng_linkrs(_within())
+        _text()
+
+        PlotUtil.legend_custom(colors, labels)
+
+        if show:
+            plt.show()
+
+        if save:
+            return FileSave.figure_in_figdir(
+                f"{FigSubDir.CROSSREGIONS}/line_c0_toppings.png"
+            )
+
+    def _text_pos_calc(
+        self, start: PosOneIdx, end: PosOneIdx, amp: float
+    ) -> Iterator[tuple[PosOneIdx, float]]:
+        return zip(
+            range(start, end, 4),
+            [amp, amp / 2, -amp / 2, -amp] * math.ceil((end - start) / 4 / 4),
         )
