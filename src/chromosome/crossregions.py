@@ -13,8 +13,8 @@ from util.constants import FigSubDir, ONE_INDEX_START
 from .chromosome import Chromosome
 from chromosome.regions import END, MIDDLE, START
 from .genes import Promoters, STRAND
-from .nucleosomes import Linkers, NUC_HALF, Nucleosomes
-from conformation.domains import BoundariesHE, SCORE, BND_PARM_HIRS
+from .nucleosomes import Linkers, Nucleosomes
+from conformation.domains import BoundariesHE, SCORE, BndParm
 from .regions import LEN, MEAN_C0, Regions
 from util.util import PlotUtil, FileSave
 from util.custom_types import PosOneIdx
@@ -132,6 +132,41 @@ class CrossRegionsPlot:
             f"boundaries/distnc_ndr_prob_distrib_res_{bndrs.res}_{self._chrm.number}.png"
         )
 
+    def prob_distrib_mean_c0_bndrs_prmtrs(self):
+        bndrs = BoundariesHE(self._chrm, **BndParm.HIRS_SHR)
+        prmtrs = Promoters(self._chrm)
+        prmtrs_with_bndrs = prmtrs.with_loc(bndrs[MIDDLE], True)
+        prmtrs_wo_bndrs = prmtrs.with_loc(bndrs[MIDDLE], False)
+
+        distribs = [
+            bndrs[MEAN_C0],
+            prmtrs[MEAN_C0],
+            bndrs.prmtr_bndrs()[MEAN_C0],
+            bndrs.non_prmtr_bndrs()[MEAN_C0],
+            prmtrs_with_bndrs[MEAN_C0], 
+            prmtrs_wo_bndrs[MEAN_C0]
+        ]
+        labels = [
+            "boundaries",
+            "promoters",
+            "prm boundaries",
+            "nonprm boundaries",
+            "promoters with bndry", 
+            "promoters w/o bndry"
+        ]
+
+        PlotUtil.clearfig()
+        PlotUtil.show_grid()
+    
+        for d, l in zip(distribs, labels):
+            PlotUtil.prob_distrib(d, l)
+
+        plt.legend()
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.CROSSREGIONS}/bndrs_prmtrs_prob_distrib_c0_{bndrs}"
+            f"_{prmtrs}_{self._chrm.id}.png"
+        )
+
     def num_prmtrs_bndrs_ndrs(self) -> Path:
         min_lnkr_len = 40
         ndrs = Linkers(self._chrm).ndrs(min_lnkr_len)
@@ -203,7 +238,7 @@ class LineC0Plot:
         self._chrm = chrm
 
     def line_c0_bndrs_indiv_toppings(self) -> None:
-        bndrsall = BoundariesHE(self._chrm, **BND_PARM_HIRS)
+        bndrsall = BoundariesHE(self._chrm, **BndParm.HIRS_WD)
         for bndrs, pstr in zip(
             [bndrsall.prmtr_bndrs(), bndrsall.non_prmtr_bndrs()], ["prmtr", "nonprmtr"]
         ):

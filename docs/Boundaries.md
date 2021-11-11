@@ -26,22 +26,34 @@ We predict bendability of short sequences of all chromosomes in yeast. We then m
 
 ### Exp 1.1. Number and Prob distrib of C0 in various comb. of promoters and boundaries
 
-**Research Questions**
+#### Research Questions
 1. Any diff in C0 distrib between prmtr bndry and non-prmtr bndry? 
 2. Any diff in C0 distrib between prmtr w/ bndry and prmtr w/o bndry?
 3. Number 
 
-**Procedure**
+#### Procedure
 Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3] 
-- Density: Bndry res = 500bp, lim = 250bp, score_perc = 1.0 [F4]
-- Density: Bndry res = 200bp, lim = 100bp, score_perc = 0.5 []
-- Box plot: Bndry res = 200bp, lim = 100bp, score_perc = 0.5 []
+Param 1: Bndry res = 500bp, lim = 250bp, score_perc = 1.0 
+Param 2: Bndry res = 200bp, lim = 100bp, score_perc = 0.5
+- Density: param 1 [F4]
+- Density: param 2 [F11]
+- Box plot: param 2 []
 
-**Observations**
+#### Observations
+Param 1
 1. Boundaries, both in and not in promoters, show similar bell-curve distribution. In-promoter ones are more concentrated near avg.
-2. PMs in general, have a preference for higher bendability. This preference is more visible in PMoB but not in PMwBs. In majority chromosomes (about 3 out of 5) including actual chr V, PMwBs showed a preference for rigidity. 
+2. PMs in general, have a preference for higher bendability. This preference is more visible in PMoB but not in PMwBs. In majority chromosomes (about 3 out of 5) including actual chr V, PMwBs showed a preference for rigidity.
+
+Param 2
+1. Bndrs, prmtr bndrs similar bell-curve distrib. Non-prm bndrs are significantly more rigid distributed. Probably because of short len (100 bp).
+2. PMoB and PM similar distrib. PMwB are more bendable as they have significantly more distrib in avg and less in rigid in comparison. Probably because high width (500 bp).   
 3. Number: With Bndry(res=200bp, score_perc=0.5) Prm bndrs - 42, Nonprm bndrs - 25, Prm w/ bndrs - 54, Prm w/o bndrs - 196
 
+#### Findings
+1. Maybe boundaries have a very rigid region for 100bp flanked by very bendable region for 200bp. 
+
+#### Future Directions
+1. Compare with gene
 
 
 ## C2. Miscellaneous
@@ -196,3 +208,5 @@ Bndry indiv plotted with nuc, linker pos. Bndrs by HicExpl. [C9][F10]
 ![Closest TSS from bndry](../figures/boundaries/distnc_tss_distrib_cuml_res_200_perc_0.5_V.png)
 [F10]
 ![A bndry indiv](../figures/boundaries/VL/bndry_prmtr_82750_83250_score_-0.26_res_200.png)
+[F11]
+![Bndry prmtr prob distrib c0 res200 lim100](../figures/crossregions/bndrs_prmtrs_prob_distrib_c0_res_200_lim_100_perc_0.5_ustr_500_dstr_-1_VL.png)

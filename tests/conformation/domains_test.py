@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 
 from conformation.domains import (
-    BND_PARM_HIRS,
+    BndParm,
     BoundariesHE,
     PlotBoundariesHE,
     MCBoundariesHEAggregator,
@@ -19,7 +19,7 @@ def bndrs_vl(chrm_vl_mean7):
 
 class TestBoundariesHE:
     def test_hires_strong(self, chrm_vl_mean7):
-        bndrs = BoundariesHE(chrm_vl_mean7, **BND_PARM_HIRS)
+        bndrs = BoundariesHE(chrm_vl_mean7, **BndParm.HIRS_WD)
         assert len(bndrs) > 0
 
     def test_nearest_locs_distnc(self, bndrs_vl: BoundariesHE):
@@ -66,9 +66,6 @@ def plotbndrs_vl(chrm_vl):
 
 
 class TestPlotBoundariesHE:
-    def test_prob_distrib_c0(self, plotbndrs_vl: PlotBoundariesHE):
-        assert plotbndrs_vl.prob_distrib_c0().is_file()
-
     def test_line_c0_around(self, plotbndrs_vl: PlotBoundariesHE):
         assert plotbndrs_vl.line_c0_around().is_file()
 

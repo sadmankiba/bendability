@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Iterable, Literal, NamedTuple, Any
+from typing import Iterable, Literal, NamedTuple, Any, TypedDict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,11 +26,14 @@ class BoundaryNT(NamedTuple):
     middle: PosOneIdx
     score: float
 
-BND_PARM_HIRS = {
-    "res": 200, 
-    "lim": 250,
-    "score_perc": 0.5
-}
+class BndParmT(TypedDict):
+    res: int 
+    lim: int 
+    score_perc: float
+
+class BndParm:
+    HIRS_WD = BndParmT(res=200, lim=250, score_perc=0.5)
+    HIRS_SHR = BndParmT(res=200, lim=100, score_perc=0.5)
 
 class BoundariesHE(Regions):
     """
@@ -123,29 +126,6 @@ class PlotBoundariesHE:
         self._chrm = chrm
         self._bndrs = BoundariesHE(chrm, res=200, score_perc=0.5)
         self._figsubdir = FigSubDir.BOUNDARIES
-
-    def prob_distrib_c0(self):
-        PlotUtil.clearfig()
-        PlotUtil.show_grid()
-        PlotUtil.prob_distrib(self._bndrs[MEAN_C0], "boundaries")
-        prmtrs = Promoters(self._chrm)
-        PlotUtil.prob_distrib(prmtrs[MEAN_C0], "promoters")
-        PlotUtil.prob_distrib(self._bndrs.prmtr_bndrs()[MEAN_C0], "prm boundaries")
-        PlotUtil.prob_distrib(
-            self._bndrs.non_prmtr_bndrs()[MEAN_C0], "nonprm boundaries"
-        )
-        prmtrs_with_bndrs = prmtrs.with_loc(self._bndrs[MIDDLE], True)
-        prmtrs_wo_bndrs = prmtrs.with_loc(self._bndrs[MIDDLE], False)
-        PlotUtil.prob_distrib(prmtrs_with_bndrs[MEAN_C0], "promoters with bndry")
-        PlotUtil.prob_distrib(prmtrs_wo_bndrs[MEAN_C0], "promoters w/o bndry")
-        plt.legend()
-        print("Prm bndrs", len(self._bndrs.prmtr_bndrs()))
-        print("Nonprm bndrs", len(self._bndrs.non_prmtr_bndrs()))
-        print("Prmtrs with bndry", len(prmtrs_with_bndrs))
-        print("Prmtrs w/o bndry", len(prmtrs_wo_bndrs))
-        return FileSave.figure_in_figdir(
-            f"{self._figsubdir}/bndrs_prmtrs_prob_distrib_c0_{self._bndrs}_{prmtrs}_{self._chrm.id}.png"
-        )
 
     def line_c0_around(self, pltlim=250):
         bndrs_mid = self._bndrs[MIDDLE]
