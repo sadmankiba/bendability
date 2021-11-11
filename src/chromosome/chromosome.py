@@ -11,7 +11,7 @@ from scipy.interpolate import make_interp_spline
 from nptyping import NDArray
 
 from models.prediction import Prediction
-from util.reader import DNASequenceReader
+from util.reader import DNASequenceReader, SEQUENCE_NUM, SEQUENCE
 from util.constants import CHRVL, SEQ_LEN, ChrIdList
 from util.custom_types import ChrId, PosOneIdx, YeastChrNum, PositiveInt
 from util.util import Attr, DataCache, FileSave, PathObtain, PlotUtil
@@ -222,8 +222,6 @@ class ChrmCalc:
         return (num_seq - 1) * 7 + SEQ_LEN
 
 
-SEQUENCE_NUM = "Sequence #"
-SEQUENCE = "Sequence"
 C0 = "c0"
 
 

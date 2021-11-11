@@ -1,6 +1,5 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Iterable, NamedTuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,11 +10,11 @@ from util.constants import FigSubDir
 
 from .chromosome import Chromosome
 from .nucleosomes import Nucleosomes
-from .regions import PlotRegions, Regions, RegionsInternal, START, END
+from .regions import PlotRegions, Regions, RegionsInternal, START, END, MEAN_C0
 from util.reader import GeneReader
 from util.util import FileSave, PlotUtil, PathObtain
 from util.constants import GDataSubDir
-from util.custom_types import NonNegativeInt, PosOneIdx
+from util.custom_types import PosOneIdx
 
 
 STRAND = "strand"

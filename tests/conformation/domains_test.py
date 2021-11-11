@@ -12,6 +12,7 @@ from chromosome.regions import MIDDLE
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
 
+
 @pytest.fixture
 def bndrs_vl(chrm_vl_mean7):
     return BoundariesHE(chrm_vl_mean7, res=500, lim=250)

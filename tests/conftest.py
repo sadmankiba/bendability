@@ -18,9 +18,11 @@ def chrm_vl_mean7():
 def chrm_i():
     return Chromosome("I")
 
+
 @pytest.fixture
 def bndrs_hirs_vl(chrm_vl_mean7: Chromosome):
     return BoundariesHE(chrm_vl_mean7, **BndParm.HIRS_WD)
+
 
 def pytest_assertion_pass(item, lineno: int, orig: str, expl: str):
     print(f"{item} passed. Explanation: {expl}")

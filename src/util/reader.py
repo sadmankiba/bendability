@@ -18,6 +18,9 @@ TL_FILE = "41586_2020_3052_MOESM8_ESM.txt"
 CHRVL_FILE = "41586_2020_3052_MOESM9_ESM.txt"
 LIBL_FILE = "41586_2020_3052_MOESM11_ESM.txt"
 
+SEQUENCE_NUM = "Sequence #"
+SEQUENCE = "Sequence"
+
 
 class DNASequenceReader:
     """
@@ -76,7 +79,9 @@ class DNASequenceReader:
 
     # TODO: Rename read_genome_sequence_of
     @classmethod
-    def read_yeast_genome(self, chr_num: YeastChrNum) -> pd.DataFrame["Sequence #": int, "Sequence": str]:
+    def read_yeast_genome(
+        self, chr_num: YeastChrNum
+    ) -> pd.DataFrame[SEQUENCE_NUM:int, SEQUENCE:str]:
         """
         Read reference sequence of a yeast chromosome. Transforms it into 50-bp
         sequences at 7-bp resolution.
@@ -103,7 +108,7 @@ class DNASequenceReader:
         )
 
     @classmethod
-    def _read_yeast_genome_file(self, chrmnum:int) -> str:
+    def _read_yeast_genome_file(self, chrmnum: int) -> str:
         genome_file = open(
             f"{PathObtain.data_dir()}/input_data/yeast_genome/S288C_reference_sequence_R64-3-1_20210421.fsa"
         )

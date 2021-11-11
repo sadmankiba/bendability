@@ -1,6 +1,7 @@
-import pytest 
+import pytest
 
 from chromosome.genes import Promoters
+
 
 @pytest.fixture
 def prmtrs_vl(chrm_vl_mean7):

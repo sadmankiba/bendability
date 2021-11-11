@@ -48,7 +48,9 @@ class Regions:
     def __iter__(self) -> Iterable[RegionNT]:
         return self._regions.itertuples()
 
-    def __getitem__(self, key: NonNegativeInt | str | Iterable[bool]) -> pd.Series | Regions:
+    def __getitem__(
+        self, key: NonNegativeInt | str | Iterable[bool]
+    ) -> pd.Series | Regions:
         if isinstance(key, NonNegativeInt):
             return self._regions.iloc[key]
 
