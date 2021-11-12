@@ -65,7 +65,7 @@ class Regions:
     def __len__(self):
         return len(self._regions)
 
-    def __sub__(self, other: Regions):
+    def __sub__(self, other: Regions) -> Regions:
         result_rgns = self._regions[
             ~(
                 self._regions[START].isin(other._regions[START])
@@ -73,6 +73,10 @@ class Regions:
             )
         ]
         return self._new(result_rgns)
+
+    def __add__(self, other: Regions) -> Regions:
+        assert set(self._regions.columns) == set(other._regions.columns)
+        return self._new(pd.merge(self._regions, other._regions, how="outer"))
 
     @property
     def mean_c0(self) -> float:
@@ -178,10 +182,10 @@ class Regions:
     def len_at_least(self, len: int) -> Regions:
         return self._new(self._regions.query(f"{LEN} >= {len}"))
 
-    def save_regions(self) -> Path:
+    def save_regions(self, fname: str = None) -> Path:
         return FileSave.tsv_gdatadir(
             self._regions.sort_values(START),
-            f"{self.gdata_savedir}/{type(self).__name__}.tsv",
+            f"{type(self).__name__.lower()}/{fname or type(self).__name__.lower()}.tsv",
         )
 
     def _get_regions(self) -> RegionsInternal:
@@ -191,10 +195,10 @@ class Regions:
         return type(self)(self.chrm, rgns.copy())
 
     def _add_len(self) -> None:
-        self._regions[LEN] = self._regions[END] - self._regions[START] + 1
+        self._regions.loc[:,LEN] = self._regions[END] - self._regions[START] + 1
 
     def _add_middle(self) -> None:
-        self._regions[MIDDLE] = (
+        self._regions.loc[:,MIDDLE] = (
             (self._regions[START] + self._regions[END]) / 2
         ).astype(int)
 
@@ -207,13 +211,14 @@ class Regions:
 
     def _add_c0_quartile(self) -> None:
         if len(self._regions) > 0:
-            self._regions[C0_QUARTILE] = self._regions.apply(
-                lambda rgn: np.quantile(
+            self._regions.loc[:,C0_QUARTILE] = self._regions.apply(
+                lambda rgn: np.round(np.quantile(
                     ChrmOperator(self.chrm).c0(rgn[START], rgn[END]),
                     [0, 0.25, 0.5, 0.75, 1],
-                ),
+                ), 3),
                 axis=1,
             )
+            self._regions[C0_QUARTILE] = self._regions[C0_QUARTILE].apply(tuple)
 
 
 class PlotRegions:

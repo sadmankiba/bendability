@@ -9,7 +9,6 @@ __pycache__/
 *.png
 *.jpg
 
-data/generated_data/
 data/downloaded_data/
 
 meuseum_mod/predictions/*.[tc]sv
