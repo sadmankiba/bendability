@@ -99,7 +99,9 @@ Merged in subplot motif contribs with these sorted by contrib.
     i. Similar in both. (expc.)
 
 ### Future Directions 
-Align promoters according to gene direction.
+1. Align promoters according to gene direction.
+2. Cluster motifs by contribution patterns in PMwB and PMoB. Simplest, pearson.
+
 
 ## Code References
 [C1] `chromosome.crossregions.DistribPlot.prob_distrib_prmtr_ndrs`  
