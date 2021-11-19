@@ -45,7 +45,7 @@ Promoters data object saved. [C4]
 
 ## Inspect long linker positions, length, seq and C0; Rigid/sharp dip regions in each promoter.
 
-**Research Question**
+### Research Question
 *Long Linker*
 1. Do long linkers show rigidity?
 2. Do long linkers have any pattern in seq?
@@ -57,10 +57,10 @@ Promoters data object saved. [C4]
 2. Position 
 3. Length
 
-**Procedure**
+### Procedure
 Line plot c0 of each promoter along with nuc pos. [C5][F4]
 
-**Observations**
+### Observations
 *Long Linker*
 1. About 70% of these have a downward hill of C0. Most hills are 50-90bp in width with lowest point at -0.4 - -0.8. If linker is longer than that, then a upward hill follows or occurs before.
 2. Seems to have  poly A and poly T in 50% of these. But, these are also present in a less extent in nucs.
@@ -71,6 +71,19 @@ Line plot c0 of each promoter along with nuc pos. [C5][F4]
 1. >90% contains a rigid area (C0 around (-0.6 - -0.8))
 2. About 60% rigid areas are close to TSS.
 3. Most are a downward hill. width 50bp to 100bp.
+
+
+
+
+## Motif contribution comparison in PMwB and PMoB
+
+### Research Question
+1. Does any motif show completely opposite contrib?
+2. Any pattern among motifs with highest or lowest contrib to c0 found before?
+
+### Procedure 
+
+### Observations 
 
 ## Code References
 [C1] `chromosome.crossregions.DistribPlot.prob_distrib_prmtr_ndrs`  

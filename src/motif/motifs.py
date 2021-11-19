@@ -80,3 +80,6 @@ class Motifs:
         df = pd.read_csv(self._contrib_score_file, names=[CONTRIB_SCORE])
         df[MOTIF_ID] = np.arange(256)
         return df
+
+    def sorted_contrib(self) -> list[int]:
+        return self._contrib_scores.sort_values(CONTRIB_SCORE)[MOTIF_ID].to_list()

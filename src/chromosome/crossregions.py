@@ -1,14 +1,17 @@
+from __future__ import annotations
 import random
 import math
 from pathlib import Path
-from typing import Iterator
+from typing import Iterator, Literal
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 import pandas as pd
+from cairosvg import svg2png
 
 from chromosome.chromosome import PlotChrm
 from chromosome.genes import Genes
+from motif.motifs import Motifs
 from util.constants import FigSubDir, ONE_INDEX_START
 from .chromosome import Chromosome
 from chromosome.regions import END, MIDDLE, START
@@ -16,7 +19,7 @@ from .genes import Promoters, STRAND
 from .nucleosomes import Linkers, Nucleosomes
 from conformation.domains import BndParmT, BoundariesHE, SCORE, BndParm
 from .regions import LEN, MEAN_C0, Regions
-from util.util import Attr, PlotUtil, FileSave
+from util.util import Attr, PathObtain, PlotUtil, FileSave
 from util.custom_types import PosOneIdx
 
 
@@ -441,3 +444,46 @@ class LineC0Plot:
             range(start, end, 4),
             [amp, amp / 2, -amp / 2, -amp] * math.ceil((end - start) / 4 / 4),
         )
+
+
+class PlotPrmtrsBndrs:
+    WB_DIR = "with_boundaries"
+    WOB_DIR = "without_boundaries"
+    BOTH_DIR = "both"
+
+    def __init__(self):
+        pass
+
+    def both_sorted_motif_contrib(self):
+        for i, num in enumerate(Motifs().sorted_contrib()):
+            self._both_motif_contrib_single("both_sorted_motif", num, i)
+
+    def both_motif_contrib(self):
+        for num in range(256):
+            self._both_motif_contrib_single(self.BOTH_DIR, num)
+
+    def _both_motif_contrib_single(self, bthdir: str, num: int, srtidx: int = None) -> Path:
+        fig, axs = plt.subplots(1, 2)
+        axs[0].imshow(plt.imread(self._contrib_file(self.WB_DIR, num, "png")))
+        axs[0].set(title="with boundaries")
+        axs[1].imshow(plt.imread(self._contrib_file(self.WOB_DIR, num, "png")))
+        axs[1].set(title="without boundaries")
+        fig.suptitle(f"Contrib of motif {num} in promoters")
+        return FileSave.figure(
+            self._contrib_file(bthdir, f"{srtidx}_{num}" if srtidx is not None else num, "png")
+        )
+
+    def _contrib_file(
+        self, dir: str, num: int | str, frmt: Literal["svg"] | Literal["png"]
+    ) -> str:
+        return (
+            f"{PathObtain.figure_dir()}/{FigSubDir.PROMOTERS}/"
+            f"distribution_around_promoters/{dir}/motif_{num}.{frmt}"
+        )
+
+    def svg2png_contrib(self):
+        for i in range(256):
+            svg2png(
+                url=self._contrib_file(self.WOB_DIR, i, "svg"),
+                write_to=self._contrib_file(self.WOB_DIR, i, "png"),
+            )

@@ -16,3 +16,4 @@ pytest-github-actions-annotate-failures
 nptyping
 flake8
 black
+cairosvg

@@ -1,7 +1,9 @@
+from pathlib import Path 
+
 import pytest
 
 from chromosome.chromosome import Chromosome
-from chromosome.crossregions import DistribPlot, LineC0Plot
+from chromosome.crossregions import DistribPlot, LineC0Plot, PlotPrmtrsBndrs
 from chromosome.genes import Promoters
 from conformation.domains import BoundariesHE
 
@@ -63,3 +65,13 @@ class TestLineC0Plot:
             (17, -0.04),
             (21, 0.04),
         ]
+
+
+class TestPlotPrmtrsBndrs:
+    def test_both_motif_contrib_single(self):
+        pltpb = PlotPrmtrsBndrs()
+        if not Path(pltpb._contrib_file(pltpb.WB_DIR, 0, "png")).is_file():
+            return 
+        
+        assert pltpb._both_motif_contrib_single(pltpb.BOTH_DIR, 0).is_file()
+
