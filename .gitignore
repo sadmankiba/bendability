@@ -6,8 +6,11 @@ __pycache__/
 .vscode/
 
 *.zip
+
+# Figures
 *.png
 *.jpg
+*.svg
 
 data/downloaded_data/
 
