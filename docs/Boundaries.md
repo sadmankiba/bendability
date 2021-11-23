@@ -73,9 +73,10 @@ Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3]
 1. Any correlation between C0, TpA content and CpG content?
 
 #### Procedure
+Using param 1, mean C0, TpA and CpG content of PMwB and PMoB were checked. [C11, C12][F13, F14] 
 
 #### Observation 
-
+1. TpA or CpG does not show any correlation with Mean C0. For both, pearson's r with mean C0 = 0.09
 
 ## C2. Boundaries and Linkers
 
@@ -198,6 +199,9 @@ Take mean c0 at each bp for a long segment (6000 bp) around boundary. [C1] [F3]
 [C6] `chromosome.crossregions.DistribPlot.distrib_cuml_bndrs_nearest_ndr_distnc`
 [C8] `chromosome.crossregions.DistribPlot.distrib_cuml_bndrs_nearest_tss_distnc`
 [C9] `chromosome.crossregions.LineC0Plot.line_c0_bndrs_indiv_toppings`
+[C10] `chromosome.crossregions.LineC0Plot.line_c0_bndrs_indiv_toppings`
+[C11] `chromosome.crossregions.PlotPrmtrsBndrs.dinc_explain_box`
+[C12] `chromosome.crossregions.PlotPrmtrsBndrs.dinc_explain_scatter`
 
 ## Figure References
 [F1] 
@@ -224,3 +228,7 @@ Take mean c0 at each bp for a long segment (6000 bp) around boundary. [C1] [F3]
 ![Bndry prmtr prob distrib c0 res200 lim100](../figures/crossregions/bndrs_prmtrs_prob_distrib_c0_res_200_lim_100_perc_0.5_ustr_500_dstr_-1_VL.png)
 [F12]
 ![Box prmtrs bndrs mean c0](../figures/crossregions/box_bndrs_prmtrs_res_200_lim_100_perc_0.5_ustr_500_dstr_-1.png)
+[F13]
+![Prmtrs Mean C0, TpA, CpG box](../figures/crossregions/dinc_explain_VL.png)
+[F14]
+![Prmtrs mean C0, TpA, CpG scatter](../figures/crossregions/prmtrs_ta_cg_scatter.png)
