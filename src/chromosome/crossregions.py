@@ -2,14 +2,17 @@ from __future__ import annotations
 import random
 import math
 from pathlib import Path
-from typing import Iterator, Literal
+from typing import Any, Callable, Iterator, Literal
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 import pandas as pd
+import numpy as np
 from cairosvg import svg2png
+from nptyping import NDArray
 
 from chromosome.chromosome import PlotChrm
+from chromosome.dinc import Dinc
 from chromosome.genes import Genes
 from motif.motifs import Motifs
 from util.constants import FigSubDir, ONE_INDEX_START
@@ -170,7 +173,7 @@ class DistribPlot:
             f"boundaries/distnc_ndr_prob_distrib_res_{bndrs.res}_{self._chrm.number}.png"
         )
 
-    def box_mean_c0_bndrs_prmtrs(self):
+    def box_mean_c0_bndrs_prmtrs(self) -> Path:
         sr = SubRegions(self._chrm)
         sr.bnd_parm = BndParm.HIRS_SHR
         distribs = [
@@ -453,6 +456,40 @@ class PlotPrmtrsBndrs:
 
     def __init__(self):
         pass
+
+    def dinc_explain(self) -> Path:
+        def _total_dinc(rgns: Regions, cnt_fnc: Callable) -> NDArray[(Any,), float]:
+            return np.array(cnt_fnc(rgns[START], rgns[END]))
+
+        def _mean_dinc(rgns: Regions, cnt_fnc: Callable) -> NDArray[(Any,), float]:
+            return _total_dinc(rgns, cnt_fnc) / rgns[LEN].to_numpy()
+
+        subr = SubRegions(Chromosome("VL"))
+        dinc = Dinc(Chromosome("VL"))
+        pmwb = subr.prmtrs_with_bndrs()
+        pmob = subr.prmtrs_wo_bndrs()
+        labels = ["Prmtrs w b", "Prmtrs wo b"]
+        fig, axs = plt.subplots(2)
+        fig.suptitle("TpA and CpG content in promoters")
+        
+        for dinc, cnt_fnc, axes in zip(
+            ["TpA", "CpG"],
+            [dinc.ta_count_multisegment, dinc.cg_count_multisegment],
+            axs,
+        ):
+            PlotUtil.box_many(
+                [
+                    _total_dinc(pmwb, cnt_fnc),
+                    _total_dinc(pmob, cnt_fnc),
+                ],
+                labels=labels,
+                ylabel=f"{dinc} content",
+                pltobj=axes,
+            )
+
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.CROSSREGIONS}/dinc_explain_VL.png"
+        )
 
     def both_sorted_motif_contrib(self):
         for i, num in enumerate(Motifs().sorted_contrib()):

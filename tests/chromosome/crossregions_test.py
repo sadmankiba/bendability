@@ -68,6 +68,10 @@ class TestLineC0Plot:
 
 
 class TestPlotPrmtrsBndrs:
+    def test_dinc_explain(self):
+        pltpb = PlotPrmtrsBndrs()
+        assert pltpb.dinc_explain().is_file()
+
     def test_both_motif_contrib_single(self):
         pltpb = PlotPrmtrsBndrs()
         if not Path(pltpb._contrib_file(pltpb.WB_DIR, 0, "png")).is_file():

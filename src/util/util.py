@@ -9,10 +9,12 @@ import inspect
 from types import FrameType
 from typing import Literal, Union, Any, Callable, Iterable
 
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+from matplotlib.axes import Axes
 import seaborn as sns
 from nptyping import NDArray
 
@@ -369,6 +371,16 @@ class PlotUtil:
     def legend_custom(self, colors: list[str], labels: list[str]):
         handles = [mpatches.Patch(color=c, label=l) for c, l in zip(colors, labels)]
         plt.legend(handles=handles)
+
+    @classmethod
+    def box_many(self, distribs: Iterable[Iterable[float]], labels: list[str], ylabel: str, pltobj: plt | Axes = plt): 
+        pltobj.boxplot(distribs, showfliers=False)
+        if isinstance(pltobj, Axes):
+            pltobj.set_ylabel(ylabel)
+        else: 
+            pltobj.xticks(ticks=range(1, len(labels) + 1), labels=labels)
+            pltobj.ylabel(ylabel)
+
 
     @classmethod
     def bar_stacked(
