@@ -65,6 +65,18 @@ Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3]
 - About 60% strong boundaries are within +- 250 bp of a TSS. 
 - Only 20% random locs are within +- 250bp of a TSS.
 
+
+
+### Exp 2.3 Can simple dinuc occur and distance explain diff in C0 in PMwB and PMoB?
+
+#### Research Question 
+1. Any correlation between C0, TpA content and CpG content?
+
+#### Procedure
+
+#### Observation 
+
+
 ## C2. Boundaries and Linkers
 
 ### Exp 2.1. Number and Comparison of C0 in boundaries w/ or w/o NDRs 

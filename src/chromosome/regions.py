@@ -195,10 +195,10 @@ class Regions:
         return type(self)(self.chrm, rgns.copy())
 
     def _add_len(self) -> None:
-        self._regions.loc[:,LEN] = self._regions[END] - self._regions[START] + 1
+        self._regions.loc[:, LEN] = self._regions[END] - self._regions[START] + 1
 
     def _add_middle(self) -> None:
-        self._regions.loc[:,MIDDLE] = (
+        self._regions.loc[:, MIDDLE] = (
             (self._regions[START] + self._regions[END]) / 2
         ).astype(int)
 
@@ -211,11 +211,14 @@ class Regions:
 
     def _add_c0_quartile(self) -> None:
         if len(self._regions) > 0:
-            self._regions.loc[:,C0_QUARTILE] = self._regions.apply(
-                lambda rgn: np.round(np.quantile(
-                    ChrmOperator(self.chrm).c0(rgn[START], rgn[END]),
-                    [0, 0.25, 0.5, 0.75, 1],
-                ), 3),
+            self._regions.loc[:, C0_QUARTILE] = self._regions.apply(
+                lambda rgn: np.round(
+                    np.quantile(
+                        ChrmOperator(self.chrm).c0(rgn[START], rgn[END]),
+                        [0, 0.25, 0.5, 0.75, 1],
+                    ),
+                    3,
+                ),
                 axis=1,
             )
             self._regions[C0_QUARTILE] = self._regions[C0_QUARTILE].apply(tuple)

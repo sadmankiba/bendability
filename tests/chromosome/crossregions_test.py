@@ -1,4 +1,4 @@
-from pathlib import Path 
+from pathlib import Path
 
 import pytest
 
@@ -71,7 +71,6 @@ class TestPlotPrmtrsBndrs:
     def test_both_motif_contrib_single(self):
         pltpb = PlotPrmtrsBndrs()
         if not Path(pltpb._contrib_file(pltpb.WB_DIR, 0, "png")).is_file():
-            return 
-        
-        assert pltpb._both_motif_contrib_single(pltpb.BOTH_DIR, 0).is_file()
+            return
 
+        assert pltpb._both_motif_contrib_single(pltpb.BOTH_DIR, 0).is_file()

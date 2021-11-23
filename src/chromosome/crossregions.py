@@ -462,7 +462,9 @@ class PlotPrmtrsBndrs:
         for num in range(256):
             self._both_motif_contrib_single(self.BOTH_DIR, num)
 
-    def _both_motif_contrib_single(self, bthdir: str, num: int, srtidx: int = None) -> Path:
+    def _both_motif_contrib_single(
+        self, bthdir: str, num: int, srtidx: int = None
+    ) -> Path:
         fig, axs = plt.subplots(1, 2)
         axs[0].imshow(plt.imread(self._contrib_file(self.WB_DIR, num, "png")))
         axs[0].set(title="with boundaries")
@@ -470,7 +472,9 @@ class PlotPrmtrsBndrs:
         axs[1].set(title="without boundaries")
         fig.suptitle(f"Contrib of motif {num} in promoters")
         return FileSave.figure(
-            self._contrib_file(bthdir, f"{srtidx}_{num}" if srtidx is not None else num, "png")
+            self._contrib_file(
+                bthdir, f"{srtidx}_{num}" if srtidx is not None else num, "png"
+            )
         )
 
     def _contrib_file(
