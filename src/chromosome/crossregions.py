@@ -28,7 +28,7 @@ from util.custom_types import PosOneIdx
 
 class SubRegions:
     def __init__(self, chrm: Chromosome) -> None:
-        self._chrm = chrm
+        self.chrm = chrm
         self.bnd_parm = BndParmT()
         self._prmtrs = None
         self._bndrs = None
@@ -36,21 +36,21 @@ class SubRegions:
     @property
     def bndrs(self) -> BoundariesHE:
         def _bndrs():
-            return BoundariesHE(self._chrm, **self.bnd_parm)
+            return BoundariesHE(self.chrm, **self.bnd_parm)
 
         return Attr.calc_attr(self, "_bndrs", _bndrs)
 
     @property
     def prmtrs(self) -> Promoters:
         def _prmtrs():
-            return Promoters(self._chrm)
+            return Promoters(self.chrm)
 
         return Attr.calc_attr(self, "_prmtrs", _prmtrs)
 
     @property
     def genes(self) -> Genes:
         def _genes():
-            return Genes(self._chrm)
+            return Genes(self.chrm)
 
         return Attr.calc_attr(self, "_genes", _genes)
 
@@ -457,30 +457,50 @@ class PlotPrmtrsBndrs:
     def __init__(self):
         pass
 
-    def dinc_explain(self) -> Path:
-        def _total_dinc(rgns: Regions, cnt_fnc: Callable) -> NDArray[(Any,), float]:
-            return np.array(cnt_fnc(rgns[START], rgns[END]))
+    def dinc_explain_scatter(self) -> Path:
+        sr = SubRegions(Chromosome("VL"))
+        mc0 = sr.prmtrs[MEAN_C0]
+        dinc = Dinc(sr.chrm)
+        ta = self._total_dinc(sr.prmtrs, dinc.ta_count_multisegment)
+        cg = self._total_dinc(sr.prmtrs, dinc.cg_count_multisegment)
+        fig, axs = plt.subplots(2)
+        fig.suptitle("Scatter plot of mean C0 vs TpA and CpG content in promoters")
+        axs[0].scatter(mc0, ta)
+        axs[1].scatter(mc0, cg)
+        axs[0].set_ylabel("TpA content")
+        axs[0].set_xlabel("Mean C0")
+        axs[1].set_ylabel("CpG content")
+        axs[1].set_xlabel("Mean C0")
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.CROSSREGIONS}/prmtrs_ta_cg_scatter.png"
+        )
 
-        def _mean_dinc(rgns: Regions, cnt_fnc: Callable) -> NDArray[(Any,), float]:
-            return _total_dinc(rgns, cnt_fnc) / rgns[LEN].to_numpy()
-
+    def dinc_explain_box(self) -> Path:
         subr = SubRegions(Chromosome("VL"))
+        subr.bnd_parm = BndParm.HIRS_SHR
         dinc = Dinc(Chromosome("VL"))
         pmwb = subr.prmtrs_with_bndrs()
         pmob = subr.prmtrs_wo_bndrs()
         labels = ["Prmtrs w b", "Prmtrs wo b"]
-        fig, axs = plt.subplots(2)
+        fig, axs = plt.subplots(3)
         fig.suptitle("TpA and CpG content in promoters")
-        
+        for axes in axs:
+            axes.grid(which="both")
+        PlotUtil.box_many(
+            [pmwb[MEAN_C0], pmob[MEAN_C0]],
+            labels=labels,
+            ylabel="Mean C0",
+            pltobj=axs[0],
+        )
         for dinc, cnt_fnc, axes in zip(
             ["TpA", "CpG"],
             [dinc.ta_count_multisegment, dinc.cg_count_multisegment],
-            axs,
+            axs[1:],
         ):
             PlotUtil.box_many(
                 [
-                    _total_dinc(pmwb, cnt_fnc),
-                    _total_dinc(pmob, cnt_fnc),
+                    self._total_dinc(pmwb, cnt_fnc),
+                    self._total_dinc(pmob, cnt_fnc),
                 ],
                 labels=labels,
                 ylabel=f"{dinc} content",
@@ -490,6 +510,12 @@ class PlotPrmtrsBndrs:
         return FileSave.figure_in_figdir(
             f"{FigSubDir.CROSSREGIONS}/dinc_explain_VL.png"
         )
+
+    def _total_dinc(self, rgns: Regions, cnt_fnc: Callable) -> NDArray[(Any,), float]:
+        return np.array(cnt_fnc(rgns[START], rgns[END]))
+
+    def _mean_dinc(self, rgns: Regions, cnt_fnc: Callable) -> NDArray[(Any,), float]:
+        return self._total_dinc(rgns, cnt_fnc) / rgns[LEN].to_numpy()
 
     def both_sorted_motif_contrib(self):
         for i, num in enumerate(Motifs().sorted_contrib()):

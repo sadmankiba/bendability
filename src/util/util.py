@@ -373,14 +373,21 @@ class PlotUtil:
         plt.legend(handles=handles)
 
     @classmethod
-    def box_many(self, distribs: Iterable[Iterable[float]], labels: list[str], ylabel: str, pltobj: plt | Axes = plt): 
+    def box_many(
+        self,
+        distribs: Iterable[Iterable[float]],
+        labels: list[str],
+        ylabel: str,
+        pltobj: plt | Axes = plt,
+    ):
         pltobj.boxplot(distribs, showfliers=False)
         if isinstance(pltobj, Axes):
+            pltobj.set_xticks(range(1, len(labels) + 1))
+            pltobj.set_xticklabels(labels)
             pltobj.set_ylabel(ylabel)
-        else: 
+        else:
             pltobj.xticks(ticks=range(1, len(labels) + 1), labels=labels)
             pltobj.ylabel(ylabel)
-
 
     @classmethod
     def bar_stacked(

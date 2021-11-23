@@ -68,9 +68,13 @@ class TestLineC0Plot:
 
 
 class TestPlotPrmtrsBndrs:
-    def test_dinc_explain(self):
+    def test_dinc_explain_scatter(self):
         pltpb = PlotPrmtrsBndrs()
-        assert pltpb.dinc_explain().is_file()
+        assert pltpb.dinc_explain_scatter().is_file()
+
+    def test_dinc_explain_box(self):
+        pltpb = PlotPrmtrsBndrs()
+        assert pltpb.dinc_explain_box().is_file()
 
     def test_both_motif_contrib_single(self):
         pltpb = PlotPrmtrsBndrs()
