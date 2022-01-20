@@ -22,8 +22,15 @@ Param 1: Bndry res = 200bp, lim = 100bp, score_perc = 0.5  (chrV 67)
 Param 2: Bndry res = 500bp, lim = 250bp, score_perc = 1.0 
 
 ### Fan-C
-Param1: res = 200bp, score > 2.0, window size = 1000 (total 1235/5676, chrV 77)
-Param2: res = 500bp, score > 1.5, window size = 1000 (total 584/2677, chrV 36)
+|Param | res(bp) | window size  | min score | Total    | ChrV | Comments | 
+|-----|----------|--------------|-----------|----------|------|----------|
+|     | 200      | 1000         | 2.0       | 1235/5676| 77   |  |
+|     | 200      | 2000         | 2.0       | 650/4830 | 37   |  |
+|     | 200      | 2000         | 1.75      | 884/4830 | 60   |  |
+|     | 200      | 2000         | 1.5       | 1180/4830| 75   |  |
+|     | 200      | 5000         | 1.0       | 710/3815 | 52   | best |
+|     | 500      | 1000         | 1.5       | 584/2677 | 36   |  |
+
 
 ## C1. Boundaries and Promoters
 
