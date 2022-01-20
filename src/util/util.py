@@ -207,7 +207,7 @@ class PathObtain:
 
     @classmethod
     def gen_data_dir(self) -> str:
-        return f"{self.data_dir()}/generated_data/"
+        return f"{self.data_dir()}/generated_data"
 
     @classmethod
     def input_dir(self) -> str:

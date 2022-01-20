@@ -32,11 +32,16 @@ class FancBoundary:
         )
         self._window_size = window_size
         self._resolution = resolution
-        self.boundaries = self._get_all_boundaries()
+        self._insul_file = f"insulation_fanc_{self}"
+        self._insulation = None
         self._insul_bed = (
-            f"{PathObtain.gen_data_dir()}/hic/insulation_fanc_res_{self._resolution}"
+            f"{PathObtain.gen_data_dir()}/hic/{self._insul_file}"
             f".insulation_{int(self._window_size / 1000)}kb.bed"
         )
+        self.boundaries = self._get_all_boundaries()
+    
+    def __str__(self):
+        return f"res_{self._resolution}_w_{self._window_size}"
 
     def plot_boundaries(
         self, chrm_num: YeastChrNum, start: int, end: int, plot_ins: bool = False
@@ -53,26 +58,28 @@ class FancBoundary:
         if start > 0 and end > 0:
             fig, axes = f.plot(f"{chrm_num}:{int(start / 1000)}kb-{int(end / 1000)}kb")
             FileSave.figure_in_figdir(
-                f"hic/{chrm_num}_{int(start / 1000)}kb_{int(end / 1000)}kb_res_{self._resolution}.png"
+                f"hic/{chrm_num}_{int(start / 1000)}kb_{int(end / 1000)}kb_{self}.png"
             )
         else:
             fig, axes = f.plot(f"{chrm_num}")
-            FileSave.figure_in_figdir(f"hic/{chrm_num}_boundaries.png")
+            FileSave.figure_in_figdir(f"hic/{chrm_num}_boundaries_{self}.png")
 
     def _get_insulation(self) -> fanc.InsulationScores:
         insulation_output_path = (
-            f"{PathObtain.gen_data_dir()}/hic/insulation_fanc_res_{self._resolution}"
+            f"{PathObtain.gen_data_dir()}/hic/{self._insul_file}"
         )
-        if Path(insulation_output_path).is_file():
-            return fanc.load(insulation_output_path)
-
-        FileSave.make_parent_dirs(insulation_output_path)
-
-        return fanc.InsulationScores.from_hic(
-            self._hic_file,
-            [1000, 2000, 5000, 10000, 25000],
-            file_name=insulation_output_path,
-        )
+        if self._insulation is None: 
+            if Path(insulation_output_path).is_file():
+                self._insulation = fanc.load(insulation_output_path)
+            else:
+                FileSave.make_parent_dirs(insulation_output_path)
+                self._insulation = fanc.InsulationScores.from_hic(
+                    self._hic_file,
+                    [self._window_size],
+                    file_name=insulation_output_path,
+                )
+        
+        return self._insulation
 
     def _save_ins_bed(self):
         if not Path(self._insul_bed).is_file():
@@ -81,7 +88,7 @@ class FancBoundary:
             )
 
     def _get_all_boundaries(self) -> fanc.architecture.domains.Boundaries:
-        boundary_file_path = f"{PathObtain.data_dir()}/generated_data/hic/boundaries_fanc_res_{self._resolution}_w_{self._window_size}"
+        boundary_file_path = f"{PathObtain.data_dir()}/generated_data/hic/boundaries_fanc_{self}"
         if Path(boundary_file_path).is_file():
             return fanc.load(boundary_file_path)
 
@@ -101,7 +108,7 @@ class FancBoundary:
         )
         FileSave.tsv(
             df,
-            f"{PathObtain.gen_data_dir()}/boundaries/chrmall_w_{self._window_size}_res_{self._resolution}_fanc.tsv",
+            f"{PathObtain.gen_data_dir()}/boundaries/chrmall_{self}_fanc.tsv",
         )
 
     def get_boundaries_in(self, chrm_num: YeastChrNum) -> list[fanc.GenomicRegion]:
