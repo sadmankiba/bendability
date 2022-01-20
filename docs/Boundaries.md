@@ -15,11 +15,15 @@ CH = Chromosome
 
 ## Method
 
+### Hi-C Explorer
 We identify domains and boundaries with Hi-C explorer. A bp is either in a domain or in a boundary. A boundary = a bin. 
 
-Param 1: Bndry res = 200bp, lim = 100bp, score_perc = 0.5  
+Param 1: Bndry res = 200bp, lim = 100bp, score_perc = 0.5  (chrV 67)
 Param 2: Bndry res = 500bp, lim = 250bp, score_perc = 1.0 
 
+### Fan-C
+Param1: res = 200bp, score > 2.0, window size = 1000 (total 1235/5676, chrV 77)
+Param2: res = 500bp, score > 1.5, window size = 1000 (total 584/2677, chrV 36)
 
 ## C1. Boundaries and Promoters
 
@@ -42,7 +46,7 @@ Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3]
 ##### Param 1 (More imp)
 1. Bndrs and prmtr bndrs both show more distrib towards higher C0, stretched bell curve. Non-prm bndrs do not show such skewness, rather even distributed, similar to genes, maybe not bndrs at all. Bndrs are short len (100 bp). 
 2. PMoB and PM similar distrib. PMwB are much more bendable in comparison and than genes. Probably because high width (500 bp).   
-3. Number: Prm bndrs - 42, Nonprm bndrs - 25, Prm w/ bndrs - 54, Prm w/o bndrs - 196
+3. Number: In chr V, Prm bndrs - 42, Nonprm bndrs - 25, Prm w/ bndrs - 54, Prm w/o bndrs - 196
 
 ##### Param 2
 1. Boundaries, both in and not in promoters, show similar bell-curve distribution. In-promoter ones are more concentrated near avg.

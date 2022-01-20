@@ -1,6 +1,7 @@
 from __future__ import annotations
 from util.custom_types import ChrId, YeastChrNum
 from util.util import FileSave, PathObtain
+
 # from chromosome.chromosome import Chromosome
 # from models.prediction import Prediction
 from util.constants import ChrIdList
@@ -32,13 +33,23 @@ class FancBoundary:
         self._window_size = window_size
         self._resolution = resolution
         self.boundaries = self._get_all_boundaries()
-
-    def plot_boundaries(self, chrm_num: YeastChrNum, start: int, end: int):
-        ph = fancplot.TriangularMatrixPlot(
-            self._hic_file, max_dist=50000, vmin=0, vmax=50
+        self._insul_bed = (
+            f"{PathObtain.gen_data_dir()}/hic/insulation_fanc_res_{self._resolution}"
+            f".insulation_{int(self._window_size / 1000)}kb.bed"
         )
-        pb = fancplot.BarPlot(self.boundaries)
-        f = fancplot.GenomicFigure([ph, pb])
+
+    def plot_boundaries(
+        self, chrm_num: YeastChrNum, start: int, end: int, plot_ins: bool = False
+    ):
+        ph = fancplot.TriangularMatrixPlot(
+            self._hic_file, max_dist=50000, vmin=0, vmax=int(self._resolution / 10)
+        )
+        pb = fancplot.BarPlot(self.boundaries, colors='red', plot_kwargs={'alpha': 0.8})
+        pl = [ph, pb]
+        if plot_ins:
+            self._save_ins_bed()
+            pl += [fancplot.LinePlot(fanc.load(self._insul_bed))]
+        f = fancplot.GenomicFigure(pl)
         if start > 0 and end > 0:
             fig, axes = f.plot(f"{chrm_num}:{int(start / 1000)}kb-{int(end / 1000)}kb")
             FileSave.figure_in_figdir(
@@ -49,7 +60,9 @@ class FancBoundary:
             FileSave.figure_in_figdir(f"hic/{chrm_num}_boundaries.png")
 
     def _get_insulation(self) -> fanc.InsulationScores:
-        insulation_output_path = f"{PathObtain.data_dir()}/generated_data/hic/insulation_fanc_res_{self._resolution}"
+        insulation_output_path = (
+            f"{PathObtain.gen_data_dir()}/hic/insulation_fanc_res_{self._resolution}"
+        )
         if Path(insulation_output_path).is_file():
             return fanc.load(insulation_output_path)
 
@@ -60,6 +73,12 @@ class FancBoundary:
             [1000, 2000, 5000, 10000, 25000],
             file_name=insulation_output_path,
         )
+
+    def _save_ins_bed(self):
+        if not Path(self._insul_bed).is_file():
+            self._get_insulation().to_bed(
+                self._insul_bed, self._window_size
+            )
 
     def _get_all_boundaries(self) -> fanc.architecture.domains.Boundaries:
         boundary_file_path = f"{PathObtain.data_dir()}/generated_data/hic/boundaries_fanc_res_{self._resolution}_w_{self._window_size}"

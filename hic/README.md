@@ -139,6 +139,7 @@ The insulation score adds up contacts in a sliding window along the Hi-C matrix 
 ![insulation score](figures/fanc_insulation_score.png)
 
 Regions with low score are “insulating”, i.e. regions between domains. Regions with high scores are most likely found inside domains.
+Boundary scores are mostly opposite of insulation score. Lower ins score have higher boundary score. 
 
 **Find insulation Score**
 
