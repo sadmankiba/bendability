@@ -1,8 +1,8 @@
 from __future__ import annotations
 from util.custom_types import ChrId, YeastChrNum
 from util.util import FileSave, PathObtain
-from chromosome.chromosome import Chromosome
-from models.prediction import Prediction
+# from chromosome.chromosome import Chromosome
+# from models.prediction import Prediction
 from util.constants import ChrIdList
 
 import fanc
@@ -41,10 +41,12 @@ class FancBoundary:
         f = fancplot.GenomicFigure([ph, pb])
         if start > 0 and end > 0:
             fig, axes = f.plot(f"{chrm_num}:{int(start / 1000)}kb-{int(end / 1000)}kb")
-            FileSave.figure(f"{PathObtain.figure_dir()}/hic/xii_100kb_300kb.png")
+            FileSave.figure_in_figdir(
+                f"hic/{chrm_num}_{int(start / 1000)}kb_{int(end / 1000)}kb_res_{self._resolution}.png"
+            )
         else:
             fig, axes = f.plot(f"{chrm_num}")
-            FileSave.figure(f"{PathObtain.figure_dir()}/hic/{chrm_num}_boundaries.png")
+            FileSave.figure_in_figdir(f"hic/{chrm_num}_boundaries.png")
 
     def _get_insulation(self) -> fanc.InsulationScores:
         insulation_output_path = f"{PathObtain.data_dir()}/generated_data/hic/insulation_fanc_res_{self._resolution}"
@@ -69,7 +71,7 @@ class FancBoundary:
             insulation, window_size=self._window_size, file_name=boundary_file_path
         )
 
-    def save_boundaries(self) -> None:
+    def save_all_boundaries(self) -> None:
         df = pd.DataFrame(
             {
                 "chromosome": list(map(lambda r: r.chromosome, self.boundaries)),
@@ -80,7 +82,7 @@ class FancBoundary:
         )
         FileSave.tsv(
             df,
-            f"{PathObtain.data_dir()}/generated_data/hic/boundaries_w_{self._window_size}_res_{self._resolution}.tsv",
+            f"{PathObtain.gen_data_dir()}/boundaries/chrmall_w_{self._window_size}_res_{self._resolution}_fanc.tsv",
         )
 
     def get_boundaries_in(self, chrm_num: YeastChrNum) -> list[fanc.GenomicRegion]:
@@ -127,7 +129,8 @@ class FancBoundaryAnalysis:
         Find c0 at octiles of boundaries in each chromosome
         """
         # First, find for chr V actual
-        chrm = Chromosome(chrm_id, Prediction(30))
+        # chrm = Chromosome(chrm_id, Prediction(30))
+        chrm = None
         one_eighth_regions = self._boundary.get_one_eighth_regions_in(chrm.id)
         assert len(one_eighth_regions) == 8
 

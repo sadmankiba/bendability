@@ -120,6 +120,10 @@ hicPlotTADs --tracks track.ini -o figures/ix_domains_hicexp.png --region chrIX:1
 
 ## FAN-C
 
+### Plotting 
+
+`vmin` and `vmax` set the amount of contact that is shown. 
+
 ### TAD
 
 **Plot domain**
@@ -127,8 +131,14 @@ hicPlotTADs --tracks track.ini -o figures/ix_domains_hicexp.png --region chrIX:1
 ```sh
 fancplot -o figures/chrix_180kb_280kb.png IX:180kb-280kb -p triangular data/GSE151553_A364_merged.juicer.hic@800 -m 50000 -vmin 0 -vmax 50
 ```
+`-m`: Maximum distance from diagonal to show
 
 #### Insulation Score
+The insulation score adds up contacts in a sliding window along the Hi-C matrix diagonal.
+
+![insulation score](figures/fanc_insulation_score.png)
+
+Regions with low score are “insulating”, i.e. regions between domains. Regions with high scores are most likely found inside domains.
 
 **Find insulation Score**
 
