@@ -7,7 +7,7 @@ Measured Intrinsic Cyclizability from [Measuring DNA mechanics on the genome sca
 
 2. In `loops/` and `boundaries/`,
 Chromatin conformation data generated with `Juicer Tools` and `HiCExplorer`. 
-Hi-C data of Yeast is taken from [Cohesin residency determines chromatin loop patterns](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE151553) paper. It was derived with Micro-C.  
+Hi-C data of Yeast is taken from [Cohesin residency determines chromatin loop patterns](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE151553) paper. It was derived with Micro-C XL.  
 
 3. In `nucleosome_position/`,
 Nucleosome center positions from [A map of nucleosome positions in yeast at base-pair resolution](https://www.nature.com/articles/nature11142?page=3)

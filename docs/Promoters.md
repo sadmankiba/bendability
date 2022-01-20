@@ -75,34 +75,6 @@ Line plot c0 of each promoter along with nuc pos. [C5][F4]
 
 
 
-## Motif contribution comparison in PMwB and PMoB
-
-### Research Question
-1. Does any motif show completely opposite contrib?
-2. Any pattern among motifs with highest -ve or +ve contrib to c0?
-
-### Procedure 
-Merged in subplot motif contribs with these sorted by contrib.
-
-### Observations 
-1. No. 
-2. 
-  a. Motifs with -ve contrib to C0
-    i. Most (70%) motifs show higher contrib to without boundaries. Others show similar pattern in both. (expected)
-  
-  b. Motifs with +ve contrib to c0 
-    i. No observable preference found for PMwB. (unexpected)
-    ii. Some (30%) showed slight preference for PMwB. Most on left of promoter mid. 
-    iii. Surprisingly, some (30%) showed preference for PMoB. Most on right of promoter mid. 
-  
-  c. Midrange
-    i. Similar in both. (expc.)
-
-### Future Directions 
-1. Align promoters according to gene direction.
-2. Cluster motifs by contribution patterns in PMwB and PMoB. Simplest, pearson.
-
-
 ## Code References
 [C1] `chromosome.crossregions.DistribPlot.prob_distrib_prmtr_ndrs`  
 [C2] `chromosome.crossregions.DistribPlot.num_prmtrs_bndrs_ndrs`  

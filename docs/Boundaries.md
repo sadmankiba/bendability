@@ -39,7 +39,7 @@ Prob. dist / density of C0 in PM, BN, PM/B, BN/P, CH [C3]
 
 #### Observations
 
-##### Param 1
+##### Param 1 (More imp)
 1. Bndrs and prmtr bndrs both show more distrib towards higher C0, stretched bell curve. Non-prm bndrs do not show such skewness, rather even distributed, similar to genes, maybe not bndrs at all. Bndrs are short len (100 bp). 
 2. PMoB and PM similar distrib. PMwB are much more bendable in comparison and than genes. Probably because high width (500 bp).   
 3. Number: Prm bndrs - 42, Nonprm bndrs - 25, Prm w/ bndrs - 54, Prm w/o bndrs - 196
@@ -156,7 +156,7 @@ Take mean of +- 250 bp around boundary mid. [C1] [F1]
 
 **Observations**
 - Promoter boundaries: 
-  - In most chrms, a rigid region than surrounding region. Probably Nucleosome Free Region (NFR). 
+  - In most chrms, periodic rigidity and bendability is seen at about one nucleosomal distance. Rigid region is not highly rigid, not exactly at boundary mid. 
   - In big chromosomes (e.g. IV), the dip is not much observable. Because of misalignment of boundaries.
 
 - Non-promoter boundaries: 
