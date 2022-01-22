@@ -238,14 +238,20 @@ class DistribPlot:
             f"_{prmtrs}_{self._chrm.id}.png"
         )
 
-    def num_prmtrs_bndrs_ndrs(self) -> Path:
+    def num_prmtrs_bndrs_ndrs(self, frml:int=1) -> Path:
+        def _alg():
+            if frml == 1:
+                return Regions.with_rgn
+            elif frml == 2:
+                return Regions.overlaps_with_rgns
+
         min_lnkr_len = 40
         ndrs = Linkers(self._chrm).ndrs(min_lnkr_len)
         prmtrs = Promoters(self._chrm)
-        prmtrs_with_ndr = prmtrs.with_rgn(ndrs)
+        prmtrs_with_ndr = _alg()(prmtrs, ndrs, min_lnkr_len)
         prmtrs_wo_ndr = prmtrs - prmtrs_with_ndr
-        bndrs = BoundariesHE(self._chrm, res=200)
-        bndrs_with_ndr = bndrs.with_rgn(ndrs)
+        bndrs = BoundariesHE(self._chrm, **BndParm.HIRS_SHR)
+        bndrs_with_ndr = _alg()(bndrs, ndrs, min_lnkr_len)
         bndrs_wo_ndr = bndrs - bndrs_with_ndr
         PlotUtil.clearfig()
         plt.bar(

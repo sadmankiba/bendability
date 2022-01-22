@@ -21,7 +21,7 @@ class TestDistribPlot:
         assert crplt_vl.distrib_cuml_bndrs_nearest_ndr_distnc().is_file()
 
     def test_num_prmtrs_bndrs_ndrs(self, crplt_vl: DistribPlot):
-        assert crplt_vl.num_prmtrs_bndrs_ndrs().is_file()
+        assert crplt_vl.num_prmtrs_bndrs_ndrs(2).is_file()
 
     def test_box_mean_c0_bndrs_prmtrs(self, crplt_vl: DistribPlot):
         assert crplt_vl.box_mean_c0_bndrs_prmtrs().is_file()

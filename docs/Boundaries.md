@@ -18,8 +18,8 @@ CH = Chromosome
 ### Hi-C Explorer
 We identify domains and boundaries with Hi-C explorer. A bp is either in a domain or in a boundary. A boundary = a bin. 
 
-Param 1: Bndry res = 200bp, lim = 100bp, score_perc = 0.5  (chrV 67)
-Param 2: Bndry res = 500bp, lim = 250bp, score_perc = 1.0 
+Param BH1: Bndry res = 200bp, lim = 100bp, score_perc = 0.5  (chrV 67)
+Param BH2: Bndry res = 500bp, lim = 250bp, score_perc = 1.0 
 
 ### Fan-C
 |Param | res(bp) | window size  | min score | Total    | ChrV | Comments | 
@@ -28,7 +28,7 @@ Param 2: Bndry res = 500bp, lim = 250bp, score_perc = 1.0
 |     | 200      | 2000         | 2.0       | 650/4830 | 37   |  |
 |     | 200      | 2000         | 1.75      | 884/4830 | 60   |  |
 |     | 200      | 2000         | 1.5       | 1180/4830| 75   |  |
-|     | 200      | 5000         | 1.0       | 710/3815 | 52   | best |
+| BF1 | 200      | 5000         | 1.0       | 710/3815 | 52   | best |
 |     | 500      | 1000         | 1.5       | 584/2677 | 36   |  |
 
 
@@ -94,14 +94,14 @@ Using param 1, mean C0, TpA and CpG content of PMwB and PMoB were checked. [C11,
 ### Exp 2.1. Number and Comparison of C0 in boundaries w/ or w/o NDRs 
 
 #### Procedure
-Promoters with and without any linkers >= x bp were considered. Number [C4] [F5]
+Boundaries with and without any linkers >= x bp were considered. Number [C4] [F5]
+Method A: BH2. linker: >= 80bp:
+Method B: 
 
 #### Observations
-*Number*
-1. Param 1. linker: >= 80bp: 
-  - With NDRs 22 (40%), without NDRs 37 (60%)
-2. Param 2. linker: >= 40bp:
-  - 
+Method A:
+*Number*  
+With NDRs 22 (40%), without NDRs 37 (60%)
   
 *C0*
 ?

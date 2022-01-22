@@ -12,10 +12,12 @@ PMoD = Promoters without NDR
 - Where does NDRs tend to occur? Considering Prmtr TSS side to other side?
 
 **Procedure**
-Promoters with and without any linkers >= 80 bp were considered. Number [C2] [F2] and C0 [C1] [F1]
-Method: NDR completely contained in prmtr. 
+Promoters with and without any NDRs were considered. Number [C2] [F2] and C0 [C1] [F1]
+Method A: NDR = linkers >= 80 bp. NDR completely contained in prmtr.  
+Method B: NDR = linkers >= 40 bp. NDR completely contained in prmtr. 
 
 **Observations**  
+Method A:
 *Number*  
 - In ChrV, With NDRs 100 (40%), without NDRs 150 (60%)
 
@@ -23,6 +25,10 @@ Method: NDR completely contained in prmtr.
 In chr V actual, 
 - PMoD are more likely to have high bendability - a local hill in higher C0 (-0.05).
 - PMwD show typical bell curve. Probably becz low C0 at NDRs and high C0s cancel out. A slight tendency for rigidity - the curve is steeper on high C0 side. 
+
+Method B: 
+*Number*  
+- In ChrV, With NDRs 148 (59%), without NDRs 102 (41%)
 
 ## Prob distrib of linkers length in promoters 
 
