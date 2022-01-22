@@ -12,6 +12,10 @@ def rgns_simp_vl(chrm_vl_mean7):
     regions = pd.DataFrame({START: [3, 7, 9], END: [4, 12, 10]})
     return Regions(chrm_vl_mean7, regions=regions)
 
+@pytest.fixture
+def rgns_simp_vl_2(chrm_vl_mean7):
+    regions = pd.DataFrame({START: [4, 6, 9], END: [6, 8, 11]})
+    return Regions(chrm_vl_mean7, regions=regions)
 
 class TestRegions:
     def test_accs_iterable(self, rgns_simp_vl: Regions):
@@ -21,7 +25,13 @@ class TestRegions:
             [3, 4],
             [9, 10],
         ]
-
+    
+    def test_overlaps_with_rgns(self, rgns_simp_vl: Regions, rgns_simp_vl_2: Regions):
+        orgns = rgns_simp_vl.overlaps_with_rgns(rgns_simp_vl_2, 2)
+        assert len(orgns) == 2
+        assert list(orgns[START]) == [7, 9]
+        assert list(orgns[END]) == [12, 10]
+        
     def test_contains(self, chrm_vl_mean7: Chromosome):
         containers = pd.DataFrame({START: [3, 7, 9], END: [4, 12, 10]})
         rgns = Regions(chrm_vl_mean7, regions=containers)

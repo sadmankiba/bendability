@@ -11,7 +11,7 @@ from nptyping import NDArray
 from chromosome.chromosome import ChrmOperator, Chromosome, PlotChrm
 from util.util import Attr, FileSave, NumpyTool, PlotUtil
 from util.constants import ONE_INDEX_START
-from util.custom_types import PosOneIdx, NonNegativeInt
+from util.custom_types import PosOneIdx, NonNegativeInt, PositiveInt
 
 RegionsInternal = pd.DataFrame
 
@@ -54,7 +54,10 @@ class Regions:
         if isinstance(key, NonNegativeInt):
             return self._regions.iloc[key]
 
-        if isinstance(key, Iterable) and isinstance(list(key)[0], bool):
+        def _is_bool_array(arg):
+            return isinstance(arg, Iterable) and isinstance(list(arg)[0], bool)
+
+        if _is_bool_array(key):
             return self._new(self._regions.loc[key])
 
         if key in self._regions.columns:
@@ -77,6 +80,9 @@ class Regions:
     def __add__(self, other: Regions) -> Regions:
         assert set(self._regions.columns) == set(other._regions.columns)
         return self._new(pd.merge(self._regions, other._regions, how="outer"))
+
+    def __str__(self):
+        return str(self._regions)
 
     @property
     def mean_c0(self) -> float:
@@ -114,6 +120,16 @@ class Regions:
 
         rgns = Regions(self.chrm, pd.DataFrame({START: starts, END: ends}))
         return rgns
+
+    def overlaps_with_rgns(self, rgns: Regions, min_ovbp: PositiveInt) -> Regions:
+        def _overlaps(srgn: RegionNT) -> bool:
+            scv = ChrmOperator(self.chrm).create_cover_mask(
+                [getattr(srgn, START)], [getattr(srgn, END)]
+            )
+            return np.sum(scv & rgns.cover_mask) >= min_ovbp 
+
+        ovlps = list(map(lambda srgn: _overlaps(srgn), self))
+        return self._new(self._regions.iloc[ovlps])
 
     def with_rgn(self, rgns: Regions) -> Regions:
         cntns = self._contains_rgn(rgns)
