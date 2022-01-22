@@ -15,6 +15,7 @@ PMoD = Promoters without NDR
 Promoters with and without any NDRs were considered. Number [C2] [F2] and C0 [C1] [F1]
 Method A: NDR = linkers >= 80 bp. NDR completely contained in prmtr.  
 Method B: NDR = linkers >= 40 bp. NDR completely contained in prmtr. 
+Method C: NDR = linkers >= 40 bp. NDR overlaps with prmtr by >= 40 bp. 
 
 **Observations**  
 Method A:
@@ -29,6 +30,11 @@ In chr V actual,
 Method B: 
 *Number*  
 - In ChrV, With NDRs 148 (59%), without NDRs 102 (41%)
+
+Method C: 
+*Number*  
+- In ChrV, Prm With NDRs 201, w/o NDRs 49. NDR in Prm 210, NDR out Prm 620.
+
 
 ## Prob distrib of linkers length in promoters 
 

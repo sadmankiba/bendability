@@ -95,8 +95,8 @@ Using param 1, mean C0, TpA and CpG content of PMwB and PMoB were checked. [C11,
 
 #### Procedure
 Boundaries with and without any linkers >= x bp were considered. Number [C4] [F5]
-Method A: BH2. linker: >= 80bp:
-Method B: 
+Method A: BH2. NDR = linker: >= 80bp. NDR completely in Bnd.
+Method B: BH1. NDR = linker: >= 40bp. NDR ovlps with Bnd >= 40 bp.
 
 #### Observations
 Method A:
@@ -105,6 +105,11 @@ With NDRs 22 (40%), without NDRs 37 (60%)
   
 *C0*
 ?
+
+Method B:
+*Number*  
+Bnd With NDRs 45, Bnd w/o NDRs 15. NDR in Bnd 45, NDR out Bnd 785. 
+
 
 ### Exp 2.2. Closest NDR distance from boundary
 

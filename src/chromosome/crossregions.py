@@ -6,6 +6,7 @@ from typing import Any, Callable, Iterator, Literal
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
+import matplotlib.ticker as plticker
 import pandas as pd
 import numpy as np
 from cairosvg import svg2png
@@ -238,46 +239,59 @@ class DistribPlot:
             f"_{prmtrs}_{self._chrm.id}.png"
         )
 
-    def num_prmtrs_bndrs_ndrs(self, frml:int=1) -> Path:
-        def _alg():
-            if frml == 1:
-                return Regions.with_rgn
-            elif frml == 2:
-                return Regions.overlaps_with_rgns
-
+    def num_prmtrs_bndrs_ndrs(self, frml: int = 1) -> Path:
         min_lnkr_len = 40
+
+        def _includes(*rgnss):
+            if frml == 1:
+                return Regions.with_rgn(*rgnss)
+            elif frml == 2:
+                return Regions.overlaps_with_rgns(*rgnss, min_ovbp=min_lnkr_len)
+
         ndrs = Linkers(self._chrm).ndrs(min_lnkr_len)
         prmtrs = Promoters(self._chrm)
-        prmtrs_with_ndr = _alg()(prmtrs, ndrs, min_lnkr_len)
+        prmtrs_with_ndr = _includes(prmtrs, ndrs)
         prmtrs_wo_ndr = prmtrs - prmtrs_with_ndr
         bndrs = BoundariesHE(self._chrm, **BndParm.HIRS_SHR)
-        bndrs_with_ndr = _alg()(bndrs, ndrs, min_lnkr_len)
+        bndrs_with_ndr = _includes(bndrs, ndrs)
         bndrs_wo_ndr = bndrs - bndrs_with_ndr
+        ndrs_in_prmtrs = _includes(ndrs, prmtrs)
+        ndrs_out_prmtrs = ndrs - ndrs_in_prmtrs
+        ndrs_in_bndrs = _includes(ndrs, bndrs)
+        ndrs_out_bndrs = ndrs - ndrs_in_bndrs
         PlotUtil.clearfig()
+        PlotUtil.show_grid("major")
+        plt_items = [
+            (1, len(prmtrs_with_ndr), "Prm w ND"),
+            (2, len(prmtrs_wo_ndr), "Prm wo ND"),
+            (4, len(bndrs_with_ndr), "Bnd w ND"),
+            (5, len(bndrs_wo_ndr), "Bnd wo ND"),
+            (7, len(ndrs_in_prmtrs), "ND i Prm"),
+            (8, len(ndrs_out_prmtrs), "ND o Prm"),
+            (10, len(ndrs_in_bndrs), "ND i Bnd"),
+            (11, len(ndrs_out_bndrs), "ND o Bnd"),
+        ]
         plt.bar(
-            [0, 1, 3, 4],
-            [
-                len(prmtrs_with_ndr),
-                len(prmtrs_wo_ndr),
-                len(bndrs_with_ndr),
-                len(bndrs_wo_ndr),
-            ],
+            list(map(lambda x: x[0], plt_items)),
+            list(map(lambda x: x[1], plt_items)),
         )
         plt.xticks(
-            [0, 1, 3, 4],
-            [
-                "Promoters with NDR",
-                "Promoters without NDR",
-                "Boundaries with NDR",
-                "Boundaries without NDR",
-            ],
+            list(map(lambda x: x[0], plt_items)),
+            list(map(lambda x: x[2], plt_items)),
         )
         plt.title(
             f"Promoters and Boundaries with and without NDR in {self._chrm.number}"
         )
-        return FileSave.figure_in_figdir(
+        figpath = FileSave.figure_in_figdir(
             f"genes/num_prmtrs_bndrs_{bndrs}_ndr_{min_lnkr_len}_{self._chrm.number}.png"
         )
+        
+        fig, ax = plt.subplots()
+        # ax.plot(x,y)
+        loc = plticker.MultipleLocator(base=50) # this locator puts ticks at regular intervals
+        ax.yaxis.set_major_locator(loc)
+        
+        return figpath
 
     def prob_distrib_prmtr_ndrs(self) -> Path:
         lng_lnkrs = Linkers(self._chrm).ndrs()
