@@ -124,6 +124,33 @@ class DomainsHE(Regions):
         )
 
 
+class BoundariesF(Regions):
+    def __init__(
+        self,
+        chrm: Chromosome,
+        top_perc: ZeroToOne = 1.0,
+        regions: RegionsInternal = None,
+    ):
+        self._top_perc = top_perc
+        super().__init__(chrm, regions)
+
+    def _get_regions(self):
+        df = pd.read_csv(
+            f"{PathObtain.gen_data_dir()}/boundaries/chrmall_res_200_w_5000_fanc.tsv",
+            sep="\t",
+        )
+        assert START in df.columns.tolist()
+        assert END in df.columns.tolist() 
+        assert SCORE in df.columns.tolist() 
+        
+        df = df.loc[df["chromosome"] == self.chrm.number].drop(columns=["chromosome"])
+        df = df.loc[df[SCORE] >= np.quantile(df[SCORE].to_numpy(), 1 - self._top_perc)]
+        return df
+
+    def _new(self, regions: RegionsInternal) -> BoundariesHE:
+        return BoundariesHE(self.chrm, self._top_perc, regions)
+
+
 class PlotBoundariesHE:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm

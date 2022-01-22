@@ -271,7 +271,7 @@ class Chromosome:
         return "actual" if self.id == "VL" else "predicted"
 
     @property
-    def number(self):
+    def number(self) -> YeastChrNum:
         return "V" if self.id == "VL" else self.id
 
     @property

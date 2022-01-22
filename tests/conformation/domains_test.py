@@ -7,6 +7,7 @@ from conformation.domains import (
     PlotBoundariesHE,
     MCBoundariesHEAggregator,
     MCBoundariesHECollector,
+    BoundariesF
 )
 from chromosome.regions import MIDDLE
 from chromosome.chromosome import Chromosome
@@ -50,6 +51,10 @@ class TestBoundariesHE:
             rel=1e-3,
         )
 
+class TestBoundariesF:
+    def test_init(self, chrm_vl_mean7):
+        bndrs = BoundariesF(chrm_vl_mean7, 0.25)
+        assert len(bndrs) == 45
 
 @pytest.mark.skip(reason="Updating domains")
 class TestBoundariesDomainsHEQuery:
