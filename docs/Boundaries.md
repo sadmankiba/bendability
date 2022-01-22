@@ -110,10 +110,12 @@ Promoters with and without any linkers >= x bp were considered. Number [C4] [F5]
 
 #### Procedure
 Closest distance from boundary middle to a long linker (>=40 bp) middle was recorded. [C5, C6][F6, F7]
+Param - ?
 
 #### Observations
 - Significantly higher numbers of linkers >=30 or 40 bp are close to boundaries than linkers >= 60 or 80 bp. Suggests that 40bp linker is a good threshold to find NDRs near boundaries. 
-- When only strong boundaries are considered (stronger 2 quartiles), about 90% boundaries have a linker >=40 bp within +- 250 bp. 
+- When only strong boundaries are considered (stronger 2 quartiles), about 90% boundaries have a linker >=40 bp within +- 250 bp. (That's a lot of distance!)
+
 - Only 60% random locs are within +- 250bp of a long linker (>=40bp).
 
 #### Future Directions
