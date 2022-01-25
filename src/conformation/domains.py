@@ -38,7 +38,12 @@ class BndParm:
     HIRS_SHR = BndParmT(res=200, lim=100, score_perc=0.5)
 
 
-class BoundariesHE(Regions):
+class Boundaries(Regions):
+    def __init__(self, chrm: Chromosome, regions: RegionsInternal):
+        super().__init__(chrm, regions)
+    
+
+class BoundariesHE(Boundaries):
     """
     Represenation of boundaries in a chromosome found with Hi-C Explorer
 
@@ -124,7 +129,7 @@ class DomainsHE(Regions):
         )
 
 
-class BoundariesF(Regions):
+class BoundariesF(Boundaries):
     def __init__(
         self,
         chrm: Chromosome,

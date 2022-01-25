@@ -7,7 +7,7 @@ from conformation.domains import (
     PlotBoundariesHE,
     MCBoundariesHEAggregator,
     MCBoundariesHECollector,
-    BoundariesF
+    BoundariesF,
 )
 from chromosome.regions import MIDDLE
 from chromosome.chromosome import Chromosome
@@ -33,7 +33,7 @@ class TestBoundariesHE:
 
     def test_mean_c0(self, bndrs_vl: BoundariesHE):
         mc0 = bndrs_vl.mean_c0
-        assert mc0 == pytest.approx(-0.180, rel=1e-3)
+        assert mc0 == pytest.approx(-0.180, abs=1e-2)
 
     def test_prmtr_non_prmtr_bndrs(self, bndrs_vl: BoundariesHE):
         prmtr_bndrs = bndrs_vl.prmtr_bndrs()
@@ -51,10 +51,12 @@ class TestBoundariesHE:
             rel=1e-3,
         )
 
+
 class TestBoundariesF:
     def test_init(self, chrm_vl_mean7):
         bndrs = BoundariesF(chrm_vl_mean7, 0.25)
         assert len(bndrs) == 45
+
 
 @pytest.mark.skip(reason="Updating domains")
 class TestBoundariesDomainsHEQuery:

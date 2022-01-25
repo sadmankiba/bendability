@@ -212,7 +212,7 @@ Take mean c0 at each bp for a long segment (6000 bp) around boundary. [C1] [F3]
 [C1] `conformation.domains.PlotBoundariesHE.line_c0_around()`
 [C2] `conformation.domains.MCBoundariesHECollector.plot_scatter_mean_c0()`
 [C3] `conformation.domains.PlotBoundariesHE.prob_distrib()`
-[C4] `chromosome.crossregions.DistribPlot.prob_distrib_linkers_len_prmtrs`
+[C4] `chromosome.crossregions.DistribPlot.num_prmtrs_bndrs_ndrs`
 [C5] `chromosome.crossregions.DistribPlot.prob_distrib_bndrs_nearest_ndr_distnc` 
 [C6] `chromosome.crossregions.DistribPlot.distrib_cuml_bndrs_nearest_ndr_distnc`
 [C8] `chromosome.crossregions.DistribPlot.distrib_cuml_bndrs_nearest_tss_distnc`
@@ -220,6 +220,7 @@ Take mean c0 at each bp for a long segment (6000 bp) around boundary. [C1] [F3]
 [C10] `chromosome.crossregions.LineC0Plot.line_c0_bndrs_indiv_toppings`
 [C11] `chromosome.crossregions.PlotPrmtrsBndrs.dinc_explain_box`
 [C12] `chromosome.crossregions.PlotPrmtrsBndrs.dinc_explain_scatter`
+
 
 ## Figure References
 [F1] 
