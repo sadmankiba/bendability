@@ -21,9 +21,13 @@ We identify domains and boundaries with Hi-C explorer. A bp is either in a domai
 Param BH1: Bndry res = 200bp, lim = 100bp, score_perc = 0.5  (chrV 67)
 Param BH2: Bndry res = 500bp, lim = 250bp, score_perc = 1.0 
 
+NDR Length 
+Method DL1: linker >= 80bp.
+Method DL2: linker >= 40bp.
+
 NDR Common
-Method DC1: NDR = linker: >= 80bp. NDR completely in Bnd.
-Method DC2: NDR = linker: >= 40bp. NDR ovlps with Bnd >= 40 bp.
+Method DC1: DL1. NDR completely in Bnd.
+Method DC2: DL2. NDR ovlps with Bnd >= 40 bp.
 
 ### Fan-C
 |Param | res(bp) | window size  | min score | Total    | ChrV | Comments | 
@@ -131,44 +135,6 @@ Param - ?
 #### Future Directions
 - See nearest long linker distance from random positions or whole chromosome.
 
-### Exp 2.3. Inspect long linker positions, length, seq, C0; rigid/flexible region around each boundary.
-
-#### Research Question
-*Long Linker*
-1. Occur. Prob. of long linkers 
-2. length of long linkers. 
-3. seq pattern of long linkers. 
-4. C0 of long linkers. 
-
-*Sharp Dip / Bendable*
-1. Occur prob. of sharp dip / bendable.
-2. Width of these regions
-3. within nuc / linker?
-
-*Strong vs. weak*
-1. Position
-2. C0
-
-#### Procedure
-Bndry indiv plotted with nuc, linker pos. Bndrs by HicExpl. [C9][F10]
-
-#### Observations
-*Long Linker*
-1. In prmtr bndry, >80% times close. In non-prmtr bndry, >60% times close. 
-2. \>60% long linkers were very long (>100bp)
-3. 30% times runs of A, runs of T. Other times no pattern, specially very long linkers. (prob missing nuc)
-4. In promoters, about 50% times downward hill. In non-promoters, about 50% times downward. 
-
-*Sharp Dip/Bendable*
-1. 
-- In prmtr bndrs, About 60% times sharp dip in or close to bndry mid. 
-- In non prmtr bndrs, in those with long linkers, about 70% times sharp dip. In those with nuc, about 30% times sharp dip. 
-2. 50-100 bp
-3. 80% times sharp dip are within linker. 
-
-*Strong vs. weak*
-1. Strong boundaries are close to TSS. Often at promoters. For example, at 322.2k and 342.6k. 
-2. About 25% strong do have long linkers + sharp dip. Same for weaks (~-0.4). So, no correlation between sharp dip + strongness. But, >50% strong have long linkers. About 40% weak have long linkers. 
 
 ## C3. Mean C0 in Boundaries
 
@@ -213,16 +179,60 @@ Take mean c0 at each bp for a long segment (6000 bp) around boundary. [C1] [F3]
 - Nice peak of C0 when smoothed shown by Samin was observed in raw eyes only at a few BN. ( 2 / 7 I saw)
 
 
-## C4. Boundary Plots 
+## C4. Boundary Plots
 
-### Research Question
-- Any pattern in CO, closeness to Promoter or NDR?
+### Exp 4.1. Inspect long linker positions, length, seq, C0; rigid/flexible region around each boundary by plotting.
 
-### Procedure
-Method A: BF1. 
+#### Research Question
+Any pattern in 
+
+*Long Linker*
+1. Occur. Prob. of long linkers 
+2. length of long linkers. 
+3. seq pattern of long linkers. 
+4. C0 of long linkers. 
+
+*Sharp Dip / Bendable*
+1. Occur prob. of sharp dip / bendable.
+2. Width of these regions
+3. within nuc / linker?
+
+*Strong vs. weak*
+1. Position
+2. C0
+
+*Distance from TSS*
+1. Position
+
+#### Procedure
+Bndry indiv plotted with nuc, linker pos. [C9][F10]
+Method A: BH2. DL2.
+Method B: BF1. DL2. 
+
+#### Observations
+Method A
+*Long Linker*
+1. In prmtr bndry, >80% times close. In non-prmtr bndry, >60% times close. 
+2. \>60% long linkers were very long (>100bp)
+3. 30% times runs of A, runs of T. Other times no pattern, specially very long linkers. (prob missing nuc)
+4. In promoters, about 50% times downward hill. In non-promoters, about 50% times downward. 
+
+*Sharp Dip/Bendable*
+1. 
+- In prmtr bndrs, About 60% times sharp dip in or close to bndry mid. 
+- In non prmtr bndrs, in those with long linkers, about 70% times sharp dip. In those with nuc, about 30% times sharp dip. 
+2. 50-100 bp
+3. 80% times sharp dip are within linker. 
+
+*Strong vs. weak*
+1. Strong boundaries are close to TSS. Often at promoters. For example, at 322.2k and 342.6k. 
+2. About 25% strong do have long linkers + sharp dip. Same for weaks (~-0.4). So, no correlation between sharp dip + strongness. But, >50% strong have long linkers. About 40% weak have long linkers. 
+
+Method B
+
 
 ### Observations
-
+C0: Some 
 
 ## Code References
 [C1] `conformation.domains.PlotBoundariesHE.line_c0_around()`
