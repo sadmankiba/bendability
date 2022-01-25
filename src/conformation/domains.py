@@ -1,4 +1,5 @@
 from __future__ import annotations
+from enum import Enum, auto
 from pathlib import Path
 from typing import Iterable, Literal, NamedTuple, Any, TypedDict
 
@@ -155,6 +156,17 @@ class BoundariesF(Boundaries):
     def _new(self, regions: RegionsInternal) -> BoundariesHE:
         return BoundariesHE(self.chrm, self._top_perc, regions)
 
+class BoundariesType(Enum): 
+    HEXP = auto()
+    FANC = auto()
+
+class BoundariesFactory:
+    @classmethod
+    def get_bndrs(self, btype: BoundariesType, *args, **kwargs) -> Boundaries:
+        if btype == BoundariesType.HEXP:
+            return BoundariesHE(*args, **kwargs)
+        elif btype == BoundariesType.FANC:
+            return BoundariesF(*args, **kwargs)
 
 class PlotBoundariesHE:
     def __init__(self, chrm: Chromosome) -> None:

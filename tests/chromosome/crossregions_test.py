@@ -5,8 +5,7 @@ import pytest
 from chromosome.chromosome import Chromosome
 from chromosome.crossregions import DistribPlot, LineC0Plot, PlotPrmtrsBndrs
 from chromosome.genes import Promoters
-from conformation.domains import BoundariesHE
-
+from conformation.domains import BoundariesHE, BoundariesType
 
 @pytest.fixture
 def crplt_vl(chrm_vl_mean7: Chromosome):
@@ -21,7 +20,7 @@ class TestDistribPlot:
         assert crplt_vl.distrib_cuml_bndrs_nearest_ndr_distnc().is_file()
 
     def test_num_prmtrs_bndrs_ndrs(self, crplt_vl: DistribPlot):
-        assert crplt_vl.num_prmtrs_bndrs_ndrs(2).is_file()
+        assert crplt_vl.num_prmtrs_bndrs_ndrs(2, BoundariesType.HEXP).is_file()
 
     def test_box_mean_c0_bndrs_prmtrs(self, crplt_vl: DistribPlot):
         assert crplt_vl.box_mean_c0_bndrs_prmtrs().is_file()

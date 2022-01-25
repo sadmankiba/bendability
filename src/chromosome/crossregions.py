@@ -17,11 +17,19 @@ from chromosome.dinc import Dinc
 from chromosome.genes import Genes
 from motif.motifs import Motifs
 from util.constants import FigSubDir, ONE_INDEX_START
+
 from .chromosome import Chromosome
 from chromosome.regions import END, MIDDLE, START
 from .genes import Promoters, STRAND
 from .nucleosomes import Linkers, Nucleosomes
-from conformation.domains import BndParmT, BoundariesHE, SCORE, BndParm
+from conformation.domains import (
+    BndParmT,
+    BoundariesHE,
+    SCORE,
+    BndParm,
+    BoundariesType,
+    BoundariesFactory,
+)
 from .regions import LEN, MEAN_C0, Regions
 from util.util import Attr, PathObtain, PlotUtil, FileSave
 from util.custom_types import PosOneIdx
@@ -239,7 +247,7 @@ class DistribPlot:
             f"_{prmtrs}_{self._chrm.id}.png"
         )
 
-    def num_prmtrs_bndrs_ndrs(self, frml: int = 1) -> Path:
+    def num_prmtrs_bndrs_ndrs(self, frml: int, btype: BoundariesType) -> Path:
         min_lnkr_len = 40
 
         def _includes(*rgnss):
@@ -252,7 +260,7 @@ class DistribPlot:
         prmtrs = Promoters(self._chrm)
         prmtrs_with_ndr = _includes(prmtrs, ndrs)
         prmtrs_wo_ndr = prmtrs - prmtrs_with_ndr
-        bndrs = BoundariesHE(self._chrm, **BndParm.HIRS_SHR)
+        bndrs = BoundariesFactory.get_bndrs(btype, self._chrm, **BndParm.HIRS_SHR)
         bndrs_with_ndr = _includes(bndrs, ndrs)
         bndrs_wo_ndr = bndrs - bndrs_with_ndr
         ndrs_in_prmtrs = _includes(ndrs, prmtrs)
@@ -285,12 +293,14 @@ class DistribPlot:
         figpath = FileSave.figure_in_figdir(
             f"genes/num_prmtrs_bndrs_{bndrs}_ndr_{min_lnkr_len}_{self._chrm.number}.png"
         )
-        
+
         fig, ax = plt.subplots()
         # ax.plot(x,y)
-        loc = plticker.MultipleLocator(base=50) # this locator puts ticks at regular intervals
+        loc = plticker.MultipleLocator(
+            base=50
+        )  # this locator puts ticks at regular intervals
         ax.yaxis.set_major_locator(loc)
-        
+
         return figpath
 
     def prob_distrib_prmtr_ndrs(self) -> Path:
