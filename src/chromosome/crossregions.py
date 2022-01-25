@@ -29,6 +29,8 @@ from conformation.domains import (
     BndParm,
     BoundariesType,
     BoundariesFactory,
+    BndFParm, 
+    BndSel
 )
 from .regions import LEN, MEAN_C0, Regions
 from util.util import Attr, PathObtain, PlotUtil, FileSave
@@ -38,14 +40,14 @@ from util.custom_types import PosOneIdx
 class SubRegions:
     def __init__(self, chrm: Chromosome) -> None:
         self.chrm = chrm
-        self.bnd_parm = BndParmT()
         self._prmtrs = None
         self._bndrs = None
+        self._bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
 
     @property
     def bndrs(self) -> BoundariesHE:
         def _bndrs():
-            return BoundariesHE(self.chrm, **self.bnd_parm)
+            return BoundariesFactory(self.chrm).get_bndrs(self.bsel)
 
         return Attr.calc_attr(self, "_bndrs", _bndrs)
 
@@ -63,11 +65,26 @@ class SubRegions:
 
         return Attr.calc_attr(self, "_genes", _genes)
 
+    @property
+    def bsel(self) -> BndSel: 
+        return self._bsel 
+    
+    @bsel.setter 
+    def bsel(self, _bsel: BndSel):
+        self._bsel = _bsel 
+        self._bndrs = None 
+
     def prmtrs_with_bndrs(self):
         return self.prmtrs.with_loc(self.bndrs[MIDDLE], True)
 
     def prmtrs_wo_bndrs(self):
         return self.prmtrs.with_loc(self._bndrs[MIDDLE], False)
+    
+    def prmtr_bndrs(self):
+        return self.bndrs.mid_contained_in(self.prmtrs)
+    
+    def non_prmtr_bndrs(self):
+        return self.bndrs - self.prmtr_bndrs()
 
 
 class DistribPlot:
@@ -184,7 +201,7 @@ class DistribPlot:
 
     def box_mean_c0_bndrs_prmtrs(self) -> Path:
         sr = SubRegions(self._chrm)
-        sr.bnd_parm = BndParm.HIRS_SHR
+        sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
         distribs = [
             sr.bndrs[MEAN_C0],
             sr.prmtrs[MEAN_C0],
@@ -260,7 +277,13 @@ class DistribPlot:
         prmtrs = Promoters(self._chrm)
         prmtrs_with_ndr = _includes(prmtrs, ndrs)
         prmtrs_wo_ndr = prmtrs - prmtrs_with_ndr
-        bndrs = BoundariesFactory.get_bndrs(btype, self._chrm, **BndParm.HIRS_SHR)
+        
+        if btype == BoundariesType.HEXP:
+            bparm = BndParm.HIRS_SHR
+        elif btype == BoundariesType.FANC: 
+            bparm = BndFParm.SHR_25
+        
+        bndrs = BoundariesFactory(self._chrm).get_bndrs(BndSel(btype, bparm))
         bndrs_with_ndr = _includes(bndrs, ndrs)
         bndrs_wo_ndr = bndrs - bndrs_with_ndr
         ndrs_in_prmtrs = _includes(ndrs, prmtrs)
@@ -338,25 +361,27 @@ class LineC0Plot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
 
-    def line_c0_bndrs_indiv_toppings(self) -> None:
-        bndrsall = BoundariesHE(self._chrm, **BndParm.HIRS_WD)
+    def line_c0_bndrs_indiv_toppings(self, btype: BoundariesType) -> None:
+        bparm = BndParm.HIRS_WD if btype == BoundariesType.HEXP else BndFParm.WD_25
+        sr = SubRegions(self._chrm)
+        sr.bsel = BndSel(btype, bparm)
         for bndrs, pstr in zip(
-            [bndrsall.prmtr_bndrs(), bndrsall.non_prmtr_bndrs()], ["prmtr", "nonprmtr"]
+            [sr.prmtr_bndrs(), sr.non_prmtr_bndrs()], ["prmtr", "nonprmtr"]
         ):
             for bndry in bndrs:
-                self._line_c0_bndry_indiv_toppings(bndry, bndrs.res, pstr)
+                self._line_c0_bndry_indiv_toppings(bndry, str(bndrs), pstr)
 
     def _line_c0_bndry_indiv_toppings(
-        self, bndry: pd.Series, res: int, pstr: str
+        self, bndry: pd.Series, bstr: str, pstr: str
     ) -> Path:
         self.line_c0_toppings(getattr(bndry, START), getattr(bndry, END), save=False)
         plt.title(
             f"C0 around {pstr} boundary at {getattr(bndry, MIDDLE)} bp of chrm {self._chrm.id}"
         )
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.BOUNDARIES}/{self._chrm.id}/"
+            f"{FigSubDir.BOUNDARIES}/{self._chrm.id}_{bstr}/"
             f"bndry_{pstr}_{getattr(bndry, START)}_{getattr(bndry, END)}_score_"
-            f"{round(getattr(bndry, SCORE), 2)}_res_{res}.png"
+            f"{round(getattr(bndry, SCORE), 2)}.png"
         )
 
     def line_c0_prmtrs_indiv_toppings(self) -> None:
@@ -507,7 +532,7 @@ class PlotPrmtrsBndrs:
 
     def dinc_explain_box(self) -> Path:
         subr = SubRegions(Chromosome("VL"))
-        subr.bnd_parm = BndParm.HIRS_SHR
+        subr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
         dinc = Dinc(Chromosome("VL"))
         pmwb = subr.prmtrs_with_bndrs()
         pmob = subr.prmtrs_wo_bndrs()

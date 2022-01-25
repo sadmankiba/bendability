@@ -1,4 +1,5 @@
 from __future__ import annotations
+from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
 from typing import Iterable, Literal, NamedTuple, Any, TypedDict
@@ -42,7 +43,7 @@ class BndParm:
 class Boundaries(Regions):
     def __init__(self, chrm: Chromosome, regions: RegionsInternal):
         super().__init__(chrm, regions)
-    
+
 
 class BoundariesHE(Boundaries):
     """
@@ -66,7 +67,7 @@ class BoundariesHE(Boundaries):
         super().__init__(chrm, regions)
 
     def __str__(self):
-        return f"res_{self.res}_lim_{self.lim}_perc_{self.score_perc}"
+        return f"res_{self.res}_lim_{self.lim}_perc_{self.score_perc}_hexp"
 
     def _get_regions(
         self,
@@ -130,43 +131,74 @@ class DomainsHE(Regions):
         )
 
 
+class BndFParmT(TypedDict, total=False):
+    lim: int
+    top_perc: float
+
+
+class BndFParm:
+    SHR_25 = BndFParmT(lim=100, top_perc=0.25)
+    WD_25 = BndFParmT(lim=250, top_perc=0.25)
+
+
 class BoundariesF(Boundaries):
     def __init__(
         self,
         chrm: Chromosome,
+        lim: int = 100,
         top_perc: ZeroToOne = 1.0,
         regions: RegionsInternal = None,
     ):
+        self._res = 200
+        self._lim = lim
         self._top_perc = top_perc
         super().__init__(chrm, regions)
 
+    def __str__(self):
+        return f"res_{self._res}_lim_{self._lim}_perc_{self._top_perc}_fanc"
+
     def _get_regions(self):
         df = pd.read_csv(
-            f"{PathObtain.gen_data_dir()}/boundaries/chrmall_res_200_w_5000_fanc.tsv",
+            f"{PathObtain.gen_data_dir()}/boundaries/chrmall_res_{self._res}_w_5000_fanc.tsv",
             sep="\t",
         )
         assert START in df.columns.tolist()
-        assert END in df.columns.tolist() 
-        assert SCORE in df.columns.tolist() 
-        
+        assert END in df.columns.tolist()
+        assert SCORE in df.columns.tolist()
+
+        mids = ((df[START] + df[END]) / 2).astype(int)
+        df[START], df[END] = mids - self._lim, mids + self._lim
         df = df.loc[df["chromosome"] == self.chrm.number].drop(columns=["chromosome"])
         df = df.loc[df[SCORE] >= np.quantile(df[SCORE].to_numpy(), 1 - self._top_perc)]
         return df
 
-    def _new(self, regions: RegionsInternal) -> BoundariesHE:
-        return BoundariesHE(self.chrm, self._top_perc, regions)
+    def _new(self, regions: RegionsInternal) -> BoundariesF:
+        return BoundariesF(
+            chrm=self.chrm, lim=self._lim, top_perc=self._top_perc, regions=regions
+        )
 
-class BoundariesType(Enum): 
+
+class BoundariesType(Enum):
     HEXP = auto()
     FANC = auto()
 
+
+@dataclass
+class BndSel:
+    typ: BoundariesType
+    parm: BndParmT | BndFParmT
+
+
 class BoundariesFactory:
-    @classmethod
-    def get_bndrs(self, btype: BoundariesType, *args, **kwargs) -> Boundaries:
-        if btype == BoundariesType.HEXP:
-            return BoundariesHE(*args, **kwargs)
-        elif btype == BoundariesType.FANC:
-            return BoundariesF(*args, **kwargs)
+    def __init__(self, chrm: Chromosome):
+        self._chrm = chrm
+
+    def get_bndrs(self, bsel: BndSel) -> Boundaries:
+        if bsel.typ == BoundariesType.HEXP:
+            return BoundariesHE(self._chrm, **bsel.parm)
+        elif bsel.typ == BoundariesType.FANC:
+            return BoundariesF(self._chrm, **bsel.parm)
+
 
 class PlotBoundariesHE:
     def __init__(self, chrm: Chromosome) -> None:

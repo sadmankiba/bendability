@@ -20,7 +20,7 @@ class TestDistribPlot:
         assert crplt_vl.distrib_cuml_bndrs_nearest_ndr_distnc().is_file()
 
     def test_num_prmtrs_bndrs_ndrs(self, crplt_vl: DistribPlot):
-        assert crplt_vl.num_prmtrs_bndrs_ndrs(2, BoundariesType.HEXP).is_file()
+        assert crplt_vl.num_prmtrs_bndrs_ndrs(2, BoundariesType.FANC).is_file()
 
     def test_box_mean_c0_bndrs_prmtrs(self, crplt_vl: DistribPlot):
         assert crplt_vl.box_mean_c0_bndrs_prmtrs().is_file()
@@ -45,7 +45,7 @@ class TestLineC0Plot:
         self, lnplt_vl: LineC0Plot, bndrs_hirs_vl: BoundariesHE
     ):
         assert lnplt_vl._line_c0_bndry_indiv_toppings(
-            bndrs_hirs_vl.prmtr_bndrs()[5], bndrs_hirs_vl.res, "prmtr"
+            bndrs_hirs_vl.prmtr_bndrs()[5], str(bndrs_hirs_vl), "prmtr"
         ).is_file()
 
     def test_line_c0_prmtr_indiv_toppings(

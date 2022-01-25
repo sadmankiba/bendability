@@ -21,6 +21,10 @@ We identify domains and boundaries with Hi-C explorer. A bp is either in a domai
 Param BH1: Bndry res = 200bp, lim = 100bp, score_perc = 0.5  (chrV 67)
 Param BH2: Bndry res = 500bp, lim = 250bp, score_perc = 1.0 
 
+NDR Common
+Method DC1: NDR = linker: >= 80bp. NDR completely in Bnd.
+Method DC2: NDR = linker: >= 40bp. NDR ovlps with Bnd >= 40 bp.
+
 ### Fan-C
 |Param | res(bp) | window size  | min score | Total    | ChrV | Comments | 
 |-----|----------|--------------|-----------|----------|------|----------|
@@ -28,7 +32,8 @@ Param BH2: Bndry res = 500bp, lim = 250bp, score_perc = 1.0
 |     | 200      | 2000         | 2.0       | 650/4830 | 37   |  |
 |     | 200      | 2000         | 1.75      | 884/4830 | 60   |  |
 |     | 200      | 2000         | 1.5       | 1180/4830| 75   |  |
-| BF1 | 200      | 5000         | 1.0       | 710/3815 | 52   | best |
+|     | 200      | 5000         | 1.0       | 710/3815 | 52   | best |
+| BF1 | 200      | 5000         | 25%       |    /3815 | 45   |  |
 |     | 500      | 1000         | 1.5       | 584/2677 | 36   |  |
 
 
@@ -95,20 +100,20 @@ Using param 1, mean C0, TpA and CpG content of PMwB and PMoB were checked. [C11,
 
 #### Procedure
 Boundaries with and without any linkers >= x bp were considered. Number [C4] [F5]
-Method A: BH2. NDR = linker: >= 80bp. NDR completely in Bnd.
-Method B: BH1. NDR = linker: >= 40bp. NDR ovlps with Bnd >= 40 bp.
+Method A: BH2. DC1.
+Method B: BH1. DC2. 
+Method C: BF1. DC2. 
 
 #### Observations
-Method A:
-*Number*  
-With NDRs 22 (40%), without NDRs 37 (60%)
-  
+*Number*
+Method A: With NDRs 22 (40%), without NDRs 37 (60%)
+Method B: Bnd With NDRs 45, Bnd w/o NDRs 15. NDR in Bnd 45, NDR out Bnd 785. 
+Method C: Bnd w NDRs 32, Bnd w/o NDRs 13. NDR in Bnd 31, NDR out Bnd 807. 
+
 *C0*
 ?
 
-Method B:
-*Number*  
-Bnd With NDRs 45, Bnd w/o NDRs 15. NDR in Bnd 45, NDR out Bnd 785. 
+
 
 
 ### Exp 2.2. Closest NDR distance from boundary
@@ -206,6 +211,17 @@ Take mean c0 at each bp for a long segment (6000 bp) around boundary. [C1] [F3]
 - C0 at BNnP varies more than BNiP.  
 - Sinusoidal pattern shown by Samin, high on left of mid and low on right of mid, is seen at more boundaries (5 / 7 I saw). But not in some, e.g. VI
 - Nice peak of C0 when smoothed shown by Samin was observed in raw eyes only at a few BN. ( 2 / 7 I saw)
+
+
+## C4. Boundary Plots 
+
+### Research Question
+- Any pattern in CO, closeness to Promoter or NDR?
+
+### Procedure
+Method A: BF1. 
+
+### Observations
 
 
 ## Code References
