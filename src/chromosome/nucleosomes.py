@@ -26,9 +26,9 @@ NUC_HALF = int(NUC_WIDTH / 2)
 
 
 class Nucleosomes(Regions):
-    def __init__(self, chrm: Chromosome):
+    def __init__(self, chrm: Chromosome, regions: RegionsInternal = None):
         self._centers: np.ndarray = NucsReader.read(chrm.number)
-        super().__init__(chrm)
+        super().__init__(chrm, regions)
 
     def _get_regions(self) -> RegionsInternal:
         return pd.DataFrame(
