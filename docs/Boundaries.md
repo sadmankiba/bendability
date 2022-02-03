@@ -136,12 +136,35 @@ Param - ?
 - See nearest long linker distance from random positions or whole chromosome.
 
 
-## C3. Mean C0 in Boundaries
+## C3. Mean bendability in Boundaries
 
-### Exp 3.1. Check mean C0 around boundary region 
+
+### Exp 3.4 Box plot mean c0 combining all boundaries in a chromosome. Compare with nucs, linkers. 
+**Research Ques**
+*Boundaries*
+- Where does mean C0 of boundaries stand compared to linkers and nucs?
+
+*Boundary nucs and linkers*
+- Any pattern in C0?
+
+**Procedure**
+BF1. DL2. [C13] [F15]
+
+**Observations**
+*Boundaries*
+- Distrib slightly towards more bendability than nucs. 
+
+*Boundary nucs and linkers*
+- Surprisingly, bndry ndrs c0 distrib towards more bendability than nucs. Bndry nucs c0 distrib towards more rigidity than lnkrs. Might be because of small number of boundaries. 
+
+**Future Directions**
+- Check in other chromosomes. 
+- Check by changing boundary params.
+
+### Exp 3.1. Line plot mean C0 combining all boundaries in a chromosome 
 
 **Procedure** 
-Take mean of +- 250 bp around boundary mid. [C1] [F1]
+BH2. Line plot mean of boundaries in each chromosome. [C1] [F1]
 
 **Observations**
 - Promoter boundaries: 
@@ -151,7 +174,8 @@ Take mean of +- 250 bp around boundary mid. [C1] [F1]
 - Non-promoter boundaries: 
   - Usual fluctuation for nucleosomes.
   - Surprisingly, in all chrms, one/two clearly visible rigid region exists.
-  
+
+- Takeaway: No pattern. Probably because boundaries were not aligned.
 
 ### Exp 3.2. Comparison of mean C0 of TADs and boundaries 
 
@@ -256,6 +280,7 @@ C0: Some
 [C10] `chromosome.crossregions.LineC0Plot.line_c0_bndrs_indiv_toppings`
 [C11] `chromosome.crossregions.PlotPrmtrsBndrs.dinc_explain_box`
 [C12] `chromosome.crossregions.PlotPrmtrsBndrs.dinc_explain_scatter`
+[C13] `chromosome.crossregions.DistribPlot.box_mean_c0`
 
 
 ## Figure References
@@ -287,3 +312,5 @@ C0: Some
 ![Prmtrs Mean C0, TpA, CpG box](../figures/crossregions/dinc_explain_VL.png)
 [F14]
 ![Prmtrs mean C0, TpA, CpG scatter](../figures/crossregions/prmtrs_ta_cg_scatter.png)
+[F15]
+![bndry nucs mean c0](../figures/crossregions/c0_box/bndrs_nucs_res_200_lim_100_perc_0.25_fanc.png)
