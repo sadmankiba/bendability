@@ -13,6 +13,6 @@
 ## Short Tasks List   
 | Task | Priority | Created | Compl | Result | 
 | -----|----------|---------|-------|--------|
-| Rigidity - FANC Bndry (+- 250bp, +-100bp, +-50bp), Bndry prmtrs, bndry nucs, bndry ndrs | H | 3/02 | | |
+| Rigidity - FANC Bndry (+- 250bp, +-100bp, +-50bp), Bndry prmtrs, bndry nucs, bndry ndrs. Box plot. With nuc, linkers. | H | 3/02 | | |
 | Boundaries, NDR: How many? Dist distrib? | M | 15/01 | 15/01 | ~90% FAN-C top 25% bndry has NDR in +-300 bp |  
 | NDR: Rigid? Sharp dip in C0? | 15/01 | M | 15/01 | | |

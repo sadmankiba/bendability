@@ -22,8 +22,8 @@ class TestDistribPlot:
     def test_num_prmtrs_bndrs_ndrs(self, crplt_vl: DistribPlot):
         assert crplt_vl.num_prmtrs_bndrs_ndrs(2, BoundariesType.FANC).is_file()
 
-    def test_box_mean_c0_bndrs_prmtrs(self, crplt_vl: DistribPlot):
-        assert crplt_vl.box_mean_c0_bndrs_prmtrs().is_file()
+    def test_box_mean_c0(self, crplt_vl: DistribPlot):
+        assert crplt_vl.box_mean_c0().is_file()
 
     def test_prob_distrib_mean_c0_bndrs_prmtrs(self, crplt_vl: DistribPlot):
         assert crplt_vl.prob_distrib_mean_c0_bndrs_prmtrs().is_file()

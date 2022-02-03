@@ -29,8 +29,8 @@ from conformation.domains import (
     BndParm,
     BoundariesType,
     BoundariesFactory,
-    BndFParm, 
-    BndSel
+    BndFParm,
+    BndSel,
 )
 from .regions import LEN, MEAN_C0, Regions
 from util.util import Attr, PathObtain, PlotUtil, FileSave
@@ -66,23 +66,23 @@ class SubRegions:
         return Attr.calc_attr(self, "_genes", _genes)
 
     @property
-    def bsel(self) -> BndSel: 
-        return self._bsel 
-    
-    @bsel.setter 
+    def bsel(self) -> BndSel:
+        return self._bsel
+
+    @bsel.setter
     def bsel(self, _bsel: BndSel):
-        self._bsel = _bsel 
-        self._bndrs = None 
+        self._bsel = _bsel
+        self._bndrs = None
 
     def prmtrs_with_bndrs(self):
         return self.prmtrs.with_loc(self.bndrs[MIDDLE], True)
 
     def prmtrs_wo_bndrs(self):
         return self.prmtrs.with_loc(self._bndrs[MIDDLE], False)
-    
+
     def prmtr_bndrs(self):
         return self.bndrs.mid_contained_in(self.prmtrs)
-    
+
     def non_prmtr_bndrs(self):
         return self.bndrs - self.prmtr_bndrs()
 
@@ -199,34 +199,41 @@ class DistribPlot:
             f"boundaries/distnc_ndr_prob_distrib_res_{bndrs.res}_{self._chrm.number}.png"
         )
 
-    def box_mean_c0_bndrs_prmtrs(self) -> Path:
+    def box_mean_c0(self) -> Path:
         sr = SubRegions(self._chrm)
         sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
-        distribs = [
-            sr.bndrs[MEAN_C0],
-            sr.prmtrs[MEAN_C0],
-            sr.genes[MEAN_C0],
-            sr.bndrs.prmtr_bndrs()[MEAN_C0],
-            sr.bndrs.non_prmtr_bndrs()[MEAN_C0],
-            sr.prmtrs_with_bndrs()[MEAN_C0],
-            sr.prmtrs_wo_bndrs()[MEAN_C0],
-        ]
-        labels = [
-            "bndrs",
-            "prmtrs",
-            "genes",
-            "p bndrs",
-            "np bndrs",
-            "prmtrs w b",
-            "prmtrs wo b",
-        ]
+
+        grp_bndrs_prmtrs = {
+            "distribs": [
+                sr.bndrs[MEAN_C0],
+                sr.prmtrs[MEAN_C0],
+                sr.genes[MEAN_C0],
+                sr.bndrs.prmtr_bndrs()[MEAN_C0],
+                sr.bndrs.non_prmtr_bndrs()[MEAN_C0],
+                sr.prmtrs_with_bndrs()[MEAN_C0],
+                sr.prmtrs_wo_bndrs()[MEAN_C0],
+            ],
+            "labels": [
+                "bndrs",
+                "prmtrs",
+                "genes",
+                "p bndrs",
+                "np bndrs",
+                "prmtrs w b",
+                "prmtrs wo b",
+            ],
+            "title": "Mean C0 distrib of comb of prmtrs and bndrs",
+            "fname": f"box_bndrs_prmtrs_{sr.bndrs}_{sr.prmtrs}.png",
+        }
         PlotUtil.show_grid(which="both")
-        plt.boxplot(distribs, showfliers=False)
-        plt.xticks(ticks=range(1, 8), labels=labels)
+        plt.boxplot(grp_bndrs_prmtrs["distribs"], showfliers=False)
+        plt.xticks(
+            ticks=range(1, len(grp_bndrs_prmtrs["labels"]) + 1),
+            labels=grp_bndrs_prmtrs["labels"],
+        )
         plt.ylabel("Mean C0")
-        plt.title("Mean C0 distrib of comb of prmtrs and bndrs")
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.CROSSREGIONS}/box_bndrs_prmtrs_{sr.bndrs}_{sr.prmtrs}.png"
+            f"{FigSubDir.CROSSREGIONS}/{grp_bndrs_prmtrs['fname']}"
         )
 
     def prob_distrib_mean_c0_bndrs_prmtrs(self):
@@ -277,12 +284,12 @@ class DistribPlot:
         prmtrs = Promoters(self._chrm)
         prmtrs_with_ndr = _includes(prmtrs, ndrs)
         prmtrs_wo_ndr = prmtrs - prmtrs_with_ndr
-        
+
         if btype == BoundariesType.HEXP:
             bparm = BndParm.HIRS_SHR
-        elif btype == BoundariesType.FANC: 
+        elif btype == BoundariesType.FANC:
             bparm = BndFParm.SHR_25
-        
+
         bndrs = BoundariesFactory(self._chrm).get_bndrs(BndSel(btype, bparm))
         bndrs_with_ndr = _includes(bndrs, ndrs)
         bndrs_wo_ndr = bndrs - bndrs_with_ndr
