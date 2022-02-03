@@ -8,8 +8,12 @@ from conformation.domains import (
     MCBoundariesHEAggregator,
     MCBoundariesHECollector,
     BoundariesF,
+    BoundariesFactory,
+    BoundariesType, 
+    BndFParm, 
+    BndSel
 )
-from chromosome.regions import MIDDLE
+from chromosome.regions import MIDDLE, START, END, LEN
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
 
@@ -35,6 +39,12 @@ class TestBoundariesHE:
         mc0 = bndrs_vl.mean_c0
         assert mc0 == pytest.approx(-0.180, abs=1e-2)
 
+    def test_extended(self, bndrs_vl):
+        ebndrs = bndrs_vl.extended(50)
+        assert (bndrs_vl[START] - ebndrs[START]).tolist() == [50] * len(ebndrs)
+        assert (ebndrs[END] - bndrs_vl[END]).tolist() == [50] * len(ebndrs)
+        assert (ebndrs[LEN] - bndrs_vl[LEN]).tolist() == [100] * len(ebndrs)
+
     def test_prmtr_non_prmtr_bndrs(self, bndrs_vl: BoundariesHE):
         prmtr_bndrs = bndrs_vl.prmtr_bndrs()
         non_prmtr_bndrs = bndrs_vl.non_prmtr_bndrs()
@@ -51,12 +61,19 @@ class TestBoundariesHE:
             rel=1e-3,
         )
 
-
+@pytest.fixture
+def bndrsf_vl(chrm_vl_mean7):
+    return BoundariesFactory(chrm_vl_mean7).get_bndrs(BndSel(BoundariesType.FANC, BndFParm.SHR_25))
 class TestBoundariesF:
     def test_init(self, chrm_vl_mean7):
         bndrs = BoundariesF(chrm_vl_mean7, 0.25)
         assert len(bndrs) == 45
-
+    
+    def test_extended(self, bndrsf_vl):
+        ebndrsf = bndrsf_vl.extended(50)
+        assert (bndrsf_vl[START] - ebndrsf[START]).tolist() == [50] * len(ebndrsf)
+        assert (ebndrsf[END] - bndrsf_vl[END]).tolist() == [50] * len(ebndrsf)
+        assert (ebndrsf[LEN] - bndrsf_vl[LEN]).tolist() == [100] * len(ebndrsf)
 
 @pytest.mark.skip(reason="Updating domains")
 class TestBoundariesDomainsHEQuery:

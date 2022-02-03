@@ -126,7 +126,7 @@ class Regions:
             scv = ChrmOperator(self.chrm).create_cover_mask(
                 [getattr(srgn, START)], [getattr(srgn, END)]
             )
-            return np.sum(scv & rgns.cover_mask) >= min_ovbp 
+            return np.sum(scv & rgns.cover_mask) >= min_ovbp
 
         ovlps = list(map(lambda srgn: _overlaps(srgn), self))
         return self._new(self._regions.iloc[ovlps])
@@ -196,6 +196,13 @@ class Regions:
         cntnd = list(map(lambda rgn: _mid_in_containers(getattr(rgn, MIDDLE)), self))
         return self._new(self._regions.iloc[cntnd])
 
+    def extended(self, ebp: int) -> Regions:
+        return self._extended(
+            RegionsInternal(
+                {START: self._regions[START] - ebp, END: self._regions[END] + ebp}
+            )
+        )
+
     def len_at_least(self, len: int) -> Regions:
         return self._new(self._regions.query(f"{LEN} >= {len}"))
 
@@ -206,10 +213,13 @@ class Regions:
         )
 
     def _get_regions(self) -> RegionsInternal:
-        pass
+        """Must be implemented in subclass"""
 
     def _new(self, rgns: RegionsInternal) -> Regions:
         return type(self)(self.chrm, rgns.copy())
+
+    def _extended(self, rgns: RegionsInternal) -> Regions:
+        return self._new(rgns)
 
     def _add_len(self) -> None:
         self._regions.loc[:, LEN] = self._regions[END] - self._regions[START] + 1

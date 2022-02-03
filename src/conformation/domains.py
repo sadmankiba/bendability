@@ -92,6 +92,15 @@ class BoundariesHE(Boundaries):
     def _new(self, regions: RegionsInternal) -> BoundariesHE:
         return BoundariesHE(self.chrm, self.res, self.lim, self.score_perc, regions)
 
+    def _extended(self, rgns: RegionsInternal) -> BoundariesF:
+        return BoundariesHE(
+            chrm=self.chrm,
+            res=self.res,
+            lim=int((rgns.iloc[0][END] - rgns.iloc[0][START]) / 2),
+            score_perc=self.score_perc,
+            regions=rgns,
+        )
+
     def nearest_locs_distnc(self, locs: Iterable[PosOneIdx]) -> NDArray[(Any,), float]:
         locs = sorted(locs)
         distncs = []
@@ -175,6 +184,14 @@ class BoundariesF(Boundaries):
     def _new(self, regions: RegionsInternal) -> BoundariesF:
         return BoundariesF(
             chrm=self.chrm, lim=self._lim, top_perc=self._top_perc, regions=regions
+        )
+
+    def _extended(self, rgns: RegionsInternal) -> BoundariesF:
+        return BoundariesF(
+            chrm=self.chrm,
+            lim=int((rgns.iloc[0][END] - rgns.iloc[0][START]) / 2),
+            top_perc=self._top_perc,
+            regions=rgns,
         )
 
 
