@@ -229,7 +229,17 @@ Method A
 2. About 25% strong do have long linkers + sharp dip. Same for weaks (~-0.4). So, no correlation between sharp dip + strongness. But, >50% strong have long linkers. About 40% weak have long linkers. 
 
 Method B
+*Long Linker*
+1. About 90% bndry has a long linker in +-300 bp. About 60% in +-200 bp. 
+2. About 50% long linker are <80bp. Some very long. 
+3. About 70% long linker contain a dip in C0. This kind of dip is observed in 40% neuclosomal region. 
 
+*Sharp dip in C0*
+1. About 60% bndry has sharp dip (< -0.5) within +-75bp. Other 40% has high / peak C0 in this area, some unusually high C0 ( > 1.0)
+2. Within +-75bp, Sharp dip around 60% times are without linkers.  
+
+*Strong vs. weak*
+1. Not much data. Since only top 25%. No correlation seen between C0 and bndry score. 
 
 ### Observations
 C0: Some 
