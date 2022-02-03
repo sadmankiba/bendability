@@ -149,6 +149,7 @@ class Regions:
         return np.array(list(map(lambda cntn: _rgn_contains_rgn(cntn), self)))
 
     def with_loc(self, locs: Iterable[PosOneIdx], with_x: bool) -> Regions:
+        # TODO: Remove with_x. User can get without by subtract.
         cntns = self._contains_loc(locs)
         return self._new(self._regions.iloc[cntns if with_x else ~cntns])
 
