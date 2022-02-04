@@ -5,12 +5,25 @@ import regex as re
 import pandas as pd
 
 from chromosome.chromosome import Chromosome
-from util.custom_types import PosOneIdx
+from util.custom_types import PosOneIdx, DNASeq
 
+DincStr = str
 
 class Dinc:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
+    
+    @classmethod
+    def find_pos(cls, seq: DNASeq, dincs: Iterable[DincStr]) -> dict[DincStr, list[int]]:
+        return dict(
+            map(
+                lambda dinc: (
+                    dinc,
+                    [m.start() for m in re.finditer(dinc, seq, overlapped=True)],
+                ),
+                dincs,
+            )
+        )
 
     def ta_count_multisegment(
         self, starts: Iterable[PosOneIdx], ends: Iterable[PosOneIdx]

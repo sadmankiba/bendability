@@ -74,7 +74,7 @@ def cut_sequence(df, start, stop):
     df["Sequence"] = df["Sequence"].str[start - 1 : stop]
     return df
 
-
+# TODO: Rename to nuc_seqs
 def get_possible_seq(size):
     """
     Generates all possible nucleotide sequences of particular length

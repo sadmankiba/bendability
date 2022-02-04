@@ -584,6 +584,9 @@ class PlotPrmtrsBndrs:
 
     def __init__(self):
         pass
+    
+    def helsep_box(self) -> Path: 
+        pass
 
     def dinc_explain_scatter(self) -> Path:
         sr = SubRegions(Chromosome("VL"))

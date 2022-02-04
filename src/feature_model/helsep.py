@@ -1,18 +1,17 @@
 from __future__ import annotations
-
-from util.util import FileSave, PathObtain, get_possible_seq, gen_random_sequences
+import itertools as it
+from pathlib import Path
+from typing import Any
 
 import pandas as pd
 import numpy as np
 import regex as re
 import matplotlib.pyplot as plt
+from nptyping import NDArray
 
-import math
-import random
-import string
-import re as bre  # built-in re
-import itertools as it
-from pathlib import Path
+from chromosome.dinc import Dinc
+from util.util import FileSave, PathObtain, get_possible_seq, gen_random_sequences
+from util.custom_types import DNASeq
 
 # Constants
 NUM_DINC_PAIRS = 136  # Possible dinucleotide pairs
@@ -22,6 +21,14 @@ NUM_DISTANCES = 48  # Possible distances between two dinucleotides
 class HelicalSeparationCounter:
     """
     Helper class for counting helical separation
+
+    The hel sep of a given NN-NN pair in a given sequence = Sum_{i = 10, 20, 30}
+    max(p(i-1), p(i), p(i+1)) - Sum_{i = 5, 15, 25} max(p(i-1), p(i), p(i+1))
+
+    where p(i) is the pairwise distance distribution function, the number of
+    times that the two dinucleotides in the pair are separated by a distance i
+    in the sequence, normalized by an expected p(i) for the NN-NN in random
+    seqs.
     """
 
     def __init__(self):
@@ -30,68 +37,40 @@ class HelicalSeparationCounter:
         )
         self._dinc_pairs = self._get_dinc_pairs()
 
-    def _get_dinc_pairs(self) -> list[tuple[str, str]]:
-        """
-        Generates dinucleotide pairs
-
-        Returns:
-            A list of tuples of two dinucleotides
-        """
-        all_dinc = get_possible_seq(2)
-
-        dinc_pairs = [pair for pair in it.combinations(all_dinc, 2)] + [
-            (dinc, dinc) for dinc in all_dinc
-        ]
-        assert len(dinc_pairs) == 136
-
-        return dinc_pairs
-
-    def _get_all_dist(self, seq: str) -> np.ndarray:
+    def _pair_dinc_dist_in(
+        self, seq: DNASeq
+    ) -> NDArray[(NUM_DINC_PAIRS, NUM_DISTANCES), int]:
         """
         Find unnormalized p(i) for i = 1-48 for all dinucleotide pairs
-
-        Returns:
-            A 2D numpy array of shape (136, 48)
         """
-        all_dinc = get_possible_seq(2)
+        pos_dinc = Dinc.find_pos(seq, get_possible_seq(2))
 
-        # Find positions of all dinucleotides in sequence
-        pos_dinc = dict(
-            map(
-                lambda dinc: (
-                    dinc,
-                    [m.start() for m in re.finditer(dinc, seq, overlapped=True)],
-                ),
-                all_dinc,
-            )
-        )
-
-        def find_pair_dist(pos_one: list[int], pos_two: list[int]) -> list[int]:
-            """
-            Find absolute distances from positions
-
-            Example - Passing parameters [3, 5] and [1, 2] will return [2, 1, 4, 3]
-            """
-            return [
-                abs(pos_pair[0] - pos_pair[1])
-                for pos_pair in it.product(pos_one, pos_two)
-            ]
-
-        # Calculate absolute distances for all dinucleotide pairs
         dinc_dists: list[np.ndarray] = map(
-            lambda p: find_pair_dist(pos_dinc[p[0]], pos_dinc[p[1]]), self._dinc_pairs
+            lambda p: self._find_pair_dist(pos_dinc[p[0]], pos_dinc[p[1]]),
+            self._dinc_pairs,
         )
 
-        # Calculate unnormalized p(i) for i=1-48 from abs distances
-        result = np.array(
+        return np.array(
             list(
                 map(
-                    lambda one_pair_dist: np.bincount(one_pair_dist, minlength=49)[1:],
+                    lambda one_pair_dist: np.bincount(
+                        one_pair_dist, minlength=NUM_DISTANCES + 1
+                    )[1:],
                     dinc_dists,
                 )
             )
         )
-        return result
+
+    @classmethod
+    def _find_pair_dist(cls, pos_one: list[int], pos_two: list[int]) -> list[int]:
+        """
+        Find absolute distances from positions
+
+        Example - Passing parameters [3, 5] and [1, 2] will return [2, 1, 4, 3]
+        """
+        return [
+            abs(pos_pair[0] - pos_pair[1]) for pos_pair in it.product(pos_one, pos_two)
+        ]
 
     def _get_all_normalized_dist(self, seq_list: list[str]) -> np.ndarray:
         """
@@ -101,7 +80,7 @@ class HelicalSeparationCounter:
             A numpy array of shape (len(seq_list), 136, 48)
         """
         # Find all pair distance in sequence list
-        pair_all_dist = np.array(list(map(self._get_all_dist, seq_list)))
+        pair_all_dist = np.array(list(map(self._pair_dinc_dist_in, seq_list)))
         assert pair_all_dist.shape == (len(seq_list), 136, 48)
 
         # Load expected distance
@@ -129,7 +108,6 @@ class HelicalSeparationCounter:
             Args:
                 list of positions
             """
-            pass
             hel_arr = np.array(
                 list(
                     map(
@@ -159,7 +137,7 @@ class HelicalSeparationCounter:
         seq_list = gen_random_sequences(10000)
 
         # Count mean distance for 136 pairs in generated sequences
-        pair_all_dist = np.array(list(map(self._get_all_dist, seq_list)))
+        pair_all_dist = np.array(list(map(self._pair_dinc_dist_in, seq_list)))
         mean_pair_dist = pair_all_dist.mean(axis=0)
         assert mean_pair_dist.shape == (136, 48)
 
@@ -183,6 +161,22 @@ class HelicalSeparationCounter:
         df[self._dinc_pairs] = self._normalized_helical_sep_of(df["Sequence"].tolist())
 
         return df
+
+    def _get_dinc_pairs(self) -> list[tuple[str, str]]:
+        """
+        Generates dinucleotide pairs
+
+        Returns:
+            A list of tuples of two dinucleotides
+        """
+        all_dinc = get_possible_seq(2)
+
+        dinc_pairs = [pair for pair in it.combinations(all_dinc, 2)] + [
+            (dinc, dinc) for dinc in all_dinc
+        ]
+        assert len(dinc_pairs) == 136
+
+        return dinc_pairs
 
     def plot_normalized_dist(self, df: pd.DataFrame, library_name: str) -> None:
         """

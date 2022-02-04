@@ -7,14 +7,14 @@ import unittest
 
 
 class TestHelicalSeparationCounter(unittest.TestCase):
-    def test_get_all_dist(self):
+    def test_pair_dinc_dist_in(self):
         seq = "AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACGCCCGGGCGCTCTC"
         # Explanation
         # TT -> [3, 13]
         # GC -> [5, 9, 18, 36, 42, 44]
         # Absolute diff -> [2, 6, 15, 33, 39, 41, 8, 4, 5, 23, 29, 31]
         helsep = HelicalSeparationCounter()
-        all_dist = helsep._get_all_dist(seq)
+        all_dist = helsep._pair_dinc_dist_in(seq)
         pair_idx = helsep._dinc_pairs.index(("GC", "TT"))
         p_expected = np.bincount(
             [2, 6, 15, 33, 39, 41, 8, 4, 5, 23, 29, 31], minlength=49
