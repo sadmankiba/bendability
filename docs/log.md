@@ -1,6 +1,7 @@
 # Log 
 | Date | Work | 
 |------|------|
+| 4/02 | Worked to modularize hel sep | 
 | 3/02 | Box plot mean c0 of combined bndrs, nucs, lnkrs in chromosome V. | 
 
 ## Table: Long-Term Tasks 
