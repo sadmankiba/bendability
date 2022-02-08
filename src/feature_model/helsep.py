@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 from nptyping import NDArray
 
 from chromosome.dinc import Dinc
-from util.util import FileSave, PathObtain, get_possible_seq, gen_random_sequences
+from util.util import FileSave, PathObtain, get_possible_seq, gen_random_sequences, Attr
+from util.reader import SEQ_COL, C0_COL
 from util.custom_types import DNASeq, DiNc
 
 # Constants
@@ -18,25 +19,31 @@ NUM_DINC_PAIRS = 136  # Possible dinucleotide pairs
 NUM_DISTANCES = 48  # Possible distances between two dinucleotides
 SEQ_COL = "Sequence"
 
+
 class DincUtil:
-    #TODO: Merge DincUtil with Dinc?
+    # TODO: Merge DincUtil with Dinc?
     @classmethod
     def pairs_all(cls) -> list[tuple[DiNc, DiNc]]:
         """
         Generates all possible dinucleotide pairs
         """
-        all_dinc = get_possible_seq(2)
 
-        dinc_pairs = [pair for pair in it.combinations(all_dinc, 2)] + [
-            (dinc, dinc) for dinc in all_dinc
-        ]
-        assert len(dinc_pairs) == 136
+        def _pairs():
+            all_dinc = get_possible_seq(2)
 
-        return dinc_pairs
+            dinc_pairs = [pair for pair in it.combinations(all_dinc, 2)] + [
+                (dinc, dinc) for dinc in all_dinc
+            ]
+            assert len(dinc_pairs) == 136
+
+            return dinc_pairs
+
+        return Attr.calc_attr(cls, "_dinc_pairs", _pairs)
 
     @classmethod
     def pair_str(cls, dinc_pair: tuple[DiNc, DiNc]) -> str:
         return dinc_pair[0] + "-" + dinc_pair[1]
+
 
 class HelicalSeparationCounter:
     """
@@ -81,7 +88,6 @@ class HelicalSeparationCounter:
     ) -> NDArray[(Any, 136, 48), float]:
         """
         Calculates normalized p(i) for i = 1-48 for all dinc pairs
-
         """
         pair_dist_occur = np.array(list(map(self._pair_dinc_dist_in, seq_list)))
         assert pair_dist_occur.shape == (len(seq_list), 136, 48)
@@ -147,18 +153,25 @@ class HelicalSeparationCounter:
             abs(pos_pair[0] - pos_pair[1]) for pos_pair in it.product(pos_one, pos_two)
         ]
 
-    def plot_normalized_dist(self, df: pd.DataFrame, library_name: str) -> None:
+
+class HelSepPlot:
+    @classmethod
+    def plot_normalized_dist(
+        cls, df: pd.DataFrame[SEQ_COL:str, C0_COL:float], library_name: str
+    ) -> None:
         """
         Plots avg. normalized distance of sequences with most and least 1000 C0 values
         """
-        most_1000 = df.sort_values("C0").iloc[:1000]
-        least_1000 = df.sort_values("C0").iloc[-1000:]
+        hs = HelicalSeparationCounter()
 
-        most1000_dist = self._dinc_pair_dist_occur_normd(
-            most_1000["Sequence"].tolist()
+        least_1000 = df.sort_values(C0_COL).iloc[:1000]
+        most_1000 = df.sort_values(C0_COL).iloc[-1000:]
+
+        most1000_dist = hs._dinc_pair_dist_occur_normd(
+            most_1000[SEQ_COL].tolist()
         ).mean(axis=0)
-        least1000_dist = self._dinc_pair_dist_occur_normd(
-            least_1000["Sequence"].tolist()
+        least1000_dist = hs._dinc_pair_dist_occur_normd(
+            least_1000[SEQ_COL].tolist()
         ).mean(axis=0)
 
         assert most1000_dist.shape == (NUM_DINC_PAIRS, NUM_DISTANCES)
@@ -167,7 +180,8 @@ class HelicalSeparationCounter:
         for i in range(NUM_DINC_PAIRS):
             plt.close()
             plt.clf()
-            pair_str = self._dinc_pairs[i][0] + "-" + self._dinc_pairs[i][1]
+            pair_str = DincUtil.pair_str(DincUtil.pairs_all()[i])
+            # pair_str = DincUtil.pairs_all()[i][0] + "-" + DincUtil.pairs_all()[i][1]
             plt.plot(
                 np.arange(NUM_DISTANCES) + 1,
                 most1000_dist[i],
@@ -184,9 +198,6 @@ class HelicalSeparationCounter:
             )
             plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.20))
             plt.xlabel("Position (bp)")
-            plt.ylabel("p(i)")
+            plt.ylabel("Pairwise distance distribution, p(i)")
             plt.title(pair_str)
-            plt.savefig(
-                f"{PathObtain.figure_dir()}/distances/{library_name}/{pair_str}.png",
-                bbox_inches="tight",
-            )
+            FileSave.figure_in_figdir(f"distances/{library_name}/{pair_str}.png", bbox_inches="tight")

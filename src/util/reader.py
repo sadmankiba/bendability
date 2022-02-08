@@ -18,8 +18,9 @@ TL_FILE = "41586_2020_3052_MOESM8_ESM.txt"
 CHRVL_FILE = "41586_2020_3052_MOESM9_ESM.txt"
 LIBL_FILE = "41586_2020_3052_MOESM11_ESM.txt"
 
-SEQUENCE_NUM = "Sequence #"
-SEQUENCE = "Sequence"
+SEQ_NUM_COL = "Sequence #"
+SEQ_COL = "Sequence"
+C0_COL = "C0"
 
 
 class DNASequenceReader:
@@ -44,21 +45,18 @@ class DNASequenceReader:
 
         return (cnl_df_raw, rl_df_raw, tl_df_raw, chrvl_df_raw, libl_df_raw)
 
-    def _preprocess(self, df: pd.DataFrame):
-        df = df[["Sequence #", "Sequence", " C0"]].rename(columns={" C0": "C0"})
-        df["Sequence"] = df["Sequence"].str[25:-25]
+    def _preprocess(self, df: pd.DataFrame) -> pd.DataFrame:
+        df = df[[SEQ_NUM_COL, SEQ_COL, " C0"]].rename(columns={" C0": C0_COL})
+        df[SEQ_COL] = df[SEQ_COL].str[25:-25]
 
         return df
 
     # TODO: Make class method
-    def get_processed_data(self) -> dict[str, pd.DataFrame]:
+    def get_processed_data(
+        self,
+    ) -> dict[str, pd.DataFrame[SEQ_NUM_COL:int, SEQ_COL:str, C0_COL:float]]:
         """
         Get processed DNA sequence libraries
-
-        returns :
-            A dict mapping library names to
-                pandas Dataframe with columns `["Sequence #", "Sequence", "C0"]`
-
         """
         # TODO : Read specific library given as input parameters instead of all
         (
@@ -80,8 +78,8 @@ class DNASequenceReader:
     # TODO: Rename read_genome_sequence_of
     @classmethod
     def read_yeast_genome(
-        self, chr_num: YeastChrNum
-    ) -> pd.DataFrame[SEQUENCE_NUM:int, SEQUENCE:str]:
+        cls, chr_num: YeastChrNum
+    ) -> pd.DataFrame[SEQ_NUM_COL:int, SEQ_COL:str]:
         """
         Read reference sequence of a yeast chromosome. Transforms it into 50-bp
         sequences at 7-bp resolution.
@@ -92,7 +90,7 @@ class DNASequenceReader:
         chrmnum = roman_to_num(chr_num)
         assert chrmnum >= 1 and chrmnum <= 16
 
-        seq = self._read_yeast_genome_file(chrmnum)
+        seq = cls._read_yeast_genome_file(chrmnum)
 
         # Split into 50-bp sequences
         num_50bp_seqs = math.ceil((len(seq) - SEQ_LEN + 1) / 7)
@@ -104,11 +102,11 @@ class DNASequenceReader:
         )
 
         return pd.DataFrame(
-            {"Sequence #": np.arange(num_50bp_seqs) + 1, "Sequence": seqs_50bp}
+            {SEQ_NUM_COL: np.arange(num_50bp_seqs) + 1, SEQ_COL: seqs_50bp}
         )
 
     @classmethod
-    def _read_yeast_genome_file(self, chrmnum: int) -> str:
+    def _read_yeast_genome_file(cls, chrmnum: int) -> str:
         genome_file = open(
             f"{PathObtain.data_dir()}/input_data/yeast_genome/S288C_reference_sequence_R64-3-1_20210421.fsa"
         )
@@ -129,7 +127,7 @@ NCP_SCORE_BY_NOISE = "NCP score/noise"
 
 class NucsReader:
     @classmethod
-    def read(self, chrmnum: YeastChrNum) -> NDArray[(Any,), PosOneIdx]:
+    def read(cls, chrmnum: YeastChrNum) -> NDArray[(Any,), PosOneIdx]:
         """
         Read nucleosome center position data.
         """
@@ -148,7 +146,7 @@ class NucsReader:
 
 class GeneReader:
     @classmethod
-    def read_transcription_regions_of(self, chrm_num: YeastChrNum) -> pd.DataFrame:
+    def read_transcription_regions_of(cls, chrm_num: YeastChrNum) -> pd.DataFrame:
         """
         Read trascripted regions.
 
@@ -204,7 +202,7 @@ class GeneReader:
         return agg_tr_df
 
     @classmethod
-    def read_genes_of(self, chrm_num: YeastChrNum) -> pd.DataFrame:
+    def read_genes_of(cls, chrm_num: YeastChrNum) -> pd.DataFrame:
         genes_file = f"{PathObtain.data_dir()}/input_data/gene/yeast_genes.tsv"
         rename_map = {
             "Gene.length": "length",

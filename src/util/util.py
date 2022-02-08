@@ -189,7 +189,7 @@ def roman_to_num(chr_num: YeastChrNum) -> int:
 
 class Attr:
     @classmethod
-    def calc_attr(self, obj: object, attr: str, calc: Callable):
+    def calc_attr(cls, obj: object, attr: str, calc: Callable):
         if not hasattr(obj, attr) or getattr(obj, attr) is None:
             setattr(obj, attr, calc())
 
@@ -238,52 +238,52 @@ class PathObtain:
 
 class FileSave:
     @classmethod
-    def figure_in_figdir(self, path_str: str | Path) -> Path:
-        return self.figure(Path(f"{PathObtain.figure_dir()}/{path_str}"))
+    def figure_in_figdir(cls, path_str: str | Path, **kwargs) -> Path:
+        return cls.figure(Path(f"{PathObtain.figure_dir()}/{path_str}"), **kwargs)
 
     @classmethod
-    def figure(self, path_str: str | Path) -> Path:
+    def figure(cls, path_str: str | Path, **kwargs) -> Path:
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
 
         plt.gcf().set_size_inches(12, 6)
-        plt.savefig(path, dpi=200)
+        plt.savefig(path, dpi=200, **kwargs)
 
         logging.info(f"Figure saved at: {path}")
         return path
 
     @classmethod
-    def tsv_gdatadir(self, df: pd.DataFrame, rel_path: str | Path) -> Path:
-        return self.tsv(df, Path(f"{PathObtain.gen_data_dir()}/{rel_path}"))
+    def tsv_gdatadir(cls, df: pd.DataFrame, rel_path: str | Path) -> Path:
+        return cls.tsv(df, Path(f"{PathObtain.gen_data_dir()}/{rel_path}"))
 
     @classmethod
-    def tsv(self, df: pd.DataFrame, path_str: Union[str, Path]) -> Path:
+    def tsv(cls, df: pd.DataFrame, path_str: Union[str, Path]) -> Path:
         """Save a dataframe in tsv format"""
         path = Path(path_str)
-        self.make_parent_dirs(path)
+        cls.make_parent_dirs(path)
         df.to_csv(path, sep="\t", index=False, float_format="%.3f")
 
         logging.info(f"TSV file saved at: {path}")
         return path
 
     @classmethod
-    def npy(self, arr: np.ndarray, path_str: Union[str, Path]) -> Path:
+    def npy(cls, arr: np.ndarray, path_str: Union[str, Path]) -> Path:
         path = Path(path_str)
-        self.make_parent_dirs(path)
+        cls.make_parent_dirs(path)
         np.save(path, arr)
 
         logging.info(f".npy file saved at: {path}")
         return path
 
     @classmethod
-    def make_parent_dirs(self, path_str: Union[str, Path]) -> None:
+    def make_parent_dirs(cls, path_str: Union[str, Path]) -> None:
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
 
     @classmethod
-    def append_tsv(self, df: pd.DataFrame, path_str: Union[str, Path]) -> Path:
+    def append_tsv(cls, df: pd.DataFrame, path_str: Union[str, Path]) -> Path:
         """Append a dataframe to a tsv if it exists, otherwise create"""
         path = Path(path_str)
         if path.is_file():
@@ -293,7 +293,7 @@ class FileSave:
             )
             return path
 
-        return self.tsv(df, path_str)
+        return cls.tsv(df, path_str)
 
 
 class DataCache:

@@ -11,7 +11,7 @@ from .cnnmodel import CNNModel6, CNNModel30
 from .data_preprocess import Preprocess
 from .parameters import get_parameters
 from util.custom_types import LIBRARY_NAMES
-from util.reader import DNASequenceReader, SEQUENCE, SEQUENCE_NUM
+from util.reader import DNASequenceReader, SEQ_COL, SEQ_NUM_COL
 from util.util import FileSave, PathObtain
 
 C0_PREDICT = "c0_predict"

@@ -11,7 +11,7 @@ from scipy.interpolate import make_interp_spline
 from nptyping import NDArray
 
 from models.prediction import Prediction
-from util.reader import DNASequenceReader, SEQUENCE_NUM, SEQUENCE
+from util.reader import DNASequenceReader, SEQ_NUM_COL, SEQ_COL
 from util.constants import CHRVL, SEQ_LEN, ChrIdList
 from util.custom_types import ChrId, PosOneIdx, YeastChrNum, PositiveInt
 from util.util import Attr, DataCache, FileSave, PathObtain, PlotUtil
@@ -277,11 +277,11 @@ class Chromosome:
     @property
     def seq(self) -> str:
         def _seq() -> str:
-            return self._df[SEQUENCE][0] + "".join(self._df[SEQUENCE][1:].str[-7:])
+            return self._df[SEQ_COL][0] + "".join(self._df[SEQ_COL][1:].str[-7:])
 
         return Attr.calc_attr(self, "_seq", _seq)
 
-    def _get_chrm_df(self) -> pd.DataFrame[SEQUENCE_NUM:int, SEQUENCE:str, C0:float]:
+    def _get_chrm_df(self) -> pd.DataFrame[SEQ_NUM_COL:int, SEQ_COL:str, C0:float]:
         def _chrm_df():
             df = DNASequenceReader().read_yeast_genome(self.number)
             return self._prediction.predict(df).rename(columns={"c0_predict": "C0"})
