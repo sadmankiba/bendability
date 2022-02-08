@@ -60,8 +60,9 @@ class TestDataOrganizer(unittest.TestCase):
 
         organizer = DataOrganizer(libraries, None, None)
         hel_dfs = organizer._get_helical_sep()
-        self.assertEqual(len(hel_dfs["train"][0].columns), 3 + 120 + 16)
-        self.assertEqual(len(hel_dfs["test"][0].columns), 3 + 120 + 16)
+        assert len(hel_dfs["train"][0].columns) == 3 + 120 + 16 
+        assert len(hel_dfs["test"][0].columns) == 3 + 120 + 16
+
 
         saved_train_file = Path(
             f"{PathObtain.data_dir()}/generated_data/helical_separation"
@@ -90,8 +91,8 @@ class TestDataOrganizer(unittest.TestCase):
 
         organizer = DataOrganizer(libraries, None, None, options)
         kmer_dfs = organizer._get_kmer_count()
-        self.assertEqual(len(kmer_dfs["train"][0].columns), 3 + 4 ** 2 + 4 ** 3)
-        self.assertEqual(len(kmer_dfs["test"][0].columns), 3 + 4 ** 2 + 4 ** 3)
+        assert len(kmer_dfs["train"][0].columns) == 3 + 4 ** 2 + 4 ** 3
+        assert len(kmer_dfs["test"][0].columns) == 3 + 4 ** 2 + 4 ** 3
 
         for lib_type, k in it.product(["train", "test"], k_list):
             saved_file = Path(
@@ -100,7 +101,7 @@ class TestDataOrganizer(unittest.TestCase):
                 f"_{libraries['seq_end_pos']}_kmercount_{k}.tsv"
             )
 
-            self.assertEqual(saved_file.is_file(), True)
+            assert saved_file.is_file()
 
     def test_one_hot_encode_shape(self):
         factory = ShapeOrganizerFactory("ohe", "")
