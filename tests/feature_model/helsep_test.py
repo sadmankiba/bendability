@@ -2,6 +2,7 @@ from feature_model.helsep import HelicalSeparationCounter
 
 import pandas as pd
 import numpy as np
+import pytest
 
 import unittest
 
@@ -26,7 +27,7 @@ class TestHelicalSeparationCounter(unittest.TestCase):
         df = HelicalSeparationCounter().calculate_expected_p()
         self.assertEqual(df.shape, (136, 49))
 
-    def test_normalized_helical_sep_of(self):
+    def test_helical_sep_of(self):
         seq = "AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACGCCCGGGCGCTCTC"
         # Explanation
         # TT -> [3, 13]
@@ -46,30 +47,7 @@ class TestHelicalSeparationCounter(unittest.TestCase):
             np.array([0, 1, 0]) / expected_dist[pair_idx, 13:16]
         ).max()
 
-        hs = helsep._normalized_helical_sep_of([seq])
-        self.assertTupleEqual(hs.shape, (1, 136))
-        self.assertAlmostEqual(hs[0, pair_idx], helical - half_helical)
-
-    def test_find_helical_separation(self):
-
-        df = pd.DataFrame(
-            {
-                "Sequence": [
-                    "AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACCGCCGGGCGCTCTC",
-                    "AAATTGCCTGCTCTTCCTGCGACCAGTCCTCTCGACGCCCGGGCGCTCTC",
-                ]
-            }
-        )
-
-        # Explanation
-        # First
-        # TT -> [3, 13]
-        # GC -> [5, 9, 18, 36, 42, 44]
-        # Absolute diff -> [2, 6, 15, 34, 39, 41, 8, 4, 5, 24, 29, 31]
-        # Second - same as last
-
-        df_hel = HelicalSeparationCounter().find_helical_separation(df)
-        self.assertGreater(len(df_hel.columns), len(df.columns))
-        self.assertEqual(len(df_hel.columns.tolist()), 1 + 120 + 16)
-        # Needs to be normalized
-        # self.assertListEqual(df_hel['GC-TT'].tolist(), [-2, -1])
+        hs = helsep.helical_sep_of([seq])
+        print(hs.columns)
+        assert hs.shape == (1, 137)
+        assert hs["GC-TT"][0] == pytest.approx(helical - half_helical, abs=1e-3)

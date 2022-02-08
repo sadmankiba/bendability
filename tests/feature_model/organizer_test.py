@@ -95,7 +95,7 @@ class TestDataOrganizer(unittest.TestCase):
 
         for lib_type, k in it.product(["train", "test"], k_list):
             saved_file = Path(
-                f"../data/generated_data/kmer_count"
+                f"{PathObtain.data_dir()}/generated_data/kmer_count"
                 f"/{libraries[lib_type][0]['name']}_{libraries['seq_start_pos']}"
                 f"_{libraries['seq_end_pos']}_kmercount_{k}.tsv"
             )

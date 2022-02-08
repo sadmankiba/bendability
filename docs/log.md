@@ -17,6 +17,7 @@
 ## Short Tasks List   
 | Task | Priority | Created | Compl | Result | 
 | -----|----------|---------|-------|--------|
+| Check motifs in boundaries | H | 8/02 | | |
 | Besides dinc, check 3-mer, 4-mer of bndrs regions | L | 4/02 | | |  
 | Check helsep of bndrs, bndry nucs, bndry ndrs, bndry prmtrs | H | 4/02 | | |
 | Rigidity - FANC Bndry (+- 250bp, +-100bp, +-50bp), Bndry prmtrs, bndry nucs, bndry ndrs. Box plot. With nuc, linkers. | H | 3/02 | 3/02 | bndrs more bndbl. bndry nucs more rigid. bndry lnkrs more bndbl. |

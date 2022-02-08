@@ -1,12 +1,10 @@
 from __future__ import annotations
-
-from util.util import FileSave, PathObtain, cut_sequence
-from .helsep import HelicalSeparationCounter
-from .occurence import Occurence
-from .shape import run_dna_shape_r_wrapper
-from util.reader import DNASequenceReader
-from util.custom_types import LIBRARY_NAMES
-from .feat_selector import FeatureSelector
+import math
+from collections import Counter
+from typing import Union, TypedDict
+from pathlib import Path
+import time
+import random
 
 import numpy as np
 import pandas as pd
@@ -15,12 +13,13 @@ from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import RandomOverSampler
 import boruta
 
-import math
-from collections import Counter
-from typing import Union, TypedDict
-from pathlib import Path
-import time
-import random
+from .helsep import HelicalSeparationCounter
+from .occurence import Occurence
+from .shape import run_dna_shape_r_wrapper
+from .feat_selector import FeatureSelector
+from util.reader import DNASequenceReader
+from util.custom_types import LIBRARY_NAMES
+from util.util import FileSave, PathObtain, cut_sequence
 
 
 class SequenceLibrary(TypedDict):
@@ -457,8 +456,8 @@ class DataOrganizer:
             return pd.read_csv(saved_helical_sep_file, sep="\t")
 
         t = time.time()
-        df_hel = HelicalSeparationCounter().find_helical_separation(
-            cut_dfs[library["name"]]
+        df_hel = pd.merge(
+            cut_dfs[library["name"]], HelicalSeparationCounter().helical_sep_of(cut_dfs[library["name"]]["Sequence"].tolist()), on="Sequence", how="left"
         )
         print(f"Helical separation count time: {(time.time() - t) / 60} min")
 

@@ -5,16 +5,14 @@ import regex as re
 import pandas as pd
 
 from chromosome.chromosome import Chromosome
-from util.custom_types import PosOneIdx, DNASeq
-
-DincStr = str
+from util.custom_types import PosOneIdx, DNASeq, DiNc
 
 class Dinc:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
     
     @classmethod
-    def find_pos(cls, seq: DNASeq, dincs: Iterable[DincStr]) -> dict[DincStr, list[int]]:
+    def find_pos(cls, seq: DNASeq, dincs: Iterable[DiNc]) -> dict[DiNc, list[int]]:
         return dict(
             map(
                 lambda dinc: (

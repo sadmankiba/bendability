@@ -11,12 +11,32 @@ from nptyping import NDArray
 
 from chromosome.dinc import Dinc
 from util.util import FileSave, PathObtain, get_possible_seq, gen_random_sequences
-from util.custom_types import DNASeq
+from util.custom_types import DNASeq, DiNc
 
 # Constants
 NUM_DINC_PAIRS = 136  # Possible dinucleotide pairs
 NUM_DISTANCES = 48  # Possible distances between two dinucleotides
+SEQ_COL = "Sequence"
 
+class DincUtil:
+    #TODO: Merge DincUtil with Dinc?
+    @classmethod
+    def pairs_all(cls) -> list[tuple[DiNc, DiNc]]:
+        """
+        Generates all possible dinucleotide pairs
+        """
+        all_dinc = get_possible_seq(2)
+
+        dinc_pairs = [pair for pair in it.combinations(all_dinc, 2)] + [
+            (dinc, dinc) for dinc in all_dinc
+        ]
+        assert len(dinc_pairs) == 136
+
+        return dinc_pairs
+
+    @classmethod
+    def pair_str(cls, dinc_pair: tuple[DiNc, DiNc]) -> str:
+        return dinc_pair[0] + "-" + dinc_pair[1]
 
 class HelicalSeparationCounter:
     """
@@ -35,7 +55,62 @@ class HelicalSeparationCounter:
         self._expected_dist_file = (
             f"{PathObtain.data_dir()}/generated_data/helical_separation/expected_p.tsv"
         )
-        self._dinc_pairs = self._get_dinc_pairs()
+        self._dinc_pairs = DincUtil.pairs_all()
+
+    def helical_sep_of(self, seq_list: list[DNASeq]) -> pd.DataFrame:
+        """
+        Count normalized helical separation
+        """
+        pair_dist_occur = self._dinc_pair_dist_occur_normd(seq_list)
+
+        def _dist_occur_max_at(pos: int) -> NDArray[(Any, 136), float]:
+            return np.max(pair_dist_occur[:, :, pos - 2 : pos + 1], axis=2)
+
+        at_hel_dist = sum(list(map(_dist_occur_max_at, [10, 20, 30])))
+        at_half_hel_dist = sum(list(map(_dist_occur_max_at, [5, 15, 25])))
+
+        dinc_df = pd.DataFrame(
+            at_hel_dist - at_half_hel_dist,
+            columns=list(map(DincUtil.pair_str, self._dinc_pairs)),
+        )
+        dinc_df[SEQ_COL] = seq_list
+        return dinc_df
+
+    def _dinc_pair_dist_occur_normd(
+        self, seq_list: list[DNASeq]
+    ) -> NDArray[(Any, 136, 48), float]:
+        """
+        Calculates normalized p(i) for i = 1-48 for all dinc pairs
+
+        """
+        pair_dist_occur = np.array(list(map(self._pair_dinc_dist_in, seq_list)))
+        assert pair_dist_occur.shape == (len(seq_list), 136, 48)
+
+        exp_dist_occur = self.calculate_expected_p().drop(columns="Pair").values
+        assert exp_dist_occur.shape == (136, 48)
+
+        return pair_dist_occur / exp_dist_occur
+
+    def calculate_expected_p(self) -> pd.DataFrame:
+        """
+        Calculates expected p(i) of dinucleotide pairs.
+        """
+        if Path(self._expected_dist_file).is_file():
+            return pd.read_csv(self._expected_dist_file, sep="\t")
+
+        # Generate 10000 random sequences
+        seq_list = gen_random_sequences(10000)
+
+        # Count mean distance for 136 pairs in generated sequences
+        pair_all_dist = np.array(list(map(self._pair_dinc_dist_in, seq_list)))
+        mean_pair_dist = pair_all_dist.mean(axis=0)
+        assert mean_pair_dist.shape == (136, 48)
+
+        # Save a dataframe of 136 rows x 49 columns
+        df = pd.DataFrame(mean_pair_dist, columns=np.arange(48) + 1)
+        df["Pair"] = list(map(lambda p: f"{p[0]}-{p[1]}", self._dinc_pairs))
+        FileSave.tsv(df, self._expected_dist_file)
+        return df
 
     def _pair_dinc_dist_in(
         self, seq: DNASeq
@@ -72,112 +147,6 @@ class HelicalSeparationCounter:
             abs(pos_pair[0] - pos_pair[1]) for pos_pair in it.product(pos_one, pos_two)
         ]
 
-    def _get_all_normalized_dist(self, seq_list: list[str]) -> np.ndarray:
-        """
-        Calculates normalized p(i) for i = 1-48 for all dinc pairs
-
-        Returns:
-            A numpy array of shape (len(seq_list), 136, 48)
-        """
-        # Find all pair distance in sequence list
-        pair_all_dist = np.array(list(map(self._pair_dinc_dist_in, seq_list)))
-        assert pair_all_dist.shape == (len(seq_list), 136, 48)
-
-        # Load expected distance
-        expected_dist_df = self.calculate_expected_p()
-        expected_dist = expected_dist_df.drop(columns="Pair").values
-        assert expected_dist.shape == (136, 48)
-
-        return pair_all_dist / expected_dist
-
-    def _normalized_helical_sep_of(self, seq_list: list[str]) -> np.ndarray:
-        """
-        Count normalized helical separation for an nc-pair in a single sequence
-
-        Vectorized calculation!
-
-        Returns:
-            A numpy array of shape (len(seq_list), 136)
-        """
-        pair_normalized_dist = self._get_all_normalized_dist(seq_list)
-
-        def sum_max_p(pos_list: list[int]):
-            """
-            Adds max p(i) around given positions
-
-            Args:
-                list of positions
-            """
-            hel_arr = np.array(
-                list(
-                    map(
-                        lambda i: np.max(
-                            pair_normalized_dist[:, :, i - 2 : i + 1], axis=2
-                        ),
-                        pos_list,
-                    )
-                )
-            )
-            assert hel_arr.shape == (len(pos_list), len(seq_list), 136)
-            return np.sum(hel_arr, axis=0)
-
-        at_helical_dist = sum_max_p([10, 20, 30])
-        at_half_helical_dist = sum_max_p([5, 15, 25])
-
-        return at_helical_dist - at_half_helical_dist
-
-    def calculate_expected_p(self) -> pd.DataFrame:
-        """
-        Calculates expected p(i) of dinucleotide pairs.
-        """
-        if Path(self._expected_dist_file).is_file():
-            return pd.read_csv(self._expected_dist_file, sep="\t")
-
-        # Generate 10000 random sequences
-        seq_list = gen_random_sequences(10000)
-
-        # Count mean distance for 136 pairs in generated sequences
-        pair_all_dist = np.array(list(map(self._pair_dinc_dist_in, seq_list)))
-        mean_pair_dist = pair_all_dist.mean(axis=0)
-        assert mean_pair_dist.shape == (136, 48)
-
-        # Save a dataframe of 136 rows x 49 columns
-        df = pd.DataFrame(mean_pair_dist, columns=np.arange(48) + 1)
-        df["Pair"] = list(map(lambda p: f"{p[0]}-{p[1]}", self._dinc_pairs))
-        FileSave.tsv(df, self._expected_dist_file)
-        return df
-
-    def find_helical_separation(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Find helical separation extent of all possible dinucleotide pairs for DNA sequences.
-
-        Args:
-            df: column `Sequence` contains DNA sequences
-
-        Returns:
-            A dataframe with columns added for all possible dinucleotide pairs.
-        """
-        df = df.copy()
-        df[self._dinc_pairs] = self._normalized_helical_sep_of(df["Sequence"].tolist())
-
-        return df
-
-    def _get_dinc_pairs(self) -> list[tuple[str, str]]:
-        """
-        Generates dinucleotide pairs
-
-        Returns:
-            A list of tuples of two dinucleotides
-        """
-        all_dinc = get_possible_seq(2)
-
-        dinc_pairs = [pair for pair in it.combinations(all_dinc, 2)] + [
-            (dinc, dinc) for dinc in all_dinc
-        ]
-        assert len(dinc_pairs) == 136
-
-        return dinc_pairs
-
     def plot_normalized_dist(self, df: pd.DataFrame, library_name: str) -> None:
         """
         Plots avg. normalized distance of sequences with most and least 1000 C0 values
@@ -185,10 +154,10 @@ class HelicalSeparationCounter:
         most_1000 = df.sort_values("C0").iloc[:1000]
         least_1000 = df.sort_values("C0").iloc[-1000:]
 
-        most1000_dist = self._get_all_normalized_dist(
+        most1000_dist = self._dinc_pair_dist_occur_normd(
             most_1000["Sequence"].tolist()
         ).mean(axis=0)
-        least1000_dist = self._get_all_normalized_dist(
+        least1000_dist = self._dinc_pair_dist_occur_normd(
             least_1000["Sequence"].tolist()
         ).mean(axis=0)
 

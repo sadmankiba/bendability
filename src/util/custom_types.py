@@ -3,6 +3,7 @@ from typing import Literal, Union, NewType
 PosOneIdx = int
 
 DNASeq = str
+DiNc = str
 C0 = float
 
 PositiveInt = int
