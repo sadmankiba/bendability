@@ -42,7 +42,7 @@ class SubRegions:
         self.chrm = chrm
         self._prmtrs = None
         self._bndrs = None
-        self._bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
+        self.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
         self.min_ndr_len = 40
 
     @property
@@ -72,7 +72,7 @@ class SubRegions:
             return Nucleosomes(self.chrm)
 
         return Attr.calc_attr(self, "_nucs", _nucs)
-    
+
     @property
     def lnkrs(self) -> Linkers:
         def _lnkrs():
@@ -111,15 +111,16 @@ class SubRegions:
 
     def bndry_nucs(self) -> Nucleosomes:
         return self.nucs.overlaps_with_rgns(self.bndrs, 50)
-    
+
     def non_bndry_nucs(self) -> Nucleosomes:
         return self.nucs - self.bndry_nucs()
-    
+
     def bndry_ndrs(self) -> Linkers:
-        return self.ndrs.overlaps_with_rgns(self._bndrs, self.min_ndr_len)
-    
+        return self.ndrs.overlaps_with_rgns(self.bndrs, self.min_ndr_len)
+
     def non_bndry_ndrs(self) -> Linkers:
         return self.ndrs - self.bndry_ndrs()
+
 
 class DistribPlot:
     def __init__(self, chrm: Chromosome) -> None:
@@ -236,8 +237,8 @@ class DistribPlot:
     def box_mean_c0(self) -> Path:
         sr = SubRegions(self._chrm)
         bsel_hexp = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
-        bsel_fanc = BndSel(BoundariesType.FANC, BndFParm.SHR_25)
-        sr.bsel = bsel_fanc
+        bsel_fanc = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+        sr.bsel = bsel_hexp
         grp_bndrs_nucs = {
             "distribs": [
                 sr.bndrs[MEAN_C0],
@@ -249,11 +250,11 @@ class DistribPlot:
                 sr.lnkrs[MEAN_C0],
                 sr.ndrs[MEAN_C0],
                 sr.bndry_ndrs()[MEAN_C0],
-                sr.non_bndry_ndrs()[MEAN_C0]
-            ], 
+                sr.non_bndry_ndrs()[MEAN_C0],
+            ],
             "labels": [
                 "bndrs l 100",
-                "bndrs l 200", 
+                "bndrs l 200",
                 "bndrs l 50",
                 "nucs",
                 "bndry nucs",
@@ -261,11 +262,10 @@ class DistribPlot:
                 "lnkrs",
                 "ndrs 40",
                 "bndry ndrs",
-                "non bndry ndrs"
-            ], 
-            "title": "Mean C0 distrib of bndrs and nucs", 
-            "fname": f"bndrs_nucs_{sr.bndrs}.png"
-
+                "non bndry ndrs",
+            ],
+            "title": "Mean C0 distrib of bndrs and nucs",
+            "fname": f"bndrs_nucs_{sr.bndrs}.png",
         }
         grp_bndrs_prmtrs = {
             "distribs": [
@@ -430,6 +430,39 @@ class DistribPlot:
         )
 
 
+class ScatterC0Plot:
+    def __init__(self, chrm: Chromosome) -> None:
+        self._chrm = chrm
+
+    def scatter(self) -> Path:
+        PlotUtil.clearfig()
+        sr = SubRegions(self._chrm)
+        sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_25)
+
+        fig = plt.figure()
+        ax1 = fig.add_subplot(111)
+        ax1.scatter(
+            sr.non_bndry_ndrs()[LEN],
+            sr.non_bndry_ndrs()[MEAN_C0],
+            c="b",
+            marker="s",
+            label="Non-bndry NDRs",
+        )
+        ax1.scatter(
+            sr.bndry_ndrs()[LEN],
+            sr.bndry_ndrs()[MEAN_C0],
+            c="r",
+            marker="o",
+            label="Bndry NDRs",
+        )
+        plt.legend(loc="upper right")
+
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.NDRS}/c0_scatter_chrm_{self._chrm.id}_ndr_{sr.min_ndr_len}"
+            f"_bndrs_{sr.bndrs}.png"
+        )
+
+
 class LineC0Plot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
@@ -584,8 +617,8 @@ class PlotPrmtrsBndrs:
 
     def __init__(self):
         pass
-    
-    def helsep_box(self) -> Path: 
+
+    def helsep_box(self) -> Path:
         pass
 
     def dinc_explain_scatter(self) -> Path:

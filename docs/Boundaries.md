@@ -38,6 +38,7 @@ Method DC2: DL2. NDR ovlps with Bnd >= 40 bp.
 |     | 200      | 2000         | 1.5       | 1180/4830| 75   |  |
 |     | 200      | 5000         | 1.0       | 710/3815 | 52   | best |
 | BF1 | 200      | 5000         | 25%       |    /3815 | 45   |  |
+| BF2 | 200      | 5000         | 50%       |    /3815 |      |  |
 |     | 500      | 1000         | 1.5       | 584/2677 | 36   |  |
 
 
@@ -100,6 +101,20 @@ Using param 1, mean C0, TpA and CpG content of PMwB and PMoB were checked. [C11,
 
 ## C2. Boundaries and Linkers
 
+### Exp 2.3 Comparison of NDRs at boundaries and domains 
+#### Research Question 
+- Boundaries Exp 3.4 shows that boundary NDRs are more bendable. What does scatter plot of c0 say? Any pattern with length?
+#### Procedure 
+BF1. BF2. [C14][F16]
+
+Scatter plot 
+
+#### Observations 
+- Boundary NDRs have c0 both below and above chrm avg c0. But, boundary NDRs tend to have slightly higher c0 (> -0.5) in all length. No pattern was seen with respect to length. 
+
+#### Future directions 
+- Check line distribution plot. 
+
 ### Exp 2.1. Number and Comparison of C0 in boundaries w/ or w/o NDRs 
 
 #### Procedure
@@ -148,14 +163,15 @@ Param - ?
 - Any pattern in C0?
 
 **Procedure**
-BF1. DL2. [C13] [F15]
+(BF1, BF2, BH1). DL2. [C13] [F15]
 
 **Observations**
 *Boundaries*
 - Distrib slightly towards more bendability than nucs. 
 
 *Boundary nucs and linkers*
-- Surprisingly, bndry ndrs c0 distrib towards more bendability than nucs. Bndry nucs c0 distrib towards more rigidity than lnkrs. Might be because of small number of boundaries. 
+- Boundary NDRs show significantly more bendable distribution (even more than nucs). Shown in BF1, BF2, BH1. 
+- Only BF1 shows bndry nucs towards more rigidity. Might be because of small number of boundaries. 
 
 **Future Directions**
 - Check in other chromosomes. 
@@ -281,6 +297,7 @@ C0: Some
 [C11] `chromosome.crossregions.PlotPrmtrsBndrs.dinc_explain_box`
 [C12] `chromosome.crossregions.PlotPrmtrsBndrs.dinc_explain_scatter`
 [C13] `chromosome.crossregions.DistribPlot.box_mean_c0`
+[C14] `chromosome.crossregions.ScatterC0Plot.scatter`
 
 
 ## Figure References
@@ -314,3 +331,5 @@ C0: Some
 ![Prmtrs mean C0, TpA, CpG scatter](../figures/crossregions/prmtrs_ta_cg_scatter.png)
 [F15]
 ![bndry nucs mean c0](../figures/crossregions/c0_box/bndrs_nucs_res_200_lim_100_perc_0.25_fanc.png)
+[F16]
+![bndry ndrs c0](../figures/ndrs/c0_scatter_chrm_VL_ndr_40_bndrs_res_200_lim_100_perc_0.5_fanc.png)

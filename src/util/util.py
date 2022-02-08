@@ -363,7 +363,7 @@ class PlotUtil:
             )
 
     @classmethod
-    def clearfig(self):
+    def clearfig(cls):
         plt.close()
         plt.clf()
 

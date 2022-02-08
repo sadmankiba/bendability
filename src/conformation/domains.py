@@ -148,6 +148,7 @@ class BndFParmT(TypedDict, total=False):
 class BndFParm:
     SHR_25 = BndFParmT(lim=100, top_perc=0.25)
     WD_25 = BndFParmT(lim=250, top_perc=0.25)
+    SHR_50 = BndFParmT(lim=100, top_perc=0.50)
 
 
 class BoundariesF(Boundaries):
