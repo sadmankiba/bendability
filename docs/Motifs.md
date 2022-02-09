@@ -3,18 +3,30 @@
 ## Base work
 **Contribution score**: We determined motif logo and contribution score for each motif. Contrib score ranged from -0.017 to 0.021. The higher the contrib score, the greater that motif contribute to positive bendability. [F1]
 
+5 +ve contrib motifs: TATA, GAAGA, CCCT, TGCA, CCTT
+5 -ve contrib motifs: TTTTT, AAAA, TTGG, GAAGA, CGCG
+
 ## Experiments 
 
-## Motif contribution comparison in PMwB and PMoB
+### Exp 1.2 Motif contribution comparison of non-bndry and bndry NDRs
 
-### Research Question
+#### Research Question 
+- Does any motif show opposite pattern? 
+
+#### Procedure 
+BF1. DL2. Kmer count. 
+
+#### Observations 
+### Exp 1.1 Motif contribution comparison in PMwB and PMoB
+
+#### Research Question
 1. Does any motif show completely opposite contrib?
 2. Any pattern among motifs with highest -ve or +ve contrib to c0?
 
-### Procedure 
+#### Procedure 
 Merged in subplot motif contribs with these sorted by contrib score ascendingly.
 
-### Observations 
+#### Observations 
 1. No. 
 2. 
   a. Motifs with -ve contrib to C0
@@ -28,10 +40,10 @@ Merged in subplot motif contribs with these sorted by contrib score ascendingly.
   c. Midrange
     i. Similar in both. (expc.)
 
-**Comments**
+##### Comments
 Expected that positive motif will be enriched at PMwB since they were found to be more bendable. 
 
-### Future Directions 
+#### Future Directions 
 1. Align promoters according to gene direction.
 2. Cluster motifs by contribution patterns in PMwB and PMoB. Simplest, pearson.
 

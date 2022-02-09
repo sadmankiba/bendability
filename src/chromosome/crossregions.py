@@ -18,6 +18,7 @@ from chromosome.genes import Genes
 from motif.motifs import Motifs
 from util.constants import FigSubDir, ONE_INDEX_START
 
+from chromosome.dinc import KMer
 from .chromosome import Chromosome
 from chromosome.regions import END, MIDDLE, START
 from .genes import Promoters, STRAND
@@ -34,7 +35,7 @@ from conformation.domains import (
 )
 from .regions import LEN, MEAN_C0, Regions
 from util.util import Attr, PathObtain, PlotUtil, FileSave
-from util.custom_types import PosOneIdx
+from util.custom_types import PosOneIdx, KMerSeq
 
 
 class SubRegions:
@@ -430,11 +431,11 @@ class DistribPlot:
         )
 
 
-class ScatterC0Plot:
+class ScatterPlot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
 
-    def scatter(self) -> Path:
+    def scatter_c0(self) -> Path:
         PlotUtil.clearfig()
         sr = SubRegions(self._chrm)
         sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_25)
@@ -459,6 +460,35 @@ class ScatterC0Plot:
 
         return FileSave.figure_in_figdir(
             f"{FigSubDir.NDRS}/c0_scatter_chrm_{self._chrm.id}_ndr_{sr.min_ndr_len}"
+            f"_bndrs_{sr.bndrs}.png"
+        )
+
+    def scatter_kmer(self, kmer: KMerSeq):
+        PlotUtil.clearfig()
+        sr = SubRegions(self._chrm)
+        sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_25)
+
+        fig = plt.figure()
+        ax1 = fig.add_subplot(111)
+        km = KMer(self._chrm)
+        ax1.scatter(
+            sr.non_bndry_ndrs()[LEN],
+            km.count_w_rc(kmer, sr.non_bndry_ndrs()[START], sr.non_bndry_ndrs()[END]) / sr.non_bndry_ndrs()[LEN],
+            c="b",
+            marker="s",
+            label="Non-bndry NDRs",
+        )
+        ax1.scatter(
+            sr.bndry_ndrs()[LEN],
+            km.count_w_rc(kmer, sr.bndry_ndrs()[START], sr.bndry_ndrs()[END]) / sr.bndry_ndrs()[LEN],
+            c="r",
+            marker="o",
+            label="Bndry NDRs",
+        )
+        plt.legend(loc="upper right")
+
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.NDRS}/kmercnt_scatter_{kmer}_chrm_{self._chrm.id}_ndr_{sr.min_ndr_len}"
             f"_bndrs_{sr.bndrs}.png"
         )
 

@@ -18,13 +18,13 @@ from matplotlib.axes import Axes
 import seaborn as sns
 from nptyping import NDArray
 
-from .custom_types import YeastChrNum
+from .custom_types import DNASeq, YeastChrNum
 from .constants import SEQ_LEN
 
 logging.basicConfig(level=logging.INFO)
 
-
-def reverse_compliment_of(seq: str):
+# TODO: Rename rev_comp
+def reverse_compliment_of(seq: DNASeq) -> DNASeq:
     # Define replacements
     rep = {"A": "T", "T": "A", "G": "C", "C": "G"}
 

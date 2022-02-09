@@ -4,6 +4,7 @@ PosOneIdx = int
 
 DNASeq = str
 DiNc = str
+KMerSeq = str
 C0 = float
 
 PositiveInt = int

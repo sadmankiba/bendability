@@ -281,6 +281,9 @@ class Chromosome:
 
         return Attr.calc_attr(self, "_seq", _seq)
 
+    def seqf(self, start: PosOneIdx, end: PosOneIdx) -> str:
+        return self.seq[start - 1 : end]
+
     def _get_chrm_df(self) -> pd.DataFrame[SEQ_NUM_COL:int, SEQ_COL:str, C0:float]:
         def _chrm_df():
             df = DNASequenceReader().read_yeast_genome(self.number)
