@@ -9,7 +9,7 @@ from nptyping import NDArray
 
 from util.constants import CNL, RL, SEQ_LEN, TL, CHRVL, LIBL
 from util.custom_types import PosOneIdx, YeastChrNum
-from util.util import roman_to_num, PathObtain
+from util.util import roman_to_num, PathObtain, PRECISION_FLOAT_DF_TSV
 
 
 CNL_FILE = "41586_2020_3052_MOESM4_ESM.txt"
@@ -45,12 +45,6 @@ class DNASequenceReader:
 
         return (cnl_df_raw, rl_df_raw, tl_df_raw, chrvl_df_raw, libl_df_raw)
 
-    def _preprocess(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = df[[SEQ_NUM_COL, SEQ_COL, " C0"]].rename(columns={" C0": C0_COL})
-        df[SEQ_COL] = df[SEQ_COL].str[25:-25]
-
-        return df
-
     # TODO: Make class method
     def get_processed_data(
         self,
@@ -74,6 +68,13 @@ class DNASequenceReader:
         libl_df = self._preprocess(libl_df_raw)
 
         return {CNL: cnl_df, RL: rl_df, TL: tl_df, CHRVL: chrvl_df, LIBL: libl_df}
+
+    def _preprocess(self, df: pd.DataFrame) -> pd.DataFrame:
+        df = df[[SEQ_NUM_COL, SEQ_COL, " C0"]].rename(columns={" C0": C0_COL})
+        df[C0_COL] = df[C0_COL].round(decimals=PRECISION_FLOAT_DF_TSV)
+        df[SEQ_COL] = df[SEQ_COL].str[25:-25]
+
+        return df
 
     # TODO: Rename read_genome_sequence_of
     @classmethod

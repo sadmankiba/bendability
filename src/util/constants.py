@@ -1,6 +1,7 @@
 class GDataSubDir:
     PROMOTERS = "promoters"
     TEST = "test"
+    HELSEP = "helical_separation"
 
 
 class FigSubDir:

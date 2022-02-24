@@ -23,6 +23,8 @@ from .constants import SEQ_LEN
 
 logging.basicConfig(level=logging.INFO)
 
+PRECISION_FLOAT_DF_TSV = 3
+
 # TODO: Rename rev_comp
 def reverse_compliment_of(seq: DNASeq) -> DNASeq:
     # Define replacements
@@ -262,7 +264,7 @@ class FileSave:
         """Save a dataframe in tsv format"""
         path = Path(path_str)
         cls.make_parent_dirs(path)
-        df.to_csv(path, sep="\t", index=False, float_format="%.3f")
+        df.to_csv(path, sep="\t", index=False, float_format=f"%.{PRECISION_FLOAT_DF_TSV}f")
 
         logging.info(f"TSV file saved at: {path}")
         return path
@@ -298,6 +300,10 @@ class FileSave:
 
 class DataCache:
     """Class that caches data. Calculates if needed."""
+    @classmethod 
+    def np_arr_save_only(self, arr: np.ndarray, subpath: str | Path):
+        np.save(Path(f"{PathObtain.gen_data_dir()}/{subpath}"), arr)
+
     @classmethod
     def calc_df_tsv(self, subpath: str | Path, cb: Callable):
         savepath = Path(f"{PathObtain.gen_data_dir()}/{subpath}")

@@ -1,16 +1,30 @@
-from util.reader import DNASequenceReader
+from pathlib import Path
 
 from scipy.stats import pearsonr
 from sklearn.metrics import r2_score
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from pathlib import Path
+from util.constants import TL, RL, CNL, CHRVL, LIBL, TL_LEN, RL_LEN, CNL_LEN, CHRVL_LEN, LIBL_LEN
+from util.reader import DNASequenceReader
 
 
 class LibStat:
-    """Statistical analysis of libraries"""
+    """Statistical data and analysis of libraries"""
+    @classmethod 
+    def len(self, name: str):
+        if name == TL:
+            return TL_LEN
+        if name == RL: 
+            return RL_LEN
+        if name == CNL:
+            return CNL_LEN
+        if name == CHRVL: 
+            return CHRVL_LEN
+        if name == LIBL: 
+            return LIBL_LEN
 
+    @classmethod
     def compare_common(self, lib_first: str, lib_sec: str):
         """
         Compare common sequences in two libraries

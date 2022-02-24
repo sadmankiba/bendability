@@ -24,7 +24,6 @@ class TestDataOrganizer(unittest.TestCase):
     def setUp(self):
         pass
 
-    @pytest.mark.skip(reason="Random selection code in method raises error")
     def test_get_seq_train_test(self):
         libraries: TrainTestSequenceLibraries = {
             "train": [
@@ -66,12 +65,12 @@ class TestDataOrganizer(unittest.TestCase):
 
         saved_train_file = Path(
             f"{PathObtain.data_dir()}/generated_data/helical_separation"
-            f"/{libraries['train'][0]['name']}_{libraries['seq_start_pos']}_{libraries['seq_end_pos']}_hs.tsv"
+            f"/{libraries['train'][0].name}_{libraries['seq_start_pos']}_{libraries['seq_end_pos']}_hs.tsv"
         )
 
         saved_test_file = Path(
             f"{PathObtain.data_dir()}/generated_data/helical_separation"
-            f"/{libraries['test'][0]['name']}_{libraries['seq_start_pos']}_{libraries['seq_end_pos']}_hs.tsv"
+            f"/{libraries['test'][0].name}_{libraries['seq_start_pos']}_{libraries['seq_end_pos']}_hs.tsv"
         )
 
         self.assertEqual(saved_train_file.is_file(), True)
@@ -100,7 +99,7 @@ class TestDataOrganizer(unittest.TestCase):
         for lib_type, k in it.product(["train", "test"], k_list):
             saved_file = Path(
                 f"{PathObtain.gen_data_dir()}/kmer_count"
-                f"/{libraries[lib_type][0]['name']}_{libraries['seq_start_pos']}"
+                f"/{libraries[lib_type][0].name}_{libraries['seq_start_pos']}"
                 f"_{libraries['seq_end_pos']}_kmercount_{k}.tsv"
             )
 
