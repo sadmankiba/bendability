@@ -1,13 +1,7 @@
 from __future__ import annotations
-
-from .data_organizer import (
-    DataOrganizer,
-    TrainTestSequenceLibraries,
-    SequenceLibrary,
-    DataOrganizeOptions,
-)
-from util.constants import RL, TL
-from .feat_selector import FeatureSelectorFactory
+from enum import Enum, auto
+from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -20,9 +14,18 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
+from nptyping import NDArray
 
-from datetime import datetime
-from pathlib import Path
+from .data_organizer import (
+    DataOrganizer,
+    TrainTestSequenceLibraries,
+    SequenceLibrary,
+    DataOrganizeOptions,
+    FeatureSelector, 
+    ShapeOrganizerFactory
+)
+from util.constants import RL, TL
+from .feat_selector import FeatureSelectorFactory
 
 
 class Model:
@@ -30,15 +33,7 @@ class Model:
     A class to train model on DNA mechanics libraries.
     """
 
-    def __init__(self, organizer: DataOrganizer):
-        """
-        Constructor
-
-        Args:
-            organizer: Data organizer object
-        """
-        self.organizer = organizer
-
+    @classmethod
     def _get_result_path(self, dir_name: str):
         """
         Makes result path. Creates if needed.
@@ -50,6 +45,35 @@ class Model:
             f"data/generated_data/results/{dir_name}/{cur_date}/{cur_time}.tsv"
         ).mkdir(parents=True, exist_ok=True)
 
+    @classmethod
+    def run_shape_cnn_classifier(
+        self,
+        X_train_valid: NDArray,
+        X_test: NDArray,
+        y_train_valid: NDArray,
+        y_test: NDArray,
+    ) -> None:
+        """
+        Run a CNN classifier on DNA shape values.
+
+        Args:
+            shape_name: Name of structural feature
+            c0_range_split: A numpy 1D array denoting the point of split for classification
+
+        """
+        model, history = self._train_shape_cnn_classifier(X_train_valid, y_train_valid)
+        test_loss, test_acc = model.evaluate(X_test, y_test, verbose=2)
+        print("test_acc", test_acc)
+
+        # Plot
+        plt.plot(history.history["accuracy"], label="accuracy")
+        plt.plot(history.history["val_accuracy"], label="val_accuracy")
+        plt.xlabel("Epoch")
+        plt.ylabel("Accuracy")
+        plt.legend(loc="lower right")
+        plt.show()
+
+    @classmethod
     def _train_shape_cnn_classifier(
         self, X: np.ndarray, y: np.ndarray
     ) -> tuple[models.Sequential, tf.keras.callbacks.History]:
@@ -98,50 +122,19 @@ class Model:
 
         return model, history
 
-    def run_shape_cnn_classifier(
-        self, shape_name: str, c0_range_split: np.ndarray, encode: bool, binary: bool
+    @classmethod
+    def run_seq_classifier(
+        self, X_train: NDArray, X_test: NDArray, y_train: NDArray, y_test: NDArray
     ) -> None:
-        """
-        Run a CNN classifier on DNA shape values.
-
-        Args:
-            shape_name: Name of structural feature
-            c0_range_split: A numpy 1D array denoting the point of split for classification
-
-        """
-        # Train
-        (
-            X_train_valid,
-            X_test,
-            y_train_valid,
-            y_test,
-        ) = self.organizer.get_shape_train_test()
-        model, history = self._train_shape_cnn_classifier(X_train_valid, y_train_valid)
-        test_loss, test_acc = model.evaluate(X_test, y_test, verbose=2)
-        print("test_acc", test_acc)
-
-        # Plot
-        plt.plot(history.history["accuracy"], label="accuracy")
-        plt.plot(history.history["val_accuracy"], label="val_accuracy")
-        plt.xlabel("Epoch")
-        plt.ylabel("Accuracy")
-        plt.legend(loc="lower right")
-        plt.show()
-
-    def run_seq_classifier(self) -> None:
         """
         Runs Scikit-learn classifier to classify C0 value with k-mer count & helical separation.
         """
-        X_train, X_test, y_train, y_test = self.organizer.get_seq_train_test(
-            classify=True
-        )
-
         classifiers = []
         # classifiers.append(('LogisticRegression_C_1', LogisticRegression(C=1)))
         classifiers.append(("LogisticRegression_C_0.1", LogisticRegression(C=0.1)))
         classifiers.append(("SVC", SVC()))
         classifiers.append(("GradientBoost", GradientBoostingClassifier()))
-        classifiers.append(("NN", MLPRegressor()))
+        classifiers.append(("NN", MLPClassifier()))
         # classifiers.append(('KNN', KNeighborsClassifier()))
 
         # classifiers.append(('rf', RandomForestClassifier(n_estimators=5, max_depth=32))
@@ -164,14 +157,11 @@ class Model:
                 self._get_result_path(dir_name="classification"), sep="\t", index=False
             )
 
-    def run_seq_regression(self) -> None:
+    @classmethod
+    def run_seq_regression(self, X_train, X_test, y_train, y_test) -> None:
         """
         Runs Scikit-learn regression models to classify C0 value with k-mer count & helical separation.
         """
-        X_train, X_test, y_train, y_test = self.organizer.get_seq_train_test(
-            classify=False
-        )
-
         regressors = []
         regressors.append(("SVR_C_0.1", SVR(C=0.1)))
         regressors.append(("SVR_C_1", SVR(C=1)))
@@ -199,37 +189,45 @@ class Model:
                 self._get_result_path(dir_name="regression"), sep="\t", index=False
             )
 
+    @classmethod
     def run_shape_seq_classifier(self) -> None:
         pass
 
 
+class LibrariesParam:
+    tl_rl = TrainTestSequenceLibraries(
+        train=[SequenceLibrary(name=TL, quantity=20000)],
+        test=[SequenceLibrary(name=RL, quantity=5000)],
+        train_test=[],
+        seq_start_pos=1,
+        seq_end_pos=50,
+    )
+
+
+class ModelCat(Enum):
+    CLASSIFIER = auto()
+    REGRESSOR = auto()
+    SHAPE_CLASSIFIER = auto()
+
+
 class ModelRunner:
-    def run_model():
-        libraries: TrainTestSequenceLibraries = {
-            "train": [SequenceLibrary(name=TL, quantity=20000)],
-            "test": [SequenceLibrary(name=RL, quantity=5000)],
-            "train_test": [],
-            "seq_start_pos": 1,
-            "seq_end_pos": 50,
-        }
+    @classmethod
+    def run_model(
+        library: TrainTestSequenceLibraries,
+        options: DataOrganizeOptions,
+        featsel: FeatureSelector,
+        cat: ModelCat,
+    ):
+        shape_organizer = None
+        if cat == ModelCat.SHAPE_CLASSIFIER:
+            shape_factory = ShapeOrganizerFactory("normal", "ProT")
+            shape_organizer = shape_factory.make_shape_organizer(library)
 
-        # shape_factory = ShapeOrganizerFactory('normal', 'ProT')
-        # shape_organizer = shape_factory.make_shape_organizer(library)
-        feature_factory = FeatureSelectorFactory("corr")
-        selector = feature_factory.make_feature_selector()
+        organizer = DataOrganizer(library, shape_organizer, featsel, options)
 
-        options: DataOrganizeOptions = {
-            "k_list": [2],
-            "range_split": np.array([0.2, 0.6, 0.2]),
-            "binary_class": False,
-            "balance": False,
-            "c0_scale": 20,
-        }
-
-        organizer = DataOrganizer(libraries, None, selector, options)
-
-        model = Model(organizer)
-
-        # model.run_seq_classifier()
-        model.run_seq_regression()
-        # model.run_shape_cnn_classifier()
+        if cat == ModelCat.CLASSIFIER:
+            Model.run_seq_classifier(organizer.get_seq_train_test(classify=True))
+        elif cat == ModelCat.REGRESSOR:
+            Model.run_seq_regression(organizer.get_seq_train_test(classify=False))
+        elif cat == ModelCat.SHAPE_CLASSIFIER:
+            Model.run_shape_cnn_classifier(organizer.get_shape_train_test())

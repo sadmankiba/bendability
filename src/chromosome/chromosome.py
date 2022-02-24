@@ -289,7 +289,7 @@ class Chromosome:
             df = DNASequenceReader().read_yeast_genome(self.number)
             return self._prediction.predict(df).rename(columns={"c0_predict": "C0"})
 
-        return DataCache.dataframe(
+        return DataCache.calc_df_tsv(
             f"predictions/chr{self.number}_pred_m_{self._prediction._model_no}.tsv",
             _chrm_df,
         )

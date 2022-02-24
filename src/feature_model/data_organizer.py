@@ -19,7 +19,7 @@ from .shape import run_dna_shape_r_wrapper
 from .feat_selector import FeatureSelector
 from util.reader import DNASequenceReader
 from util.custom_types import LIBRARY_NAMES
-from util.util import FileSave, PathObtain, cut_sequence
+from util.util import FileSave, PathObtain, cut_sequence, DataCache
 
 
 class SequenceLibrary(TypedDict):
@@ -53,6 +53,7 @@ class TrainTestSequenceLibraries(TypedDict):
 # The reason for using TypedDict for DataOrganizeOptions over dataclass is that
 # all attributes need not be set everytime. get() function will then return None
 # for options that are not set.
+# TODO: You can use `dataclass` with default value set to None
 class DataOrganizeOptions(TypedDict, total=False):
     """
     Attributes:
@@ -376,138 +377,6 @@ class DataOrganizer:
         if not self._options.get("c0_scale"):
             self._options["c0_scale"] = 1
 
-    def _get_cut_dfs(self) -> dict[LIBRARY_NAMES, pd.DataFrame]:
-        """
-        Reads all sequence libraries and cut sequences accordingly.
-
-        If data not read, reads data and returns it. Data is not read in
-        constructor to speed up tests which create DataOrganizer objects.
-        """
-        if self._cut_dfs is not None:
-            return self._cut_dfs
-
-        reader = DNASequenceReader()
-        library_dfs = reader.get_processed_data()
-
-        # Cut sequences in each library
-        self._cut_dfs = dict(
-            map(
-                lambda p: (
-                    p[0],
-                    cut_sequence(
-                        p[1],
-                        self._libraries["seq_start_pos"],
-                        self._libraries["seq_end_pos"],
-                    ),
-                ),
-                list(library_dfs.items()),
-            )
-        )
-        return self._cut_dfs
-
-    def _save_classification_data(self, df: pd.DataFrame, name: str) -> None:
-        """Save classification data in a tsv file for inspection"""
-        k_list_str = "".join([str(k) for k in self._options["k_list"]])
-        classify_str = "_".join(
-            [str(int(val * 100)) for val in self._options["range_split"]]
-        )
-        file_name = f'{name}_{self._libraries["seq_start_pos"]}_{self._libraries["seq_end_pos"]}_kmercount_{k_list_str}_{classify_str}'
-
-        FileSave.tsv(
-            df.sort_values("C0"),
-            f"{PathObtain.data_dir()}/generated_data/classification/{file_name}.tsv",
-        )
-        df = df.drop(columns=["Sequence #", "Sequence"])
-        FileSave.tsv(
-            df.groupby("C0").mean().sort_values("C0"),
-            f"{PathObtain.data_dir()}/generated_data/kmer_count/{file_name}_mean.tsv",
-        )
-
-    def _get_helical_sep(self) -> dict[str, list[pd.DataFrame]]:
-        """
-        Counts helical separation for training and test data.
-
-        Loads if already saved.
-
-        Returns:
-            A dictionary containing train and test libraries. Has keys
-            ['train', 'test', 'train_test']
-        """
-        keys = ["train", "test", "train_test"]
-
-        return dict(
-            map(
-                lambda key: (
-                    key,
-                    list(map(self._get_helical_sep_of, self._libraries[key])),
-                ),
-                keys,
-            )
-        )
-
-    def _get_helical_sep_of(self, library: SequenceLibrary) -> pd.DataFrame:
-        cut_dfs = self._get_cut_dfs()
-        saved_helical_sep_file = Path(
-            f"{PathObtain.data_dir()}/generated_data/helical_separation"
-            f"/{library['name']}_{self._libraries['seq_start_pos']}_{self._libraries['seq_end_pos']}_hs.tsv"
-        )
-
-        if saved_helical_sep_file.is_file():
-            return pd.read_csv(saved_helical_sep_file, sep="\t")
-
-        t = time.time()
-        df_hel = pd.merge(
-            cut_dfs[library["name"]], HelicalSeparationCounter().helical_sep_of(cut_dfs[library["name"]]["Sequence"].tolist()), on="Sequence", how="left"
-        )
-        print(f"Helical separation count time: {(time.time() - t) / 60} min")
-
-        FileSave.tsv(df_hel, saved_helical_sep_file)
-        return df_hel
-
-    def _get_kmer_count(self) -> dict[str, list[pd.DataFrame]]:
-        """
-        Get k-mer count features for training and test data.
-
-        Loads if already saved.
-
-        Returns:
-            A dictionary containing train and test libraries. Has keys
-            ['train', 'test', 'train_test']
-        """
-        cut_dfs = self._get_cut_dfs()
-
-        def _get_kmer_of(library: SequenceLibrary):
-            df = cut_dfs[library["name"]]
-            df_kmer = df
-
-            for k in self._options["k_list"]:
-                # Check if k-mer count already saved
-                saved_kmer_count_file = Path(
-                    f"{PathObtain.data_dir()}/generated_data/kmer_count"
-                    f"/{library['name']}_{self._libraries['seq_start_pos']}"
-                    f"_{self._libraries['seq_end_pos']}_kmercount_{k}.tsv"
-                )
-
-                if saved_kmer_count_file.is_file():
-                    df_one_kmer = pd.read_csv(saved_kmer_count_file, sep="\t")
-                else:
-                    # Count k-mer if not saved
-                    t = time.time()
-                    df_one_kmer = Occurence().find_occurence_individual(df, [k])
-                    print(f"{k}-mer count time: {(time.time() - t) / 60} min")
-                    FileSave.tsv(df_one_kmer, saved_kmer_count_file)
-
-                df_kmer = df_kmer.merge(
-                    df_one_kmer, on=["Sequence #", "Sequence", "C0"]
-                )
-
-            return df_kmer
-
-        keys = ["train", "test", "train_test"]
-        return dict(
-            map(lambda key: (key, list(map(_get_kmer_of, self._libraries[key]))), keys)
-        )
-
     def get_seq_train_test(
         self, classify: bool
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -615,6 +484,140 @@ class DataOrganizer:
         X_test = (X_test - X_train.mean(axis=0)) / X_train.std(axis=0)
 
         return X_train, X_test, y_train, y_test
+
+    def _get_kmer_count(self) -> dict[str, list[pd.DataFrame]]:
+        """
+        Get k-mer count features for training and test data.
+
+        Loads if already saved.
+
+        Returns:
+            A dictionary containing train and test libraries. Has keys
+            ['train', 'test', 'train_test']
+        """
+        cut_dfs = self._get_cut_dfs()
+
+        def _get_kmer_of(library: SequenceLibrary):
+            df = cut_dfs[library["name"]]
+            df_kmer = df
+
+            for k in self._options["k_list"]:
+                saved_kmer_count_file = Path(
+                    f"{PathObtain.gen_data_dir()}/kmer_count"
+                    f"/{library['name']}_{self._libraries['seq_start_pos']}"
+                    f"_{self._libraries['seq_end_pos']}_kmercount_{k}.tsv"
+                )
+
+                def _df_one_kmer():
+                    t = time.time()
+                    df_one_kmer = Occurence().find_occurence_individual(df, [k])
+                    print(f"{k}-mer count time: {(time.time() - t) / 60} min")
+                    return df_one_kmer
+
+                df_kmer = df_kmer.merge(
+                    DataCache.calc_df_tsv(saved_kmer_count_file, _df_one_kmer),
+                    on=["Sequence #", "Sequence", "C0"],
+                )
+
+            return df_kmer
+
+        keys = ["train", "test", "train_test"]
+        return dict(
+            map(lambda key: (key, list(map(_get_kmer_of, self._libraries[key]))), keys)
+        )
+
+    def _get_cut_dfs(self) -> dict[LIBRARY_NAMES, pd.DataFrame]:
+        """
+        Reads all sequence libraries and cut sequences accordingly.
+
+        If data not read, reads data and returns it. Data is not read in
+        constructor to speed up tests which create DataOrganizer objects.
+        """
+        if self._cut_dfs is not None:
+            return self._cut_dfs
+
+        reader = DNASequenceReader()
+        library_dfs = reader.get_processed_data()
+
+        # Cut sequences in each library
+        self._cut_dfs = dict(
+            map(
+                lambda p: (
+                    p[0],
+                    cut_sequence(
+                        p[1],
+                        self._libraries["seq_start_pos"],
+                        self._libraries["seq_end_pos"],
+                    ),
+                ),
+                list(library_dfs.items()),
+            )
+        )
+        return self._cut_dfs
+
+    def _get_helical_sep(self) -> dict[str, list[pd.DataFrame]]:
+        """
+        Counts helical separation for training and test data.
+
+        Loads if already saved.
+
+        Returns:
+            A dictionary containing train and test libraries. Has keys
+            ['train', 'test', 'train_test']
+        """
+        keys = ["train", "test", "train_test"]
+
+        return dict(
+            map(
+                lambda key: (
+                    key,
+                    list(map(self._get_helical_sep_of, self._libraries[key])),
+                ),
+                keys,
+            )
+        )
+
+    def _get_helical_sep_of(self, library: SequenceLibrary) -> pd.DataFrame:
+        cut_dfs = self._get_cut_dfs()
+        saved_helical_sep_file = Path(
+            f"{PathObtain.data_dir()}/generated_data/helical_separation"
+            f"/{library['name']}_{self._libraries['seq_start_pos']}_{self._libraries['seq_end_pos']}_hs.tsv"
+        )
+
+        if saved_helical_sep_file.is_file():
+            return pd.read_csv(saved_helical_sep_file, sep="\t")
+
+        t = time.time()
+        df_hel = pd.merge(
+            cut_dfs[library["name"]],
+            HelicalSeparationCounter().helical_sep_of(
+                cut_dfs[library["name"]]["Sequence"].tolist()
+            ),
+            on="Sequence",
+            how="left",
+        )
+        print(f"Helical separation count time: {(time.time() - t) / 60} min")
+
+        FileSave.tsv(df_hel, saved_helical_sep_file)
+        return df_hel
+
+    def _save_classification_data(self, df: pd.DataFrame, name: str) -> None:
+        """Save classification data in a tsv file for inspection"""
+        k_list_str = "".join([str(k) for k in self._options["k_list"]])
+        classify_str = "_".join(
+            [str(int(val * 100)) for val in self._options["range_split"]]
+        )
+        file_name = f'{name}_{self._libraries["seq_start_pos"]}_{self._libraries["seq_end_pos"]}_kmercount_{k_list_str}_{classify_str}'
+
+        FileSave.tsv(
+            df.sort_values("C0"),
+            f"{PathObtain.data_dir()}/generated_data/classification/{file_name}.tsv",
+        )
+        df = df.drop(columns=["Sequence #", "Sequence"])
+        FileSave.tsv(
+            df.groupby("C0").mean().sort_values("C0"),
+            f"{PathObtain.data_dir()}/generated_data/kmer_count/{file_name}_mean.tsv",
+        )
 
     def get_shape_train_test(self) -> tuple[np.ndarray, np.ndarray]:
         """

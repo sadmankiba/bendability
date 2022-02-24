@@ -94,9 +94,12 @@ class TestDataOrganizer(unittest.TestCase):
         assert len(kmer_dfs["train"][0].columns) == 3 + 4 ** 2 + 4 ** 3
         assert len(kmer_dfs["test"][0].columns) == 3 + 4 ** 2 + 4 ** 3
 
+        assert len(kmer_dfs["train"][0]) == TL_LEN
+        assert len(kmer_dfs["test"][0]) == RL_LEN
+
         for lib_type, k in it.product(["train", "test"], k_list):
             saved_file = Path(
-                f"{PathObtain.data_dir()}/generated_data/kmer_count"
+                f"{PathObtain.gen_data_dir()}/kmer_count"
                 f"/{libraries[lib_type][0]['name']}_{libraries['seq_start_pos']}"
                 f"_{libraries['seq_end_pos']}_kmercount_{k}.tsv"
             )

@@ -34,9 +34,11 @@ class TestOccurence(unittest.TestCase):
         df = pd.DataFrame({"Sequence": ["ACGT", "AAGT", "CTAG"]})
         df_occur = Occurence().find_occurence_individual(df, [2])
 
-        self.assertGreater(len(df_occur.columns), len(df.columns))
-        self.assertListEqual(df_occur["AA"].tolist(), [0, 1, 0])
-        self.assertListEqual(df_occur["AG"].tolist(), [0, 1, 1])
+        assert len(df_occur) == 3
+        assert len(df.columns) == 1
+        assert len(df_occur.columns) == 1 + 4**2
+        assert df_occur["AA"].tolist() == [0, 1, 0]
+        assert df_occur["AG"].tolist() == [0, 1, 1]
 
 
 if __name__ == "__main__":

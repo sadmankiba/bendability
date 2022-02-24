@@ -298,10 +298,8 @@ class FileSave:
 
 class DataCache:
     """Class that caches data. Calculates if needed."""
-
-    # TODO: Rename: dataframe_tsv?
     @classmethod
-    def dataframe(self, subpath: str | Path, cb: Callable):
+    def calc_df_tsv(self, subpath: str | Path, cb: Callable):
         savepath = Path(f"{PathObtain.gen_data_dir()}/{subpath}")
         if savepath.is_file():
             return pd.read_csv(savepath, sep="\t")

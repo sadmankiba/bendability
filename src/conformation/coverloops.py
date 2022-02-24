@@ -60,7 +60,7 @@ class CoverLoops:
             )
             return cloops
 
-        return DataCache.dataframe(
+        return DataCache.calc_df_tsv(
             f"loops/cover_c0_{self._chrm.id}.tsv",
             _calc_mean_c0,
         )
@@ -117,7 +117,7 @@ class NonCoverLoops:
             )
             return ncloops
 
-        return DataCache.dataframe(
+        return DataCache.calc_df_tsv(
             f"loops/noncover_c0_{self._chrm.id}.tsv",
             _calc_mean_c0,
         )
