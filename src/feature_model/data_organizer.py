@@ -319,16 +319,16 @@ class ClassificationMaker:
         """
         df = df.copy()
         # Select rows that contain only first and last class
-        n = df["C0"].unique().size
-        df = df.loc[((df["C0"] == 0) | (df["C0"] == n - 1))]
+        n = df[C0_COL].unique().size
+        df = df.loc[((df[C0_COL] == 0) | (df[C0_COL] == n - 1))]
 
         # Change last class's value to 1
-        df["C0"] = df["C0"].apply(lambda val: val // (n - 1))
+        df[C0_COL] = df[C0_COL].apply(lambda val: val // (n - 1))
 
         return df
 
     def classify(self, df: pd.DataFrame) -> pd.DataFrame:
-        df["C0"] = self._classify_arr(df["C0"].to_numpy())
+        df[C0_COL] = self._classify_arr(df[C0_COL].to_numpy())
 
         if self._binary_class:
             df = self._get_binary_classification(df)
@@ -391,83 +391,40 @@ class DataOrganizer:
         """
         Prepares features and targets from DNA sequences and C0 value.
         """
-        train_test_kmer_dfs = self._get_kmer_count()
-        train_test_hel_dfs = self._get_helical_sep()
+        kmer_df_train, kmer_df_test = self._get_kmer_count()
+        hel_df_train, hel_df_test = self._get_helical_sep()
 
-        # Merge columns of kmer_df with corresponding hel_df
-        train_test_dfs: dict[TRAIN_SEQL_T, list[pd.DataFrame]] = dict(
-            map(
-                lambda key: (
-                    key,
-                    list(
-                        map(
-                            lambda df_kmer, df_hel: df_kmer.merge(
-                                df_hel, on=[SEQ_NUM_COL, SEQ_COL, C0_COL]
-                            ),
-                            train_test_kmer_dfs[key],
-                            train_test_hel_dfs[key],
-                        )
-                    ),
-                ),
-                train_test_kmer_dfs.keys(),
-            )
+        df_train = pd.merge(
+            kmer_df_train, hel_df_train, on=[SEQ_NUM_COL, SEQ_COL, C0_COL]
+        )
+        df_test = pd.merge(kmer_df_test, hel_df_test, on=[SEQ_NUM_COL, SEQ_COL, C0_COL])
+
+        assert len(df_train) == sum(
+            map(lambda slib: LibStat.len(slib.name), self._seqlibs.train)
+        )
+        assert len(df_test) == sum(
+            map(lambda slib: LibStat.len(slib.name), self._seqlibs.test)
         )
 
-        for seql in TRAIN_SEQL, TEST_SEQL:
-            for df, slib in zip(train_test_dfs[seql], self._seqlibs[seql]):
-                assert len(df) == LibStat.len(slib.name)
-
-        # Randomly select rows
-        train_test_dfs: dict[str, list[pd.DataFrame]] = dict(
-            map(
-                lambda k: (
-                    k,
-                    list(
-                        map(
-                            lambda df, library: df.sample(n=library.quantity),
-                            train_test_dfs[k],
-                            self._seqlibs[k],
-                        )
-                    ),
-                ),
-                train_test_dfs.keys(),
-            )
+        df_train = df_train.sample(
+            n=sum(map(lambda slib: slib.quantity, self._seqlibs.train))
+        )
+        df_test = df_test.sample(
+            n=sum(map(lambda slib: slib.quantity, self._seqlibs.test))
         )
 
-        # Scale C0
-        def _scale(df: pd.DataFrame) -> pd.DataFrame:
-            df = df.copy()
-            df["C0"] = df["C0"] * self._options["c0_scale"]
-            return df
-
-        train_test_dfs: dict[str, list[pd.DataFrame]] = dict(
-            map(lambda k_v: (k_v[0], list(map(_scale, k_v[1]))), train_test_dfs.items())
-        )
+        df_train[C0_COL] = df_train[C0_COL] * self._options["c0_scale"]
+        df_test[C0_COL] = df_test[C0_COL] * self._options["c0_scale"]
 
         if classify:
-            train_test_dfs: dict[str, list[pd.DataFrame]] = dict(
-                map(
-                    lambda k_v: (k_v[0], list(map(self._class_maker.classify, k_v[1]))),
-                    train_test_dfs.items(),
-                )
-            )
+            df_train = self._class_maker.classify(df_train)
+            df_test = self._class_maker.classify(df_test)
 
-            # self._save_classification_data(df)
+        y_train = df_train[C0_COL].to_numpy()
+        y_test = df_test[C0_COL].to_numpy()
 
-        print(train_test_dfs)
-
-        # Split train-test data
-        # For now ignoring train_test
-
-        # Concat to get one training and one test df
-        df_train = pd.concat(train_test_dfs["train"])
-        y_train = df_train["C0"].to_numpy()
-        df_train = df_train.drop(columns=["Sequence #", "Sequence", "C0"])
-
-        df_test = pd.concat(train_test_dfs["test"])
-        y_test = df_test["C0"].to_numpy()
-        df_test = df_test.drop(columns=["Sequence #", "Sequence", "C0"])
-        # df_train, df_test, y_train, y_test = train_test_split(df, y, test_size=0.1)
+        df_train = df_train.drop(columns=[SEQ_NUM_COL, SEQ_COL, C0_COL])
+        df_test = df_test.drop(columns=[SEQ_NUM_COL, SEQ_COL, C0_COL])
 
         # Print sample train values
         X_train = df_train.to_numpy()
@@ -497,7 +454,7 @@ class DataOrganizer:
 
         return X_train, X_test, y_train, y_test
 
-    def _get_kmer_count(self) -> tuple[list[pd.DataFrame], list[pd.DataFrame]]:
+    def _get_kmer_count(self) -> tuple[pd.DataFrame, pd.DataFrame]:
         """
         Get k-mer count features for training and test data.
 
@@ -509,7 +466,7 @@ class DataOrganizer:
         """
         cut_dfs = self._get_cut_dfs()
 
-        saved_kmer_paths= []
+        saved_kmer_paths = []
 
         def _get_kmer_of(library: SequenceLibrary):
             df = cut_dfs[library.name]
@@ -534,7 +491,7 @@ class DataOrganizer:
         keys = ["train", "test"]
         return tuple(
             map(
-                lambda libs: list(map(_get_kmer_of, libs)),
+                lambda libs: pd.concat(list(map(_get_kmer_of, libs))),
                 [self._seqlibs.train, self._seqlibs.test],
             )
         )
@@ -578,11 +535,10 @@ class DataOrganizer:
         )
         return self._cut_dfs
 
-    def _get_helical_sep(self) -> tuple[list[pd.DataFrame], list[pd.DataFrame]]:
+    def _get_helical_sep(self) -> tuple[pd.DataFrame, pd.DataFrame]:
         return tuple(
             map(
-                lambda libs: 
-                    list(map(self._get_helical_sep_of, libs)),
+                lambda libs: pd.concat(list(map(self._get_helical_sep_of, libs))),
                 [self._seqlibs.train, self._seqlibs.test],
             )
         )
@@ -615,9 +571,7 @@ class DataOrganizer:
             assert len(helsep_df_all) == len(cut_dfs[lib.name])
             print(f"Helical separation count time: {(time.time() - t) / 60} min")
 
-            return pd.merge(
-                cut_dfs[lib.name], helsep_df_all, on=SEQ_COL, how="left"
-            )
+            return pd.merge(cut_dfs[lib.name], helsep_df_all, on=SEQ_COL, how="left")
 
         return DataCache.calc_df_tsv(saved_helical_sep_file, _df_hel)
 
@@ -630,12 +584,12 @@ class DataOrganizer:
         file_name = f'{name}_{self._seqlibs["seq_start_pos"]}_{self._seqlibs["seq_end_pos"]}_kmercount_{k_list_str}_{classify_str}'
 
         FileSave.tsv(
-            df.sort_values("C0"),
+            df.sort_values(C0_COL),
             f"{PathObtain.data_dir()}/generated_data/classification/{file_name}.tsv",
         )
-        df = df.drop(columns=["Sequence #", "Sequence"])
+        df = df.drop(columns=[SEQ_NUM_COL, SEQ_COL])
         FileSave.tsv(
-            df.groupby("C0").mean().sort_values("C0"),
+            df.groupby(C0_COL).mean().sort_values(C0_COL),
             f"{PathObtain.data_dir()}/generated_data/kmer_count/{file_name}_mean.tsv",
         )
 
@@ -648,7 +602,7 @@ class DataOrganizer:
 
         # Classify
         df = self._class_maker.classify(df)
-        y = df["C0"].to_numpy()
+        y = df[C0_COL].to_numpy()
 
         X = self._shape_organizer.prepare_shape(df)
         X = X.reshape(list(X.shape) + [1])

@@ -17,13 +17,9 @@ from util.reader import DNASequenceReader
 from util.constants import CNL, CNL_LEN, RL, TL, TL_LEN, RL_LEN
 from util.util import PathObtain
 
-
-
-
-
 class TestDataOrganizer:
     def test_get_seq_train_test(self):
-        libraries: TrainTestSequenceLibraries(
+        libraries= TrainTestSequenceLibraries(
             train=[
                 SequenceLibrary(name=TL, quantity=50000),
                 SequenceLibrary(name=CNL, quantity=15000),
@@ -50,9 +46,9 @@ class TestDataOrganizer:
         )
 
         organizer = DataOrganizer(libraries, None, None)
-        hel_dfs_train, hel_dfs_test = organizer._get_helical_sep()
-        assert len(hel_dfs_train[0].columns) == 3 + 120 + 16
-        assert len(hel_dfs_test[0].columns) == 3 + 120 + 16
+        hel_df_train, hel_df_test = organizer._get_helical_sep()
+        assert len(hel_df_train.columns) == 3 + 120 + 16
+        assert len(hel_df_test.columns) == 3 + 120 + 16
 
         saved_train_file = Path(
             f"{PathObtain.data_dir()}/generated_data/helical_separation"
@@ -77,12 +73,12 @@ class TestDataOrganizer:
         options = DataOrganizeOptions(k_list=k_list)
 
         organizer = DataOrganizer(libs, None, None, options)
-        train_kmers, test_kmers = organizer._get_kmer_count()
-        assert len(train_kmers[0].columns) == 3 + 4 ** 2 + 4 ** 3
-        assert len(test_kmers[0].columns) == 3 + 4 ** 2 + 4 ** 3
+        train_kmer, test_kmer = organizer._get_kmer_count()
+        assert len(train_kmer.columns) == 3 + 4 ** 2 + 4 ** 3
+        assert len(test_kmer.columns) == 3 + 4 ** 2 + 4 ** 3
 
-        assert len(train_kmers[0]) == TL_LEN
-        assert len(test_kmers[0]) == RL_LEN
+        assert len(train_kmer) == TL_LEN
+        assert len(test_kmer) == RL_LEN
 
         for lib, k in it.product(libs.train + libs.test, k_list):
             saved_file = Path(

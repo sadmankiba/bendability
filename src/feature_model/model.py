@@ -198,9 +198,6 @@ class LibrariesParam:
     tl_rl = TrainTestSequenceLibraries(
         train=[SequenceLibrary(name=TL, quantity=20000)],
         test=[SequenceLibrary(name=RL, quantity=5000)],
-        train_test=[],
-        seq_start_pos=1,
-        seq_end_pos=50,
     )
 
 
@@ -213,7 +210,8 @@ class ModelCat(Enum):
 class ModelRunner:
     @classmethod
     def run_model(
-        library: TrainTestSequenceLibraries,
+        cls,
+        libs: TrainTestSequenceLibraries,
         options: DataOrganizeOptions,
         featsel: FeatureSelector,
         cat: ModelCat,
@@ -221,13 +219,13 @@ class ModelRunner:
         shape_organizer = None
         if cat == ModelCat.SHAPE_CLASSIFIER:
             shape_factory = ShapeOrganizerFactory("normal", "ProT")
-            shape_organizer = shape_factory.make_shape_organizer(library)
+            shape_organizer = shape_factory.make_shape_organizer(libs)
 
-        organizer = DataOrganizer(library, shape_organizer, featsel, options)
+        organizer = DataOrganizer(libs, shape_organizer, featsel, options)
 
         if cat == ModelCat.CLASSIFIER:
-            Model.run_seq_classifier(organizer.get_seq_train_test(classify=True))
+            Model.run_seq_classifier(*organizer.get_seq_train_test(classify=True))
         elif cat == ModelCat.REGRESSOR:
-            Model.run_seq_regression(organizer.get_seq_train_test(classify=False))
+            Model.run_seq_regression(*organizer.get_seq_train_test(classify=False))
         elif cat == ModelCat.SHAPE_CLASSIFIER:
-            Model.run_shape_cnn_classifier(organizer.get_shape_train_test())
+            Model.run_shape_cnn_classifier(*organizer.get_shape_train_test())

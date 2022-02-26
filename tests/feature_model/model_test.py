@@ -16,9 +16,6 @@ class TestModel:
         libraries = TrainTestSequenceLibraries(
             train=[SequenceLibrary(name=TL, quantity=200)],
             test=[SequenceLibrary(name=RL, quantity=50)],
-            train_test=[],
-            seq_start_pos=1,
-            seq_end_pos=50,
         )
         options = DataOrganizeOptions(
             k_list=[2],
@@ -31,17 +28,27 @@ class TestModel:
         featsel = FeatureSelectorFactory("corr").make_feature_selector()
         organizer = DataOrganizer(libraries, None, featsel, options)
 
-        Model.run_seq_classifier(organizer.get_seq_train_test(classify=True))
+        Model.run_seq_classifier(*organizer.get_seq_train_test(classify=True))
 
+    def test_regression(self):
+        libraries = TrainTestSequenceLibraries(
+            train=[SequenceLibrary(name=TL, quantity=200)],
+            test=[SequenceLibrary(name=RL, quantity=50)],
+        )
+        options = DataOrganizeOptions(
+            k_list=[2],
+            c0_scale=1,
+        )
+        featsel = FeatureSelectorFactory("all").make_feature_selector()
+        organizer = DataOrganizer(libraries, None, featsel, options)
+
+        Model.run_seq_regression(*organizer.get_seq_train_test(classify=False))
 
 class TestModelRunner:
     def test_classification(self):
         libraries = TrainTestSequenceLibraries(
             train=[SequenceLibrary(name=TL, quantity=200)],
             test=[SequenceLibrary(name=RL, quantity=50)],
-            train_test=[],
-            seq_start_pos=1,
-            seq_end_pos=50,
         )
         options = DataOrganizeOptions(
             k_list=[2],
@@ -59,13 +66,10 @@ class TestModelRunner:
         libraries = TrainTestSequenceLibraries(
             train=[SequenceLibrary(name=TL, quantity=200)],
             test=[SequenceLibrary(name=RL, quantity=50)],
-            train_test=[],
-            seq_start_pos=1,
-            seq_end_pos=50,
         )
 
         options = DataOrganizeOptions(k_list=[2])
 
         featsel = FeatureSelectorFactory("corr").make_feature_selector()
 
-        ModelRunner.run_model(libraries, options, featsel, ModelCat.CLASSIFIER)
+        ModelRunner.run_model(libraries, options, featsel, ModelCat.REGRESSOR)
