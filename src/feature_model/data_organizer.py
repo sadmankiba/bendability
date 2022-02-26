@@ -1,7 +1,7 @@
 from __future__ import annotations
 import math
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal, Union, TypedDict
 from pathlib import Path
 import time
@@ -27,7 +27,16 @@ from util.util import (
     cut_sequence,
     DataCache,
 )
-from util.constants import TL, RL, CNL, CHRVL, LIBL, GDataSubDir
+from util.constants import (
+    TL,
+    RL,
+    CNL,
+    CHRVL,
+    LIBL,
+    GDataSubDir,
+    ONE_INDEX_START,
+    SEQ_LEN,
+)
 
 
 @dataclass
@@ -41,21 +50,12 @@ TEST_SEQL = "test"
 TRAIN_SEQL_T = str
 
 
-class TrainTestSequenceLibraries(TypedDict):
-    """
-    Attributes:
-        train: Name of the libraries to use for training
-        test: Name of the libraries to use for test
-        train_test: Name of the libraries to use for both training and test
-        seq_start_pos: Start position to consider (between 1-50)
-        seq_end_pos: End position to consider (between 1-50)
-    """
-
-    train: list[SequenceLibrary]
-    test: list[SequenceLibrary]
-    train_test: list[SequenceLibrary]
-    seq_start_pos: int
-    seq_end_pos: int
+@dataclass
+class TrainTestSequenceLibraries:
+    train: list[SequenceLibrary] = field(default_factory=list)
+    test: list[SequenceLibrary] = field(default_factory=list)
+    seq_start_pos: int = field(default=ONE_INDEX_START)
+    seq_end_pos: int = field(default=SEQ_LEN)
 
 
 # The reason for using TypedDict for DataOrganizeOptions over dataclass is that
@@ -199,7 +199,7 @@ class OheShapeEncoder(ShapeOrganizer):
         num_shape_encode = 12  # CHANGE HERE
 
         saved_shape_arr_file = Path(
-            f"{PathObtain.data_dir()}/generated_data/saved_arrays/{self._library.name}_{self._library['seq_start_pos']}_{self._library['seq_end_pos']}_{self.shape_str}_ohe.npy"
+            f"{PathObtain.data_dir()}/generated_data/saved_arrays/{self._library.name}_{self._library.seq_start_pos}_{self._library.seq_end_pos}_{self.shape_str}_ohe.npy"
         )
         if saved_shape_arr_file.is_file():
             # file exists
@@ -354,7 +354,7 @@ class DataOrganizer:
 
     def __init__(
         self,
-        libraries: TrainTestSequenceLibraries,
+        seqlibs: TrainTestSequenceLibraries,
         shape_organizer: ShapeOrganizer,
         selector: FeatureSelector,
         options: DataOrganizeOptions = {},
@@ -368,7 +368,7 @@ class DataOrganizer:
             selector: Feature selector
             options: Options to prepare feature and target
         """
-        self._libraries = libraries
+        self._seqlibs = seqlibs
         self._shape_organizer = shape_organizer
         self._feat_selector = selector
         self._options = options
@@ -414,7 +414,7 @@ class DataOrganizer:
         )
 
         for seql in TRAIN_SEQL, TEST_SEQL:
-            for df, slib in zip(train_test_dfs[seql], self._libraries[seql]):
+            for df, slib in zip(train_test_dfs[seql], self._seqlibs[seql]):
                 assert len(df) == LibStat.len(slib.name)
 
         # Randomly select rows
@@ -426,7 +426,7 @@ class DataOrganizer:
                         map(
                             lambda df, library: df.sample(n=library.quantity),
                             train_test_dfs[k],
-                            self._libraries[k],
+                            self._seqlibs[k],
                         )
                     ),
                 ),
@@ -497,7 +497,7 @@ class DataOrganizer:
 
         return X_train, X_test, y_train, y_test
 
-    def _get_kmer_count(self) -> dict[str, list[pd.DataFrame]]:
+    def _get_kmer_count(self) -> tuple[list[pd.DataFrame], list[pd.DataFrame]]:
         """
         Get k-mer count features for training and test data.
 
@@ -509,14 +509,17 @@ class DataOrganizer:
         """
         cut_dfs = self._get_cut_dfs()
 
+        saved_kmer_paths= []
+
         def _get_kmer_of(library: SequenceLibrary):
             df = cut_dfs[library.name]
             df_kmer = df
             for k in self._options["k_list"]:
                 saved_kmer_count_file = Path(
-                    f"kmer_count/{library.name}_{self._libraries['seq_start_pos']}"
-                    f"_{self._libraries['seq_end_pos']}_kmercount_{k}.tsv"
+                    f"kmer_count/{library.name}_{self._seqlibs.seq_start_pos}"
+                    f"_{self._seqlibs.seq_end_pos}_kmercount_{k}.tsv"
                 )
+                saved_kmer_paths.append(saved_kmer_count_file)
 
                 df_kmer = df_kmer.merge(
                     DataCache.calc_df_tsv(
@@ -528,9 +531,24 @@ class DataOrganizer:
 
             return df_kmer
 
-        keys = ["train", "test", "train_test"]
-        return dict(
-            map(lambda key: (key, list(map(_get_kmer_of, self._libraries[key]))), keys)
+        keys = ["train", "test"]
+        return tuple(
+            map(
+                lambda libs: list(map(_get_kmer_of, libs)),
+                [self._seqlibs.train, self._seqlibs.test],
+            )
+        )
+
+    def _cut_df_train(self):
+        cut_dfs = self._get_cut_dfs()
+        return pd.concatenate(
+            list(map(lambda slib: cut_dfs[slib.name], self._seqlibs.train))
+        )
+
+    def _cut_df_test(self):
+        cut_dfs = self._get_cut_dfs()
+        return pd.concatenate(
+            list(map(lambda slib: cut_dfs[slib.name], self._seqlibs.test))
         )
 
     def _get_cut_dfs(self) -> dict[LIBRARY_NAMES, pd.DataFrame]:
@@ -551,8 +569,8 @@ class DataOrganizer:
                     p[0],
                     cut_sequence(
                         p[1],
-                        self._libraries["seq_start_pos"],
-                        self._libraries["seq_end_pos"],
+                        self._seqlibs.seq_start_pos,
+                        self._seqlibs.seq_end_pos,
                     ),
                 ),
                 list(library_dfs.items()),
@@ -560,33 +578,20 @@ class DataOrganizer:
         )
         return self._cut_dfs
 
-    def _get_helical_sep(self) -> dict[str, list[pd.DataFrame]]:
-        """
-        Counts helical separation for training and test data.
-
-        Loads if already saved.
-
-        Returns:
-            A dictionary containing train and test libraries. Has keys
-            ['train', 'test', 'train_test']
-        """
-        keys = ["train", "test", "train_test"]
-
-        return dict(
+    def _get_helical_sep(self) -> tuple[list[pd.DataFrame], list[pd.DataFrame]]:
+        return tuple(
             map(
-                lambda key: (
-                    key,
-                    list(map(self._get_helical_sep_of, self._libraries[key])),
-                ),
-                keys,
+                lambda libs: 
+                    list(map(self._get_helical_sep_of, libs)),
+                [self._seqlibs.train, self._seqlibs.test],
             )
         )
 
-    def _get_helical_sep_of(self, library: SequenceLibrary) -> pd.DataFrame:
+    def _get_helical_sep_of(self, lib: SequenceLibrary) -> pd.DataFrame:
         cut_dfs = self._get_cut_dfs()
         saved_helical_sep_file = Path(
-            f"{GDataSubDir.HELSEP}/{library.name}_{self._libraries['seq_start_pos']}"
-            f"_{self._libraries['seq_end_pos']}_hs.tsv"
+            f"{GDataSubDir.HELSEP}/{lib.name}_{self._seqlibs.seq_start_pos}"
+            f"_{self._seqlibs.seq_end_pos}_hs.tsv"
         )
 
         def _df_hel():
@@ -594,12 +599,12 @@ class DataOrganizer:
 
             helsep_df_all = None
             CHUNK_SIZE = 10000
-            for idx in range(0, len(cut_dfs[library.name]), CHUNK_SIZE):
+            for idx in range(0, len(cut_dfs[lib.name]), CHUNK_SIZE):
                 helsep_df = HelicalSeparationCounter().helical_sep_of(
-                    cut_dfs[library.name][SEQ_COL][idx : idx + CHUNK_SIZE].tolist()
+                    cut_dfs[lib.name][SEQ_COL][idx : idx + CHUNK_SIZE].tolist()
                 )
                 logging.info(
-                    f"[Helsep]: {min(idx + CHUNK_SIZE, len(cut_dfs[library.name]))}"
+                    f"[Helsep]: {min(idx + CHUNK_SIZE, len(cut_dfs[lib.name]))}"
                     f" seqs helsep calc complete"
                 )
                 if helsep_df_all is None:
@@ -607,11 +612,11 @@ class DataOrganizer:
                 else:
                     helsep_df_all = pd.concat([helsep_df_all, helsep_df])
 
-            assert len(helsep_df_all) == len(cut_dfs[library.name])
+            assert len(helsep_df_all) == len(cut_dfs[lib.name])
             print(f"Helical separation count time: {(time.time() - t) / 60} min")
 
             return pd.merge(
-                cut_dfs[library.name], helsep_df_all, on=SEQ_COL, how="left"
+                cut_dfs[lib.name], helsep_df_all, on=SEQ_COL, how="left"
             )
 
         return DataCache.calc_df_tsv(saved_helical_sep_file, _df_hel)
@@ -622,7 +627,7 @@ class DataOrganizer:
         classify_str = "_".join(
             [str(int(val * 100)) for val in self._options["range_split"]]
         )
-        file_name = f'{name}_{self._libraries["seq_start_pos"]}_{self._libraries["seq_end_pos"]}_kmercount_{k_list_str}_{classify_str}'
+        file_name = f'{name}_{self._seqlibs["seq_start_pos"]}_{self._seqlibs["seq_end_pos"]}_kmercount_{k_list_str}_{classify_str}'
 
         FileSave.tsv(
             df.sort_values("C0"),

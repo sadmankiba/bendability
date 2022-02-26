@@ -3,6 +3,7 @@ from util.constants import CNL, TL, RL
 
 
 class Correlation:
+    @classmethod
     def kmer_corr(self, library: SequenceLibrary):
         libraries = {
             "train": [library],
@@ -26,6 +27,7 @@ class Correlation:
                 float_format="%.2f",
             )
 
+    @classmethod
     def hel_corr(self, library: SequenceLibrary):
         libraries = {
             "train": [library],
