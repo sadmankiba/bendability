@@ -14,7 +14,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import RandomOverSampler
 
-from .helsep import HelicalSeparationCounter
+from .helsep import HSAggr, HelicalSeparationCounter
 from .occurence import Occurence
 from .shape import run_dna_shape_r_wrapper
 from .feat_selector import FeatureSelector
@@ -78,6 +78,7 @@ class DataOrganizeOptions(TypedDict, total=False):
     binary_class: bool
     balance: bool
     c0_scale: float
+    hsaggr: HSAggr
 
 
 class ShapeOrganizer:
@@ -385,6 +386,9 @@ class DataOrganizer:
         if not self._options.get("c0_scale"):
             self._options["c0_scale"] = 1
 
+        if not self._options.get("hsaggr"):
+            self._options["hsaggr"] = HSAggr.MAX
+
     def get_seq_train_test(
         self, classify: bool
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -491,10 +495,55 @@ class DataOrganizer:
         keys = ["train", "test"]
         return tuple(
             map(
-                lambda libs: pd.concat(list(map(_get_kmer_of, libs))),
+                lambda libs: pd.concat(list(map(_get_kmer_of, libs)))
+                if len(libs) > 0
+                else pd.DataFrame(),
                 [self._seqlibs.train, self._seqlibs.test],
             )
         )
+
+    def _get_helical_sep(self) -> tuple[pd.DataFrame, pd.DataFrame]:
+        return tuple(
+            map(
+                lambda libs: pd.concat(list(map(self._get_helical_sep_of, libs)))
+                if len(libs) > 0
+                else pd.DataFrame(),
+                [self._seqlibs.train, self._seqlibs.test],
+            )
+        )
+
+    def _get_helical_sep_of(self, lib: SequenceLibrary) -> pd.DataFrame:
+        cut_dfs = self._get_cut_dfs()
+        saved_helical_sep_file = Path(
+            f"{GDataSubDir.HELSEP}/{lib.name}_{self._seqlibs.seq_start_pos}"
+            f"_{self._seqlibs.seq_end_pos}_hs_{self._options['hsaggr'].value}.tsv"
+        )
+
+        def _df_hel():
+            t = time.time()
+
+            helsep_df_all = None
+            CHUNK_SIZE = 10000
+            for idx in range(0, len(cut_dfs[lib.name]), CHUNK_SIZE):
+                helsep_df = HelicalSeparationCounter().helical_sep_of(
+                    cut_dfs[lib.name][SEQ_COL][idx : idx + CHUNK_SIZE].tolist(),
+                    self._options["hsaggr"],
+                )
+                logging.info(
+                    f"[Helsep]: {min(idx + CHUNK_SIZE, len(cut_dfs[lib.name]))}"
+                    f" seqs helsep calc complete"
+                )
+                if helsep_df_all is None:
+                    helsep_df_all = helsep_df
+                else:
+                    helsep_df_all = pd.concat([helsep_df_all, helsep_df])
+
+            assert len(helsep_df_all) == len(cut_dfs[lib.name])
+            print(f"Helical separation count time: {(time.time() - t) / 60} min")
+
+            return pd.merge(cut_dfs[lib.name], helsep_df_all, on=SEQ_COL, how="left")
+
+        return DataCache.calc_df_tsv(saved_helical_sep_file, _df_hel)
 
     def _cut_df_train(self):
         cut_dfs = self._get_cut_dfs()
@@ -534,46 +583,6 @@ class DataOrganizer:
             )
         )
         return self._cut_dfs
-
-    def _get_helical_sep(self) -> tuple[pd.DataFrame, pd.DataFrame]:
-        return tuple(
-            map(
-                lambda libs: pd.concat(list(map(self._get_helical_sep_of, libs))),
-                [self._seqlibs.train, self._seqlibs.test],
-            )
-        )
-
-    def _get_helical_sep_of(self, lib: SequenceLibrary) -> pd.DataFrame:
-        cut_dfs = self._get_cut_dfs()
-        saved_helical_sep_file = Path(
-            f"{GDataSubDir.HELSEP}/{lib.name}_{self._seqlibs.seq_start_pos}"
-            f"_{self._seqlibs.seq_end_pos}_hs.tsv"
-        )
-
-        def _df_hel():
-            t = time.time()
-
-            helsep_df_all = None
-            CHUNK_SIZE = 10000
-            for idx in range(0, len(cut_dfs[lib.name]), CHUNK_SIZE):
-                helsep_df = HelicalSeparationCounter().helical_sep_of(
-                    cut_dfs[lib.name][SEQ_COL][idx : idx + CHUNK_SIZE].tolist()
-                )
-                logging.info(
-                    f"[Helsep]: {min(idx + CHUNK_SIZE, len(cut_dfs[lib.name]))}"
-                    f" seqs helsep calc complete"
-                )
-                if helsep_df_all is None:
-                    helsep_df_all = helsep_df
-                else:
-                    helsep_df_all = pd.concat([helsep_df_all, helsep_df])
-
-            assert len(helsep_df_all) == len(cut_dfs[lib.name])
-            print(f"Helical separation count time: {(time.time() - t) / 60} min")
-
-            return pd.merge(cut_dfs[lib.name], helsep_df_all, on=SEQ_COL, how="left")
-
-        return DataCache.calc_df_tsv(saved_helical_sep_file, _df_hel)
 
     def _save_classification_data(self, df: pd.DataFrame, name: str) -> None:
         """Save classification data in a tsv file for inspection"""

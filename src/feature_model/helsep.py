@@ -1,11 +1,11 @@
 from __future__ import annotations
 import itertools as it
 from pathlib import Path
+from enum import Enum
 from typing import Any
 
 import pandas as pd
 import numpy as np
-import regex as re
 import matplotlib.pyplot as plt
 from nptyping import NDArray
 
@@ -45,6 +45,10 @@ class DincUtil:
         return dinc_pair[0] + "-" + dinc_pair[1]
 
 
+class HSAggr(Enum):
+    MAX = "max"
+    SUM = "sum"
+
 class HelicalSeparationCounter:
     """
     Helper class for counting helical separation
@@ -64,7 +68,9 @@ class HelicalSeparationCounter:
         )
         self._dinc_pairs = DincUtil.pairs_all()
 
-    def helical_sep_of(self, seq_list: list[DNASeq]) -> pd.DataFrame:
+    def helical_sep_of(
+        self, seq_list: list[DNASeq], aggr: HSAggr = HSAggr.MAX
+    ) -> pd.DataFrame:
         """
         Count normalized helical separation
         """
@@ -73,8 +79,16 @@ class HelicalSeparationCounter:
         def _dist_occur_max_at(pos: int) -> NDArray[(Any, 136), float]:
             return np.max(pair_dist_occur[:, :, pos - 2 : pos + 1], axis=2)
 
-        at_hel_dist = sum(list(map(_dist_occur_max_at, [10, 20, 30])))
-        at_half_hel_dist = sum(list(map(_dist_occur_max_at, [5, 15, 25])))
+        def _dist_occur_sum_at(pos: int) -> NDArray[(Any, 136), float]:
+            return np.sum(pair_dist_occur[:, :, pos - 2 : pos + 1], axis=2)
+
+        if aggr == HSAggr.MAX:
+            dist_occur_aggr = _dist_occur_max_at
+        elif aggr == HSAggr.SUM:
+            dist_occur_aggr = _dist_occur_sum_at
+
+        at_hel_dist = sum(list(map(dist_occur_aggr, [10, 20, 30])))
+        at_half_hel_dist = sum(list(map(dist_occur_aggr, [5, 15, 25])))
 
         dinc_df = pd.DataFrame(
             at_hel_dist - at_half_hel_dist,
@@ -200,4 +214,6 @@ class HelSepPlot:
             plt.xlabel("Position (bp)")
             plt.ylabel("Pairwise distance distribution, p(i)")
             plt.title(pair_str)
-            FileSave.figure_in_figdir(f"distances/{library_name}/{pair_str}.png", bbox_inches="tight")
+            FileSave.figure_in_figdir(
+                f"distances/{library_name}/{pair_str}.png", bbox_inches="tight"
+            )

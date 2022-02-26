@@ -1,5 +1,9 @@
 # ML Models
 
+## Features
+
+### Correlation 
+Correlation of K-mer counts and hel sep with C0 was measured in different libraries. Max corrs were around 0.2. Helsep pairs were more consistent than dinucs across diff libraries. See this [doc](https://docs.google.com/document/d/1WM0VoBn-2Az33w3PMWKPp7xLdan5hTHv/edit?usp=sharing&ouid=113564166501064431161&rtpof=true&sd=true) 
 ## Results
 
 ### C0 Regression 

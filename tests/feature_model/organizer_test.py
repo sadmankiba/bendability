@@ -3,6 +3,7 @@ import itertools as it
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from feature_model.data_organizer import (
     DataOrganizeOptions,
@@ -13,9 +14,11 @@ from feature_model.data_organizer import (
     SequenceLibrary,
 )
 from feature_model.feat_selector import FeatureSelectorFactory
+from feature_model.helsep import HSAggr
 from util.reader import DNASequenceReader
 from util.constants import CNL, CNL_LEN, RL, TL, TL_LEN, RL_LEN
 from util.util import PathObtain
+
 
 class TestDataOrganizer:
     def test_get_seq_train_test(self):
@@ -39,25 +42,26 @@ class TestDataOrganizer:
         assert X_test.shape[0] == 10000
         assert y_test.shape[0] == 10000
 
-    def test_get_helical_sep(self):
+    @pytest.mark.parametrize("hsaggr", [HSAggr.MAX, HSAggr.SUM],)
+    def test_get_helical_sep(self, hsaggr):
         libraries= TrainTestSequenceLibraries(
             train=[SequenceLibrary(name=CNL, quantity=CNL_LEN)],
             test=[SequenceLibrary(name=RL, quantity=RL_LEN)],
         )
-
-        organizer = DataOrganizer(libraries, None, None)
+        options = DataOrganizeOptions(hsaggr=hsaggr)
+        organizer = DataOrganizer(libraries, None, None, options)
         hel_df_train, hel_df_test = organizer._get_helical_sep()
         assert len(hel_df_train.columns) == 3 + 120 + 16
         assert len(hel_df_test.columns) == 3 + 120 + 16
 
         saved_train_file = Path(
             f"{PathObtain.data_dir()}/generated_data/helical_separation"
-            f"/{libraries.train[0].name}_{libraries.seq_start_pos}_{libraries.seq_end_pos}_hs.tsv"
+            f"/{libraries.train[0].name}_{libraries.seq_start_pos}_{libraries.seq_end_pos}_hs_{hsaggr.value}.tsv"
         )
 
         saved_test_file = Path(
             f"{PathObtain.data_dir()}/generated_data/helical_separation"
-            f"/{libraries.test[0].name}_{libraries.seq_start_pos}_{libraries.seq_end_pos}_hs.tsv"
+            f"/{libraries.test[0].name}_{libraries.seq_start_pos}_{libraries.seq_end_pos}_hs_{hsaggr.value}.tsv"
         )
 
         assert saved_train_file.is_file()

@@ -260,11 +260,11 @@ class FileSave:
         return cls.tsv(df, Path(f"{PathObtain.gen_data_dir()}/{rel_path}"))
 
     @classmethod
-    def tsv(cls, df: pd.DataFrame, path_str: Union[str, Path]) -> Path:
+    def tsv(cls, df: pd.DataFrame, path_str: Union[str, Path], index=False, precision:int=PRECISION_FLOAT_DF_TSV) -> Path:
         """Save a dataframe in tsv format"""
         path = Path(path_str)
         cls.make_parent_dirs(path)
-        df.to_csv(path, sep="\t", index=False, float_format=f"%.{PRECISION_FLOAT_DF_TSV}f")
+        df.to_csv(path, sep="\t", index=index, float_format=f"%.{precision}f")
 
         logging.info(f"TSV file saved at: {path}")
         return path
