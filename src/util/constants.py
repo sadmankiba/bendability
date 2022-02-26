@@ -2,6 +2,7 @@ class GDataSubDir:
     PROMOTERS = "promoters"
     TEST = "test"
     HELSEP = "helical_separation"
+    ML_MODEL = "ml_model"
 
 
 class FigSubDir:

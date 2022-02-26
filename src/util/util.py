@@ -285,13 +285,13 @@ class FileSave:
             path.parent.mkdir(parents=True, exist_ok=True)
 
     @classmethod
-    def append_tsv(cls, df: pd.DataFrame, path_str: Union[str, Path]) -> Path:
+    def append_tsv(cls, df: pd.DataFrame, path_str: Union[str, Path], precision:int=PRECISION_FLOAT_DF_TSV) -> Path:
         """Append a dataframe to a tsv if it exists, otherwise create"""
         path = Path(path_str)
         if path.is_file():
             target_df = pd.read_csv(path, sep="\t")
             pd.concat([df, target_df], join="outer", ignore_index=True).to_csv(
-                path, sep="\t", index=False, float_format="%3f"
+                path, sep="\t", index=False, float_format=f"%{precision}f"
             )
             return path
 

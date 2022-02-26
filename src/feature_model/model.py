@@ -10,8 +10,10 @@ from sklearn.linear_model import LogisticRegression, LinearRegression, Ridge, La
 from sklearn.svm import SVC, LinearSVC, SVR
 from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.neighbors import KNeighborsClassifier
+from scipy.stats import pearsonr
 import numpy as np
 import tensorflow as tf
+from util.util import FileSave, PathObtain
 from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
 from nptyping import NDArray
@@ -21,10 +23,10 @@ from .data_organizer import (
     TrainTestSequenceLibraries,
     SequenceLibrary,
     DataOrganizeOptions,
-    FeatureSelector, 
-    ShapeOrganizerFactory
+    FeatureSelector,
+    ShapeOrganizerFactory,
 )
-from util.constants import RL, TL
+from util.constants import RL, TL, GDataSubDir
 from .feat_selector import FeatureSelectorFactory
 
 
@@ -41,9 +43,9 @@ class Model:
         cur_date = datetime.now().strftime("%Y_%m_%d")
         cur_time = datetime.now().strftime("%H_%M")
 
-        return Path(
-            f"data/generated_data/results/{dir_name}/{cur_date}/{cur_time}.tsv"
-        ).mkdir(parents=True, exist_ok=True)
+        return (
+            f"{PathObtain.gen_data_dir()}/results/{dir_name}/{cur_date}/{cur_time}.tsv"
+        )
 
     @classmethod
     def run_shape_cnn_classifier(
@@ -139,22 +141,28 @@ class Model:
 
         # classifiers.append(('rf', RandomForestClassifier(n_estimators=5, max_depth=32))
 
-        result_cols = ["Classifier", "Test Accuracy", "Train Accuracy"]
+        result_cols = ["Date", "Time", "Classifier", "Test Accuracy", "Train Accuracy"]
         clf_result = pd.DataFrame(columns=result_cols)
         for name, clf in classifiers:
             clf.fit(X_train, y_train)
             test_acc = clf.score(X_test, y_test)
             train_acc = clf.score(X_train, y_train)
             print("Model:", name, "Train acc:", train_acc, ", Test acc:", test_acc)
+            cur_date = datetime.now().strftime("%Y_%m_%d")
+            cur_time = datetime.now().strftime("%H_%M")
             clf_result = pd.concat(
                 [
                     clf_result,
-                    pd.DataFrame([[name, test_acc, train_acc]], columns=result_cols),
+                    pd.DataFrame(
+                        [[cur_date, cur_time, name, test_acc, train_acc]],
+                        columns=result_cols,
+                    ),
                 ],
                 ignore_index=True,
             )
-            clf_result.to_csv(
-                self._get_result_path(dir_name="classification"), sep="\t", index=False
+            FileSave.append_tsv(
+                clf_result,
+                f"{PathObtain.gen_data_dir()}/{GDataSubDir.ML_MODEL}/classification.tsv",
             )
 
     @classmethod
@@ -163,30 +171,61 @@ class Model:
         Runs Scikit-learn regression models to classify C0 value with k-mer count & helical separation.
         """
         regressors = []
-        regressors.append(("SVR_C_0.1", SVR(C=0.1)))
-        regressors.append(("SVR_C_1", SVR(C=1)))
-        # regressors.append(('LinearRegression', LinearRegression()))
+        # regressors.append(("SVR_C_0.1", SVR(C=0.1)))
+        # regressors.append(("SVR_C_1", SVR(C=1)))
+        regressors.append(("LinearRegression", LinearRegression()))
         # regressors.append(('Ridge_alpha_1', Ridge(alpha=1)))
         # regressors.append(('Ridge_alpha_5', Ridge(alpha=5)))
         # regressors.append(('Lasso', LassoCV()))
         # regressors.append(('NN', MLPRegressor()))
 
-        result_cols = ["Regression Model", "Test Accuracy", "Train Accuracy"]
+        result_cols = [
+            "Date",
+            "Time",
+            "Regression Model",
+            "Test pearson",
+            "Test R2",
+            "Train pearson",
+            "Train R2",
+        ]
         reg_result = pd.DataFrame(columns=result_cols)
         for name, reg in regressors:
             reg.fit(X_train, y_train)
+            test_p, _ = pearsonr(y_test, reg.predict(X_test))
             test_acc = reg.score(X_test, y_test)
+            train_p, _ = pearsonr(y_train, reg.predict(X_train))
             train_acc = reg.score(X_train, y_train)
-            print("Model:", name, " Train acc:", train_acc, ", Test acc:", test_acc)
+
+            print(
+                f"model: {name}, train p: {train_p}, train r2: {train_acc}"
+                f", test p: {test_p}, test r2: {test_acc}"
+            )
+
+            cur_date = datetime.now().strftime("%Y_%m_%d")
+            cur_time = datetime.now().strftime("%H_%M")
             reg_result = pd.concat(
                 [
                     reg_result,
-                    pd.DataFrame([[name, test_acc, train_acc]], columns=result_cols),
+                    pd.DataFrame(
+                        [
+                            [
+                                cur_date,
+                                cur_time,
+                                name,
+                                test_p,
+                                test_acc,
+                                train_p,
+                                train_acc,
+                            ]
+                        ],
+                        columns=result_cols,
+                    ),
                 ],
                 ignore_index=True,
             )
-            reg_result.to_csv(
-                self._get_result_path(dir_name="regression"), sep="\t", index=False
+            FileSave.append_tsv(
+                reg_result,
+                f"{PathObtain.gen_data_dir()}/{GDataSubDir.ML_MODEL}/regression.tsv",
             )
 
     @classmethod
