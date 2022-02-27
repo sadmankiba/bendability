@@ -10,9 +10,29 @@ Correlation of K-mer counts and hel sep with C0 was measured in different librar
 
 #### K-mer + helsep
 
+#### All features
+| Train  | Test   | K    | HS | C0x| Model       | #Feat| BP   |Test pear,r2  |Train pear,r2| Cmnt |
+| ------ | ------ | ---- | -- | -- | ----------  | ---- | ---- | ------------ | ----------- | ---- |
+| TL/10k | RL/10k | 2    | Y  |  1 | Linear      | 152  | 1-50 |-0.02,-5e+27| 0.56,0.31   |      |
+| TL/all | RL/all | 2    | Y  |  1 | Linear      | 152  | 1-50 |0.02,-4e+25 | 0.56,0.31   |      |
+| TL/all | RL/all | 2    | Y  |  1 | Ridge,a=5   | 152  | 1-50 | 0.4,-13.6  | 0.56,0.31   | |
+| TL/all | RL/all | 2    | Y  |  1 | Ridge,a=20  | 152  | 1-50 | 0.4,-13.6  | 0.56,0.31   | | 
+| TL/all | RL/all | 2    | Y  |  1 | Ridge,a=100 | 152  | 1-50 | 0.4,-13.6  | 0.56,0.31   | |
+| TL/all | RL/all | 2    | Y  |  1 |Ridge,a=1e3  | 152  | 1-50 | 0.4,-13.2  | 0.56,0.31   | best?|
+| TL/all | RL/all | 2    | Y  |  1 |Ridge,a=1e4  | 152  | 1-50 | 0.4,-10.6  | 0.56,0.3    | |
+| TL/all | RL/all | 2    | Y  |  1 |Ridge,a=1e5  | 152  | 1-50 | 0.39,-3.1  | 0.54,0.2    | |
+| TL/all | RL/all | 2    | Y  |  1 |Ridge,a=1e6  | 152  | 1-50 | 0.38,0.11  | 0.51,0.06   | |
+| TL/all |CHRV/all| 2    | Y  |  1 |Ridge,a=1e3  | 152  | 1-50 | 0.38,-9.4  | 0.56,0.31   | |
+| TL/10k |RL/all  | 2    | Y  |  1 | SVR,C=0.1   | 152  | 1-50 | 0.02,-0.04 | 0.69,0.42   | |
+| TL/10k |RL/all  | 2    | Y  |  1 | SVR,C=10    | 152  | 1-50 | 0.02,-0.2  | 0.99,0.96   | |
+| TL/10k |RL/all  | 2    | Y  |  1 | SVR,C=10    | 152  | 1-50 | 0.02,-0.2  | 0.99,0.96   | |
+| TL/10k |RL/all  | 2    | Y  |  1 |RF_reg,n=25,dep=32| 152  | 1-50 | 0.24,-1.0  | 0.97,0.88   | |
+| TL/all |RL/all  | 2    | Y  |  1 |RF_reg,n=25,dep=32| 152  | 1-50 | 0.26,-1.3  | 0.97,0.88   | |
+| TL/all |RL/all  | 2    | Y  |  1 |HGB_reg,lr=0.01,dep=32,leaf=5,iter=500| 152  | 1-50 | 0.33,-0.8  | 0.61,0.35   | |
+| TL/all |CHRV/all| 2    | Y  |  1 |HGB_reg,lr=0.01,dep=64,l2_reg=1,leaf=1,iter=500| 152  | 1-50 | 0.33,-0.8  | 0.61,0.35   | |
+| TL/all |CHRV/all| 2    | Y  |  1 |HGB_reg,lr=0.1,dep=64,l2_reg=1,leaf=1,iter=500| 152  | 1-50 | 0.3,-9.4  | 0.76,0.55   | |
 
-
-#### K-mer + helsep with Correlation Feature selector (r > 0.05). 
+#### With Correlation Feature selector (r > 0.05). 
 
 | Train  | Test   | K     | C0 scale | Model      | Features | BP     | Test r2 | Train r2 |
 | ------ | ------ | ----- | -------- | ---------- | -------- | ------ | ------- | -------- |

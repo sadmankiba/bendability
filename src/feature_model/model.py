@@ -4,8 +4,14 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
+import sklearn
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import (
+    RandomForestClassifier,
+    GradientBoostingClassifier,
+    RandomForestRegressor,
+    HistGradientBoostingRegressor,
+)
 from sklearn.linear_model import LogisticRegression, LinearRegression, Ridge, LassoCV
 from sklearn.svm import SVC, LinearSVC, SVR
 from sklearn.neural_network import MLPClassifier, MLPRegressor
@@ -30,22 +36,141 @@ from util.constants import RL, TL, GDataSubDir
 from .feat_selector import FeatureSelectorFactory
 
 
+class SKModels:
+    regs = [
+        ("Ridge_alpha_1e3", Ridge(alpha=1e3)),
+        ("Linear_reg", LinearRegression()),
+        (
+            "HGB_reg",
+            HistGradientBoostingRegressor(
+                learning_rate=0.1, l2_regularization=1, max_iter=500, max_depth=64, min_samples_leaf=1
+            ),
+        ),
+        ("RF_reg", RandomForestRegressor(n_estimators=25, max_depth=32)),
+        ("SVR_C_10", SVR(C=10)),
+        ("Lasso", LassoCV()),
+        ("NN_reg", MLPRegressor()),
+    ]
+    clfs = [
+        ("LogisticRegression_C_1", LogisticRegression(C=1)),
+        ("SVC", SVC()),
+        ("GradientBoost", GradientBoostingClassifier()),
+        ("NN_clf", MLPClassifier()),
+        ("KNN_clf", KNeighborsClassifier()),
+        ("RF_clf", RandomForestClassifier(n_estimators=5, max_depth=32)),
+    ]
+
+    @classmethod
+    def regressors(
+        cls, nums: list[int]
+    ) -> list[tuple[str, sklearn.base.BaseEstimator]]:
+        return list(map(lambda n: cls.regs[n], nums))
+
+    @classmethod
+    def classifiers(cls, nums: list[int]):
+        return list(map(lambda n: cls.clfs[n], nums))
+
+
 class Model:
     """
     A class to train model on DNA mechanics libraries.
     """
 
     @classmethod
-    def _get_result_path(self, dir_name: str):
+    def run_seq_regression(
+        self, X_train, X_test, y_train, y_test, nums: list[int] = [0]
+    ) -> None:
         """
-        Makes result path. Creates if needed.
+        Runs Scikit-learn regression models to classify C0 value with k-mer count & helical separation.
         """
-        cur_date = datetime.now().strftime("%Y_%m_%d")
-        cur_time = datetime.now().strftime("%H_%M")
+        regressors = SKModels.regressors(nums)
 
-        return (
-            f"{PathObtain.gen_data_dir()}/results/{dir_name}/{cur_date}/{cur_time}.tsv"
-        )
+        result_cols = [
+            "Date",
+            "Time",
+            "Regression Model",
+            "Test pearson",
+            "Test R2",
+            "Train pearson",
+            "Train R2",
+        ]
+        reg_result = pd.DataFrame(columns=result_cols)
+        for name, reg in regressors:
+            reg.fit(X_train, y_train)
+            test_p, _ = pearsonr(y_test, reg.predict(X_test))
+            test_acc = reg.score(X_test, y_test)
+            train_p, _ = pearsonr(y_train, reg.predict(X_train))
+            train_acc = reg.score(X_train, y_train)
+
+            print(
+                f"model: {name}, train p: {train_p}, train r2: {train_acc}"
+                f", test p: {test_p}, test r2: {test_acc}"
+            )
+
+            cur_date = datetime.now().strftime("%Y_%m_%d")
+            cur_time = datetime.now().strftime("%H_%M")
+            reg_result = pd.concat(
+                [
+                    reg_result,
+                    pd.DataFrame(
+                        [
+                            [
+                                cur_date,
+                                cur_time,
+                                name,
+                                test_p,
+                                test_acc,
+                                train_p,
+                                train_acc,
+                            ]
+                        ],
+                        columns=result_cols,
+                    ),
+                ],
+                ignore_index=True,
+            )
+            FileSave.append_tsv(
+                reg_result,
+                f"{PathObtain.gen_data_dir()}/{GDataSubDir.ML_MODEL}/regression.tsv",
+            )
+
+    @classmethod
+    def run_seq_classifier(
+        self,
+        X_train: NDArray,
+        X_test: NDArray,
+        y_train: NDArray,
+        y_test: NDArray,
+        nums: list[int] = [0],
+    ) -> None:
+        """
+        Runs Scikit-learn classifier to classify C0 value with k-mer count & helical separation.
+        """
+        classifiers = SKModels.classifiers(nums)
+
+        result_cols = ["Date", "Time", "Classifier", "Test Accuracy", "Train Accuracy"]
+        clf_result = pd.DataFrame(columns=result_cols)
+        for name, clf in classifiers:
+            clf.fit(X_train, y_train)
+            test_acc = clf.score(X_test, y_test)
+            train_acc = clf.score(X_train, y_train)
+            print("Model:", name, "Train acc:", train_acc, ", Test acc:", test_acc)
+            cur_date = datetime.now().strftime("%Y_%m_%d")
+            cur_time = datetime.now().strftime("%H_%M")
+            clf_result = pd.concat(
+                [
+                    clf_result,
+                    pd.DataFrame(
+                        [[cur_date, cur_time, name, test_acc, train_acc]],
+                        columns=result_cols,
+                    ),
+                ],
+                ignore_index=True,
+            )
+            FileSave.append_tsv(
+                clf_result,
+                f"{PathObtain.gen_data_dir()}/{GDataSubDir.ML_MODEL}/classification.tsv",
+            )
 
     @classmethod
     def run_shape_cnn_classifier(
@@ -123,110 +248,6 @@ class Model:
         )
 
         return model, history
-
-    @classmethod
-    def run_seq_classifier(
-        self, X_train: NDArray, X_test: NDArray, y_train: NDArray, y_test: NDArray
-    ) -> None:
-        """
-        Runs Scikit-learn classifier to classify C0 value with k-mer count & helical separation.
-        """
-        classifiers = []
-        # classifiers.append(('LogisticRegression_C_1', LogisticRegression(C=1)))
-        classifiers.append(("LogisticRegression_C_0.1", LogisticRegression(C=0.1)))
-        classifiers.append(("SVC", SVC()))
-        classifiers.append(("GradientBoost", GradientBoostingClassifier()))
-        classifiers.append(("NN", MLPClassifier()))
-        # classifiers.append(('KNN', KNeighborsClassifier()))
-
-        # classifiers.append(('rf', RandomForestClassifier(n_estimators=5, max_depth=32))
-
-        result_cols = ["Date", "Time", "Classifier", "Test Accuracy", "Train Accuracy"]
-        clf_result = pd.DataFrame(columns=result_cols)
-        for name, clf in classifiers:
-            clf.fit(X_train, y_train)
-            test_acc = clf.score(X_test, y_test)
-            train_acc = clf.score(X_train, y_train)
-            print("Model:", name, "Train acc:", train_acc, ", Test acc:", test_acc)
-            cur_date = datetime.now().strftime("%Y_%m_%d")
-            cur_time = datetime.now().strftime("%H_%M")
-            clf_result = pd.concat(
-                [
-                    clf_result,
-                    pd.DataFrame(
-                        [[cur_date, cur_time, name, test_acc, train_acc]],
-                        columns=result_cols,
-                    ),
-                ],
-                ignore_index=True,
-            )
-            FileSave.append_tsv(
-                clf_result,
-                f"{PathObtain.gen_data_dir()}/{GDataSubDir.ML_MODEL}/classification.tsv",
-            )
-
-    @classmethod
-    def run_seq_regression(self, X_train, X_test, y_train, y_test) -> None:
-        """
-        Runs Scikit-learn regression models to classify C0 value with k-mer count & helical separation.
-        """
-        regressors = []
-        # regressors.append(("SVR_C_0.1", SVR(C=0.1)))
-        # regressors.append(("SVR_C_1", SVR(C=1)))
-        regressors.append(("LinearRegression", LinearRegression()))
-        # regressors.append(('Ridge_alpha_1', Ridge(alpha=1)))
-        # regressors.append(('Ridge_alpha_5', Ridge(alpha=5)))
-        # regressors.append(('Lasso', LassoCV()))
-        # regressors.append(('NN', MLPRegressor()))
-
-        result_cols = [
-            "Date",
-            "Time",
-            "Regression Model",
-            "Test pearson",
-            "Test R2",
-            "Train pearson",
-            "Train R2",
-        ]
-        reg_result = pd.DataFrame(columns=result_cols)
-        for name, reg in regressors:
-            reg.fit(X_train, y_train)
-            test_p, _ = pearsonr(y_test, reg.predict(X_test))
-            test_acc = reg.score(X_test, y_test)
-            train_p, _ = pearsonr(y_train, reg.predict(X_train))
-            train_acc = reg.score(X_train, y_train)
-
-            print(
-                f"model: {name}, train p: {train_p}, train r2: {train_acc}"
-                f", test p: {test_p}, test r2: {test_acc}"
-            )
-
-            cur_date = datetime.now().strftime("%Y_%m_%d")
-            cur_time = datetime.now().strftime("%H_%M")
-            reg_result = pd.concat(
-                [
-                    reg_result,
-                    pd.DataFrame(
-                        [
-                            [
-                                cur_date,
-                                cur_time,
-                                name,
-                                test_p,
-                                test_acc,
-                                train_p,
-                                train_acc,
-                            ]
-                        ],
-                        columns=result_cols,
-                    ),
-                ],
-                ignore_index=True,
-            )
-            FileSave.append_tsv(
-                reg_result,
-                f"{PathObtain.gen_data_dir()}/{GDataSubDir.ML_MODEL}/regression.tsv",
-            )
 
     @classmethod
     def run_shape_seq_classifier(self) -> None:
