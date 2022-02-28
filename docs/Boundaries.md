@@ -37,8 +37,8 @@ Method DC2: DL2. NDR ovlps with Bnd >= 40 bp.
 |     | 200      | 2000         | 1.75      | 884/4830 | 60   |  |
 |     | 200      | 2000         | 1.5       | 1180/4830| 75   |  |
 |     | 200      | 5000         | 1.0       | 710/3815 | 52   | best |
-| BF1 | 200      | 5000         | 25%       |    /3815 | 45   |  |
-| BF2 | 200      | 5000         | 50%       |    /3815 |      |  |
+| BF1 | 200      | 5000         | 25%       | 954/3815 | 45   |  |
+| BF2 | 200      | 5000         | 50%       |1907/3815 | 89   | good? |
 |     | 500      | 1000         | 1.5       | 584/2677 | 36   |  |
 
 
@@ -153,9 +153,15 @@ Param - ?
 
 ## C3. Mean bendability in Boundaries
 ### Exp 3.5 Prob distrib mean c0 of boundaries, nucs and linkers.
-**Research ques**
+#### Research ques
 - How are boundaries showing more tendency towards bendability?
-- How are boundaries NDRs showing more tendency towards bendability?
+- How are boundaries NDRs showing tendency towards higher bendability?
+
+#### Procedure 
+(BF1, BF2, BH1). DL2. [C15]
+
+#### Observations 
+- Both boundaries and NDRS at bndrs show skewness towards more bendability. 
 ### Exp 3.4 Box plot mean c0 combining all boundaries in a chromosome. Compare with nucs, linkers. 
 **Research Ques**
 *Boundaries*
@@ -298,8 +304,9 @@ C0: Some
 [C10] `chromosome.crossregions.LineC0Plot.line_c0_bndrs_indiv_toppings`
 [C11] `chromosome.crossregions.PlotPrmtrsBndrs.dinc_explain_box`
 [C12] `chromosome.crossregions.PlotPrmtrsBndrs.dinc_explain_scatter`
-[C13] `chromosome.crossregions.DistribPlot.box_mean_c0`
+[C13] `chromosome.crossregions.DistribPlot.box_mean_c0_bndrs`
 [C14] `chromosome.crossregions.ScatterC0Plot.scatter`
+[C15] `chromosome.crossregions.DistribPlot.prob_distrib_mean_c0_bndrs`
 
 
 ## Figure References

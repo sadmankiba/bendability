@@ -2,6 +2,7 @@ from __future__ import annotations
 import random
 import math
 from pathlib import Path
+from enum import Enum, auto
 from typing import Any, Callable, Iterator, Literal
 
 import matplotlib.pyplot as plt
@@ -123,9 +124,175 @@ class SubRegions:
         return self.ndrs - self.bndry_ndrs()
 
 
+class Distrib(Enum):
+    BNDRS = auto()
+    BNDRS_E_100 = auto()
+    BNDRS_E_N50 = auto()
+    NUCS = auto()
+    NUCS_B = auto()
+    NUCS_NB = auto()
+    LNKRS = auto()
+    NDRS = auto()
+    NDRS_B = auto()
+    NDRS_NB = auto()
+    PRMTRS = auto()
+    GENES = auto()
+    BNDRS_P = auto()
+    BNDRS_NP = auto()
+    PRMTRS_B = auto()
+    PRMTRS_NB = auto()
+
+
+class LabeledDistribs:
+    def __init__(self, sr: SubRegions):
+        self._sr = sr
+
+    def dl(self, ds: list[Distrib]) -> list[tuple[np.ndarray, str]]:
+        def _dl(d: Distrib):
+            if d == Distrib.BNDRS:
+                return self._sr.bndrs[MEAN_C0], "bndrs l 100"
+            if d == Distrib.BNDRS_E_100:
+                return self._sr.bndrs.extended(100)[MEAN_C0], "bndrs l 200"
+            if d == Distrib.BNDRS_E_N50:
+                return self._sr.bndrs.extended(-50)[MEAN_C0], "bndrs l 50"
+            if d == Distrib.NUCS:
+                return self._sr.nucs[MEAN_C0], "nucs"
+            if d == Distrib.NUCS_B:
+                return self._sr.bndry_nucs()[MEAN_C0], "nucs b"
+            if d == Distrib.NUCS_NB:
+                return self._sr.non_bndry_nucs()[MEAN_C0], "nucs nb"
+            if d == Distrib.LNKRS:
+                return self._sr.lnkrs[MEAN_C0], "lnkrs"
+            if d == Distrib.NDRS:
+                return self._sr.ndrs[MEAN_C0], "ndrs 40"
+            if d == Distrib.NDRS_B:
+                return self._sr.bndry_ndrs()[MEAN_C0], "ndrs b"
+            if d == Distrib.NDRS_NB:
+                return self._sr.non_bndry_ndrs()[MEAN_C0], "ndrs nb"
+            if d == Distrib.PRMTRS:
+                return self._sr.prmtrs[MEAN_C0], "prmtrs"
+            if d == Distrib.GENES:
+                return self._sr.genes[MEAN_C0], "genes"
+            if d == Distrib.BNDRS_P:
+                return self._sr.prmtr_bndrs()[MEAN_C0], "bndrs p"
+            if d == Distrib.BNDRS_NP:
+                return self._sr.non_prmtr_bndrs()[MEAN_C0], "bndrs np"
+            if d == Distrib.PRMTRS_B:
+                return self._sr.prmtrs_with_bndrs()[MEAN_C0], "prmtrs b"
+            if d == Distrib.PRMTRS_NB:
+                return self._sr.prmtrs_wo_bndrs()[MEAN_C0], "prmtrs nb"
+
+        return list(map(_dl, ds))
+
+
 class DistribPlot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
+
+    def box_mean_c0_bndrs(self) -> Path:
+        sr = SubRegions(self._chrm)
+        bsel_hexp = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
+        bsel_fanc = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+        sr.bsel = bsel_hexp
+        ld = LabeledDistribs(sr)
+        grp_bndrs_nucs = {
+            "dls": ld.dl(
+                [
+                    Distrib.BNDRS,
+                    Distrib.BNDRS_E_100,
+                    Distrib.BNDRS_E_N50,
+                    Distrib.NUCS,
+                    Distrib.NUCS_B,
+                    Distrib.NUCS_NB,
+                    Distrib.LNKRS,
+                    Distrib.NDRS,
+                    Distrib.NDRS_B,
+                    Distrib.NDRS_NB,
+                ]
+            ),
+            "title": "Mean C0 distrib of bndrs and nucs",
+            "fname": f"bndrs_nucs_{sr.bndrs}.png",
+        }
+        grp_bndrs_prmtrs = {
+            "dls": ld.dl(
+                [
+                    Distrib.BNDRS,
+                    Distrib.PRMTRS,
+                    Distrib.GENES,
+                    Distrib.BNDRS_P,
+                    Distrib.BNDRS_NP,
+                    Distrib.PRMTRS_B,
+                    Distrib.PRMTRS_NB,
+                ]
+            ),
+            "title": "Mean C0 distrib of comb of prmtrs and bndrs",
+            "fname": f"bndrs_prmtrs_{sr.bndrs}_{sr.prmtrs}_{self._chrm.id}.png",
+        }
+        grp = grp_bndrs_nucs
+        PlotUtil.show_grid(which="both")
+        distribs = [d for d, _ in grp["dls"]]
+        labels = [l for _, l in grp["dls"]]
+        
+        plt.boxplot(distribs, showfliers=False)
+        plt.ylim(-0.5, 0.1)
+        plt.xticks(
+            ticks=range(1, len(labels) + 1),
+            labels=labels,
+        )
+        plt.ylabel("Mean C0")
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.CROSSREGIONS}/c0_box/{grp['fname']}"
+        )
+
+    def prob_distrib_mean_c0_bndrs(self):
+        sr = SubRegions(self._chrm)
+        bsel_hexp = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
+        bsel_fanc = BndSel(BoundariesType.FANC, BndFParm.SHR_25)
+        sr.bsel = bsel_hexp
+        ld = LabeledDistribs(sr)
+        grp_bndrs_nucs = {
+            "dls": ld.dl(
+                [
+                    Distrib.BNDRS,
+                    Distrib.BNDRS_E_N50,
+                    Distrib.LNKRS,
+                    Distrib.NDRS,
+                    Distrib.NDRS_B,
+                    Distrib.NDRS_NB,
+                ]
+            ),
+            "title": "Prob distrib of mean C0 distrib of bndrs and nucs",
+            "fname": f"bndrs_nucs_{sr.bndrs}_{self._chrm.id}.png",
+        }
+        grp_bndrs_prmtrs = {
+            "dls": ld.dl(
+                [
+                    Distrib.BNDRS,
+                    Distrib.PRMTRS,
+                    Distrib.GENES,
+                    Distrib.BNDRS_P,
+                    Distrib.BNDRS_NP,
+                    Distrib.PRMTRS_B,
+                    Distrib.PRMTRS_NB,
+                ]
+            ),
+            "title": "Prob distrib of mean C0 distrib of comb of prmtrs and bndrs",
+            "fname": f"bndrs_prmtrs_{sr.bndrs}_{sr.prmtrs}_{self._chrm.id}.png",
+        }
+        grp = grp_bndrs_nucs
+
+        PlotUtil.clearfig()
+        PlotUtil.show_grid()
+
+        for d, l in grp["dls"]:
+            PlotUtil.prob_distrib(d, l)
+
+        plt.legend()
+        plt.xlabel("Mean c0")
+        plt.ylabel("Probability")
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.CROSSREGIONS}/prob_distrib/{grp['fname']}"
+        )
 
     def distrib_cuml_bndrs_nearest_tss_distnc(self) -> Path:
         bndrs = BoundariesHE(self._chrm, res=200, score_perc=0.5)
@@ -233,115 +400,6 @@ class DistribPlot:
         )
         return FileSave.figure_in_figdir(
             f"boundaries/distnc_ndr_prob_distrib_res_{bndrs.res}_{self._chrm.number}.png"
-        )
-
-    def box_mean_c0(self) -> Path:
-        sr = SubRegions(self._chrm)
-        bsel_hexp = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
-        bsel_fanc = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
-        sr.bsel = bsel_hexp
-        grp_bndrs_nucs = {
-            "distribs": [
-                sr.bndrs[MEAN_C0],
-                sr.bndrs.extended(100)[MEAN_C0],
-                sr.bndrs.extended(-50)[MEAN_C0],
-                sr.nucs[MEAN_C0],
-                sr.bndry_nucs()[MEAN_C0],
-                sr.non_bndry_nucs()[MEAN_C0],
-                sr.lnkrs[MEAN_C0],
-                sr.ndrs[MEAN_C0],
-                sr.bndry_ndrs()[MEAN_C0],
-                sr.non_bndry_ndrs()[MEAN_C0],
-            ],
-            "labels": [
-                "bndrs l 100",
-                "bndrs l 200",
-                "bndrs l 50",
-                "nucs",
-                "bndry nucs",
-                "non bndry nucs",
-                "lnkrs",
-                "ndrs 40",
-                "bndry ndrs",
-                "non bndry ndrs",
-            ],
-            "title": "Mean C0 distrib of bndrs and nucs",
-            "fname": f"bndrs_nucs_{sr.bndrs}.png",
-        }
-        grp_bndrs_prmtrs = {
-            "distribs": [
-                sr.bndrs[MEAN_C0],
-                sr.prmtrs[MEAN_C0],
-                sr.genes[MEAN_C0],
-                sr.prmtr_bndrs()[MEAN_C0],
-                sr.non_prmtr_bndrs()[MEAN_C0],
-                sr.prmtrs_with_bndrs()[MEAN_C0],
-                sr.prmtrs_wo_bndrs()[MEAN_C0],
-            ],
-            "labels": [
-                "bndrs",
-                "prmtrs",
-                "genes",
-                "p bndrs",
-                "np bndrs",
-                "prmtrs w b",
-                "prmtrs wo b",
-            ],
-            "title": "Mean C0 distrib of comb of prmtrs and bndrs",
-            "fname": f"bndrs_prmtrs_{sr.bndrs}_{sr.prmtrs}_{self._chrm.id}.png",
-        }
-        grp = grp_bndrs_nucs
-        PlotUtil.show_grid(which="both")
-        plt.boxplot(grp["distribs"], showfliers=False)
-        plt.ylim(-0.5, 0.1)
-        plt.xticks(
-            ticks=range(1, len(grp["labels"]) + 1),
-            labels=grp["labels"],
-        )
-        plt.ylabel("Mean C0")
-        return FileSave.figure_in_figdir(
-            f"{FigSubDir.CROSSREGIONS}/c0_box/{grp['fname']}"
-        )
-
-    def prob_distrib_mean_c0_bndrs(self):
-        sr = SubRegions(self._chrm)
-        bsel_hexp = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
-        bsel_fanc = BndSel(BoundariesType.FANC, BndFParm.SHR_25)
-        sr.bsel = bsel_hexp
-        
-        grp_bndrs_prmtrs = {
-            "distribs": [
-                sr.bndrs[MEAN_C0],
-                sr.prmtrs[MEAN_C0],
-                sr.prmtr_bndrs()[MEAN_C0],
-                sr.non_prmtr_bndrs()[MEAN_C0],
-                sr.prmtrs_with_bndrs()[MEAN_C0],
-                sr.prmtrs_wo_bndrs()[MEAN_C0],
-            ],
-            "labels": [
-                "bndrs",
-                "prmtrs",
-                "p bndrs",
-                "np bndrs",
-                "prmtrs w b",
-                "prmtrs wo b",
-            ], 
-            "title": "Prob distrib of mean C0 distrib of comb of prmtrs and bndrs",
-            "fname": f"bndrs_prmtrs_{sr.bndrs}_{sr.prmtrs}_{self._chrm.id}.png"
-        }
-        grp = grp_bndrs_prmtrs
-        
-        PlotUtil.clearfig()
-        PlotUtil.show_grid()
-
-        for d, l in zip(grp["distribs"], grp["labels"]):
-            PlotUtil.prob_distrib(d, l)
-
-        plt.legend()
-        plt.xlabel("Mean c0")
-        plt.ylabel("Probability")
-        return FileSave.figure_in_figdir(
-            f"{FigSubDir.CROSSREGIONS}/prob_distrib/{grp['fname']}"
         )
 
     def num_prmtrs_bndrs_ndrs(self, frml: int, btype: BoundariesType) -> Path:
@@ -479,14 +537,16 @@ class ScatterPlot:
         km = KMer(self._chrm)
         ax1.scatter(
             sr.non_bndry_ndrs()[LEN],
-            km.count_w_rc(kmer, sr.non_bndry_ndrs()[START], sr.non_bndry_ndrs()[END]) / sr.non_bndry_ndrs()[LEN],
+            km.count_w_rc(kmer, sr.non_bndry_ndrs()[START], sr.non_bndry_ndrs()[END])
+            / sr.non_bndry_ndrs()[LEN],
             c="b",
             marker="s",
             label="Non-bndry NDRs",
         )
         ax1.scatter(
             sr.bndry_ndrs()[LEN],
-            km.count_w_rc(kmer, sr.bndry_ndrs()[START], sr.bndry_ndrs()[END]) / sr.bndry_ndrs()[LEN],
+            km.count_w_rc(kmer, sr.bndry_ndrs()[START], sr.bndry_ndrs()[END])
+            / sr.bndry_ndrs()[LEN],
             c="r",
             marker="o",
             label="Bndry NDRs",
