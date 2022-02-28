@@ -23,7 +23,7 @@ class FancBoundary:
     Finding boundary with fanc
 
     To use this class, you'll need to install `hdf5` library and `fanc` package.
-    Check here - https://vaquerizaslab.github.io/fanc/getting_started.html
+    Check here - https://fan-c.readthedocs.io/en/latest/getting_started.html
     """
 
     def __init__(self, resolution: int = 500, window_size: int = 1000):
