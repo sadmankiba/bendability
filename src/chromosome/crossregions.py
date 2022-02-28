@@ -288,7 +288,7 @@ class DistribPlot:
                 "prmtrs wo b",
             ],
             "title": "Mean C0 distrib of comb of prmtrs and bndrs",
-            "fname": f"bndrs_prmtrs_{sr.bndrs}_{sr.prmtrs}.png",
+            "fname": f"bndrs_prmtrs_{sr.bndrs}_{sr.prmtrs}_{self._chrm.id}.png",
         }
         grp = grp_bndrs_nucs
         PlotUtil.show_grid(which="both")
@@ -303,39 +303,45 @@ class DistribPlot:
             f"{FigSubDir.CROSSREGIONS}/c0_box/{grp['fname']}"
         )
 
-    def prob_distrib_mean_c0_bndrs_prmtrs(self):
-        bndrs = BoundariesHE(self._chrm, **BndParm.HIRS_SHR)
-        prmtrs = Promoters(self._chrm)
-        prmtrs_with_bndrs = prmtrs.with_loc(bndrs[MIDDLE], True)
-        prmtrs_wo_bndrs = prmtrs.with_loc(bndrs[MIDDLE], False)
-
-        distribs = [
-            bndrs[MEAN_C0],
-            prmtrs[MEAN_C0],
-            bndrs.prmtr_bndrs()[MEAN_C0],
-            bndrs.non_prmtr_bndrs()[MEAN_C0],
-            prmtrs_with_bndrs[MEAN_C0],
-            prmtrs_wo_bndrs[MEAN_C0],
-        ]
-        labels = [
-            "boundaries",
-            "promoters",
-            "prm boundaries",
-            "nonprm boundaries",
-            "promoters with bndry",
-            "promoters w/o bndry",
-        ]
-
+    def prob_distrib_mean_c0_bndrs(self):
+        sr = SubRegions(self._chrm)
+        bsel_hexp = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
+        bsel_fanc = BndSel(BoundariesType.FANC, BndFParm.SHR_25)
+        sr.bsel = bsel_hexp
+        
+        grp_bndrs_prmtrs = {
+            "distribs": [
+                sr.bndrs[MEAN_C0],
+                sr.prmtrs[MEAN_C0],
+                sr.prmtr_bndrs()[MEAN_C0],
+                sr.non_prmtr_bndrs()[MEAN_C0],
+                sr.prmtrs_with_bndrs()[MEAN_C0],
+                sr.prmtrs_wo_bndrs()[MEAN_C0],
+            ],
+            "labels": [
+                "bndrs",
+                "prmtrs",
+                "p bndrs",
+                "np bndrs",
+                "prmtrs w b",
+                "prmtrs wo b",
+            ], 
+            "title": "Prob distrib of mean C0 distrib of comb of prmtrs and bndrs",
+            "fname": f"bndrs_prmtrs_{sr.bndrs}_{sr.prmtrs}_{self._chrm.id}.png"
+        }
+        grp = grp_bndrs_prmtrs
+        
         PlotUtil.clearfig()
         PlotUtil.show_grid()
 
-        for d, l in zip(distribs, labels):
+        for d, l in zip(grp["distribs"], grp["labels"]):
             PlotUtil.prob_distrib(d, l)
 
         plt.legend()
+        plt.xlabel("Mean c0")
+        plt.ylabel("Probability")
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.CROSSREGIONS}/bndrs_prmtrs_prob_distrib_c0_{bndrs}"
-            f"_{prmtrs}_{self._chrm.id}.png"
+            f"{FigSubDir.CROSSREGIONS}/prob_distrib/{grp['fname']}"
         )
 
     def num_prmtrs_bndrs_ndrs(self, frml: int, btype: BoundariesType) -> Path:

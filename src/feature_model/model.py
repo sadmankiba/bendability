@@ -13,9 +13,11 @@ from sklearn.ensemble import (
     HistGradientBoostingRegressor,
 )
 from sklearn.linear_model import LogisticRegression, LinearRegression, Ridge, LassoCV
-from sklearn.svm import SVC, LinearSVC, SVR
+from sklearn.svm import SVC, LinearSVC, SVR, LinearSVR
 from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from scipy.stats import pearsonr
 import numpy as np
 import tensorflow as tf
@@ -43,10 +45,20 @@ class SKModels:
         (
             "HGB_reg",
             HistGradientBoostingRegressor(
-                learning_rate=0.1, l2_regularization=1, max_iter=500, max_depth=64, min_samples_leaf=1
+                learning_rate=0.1,
+                l2_regularization=1,
+                max_iter=500,
+                max_depth=64,
+                min_samples_leaf=1,
             ),
         ),
-        ("RF_reg", RandomForestRegressor(n_estimators=25, max_depth=32)),
+        (
+            "RF_reg",
+            RandomForestRegressor(
+                n_estimators=50, max_depth=16, min_samples_leaf=2, n_jobs=-1, verbose=1
+            ),
+        ),
+        ("LinSVR", make_pipeline(StandardScaler(), LinearSVR(C=5, max_iter=10000))),
         ("SVR_C_10", SVR(C=10)),
         ("Lasso", LassoCV()),
         ("NN_reg", MLPRegressor()),

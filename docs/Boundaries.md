@@ -100,8 +100,8 @@ Using param 1, mean C0, TpA and CpG content of PMwB and PMoB were checked. [C11,
 1. TpA or CpG does not show any correlation with Mean C0. For both, pearson's r with mean C0 = 0.09
 
 ## C2. Boundaries and Linkers
-
-### Exp 2.3 Comparison of NDRs at boundaries and domains 
+### 
+### Exp 2.3 Comparison of NDRs C0 at boundaries and domains with Scatter plot
 #### Research Question 
 - Boundaries Exp 3.4 shows that boundary NDRs are more bendable. What does scatter plot of c0 say? Any pattern with length?
 #### Procedure 
@@ -152,8 +152,10 @@ Param - ?
 
 
 ## C3. Mean bendability in Boundaries
-
-
+### Exp 3.5 Prob distrib mean c0 of boundaries, nucs and linkers.
+**Research ques**
+- How are boundaries showing more tendency towards bendability?
+- How are boundaries NDRs showing more tendency towards bendability?
 ### Exp 3.4 Box plot mean c0 combining all boundaries in a chromosome. Compare with nucs, linkers. 
 **Research Ques**
 *Boundaries*

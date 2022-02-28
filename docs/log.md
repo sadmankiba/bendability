@@ -1,6 +1,7 @@
 # Log 
 | Date | Work | 
 |------|------|
+| 27/02| Among ML models, best prediction by liner model with l2 regularization, Ridge | 
 | 8/02 | Bndry NDR more bendable. Contributing Kmer distrib in bndry not clear. Helsep refactored. |
 | 4/02 | Worked to modularize hel sep | 
 | 3/02 | Box plot mean c0 of combined bndrs, nucs, lnkrs in chromosome V. | 
