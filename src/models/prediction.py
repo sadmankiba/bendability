@@ -57,7 +57,7 @@ class Prediction:
 
     def predict(
         self, df: pd.DataFrame
-    ) -> pd.DataFrame[SEQUENCE_NUM:int, SEQUENCE:str, C0_PREDICT:float]:
+    ) -> pd.DataFrame[SEQ_NUM_COL:int, SEQ_COL:str, C0_PREDICT:float]:
         prep = Preprocess(df)
         data = prep.one_hot_encode()
 

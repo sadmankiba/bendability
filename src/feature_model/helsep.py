@@ -49,6 +49,7 @@ class HSAggr(Enum):
     MAX = "max"
     SUM = "sum"
 
+
 class HelicalSeparationCounter:
     """
     Helper class for counting helical separation

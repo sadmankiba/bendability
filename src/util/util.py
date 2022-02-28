@@ -76,6 +76,7 @@ def cut_sequence(df, start, stop):
     df["Sequence"] = df["Sequence"].str[start - 1 : stop]
     return df
 
+
 # TODO: Rename to nuc_seqs
 def get_possible_seq(size):
     """
@@ -260,7 +261,13 @@ class FileSave:
         return cls.tsv(df, Path(f"{PathObtain.gen_data_dir()}/{rel_path}"))
 
     @classmethod
-    def tsv(cls, df: pd.DataFrame, path_str: Union[str, Path], index=False, precision:int=PRECISION_FLOAT_DF_TSV) -> Path:
+    def tsv(
+        cls,
+        df: pd.DataFrame,
+        path_str: Union[str, Path],
+        index=False,
+        precision: int = PRECISION_FLOAT_DF_TSV,
+    ) -> Path:
         """Save a dataframe in tsv format"""
         path = Path(path_str)
         cls.make_parent_dirs(path)
@@ -285,7 +292,12 @@ class FileSave:
             path.parent.mkdir(parents=True, exist_ok=True)
 
     @classmethod
-    def append_tsv(cls, df: pd.DataFrame, path_str: Union[str, Path], precision:int=PRECISION_FLOAT_DF_TSV) -> Path:
+    def append_tsv(
+        cls,
+        df: pd.DataFrame,
+        path_str: Union[str, Path],
+        precision: int = PRECISION_FLOAT_DF_TSV,
+    ) -> Path:
         """Append a dataframe to a tsv if it exists, otherwise create"""
         path = Path(path_str)
         if path.is_file():
@@ -300,7 +312,8 @@ class FileSave:
 
 class DataCache:
     """Class that caches data. Calculates if needed."""
-    @classmethod 
+
+    @classmethod
     def np_arr_save_only(self, arr: np.ndarray, subpath: str | Path):
         np.save(Path(f"{PathObtain.gen_data_dir()}/{subpath}"), arr)
 

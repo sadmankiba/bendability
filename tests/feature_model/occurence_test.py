@@ -36,7 +36,7 @@ class TestOccurence(unittest.TestCase):
 
         assert len(df_occur) == 3
         assert len(df.columns) == 1
-        assert len(df_occur.columns) == 1 + 4**2
+        assert len(df_occur.columns) == 1 + 4 ** 2
         assert df_occur["AA"].tolist() == [0, 1, 0]
         assert df_occur["AG"].tolist() == [0, 1, 1]
 

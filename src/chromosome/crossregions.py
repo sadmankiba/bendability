@@ -232,7 +232,7 @@ class DistribPlot:
         PlotUtil.show_grid(which="both")
         distribs = [d for d, _ in grp["dls"]]
         labels = [l for _, l in grp["dls"]]
-        
+
         plt.boxplot(distribs, showfliers=False)
         plt.ylim(-0.5, 0.1)
         plt.xticks(

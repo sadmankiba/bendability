@@ -44,6 +44,7 @@ class TestModel:
 
         Model.run_seq_regression(*organizer.get_seq_train_test(classify=False))
 
+
 class TestModelRunner:
     def test_classification(self):
         libraries = TrainTestSequenceLibraries(

@@ -3,9 +3,15 @@ from pathlib import Path
 import pytest
 
 from chromosome.chromosome import Chromosome
-from chromosome.crossregions import DistribPlot, LineC0Plot, PlotPrmtrsBndrs, ScatterPlot
+from chromosome.crossregions import (
+    DistribPlot,
+    LineC0Plot,
+    PlotPrmtrsBndrs,
+    ScatterPlot,
+)
 from chromosome.genes import Promoters
 from conformation.domains import BoundariesHE, BoundariesType
+
 
 @pytest.fixture
 def crplt_vl(chrm_vl_mean7: Chromosome):
@@ -39,12 +45,14 @@ class TestDistribPlot:
 def lnplt_vl(chrm_vl_mean7: Chromosome):
     return LineC0Plot(chrm_vl_mean7)
 
+
 class TestScatterPlot:
     def test_scatter_c0(self, chrm_vl_mean7: Chromosome):
         assert ScatterPlot(chrm_vl_mean7).scatter_c0().is_file()
 
     def test_scatter_kmer(self, chrm_vl_mean7: Chromosome):
         assert ScatterPlot(chrm_vl_mean7).scatter_kmer("TTTT").is_file()
+
 
 class TestLineC0Plot:
     def test_line_c0_bndry_indiv_toppings(

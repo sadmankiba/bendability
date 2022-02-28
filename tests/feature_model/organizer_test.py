@@ -22,7 +22,7 @@ from util.util import PathObtain
 
 class TestDataOrganizer:
     def test_get_seq_train_test(self):
-        libraries= TrainTestSequenceLibraries(
+        libraries = TrainTestSequenceLibraries(
             train=[
                 SequenceLibrary(name=TL, quantity=50000),
                 SequenceLibrary(name=CNL, quantity=15000),
@@ -42,9 +42,12 @@ class TestDataOrganizer:
         assert X_test.shape[0] == 10000
         assert y_test.shape[0] == 10000
 
-    @pytest.mark.parametrize("hsaggr", [HSAggr.MAX, HSAggr.SUM],)
+    @pytest.mark.parametrize(
+        "hsaggr",
+        [HSAggr.MAX, HSAggr.SUM],
+    )
     def test_get_helical_sep(self, hsaggr):
-        libraries= TrainTestSequenceLibraries(
+        libraries = TrainTestSequenceLibraries(
             train=[SequenceLibrary(name=CNL, quantity=CNL_LEN)],
             test=[SequenceLibrary(name=RL, quantity=RL_LEN)],
         )
@@ -123,7 +126,3 @@ class TestDataOrganizer:
         df = pd.DataFrame({"C0": [1, 2, 0, 1, 1, 2]})
         df, _ = class_maker.get_balanced_classes(df, df["C0"].to_numpy())
         assert set(df["C0"].tolist()) == set([0, 0, 0, 1, 1, 1, 2, 2, 2])
-
-
-if __name__ == "__main__":
-    unittest.main()

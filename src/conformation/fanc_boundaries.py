@@ -39,7 +39,7 @@ class FancBoundary:
             f".insulation_{int(self._window_size / 1000)}kb.bed"
         )
         self.boundaries = self._get_all_boundaries()
-    
+
     def __str__(self):
         return f"res_{self._resolution}_w_{self._window_size}"
 
@@ -49,7 +49,7 @@ class FancBoundary:
         ph = fancplot.TriangularMatrixPlot(
             self._hic_file, max_dist=50000, vmin=0, vmax=int(self._resolution / 10)
         )
-        pb = fancplot.BarPlot(self.boundaries, colors='red', plot_kwargs={'alpha': 0.8})
+        pb = fancplot.BarPlot(self.boundaries, colors="red", plot_kwargs={"alpha": 0.8})
         pl = [ph, pb]
         if plot_ins:
             self._save_ins_bed()
@@ -65,10 +65,8 @@ class FancBoundary:
             FileSave.figure_in_figdir(f"hic/{chrm_num}_boundaries_{self}.png")
 
     def _get_insulation(self) -> fanc.InsulationScores:
-        insulation_output_path = (
-            f"{PathObtain.gen_data_dir()}/hic/{self._insul_file}"
-        )
-        if self._insulation is None: 
+        insulation_output_path = f"{PathObtain.gen_data_dir()}/hic/{self._insul_file}"
+        if self._insulation is None:
             if Path(insulation_output_path).is_file():
                 self._insulation = fanc.load(insulation_output_path)
             else:
@@ -78,17 +76,17 @@ class FancBoundary:
                     [self._window_size],
                     file_name=insulation_output_path,
                 )
-        
+
         return self._insulation
 
     def _save_ins_bed(self):
         if not Path(self._insul_bed).is_file():
-            self._get_insulation().to_bed(
-                self._insul_bed, self._window_size
-            )
+            self._get_insulation().to_bed(self._insul_bed, self._window_size)
 
     def _get_all_boundaries(self) -> fanc.architecture.domains.Boundaries:
-        boundary_file_path = f"{PathObtain.data_dir()}/generated_data/hic/boundaries_fanc_{self}"
+        boundary_file_path = (
+            f"{PathObtain.data_dir()}/generated_data/hic/boundaries_fanc_{self}"
+        )
         if Path(boundary_file_path).is_file():
             return fanc.load(boundary_file_path)
 
