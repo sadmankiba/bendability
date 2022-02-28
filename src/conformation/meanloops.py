@@ -151,7 +151,7 @@ class MeanLoops:
         Returns:
             A list of 4 float numbers
         """
-        quart_loop_df = self._get_quartile_dfs(self._loops._loop_df)
+        quart_loop_df = self._get_quartile_dfs(self._loops)
         return list(map(self.around_anc, [pos] * 4, [lim] * 4, quart_loop_df))
 
     def in_nuc_linker(self, nuc_half: int = 73) -> tuple[float, float]:

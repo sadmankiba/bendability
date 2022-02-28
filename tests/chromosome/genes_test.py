@@ -1,13 +1,13 @@
 import pytest
 
 from chromosome.chromosome import Chromosome
-from chromosome.genes import Genes, Promoters, PlotPromoters
+from chromosome.genes import PlotGenes, Promoters, PlotPromoters
 from conformation.domains import BoundariesHE, MIDDLE
 
 
-class TestGenes:
+class TestPlotGenes:
     def test_plot_mean_c0_vs_dist_from_dyad(self, chrm_vl: Chromosome):
-        path = Genes(chrm_vl).plot_mean_c0_vs_dist_from_dyad()
+        path = PlotGenes(chrm_vl).plot_mean_c0_vs_dist_from_dyad()
         assert path.is_file()
 
 

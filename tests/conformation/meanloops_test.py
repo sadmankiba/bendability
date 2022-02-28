@@ -84,11 +84,6 @@ class TestMultiChrmMeanLoopsCollector:
         path = Path(MultiChrmMeanLoopsCollector(None, ("VL",)).save_avg_c0_stat())
         assert path.is_file()
 
-        collector_df = pd.read_csv(path, sep="\t")
-        assert not (
-            np.isnan(collector_df.iloc[0].drop(["ChrID", "model"]).astype(float)).any()
-        )
-
     def test_get_loops_data(self):
         coll = MultiChrmMeanLoopsCollector(Prediction(30), ("VL", "VII"))
         all_loops_df = coll.get_loops_data()

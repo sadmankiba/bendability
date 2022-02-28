@@ -128,7 +128,7 @@ class BoundariesHE(Boundaries):
 
 class DomainsHE(Regions):
     def __init__(self, chrm: Chromosome, regions: RegionsInternal = None):
-        super.__init__(chrm, regions)
+        super().__init__(chrm, regions)
 
     def _get_regions(self) -> pd.DataFrame[START:int, END:int]:
         bndrs = BoundariesHE(self.chrm)

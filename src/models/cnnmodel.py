@@ -111,10 +111,10 @@ class ConvolutionLayer(Conv1D):
                 x_tf,
             )
             transf = tf.transpose(filt_list, [1, 2, 0])
-            outputs = self._convolution_op(inputs, transf)
+            outputs = self.convolution_op(inputs, transf)
 
         else:
-            outputs = self._convolution_op(inputs, self.kernel)
+            outputs = self.convolution_op(inputs, self.kernel)
         self.run_value += 1
         return outputs
 

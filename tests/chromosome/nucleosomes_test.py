@@ -13,7 +13,7 @@ def nucs_vl(chrm_vl_mean7):
 class TestNucleosomes:
     def test_get_nuc_occupancy(self, nucs_vl: Nucleosomes):
         nuc_occ = nucs_vl.get_nucleosome_occupancy()
-        assert nuc_occ.shape == (nucs_vl._chrm.total_bp,)
+        assert nuc_occ.shape == (nucs_vl.chrm.total_bp,)
         assert any(nuc_occ)
 
     def test_plot_c0_vs_dist_from_dyad_spread(self, nucs_vl: Nucleosomes):

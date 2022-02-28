@@ -71,7 +71,7 @@ def bndrsf_vl(chrm_vl_mean7):
 
 class TestBoundariesF:
     def test_init(self, chrm_vl_mean7):
-        bndrs = BoundariesF(chrm_vl_mean7, 0.25)
+        bndrs = BoundariesF(chrm_vl_mean7, top_perc=0.25)
         assert len(bndrs) == 45
 
     def test_extended(self, bndrsf_vl):

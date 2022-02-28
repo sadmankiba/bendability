@@ -2,6 +2,7 @@ from typing import Callable
 import pytest
 
 from chromosome.dinc import Dinc
+from chromosome.chromosome import Chromosome
 
 
 @pytest.fixture
@@ -14,6 +15,7 @@ def create_dinc():
 
         dinc._chrm = Dummy()
         dinc._chrm.seq = seq
+        dinc._chrm.seqf = Chromosome.seqf
         return dinc
 
     return _create_dinc

@@ -28,6 +28,7 @@ NUC_HALF = int(NUC_WIDTH / 2)
 class Nucleosomes(Regions):
     def __init__(self, chrm: Chromosome, regions: RegionsInternal = None):
         self._centers: np.ndarray = NucsReader.read(chrm.number)
+        self._filter_at_least_depth(NUC_HALF, chrm.total_bp)
         super().__init__(chrm, regions)
 
     def _get_regions(self) -> RegionsInternal:
@@ -39,11 +40,14 @@ class Nucleosomes(Regions):
             }
         )
 
-    def _filter_at_least_depth(self, depth: int):
+    def _filter_at_least_depth(self, depth: int, chrm_len: int):
         """Remove center positions at each end that aren't in at least certain depth"""
-        self._centers = list(
-            filter(
-                lambda i: i > depth and i < self.chrm.total_bp - depth, self._centers
+        self._centers = np.array(
+            list(
+                filter(
+                    lambda i: i > depth and i < chrm_len - depth,
+                    self._centers,
+                )
             )
         )
 
@@ -154,7 +158,7 @@ class Nucleosomes(Regions):
             denote nucleosome regions. An element is set to True if it
             is within +-nuc_half bp of nucleosome dyad.
         """
-        self._filter_at_least_depth(nuc_half)
+        self._filter_at_least_depth(nuc_half, self.chrm.total_bp)
         return self.chrm.get_cvr_mask(self._centers, nuc_half, nuc_half)
 
     def find_avg_nuc_linker_c0(self, nuc_half: int = 73) -> tuple[float, float]:
