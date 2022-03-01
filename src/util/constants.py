@@ -3,6 +3,7 @@ class GDataSubDir:
     TEST = "test"
     HELSEP = "helical_separation"
     ML_MODEL = "ml_model"
+    MOTIF = "motif"
 
 
 class FigSubDir:
@@ -51,3 +52,4 @@ SEQ_LEN = 50
 ONE_INDEX_START = 1
 
 CHRV_TOTAL_BP = 576871
+CHRV_TOTAL_BP_ORIGINAL = 576874

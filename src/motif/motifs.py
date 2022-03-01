@@ -1,18 +1,48 @@
 from __future__ import annotations
+from pathlib import Path
 from matplotlib import colors
 import pandas as pd
 import numpy as np
+from nptyping import NDArray
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 from util.util import FileSave, PathObtain
+from util.constants import CHRV_TOTAL_BP, CHRV_TOTAL_BP_ORIGINAL, GDataSubDir
+
+
+N_MOTIFS = 256
+LEN_MOTIF = 8
+
+
+class MotifsM35:
+    def __init__(self) -> None:
+        self._running_score = self._read_running_score()
+
+    def _read_running_score(self) -> NDArray[(N_MOTIFS, CHRV_TOTAL_BP)]:
+        def _score_file(i: int):
+            return (
+                f"{PathObtain.gen_data_dir()}/{GDataSubDir.MOTIF}/"
+                f"model35_parameters_parameter_274_alt/motif_{i}"
+            )
+
+        scores = np.empty((N_MOTIFS, CHRV_TOTAL_BP))
+        for i in range(N_MOTIFS):
+            df = pd.read_csv(_score_file(i), header=None)
+            assert len(df) == CHRV_TOTAL_BP_ORIGINAL
+            scores[i] = df.to_numpy().flatten()[
+                : CHRV_TOTAL_BP - CHRV_TOTAL_BP_ORIGINAL
+            ]
+
+        return scores
+
 
 MOTIF_ID = "motif_id"
 TF = "tf"
 CONTRIB_SCORE = "contrib_score"
 
 
-class Motifs:
+class MotifsM30:
     def __init__(self):
         self._tomtom_motif_file = (
             f"{PathObtain.input_dir()}/motifs/tomtom_model30_yeastract.tsv"

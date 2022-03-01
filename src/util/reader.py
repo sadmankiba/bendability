@@ -91,7 +91,8 @@ class DNASequenceReader:
         chrmnum = roman_to_num(chr_num)
         assert chrmnum >= 1 and chrmnum <= 16
 
-        seq = cls._read_yeast_genome_file(chrmnum)
+        seq = cls.read_yeast_genome_file(chrmnum)
+        print(len(seq))
 
         # Split into 50-bp sequences
         num_50bp_seqs = math.ceil((len(seq) - SEQ_LEN + 1) / 7)
@@ -107,7 +108,7 @@ class DNASequenceReader:
         )
 
     @classmethod
-    def _read_yeast_genome_file(cls, chrmnum: int) -> str:
+    def read_yeast_genome_file(cls, chrmnum: int) -> str:
         genome_file = open(
             f"{PathObtain.data_dir()}/input_data/yeast_genome/S288C_reference_sequence_R64-3-1_20210421.fsa"
         )

@@ -17,3 +17,5 @@ pip3 install opencv-python opencv-contrib-python
 **Running `backprop_contribution5.py`**
 
 Copy a few rows from bendability data to `DNABendabilityModels/data/dataset_9_top.txt`. Then `python3 backprop_contribution5.py`.
+
+### Generating motifs learned by model 

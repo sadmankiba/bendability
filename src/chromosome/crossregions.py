@@ -16,7 +16,7 @@ from nptyping import NDArray
 from chromosome.chromosome import PlotChrm
 from chromosome.dinc import Dinc
 from chromosome.genes import Genes
-from motif.motifs import Motifs
+from motif.motifs import MotifsM30
 from util.constants import FigSubDir, ONE_INDEX_START
 
 from chromosome.dinc import KMer
@@ -778,7 +778,7 @@ class PlotPrmtrsBndrs:
         return self._total_dinc(rgns, cnt_fnc) / rgns[LEN].to_numpy()
 
     def both_sorted_motif_contrib(self):
-        for i, num in enumerate(Motifs().sorted_contrib()):
+        for i, num in enumerate(MotifsM30().sorted_contrib()):
             self._both_motif_contrib_single("both_sorted_motif", num, i)
 
     def both_motif_contrib(self):
