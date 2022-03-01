@@ -1,18 +1,26 @@
 import numpy as np
+import pytest
 
 from motif.motifs import MotifsM30, MotifsM35, LEN_MOTIF
+from chromosome.regions import Regions
 from util.reader import DNASequenceReader
-from util.constants import YeastChrNumList
+from util.constants import YeastChrNumList, FigSubDir
 from util.util import roman_to_num
 
+@pytest.fixture 
+def motifsm35():
+    return MotifsM35()
+
 class TestMotifsM35:
-    def test_motif40_score(self):
+    def test_motif40_score(self, motifsm35: MotifsM35):
         motif_40 = "_GAAGAGC"
         seq = DNASequenceReader.read_yeast_genome_file(roman_to_num(YeastChrNumList[4]))
         match_pos = seq.find(motif_40[1:])
-        mtf = MotifsM35()
-        max_score_pos = np.where(mtf._running_score[40] > 14)[0][0]
+        max_score_pos = np.where(motifsm35._running_score[40] > 14)[0][0]
         assert max_score_pos - LEN_MOTIF / 2 + 1 == match_pos
+    
+    def test_enrichment(self, motifsm35: MotifsM35, rgns_simp_vl: Regions):
+        assert motifsm35.enrichment(rgns_simp_vl, FigSubDir.TEST).is_file()
 
 
 

@@ -8,15 +8,24 @@
 
 ## Experiments 
 
+### Exp 1.3 Motif enrichment in boundaries
+#### Research question
+- Are any motifs that is provided by model enriched in boundaries compared to whole chromosome?
+
+#### Procedure 
+
+#### Observation
+
 ### Exp 1.2 Motif contribution comparison of non-bndry and bndry NDRs
 
 #### Research Question 
 - Does any motif show opposite pattern? 
 
 #### Procedure 
-BF1. DL2. Kmer count. 
+BF1. DL2. Kmer count. [C2]
 
 #### Observations 
+
 ### Exp 1.1 Motif contribution comparison in PMwB and PMoB
 
 #### Research Question
@@ -24,7 +33,7 @@ BF1. DL2. Kmer count.
 2. Any pattern among motifs with highest -ve or +ve contrib to c0?
 
 #### Procedure 
-Merged in subplot motif contribs with these sorted by contrib score ascendingly.
+Merged in subplot motif contribs with these sorted by contrib score ascendingly. [C1] [F1] [F2]
 
 #### Observations 
 1. No. 
@@ -48,7 +57,9 @@ Expected that positive motif will be enriched at PMwB since they were found to b
 2. Cluster motifs by contribution patterns in PMwB and PMoB. Simplest, pearson.
 
 
-
+## Code References
+[C1] `chromosome.crossregions.PlotPrmtrsBndrs.both_sorted_motif_contrib`
+[C2] `chromosome.crossregions.ScatterPlot.scatter_kmer`
 
 ## Figure References 
 [F1] [Motif logos](../figures/motifs/motif_logos_sorted_contrib_with_motif_no.png)

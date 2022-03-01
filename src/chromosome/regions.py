@@ -82,7 +82,7 @@ class Regions:
         return self._new(pd.merge(self._regions, other._regions, how="outer"))
 
     def __str__(self):
-        return str(self._regions)
+        return "regions"
 
     @property
     def mean_c0(self) -> float:

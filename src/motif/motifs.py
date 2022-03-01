@@ -7,6 +7,7 @@ from nptyping import NDArray
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
+from chromosome.regions import Regions
 from util.util import FileSave, PathObtain
 from util.constants import CHRV_TOTAL_BP, CHRV_TOTAL_BP_ORIGINAL, GDataSubDir
 
@@ -35,6 +36,16 @@ class MotifsM35:
             ]
 
         return scores
+    
+    def enrichment(self, regions: Regions, subdir: str) -> Path:
+        enr = self._running_score[:, regions.cover_mask]
+        fig, axes = plt.subplots(8, sharey=True)
+        fig.suptitle('Motif enrichments')
+        for i in range(8):
+            axes[i].boxplot(enr[i*32:(i+1)*32].T, showfliers=True)
+        
+        return FileSave.figure_in_figdir(f"{subdir}/motif_m35/enrichment_{regions}.png")
+
 
 
 MOTIF_ID = "motif_id"
