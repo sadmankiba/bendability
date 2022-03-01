@@ -13,6 +13,7 @@ class FigSubDir:
     CROSSREGIONS = "crossregions"
     BOUNDARIES = "boundaries"
     NDRS = "ndrs"
+    CHROMOSOME = "chromosome"
 
 
 YeastChrNumList = (

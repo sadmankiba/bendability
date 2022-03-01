@@ -6,6 +6,7 @@ import numpy as np
 from nptyping import NDArray
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from statsmodels.stats.weightstats import ztest
 
 from chromosome.regions import Regions
 from util.util import FileSave, PathObtain
@@ -45,6 +46,13 @@ class MotifsM35:
             axes[i].boxplot(enr[i*32:(i+1)*32].T, showfliers=True)
         
         return FileSave.figure_in_figdir(f"{subdir}/motif_m35/enrichment_{regions}.png")
+
+    def enrichment_compare(self, rega: Regions, regb: Regions, subdir: str):
+        enra = self._running_score[:, rega.cover_mask]
+        enrb = self._running_score[:, regb.cover_mask]
+        z = [ztest(enra[i], enrb[i]) for i in range(N_MOTIFS)]
+        df = pd.DataFrame(z, columns=["ztest_val", "p_val"])
+        FileSave.tsv_gdatadir(df, f"{subdir}/motif_m35/enrichment_comp_{rega}_{regb}.tsv")
 
 
 

@@ -10,11 +10,17 @@
 
 ### Exp 1.3 Motif enrichment in boundaries
 #### Research question
-- Are any motifs that is provided by model enriched in boundaries compared to whole chromosome?
+- Are any motifs, provided by model, enriched in boundaries compared to whole chromosome?
 
 #### Procedure 
+Distrib of scores of all motifs in regions. Box plot.[C3][F3, F4]
 
 #### Observation
+- No observable difference in score distribution between boundaries and whole chromosome. 
+
+#### Future Direction 
+- Find mathematically which motifs have highest difference in score distributions between boundary and whole chromosome. 
+- Compare between boundaries and domains.
 
 ### Exp 1.2 Motif contribution comparison of non-bndry and bndry NDRs
 
@@ -60,7 +66,10 @@ Expected that positive motif will be enriched at PMwB since they were found to b
 ## Code References
 [C1] `chromosome.crossregions.PlotPrmtrsBndrs.both_sorted_motif_contrib`
 [C2] `chromosome.crossregions.ScatterPlot.scatter_kmer`
+[C3] `motif.motifs.MotifsM35.enrichment`
 
 ## Figure References 
 [F1] [Motif logos](../figures/motifs/motif_logos_sorted_contrib_with_motif_no.png)
 [F2] [Motif contrib to PMwB and PMoB](../figures/promoters/distribution_around_promoters/both_sorted_motif/motif_179_188.png)
+[F3] [Boundary motif enrichment](../figures/boundaries/motif_m35/enrichment_res_200_lim_100_perc_0.5_fanc.png)
+[F4] [Chrm motif enrichment](../figures/chromosome/motif_m35/enrichment_regions.png)

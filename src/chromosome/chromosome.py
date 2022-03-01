@@ -226,7 +226,7 @@ C0 = "c0"
 
 
 class Chromosome:
-    "Analysis of Chromosome in yeast"
+    "Class that holds sequence and C0 array of a yeast chromosome"
 
     def __init__(
         self,
