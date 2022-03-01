@@ -1,6 +1,6 @@
 numpy
-tensorflow==2.6.0
-keras==2.6.*
+tensorflow
+keras
 imbalanced-learn
 Boruta==0.3
 regex
@@ -10,6 +10,7 @@ swifter
 seaborn
 logomaker
 plotnine
+statsmodels
 pytest
 pytest-testmon
 pytest-github-actions-annotate-failures
