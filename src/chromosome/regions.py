@@ -216,6 +216,7 @@ class Regions:
         """Must be implemented in subclass"""
 
     def _new(self, rgns: RegionsInternal) -> Regions:
+        "Should be overridden in subclass if constructor does not conform to this"
         return type(self)(self.chrm, rgns.copy())
 
     def _extended(self, rgns: RegionsInternal) -> Regions:

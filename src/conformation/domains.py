@@ -195,6 +195,25 @@ class BoundariesF(Boundaries):
             regions=rgns,
         )
 
+class DomainsF(Regions):
+    def __init__(self, bndrs: BoundariesF, regions: RegionsInternal = None):
+        self._bndrs = bndrs
+        super().__init__(bndrs.chrm, regions)
+
+    def _get_regions(self) -> pd.DataFrame[START:int, END:int]:
+        df = pd.DataFrame(
+            {
+                START: np.concatenate([[1,], self._bndrs[END] + 1]),
+                END: np.concatenate([self._bndrs[START] - 1, [self.chrm.total_bp,]]),
+            }
+        )
+        return df.loc[df[START] <= df[END]]
+
+    
+    def _new(self, regions: RegionsInternal) -> BoundariesF:
+        return DomainsF(
+            bndrs=self._bndrs, regions=regions
+        )
 
 class BoundariesType(Enum):
     HEXP = auto()
