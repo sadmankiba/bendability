@@ -200,6 +200,9 @@ class DomainsF(Regions):
         self._bndrs = bndrs
         super().__init__(bndrs.chrm, regions)
 
+    def __str__(self):
+        return f"domains_{self._bndrs}"
+        
     def _get_regions(self) -> pd.DataFrame[START:int, END:int]:
         df = pd.DataFrame(
             {
@@ -214,6 +217,7 @@ class DomainsF(Regions):
         return DomainsF(
             bndrs=self._bndrs, regions=regions
         )
+
 
 class BoundariesType(Enum):
     HEXP = auto()

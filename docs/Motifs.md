@@ -1,22 +1,71 @@
 # Motifs 
 
 ## Base work
+Motif M30
 **Contribution score**: We determined motif logo and contribution score for each motif. Contrib score ranged from -0.017 to 0.021. The higher the contrib score, the greater that motif contribute to positive bendability. [F1]
 
 5 +ve contrib motifs: TATA, GAAGA, CCCT, TGCA, CCTT
 5 -ve contrib motifs: TTTTT, AAAA, TTGG, GAAGA, CGCG
 
+Motif M35
 ## Experiments 
 
 ### Exp 1.3 Motif enrichment in boundaries
 #### Research question
-- Are any motifs, provided by model, enriched in boundaries compared to whole chromosome?
+- Are any motifs, provided by model, enriched in boundaries compared to domain or whole chromosome?
 
 #### Procedure 
-Distrib of scores of all motifs in regions. Box plot.[C3][F3, F4]
-
+Motif M35.
+- Box plot: Distrib of scores of all motifs in regions. [C3][F3, F4]
+- Z-test: Z-test of distribution of scores in boundaries and domains. [C4] [D1]
 #### Observation
-- No observable difference in score distribution between boundaries and whole chromosome. 
+- Box plot: no observable difference in score distribution between boundaries and whole chromosome. 
+- Z-test: 
+Top 20 de-enriched motifs in boundaries: 
+119   -4.443
+168   -4.316
+50    -4.118
+223   -3.962
+243   -3.873
+221   -3.859
+133   -3.845
+44    -3.841
+38    -3.772
+198   -3.745
+204   -3.690
+169   -3.644
+11    -3.616
+20    -3.567
+206   -3.489
+153   -3.465
+117   -3.464
+150   -3.443
+183   -3.378
+8     -3.378
+
+Top 20 enriched motifs in boundaries:
+224    2.400
+37     2.267
+67     2.215
+218    2.210
+47     2.093
+235    2.058
+55     1.951
+127    1.927
+192    1.896
+103    1.880
+167    1.879
+162    1.799
+19     1.791
+80     1.774
+161    1.765
+233    1.759
+245    1.701
+123    1.687
+94     1.680
+113    1.650
+
+- So, we find that boundaries are mostly characterized by de-enrichment of certain motifs (mostly long run of A or T). On the other hand, a few motifs are enriched in boundaries. They typically contain C/G dinucleotide or trinucleotides.
 
 #### Future Direction 
 - Find mathematically which motifs have highest difference in score distributions between boundary and whole chromosome. 
@@ -67,6 +116,10 @@ Expected that positive motif will be enriched at PMwB since they were found to b
 [C1] `chromosome.crossregions.PlotPrmtrsBndrs.both_sorted_motif_contrib`
 [C2] `chromosome.crossregions.ScatterPlot.scatter_kmer`
 [C3] `motif.motifs.MotifsM35.enrichment`
+[C4] `motif.motifs.MotifsM35.enrichment_compare`
+
+## Data References
+[D1] [motif enrichment](../data/generated_data/boundaries/motif_m35/enrichment_comp_res_200_lim_100_perc_0.5_fanc_domains_res_200_lim_100_perc_0.5_fanc.tsv)
 
 ## Figure References 
 [F1] [Motif logos](../figures/motifs/motif_logos_sorted_contrib_with_motif_no.png)

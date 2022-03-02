@@ -4,6 +4,7 @@ class GDataSubDir:
     HELSEP = "helical_separation"
     ML_MODEL = "ml_model"
     MOTIF = "motif"
+    BOUNDARIES = "boundaries"
 
 
 class FigSubDir:
