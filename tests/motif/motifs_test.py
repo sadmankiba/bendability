@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from motif.motifs import MotifsM30, MotifsM35, LEN_MOTIF
+from motif.motifs import MotifsM30, MotifsM35, LEN_MOTIF, PlotMotifs
 from chromosome.regions import Regions
 from util.reader import DNASequenceReader
 from util.constants import YeastChrNumList, FigSubDir
@@ -22,7 +22,9 @@ class TestMotifsM35:
     def test_enrichment(self, motifsm35: MotifsM35, rgns_simp_vl: Regions):
         assert motifsm35.enrichment(rgns_simp_vl, FigSubDir.TEST).is_file()
 
-
+class TestPlotMotifs: 
+    def test_integrate_logos(self):
+        assert PlotMotifs.integrate_logos().is_file()
 
 
 class TestMotifsM30:

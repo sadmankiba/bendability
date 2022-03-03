@@ -61,37 +61,46 @@ class MotifsM35:
 
 class PlotMotifs:
     @classmethod
-    def integrate_logos(cls):
+    def integrate_logos(cls) -> Path:
         dir = f"{PathObtain.figure_dir()}/{FigSubDir.MOTIFS}/model35_parameters_parameter_274_merged_motif"
         imrows = []
+        score_df = pd.read_csv(
+            f"{PathObtain.gen_data_dir()}/boundaries/motif_m35/enrichment_comp_res_200_lim_100_perc_0.5_fanc_domains_res_200_lim_100_perc_0.5_fanc.tsv",
+            sep="\t",
+        )
+        score_df = score_df.sort_values(by="ztest_val", ignore_index=True)
         for i in range(16):
             row = []
             for j in range(16):
-                logo = cv2.imread(f"{dir}/{i*16 + j}.png")
-                logo = cls._add_score(logo)
+                n, z, p = tuple(score_df.loc[i*16 + j])
+                logo = cv2.imread(f"{dir}/{int(n)}.png")
+                z, p = round(z, 2), round(p, 2)
+                logo = cls._add_score(logo, z, p)
                 row.append(logo)
             imrows.append(cv2.hconcat(row))
 
         img = cv2.vconcat(imrows)
-        cv2.imwrite(f"{dir}/integrated_score.png", img)
+        impath = Path(f"{dir}/integrated_bndry_z_score.png")
+        cv2.imwrite(str(impath), img)
+        return impath
 
     @classmethod
-    def _add_score(cls, img: np.ndarray):
+    def _add_score(cls, img: np.ndarray, z: float, p: float):
         new_img = np.ascontiguousarray(
             np.vstack([np.full((30, img.shape[1], 3), fill_value=255), img]),
             dtype=np.uint8,
         )
-
-        pos = (10, 2)
-        font_scale = 1
+        
+        pos = (10, 28)
+        font_scale = 1.1
         font_color = (0, 0, 0)
         thickness = 1
         linetype = 2
         cv2.putText(
             new_img,
-            "Hello 1234",
+            f"z={z}, p={p}",
             pos,
-            cv2.FONT_HERSHEY_SIMPLEX,
+            cv2.FONT_HERSHEY_PLAIN,
             font_scale,
             font_color,
             thickness,
