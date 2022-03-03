@@ -8,6 +8,7 @@ from skimage.transform import resize
 import numpy as np
 from nptyping import NDArray
 
+from chromosome.regions import Regions, RegionsInternal, START, END
 from chromosome.nucleosomes import Nucleosomes
 from chromosome.chromosome import Chromosome, MultiChrm, PlotChrm
 from util.util import FileSave, PlotUtil, PathObtain
@@ -24,23 +25,11 @@ COL_MEAN_C0_LINKER = "mean_c0_linker"
 Loop = pd.Series
 
 
-class Loops:
-    """A data structure to denote collection of loops in a single chromosome"""
-
-    def __init__(self, chrm: Chromosome, mxlen: int = None):
+class LoopReader:
+    def __init__(self, chrm: Chromosome):
         self._loop_file = f"{PathObtain.data_dir()}/input_data/loops/merged_loops_res_500_chr{chrm.number}.bedpe"
-        # TODO: Make _chr. Used in MeanLoops
-        # TODO: Change all _loop_df usage to Loops
-        self._chr = chrm
-        self.chrm = chrm
-        self._loop_df = self._read_loops()
-        self._mxlen = mxlen
-        if mxlen:
-            self.exclude_above_len(mxlen)
 
-        self.index = self._loop_df.index
-
-    def _read_loops(self) -> pd.DataFrame:
+    def read_loops(self) -> pd.DataFrame[START:int, END:int, "res":int, "len":int]:
         """
         Reads loop positions from .bedpe file
 
@@ -54,22 +43,94 @@ class Loops:
             return (
                 df.assign(res=lambda df: df["x2"] - df["x1"])
                 .assign(start=lambda df: (df["x1"] + df["x2"]) / 2)
-                .assign(end=lambda df: (df["y1"] + df["y2"]) / 2)[
-                    ["res", "start", "end"]
-                ]
+                .assign(end=lambda df: (df["y1"] + df["y2"]) / 2)[["res", START, END]]
                 .astype(int)
             )
 
         def _use_centroids() -> pd.DataFrame:
             return (
                 df.assign(res=lambda df: df["x2"] - df["x1"])
-                .rename(columns={"centroid1": "start", "centroid2": "end"})[
-                    ["res", "start", "end"]
+                .rename(columns={"centroid1": START, "centroid2": END})[
+                    ["res", START, END]
                 ]
                 .astype(int)
             )
 
-        return _use_centroids().assign(len=lambda df: df["end"] - df["start"])
+        return _use_centroids().assign(len=lambda df: df[END] - df[START])
+
+
+class LoopAnchors(Regions):
+    def __init__(
+        self, chrm: Chromosome, lim: int = 250, regions: RegionsInternal = None
+    ) -> None:
+        self._lim = lim
+        super().__init__(chrm, regions)
+
+    def __str__(self):
+        return f"loop_anc_lim_{self.param_str()}"
+
+    def _get_regions(self) -> RegionsInternal:
+        loops = LoopReader(self.chrm).read_loops()
+        ancrs = pd.concat([loops[START], loops[END]])
+
+        ancrs = self._rm_close_ancrs(ancrs)
+        ancrs = ancrs.loc[
+            (ancrs > self._lim) & (ancrs <= self.chrm.total_bp - self._lim)
+        ]
+        return pd.DataFrame(
+            {START: pd.Series(ancrs) - self._lim, END: pd.Series(ancrs) + self._lim}
+        )
+
+    def _rm_close_ancrs(self, ancrs: pd.Series) -> pd.Series:
+        ancrs = ancrs.sort_values(ignore_index=True).copy()
+        
+        i = 1
+        while i < len(ancrs):
+            if ancrs[i] - ancrs[i - 1] <= self._lim:
+                ancrs.pop(i)
+                ancrs = ancrs.reset_index(drop=True)
+                i -= 1
+            
+            i += 1
+
+        return ancrs
+
+    def _new(self, regions: RegionsInternal) -> LoopAnchors:
+        return LoopAnchors(chrm=self.chrm, lim=self._lim, regions=regions)
+
+    def param_str(self) -> str:
+        return f"lim_{self._lim}_{self.chrm}"
+
+
+class LoopInsides(Regions):
+    def __init__(
+        self, chrm: Chromosome, ancrs: LoopAnchors, regions: RegionsInternal = None
+    ) -> None:
+        self._ancrs = ancrs
+        super().__init__(ancrs.chrm, regions)
+
+    def __str__(self):
+        return f"loop_insds_{self._ancrs.param_str()}"
+
+    def _get_regions(self) -> RegionsInternal:
+        return super()._get_regions()
+
+
+class Loops:
+    """A data structure to denote collection of loops in a single chromosome"""
+
+    def __init__(self, chrm: Chromosome, mxlen: int = None):
+        self._loop_file = f"{PathObtain.data_dir()}/input_data/loops/merged_loops_res_500_chr{chrm.number}.bedpe"
+        # TODO: Make _chr. Used in MeanLoops
+        # TODO: Change all _loop_df usage to Loops
+        self._chr = chrm
+        self.chrm = chrm
+        self._loop_df = LoopReader(self.chrm).read_loops()
+        self._mxlen = mxlen
+        if mxlen:
+            self.exclude_above_len(mxlen)
+
+        self.index = self._loop_df.index
 
     def __len__(self) -> int:
         return len(self._loop_df)
@@ -311,27 +372,30 @@ class PlotLoops:
             f"{PathObtain.figure_dir()}/loops/mean_c0_anchor_dist_{lim}_{self._loops}.png"
         )
 
-    def plot_c0_around_individual_anchors(self, lim=500) -> list[Path]:
+    def plot_c0_around_individual_anchors(self, lim: int = 500) -> list[Path]:
         paths = []
 
         for _, loop in self._loops:
             for col in [COL_START, COL_END]:
                 pos = loop[col]
-                self._chrm.plot_moving_avg(pos - lim, pos + lim)
-                plt.ylim(-0.7, 0.7)
-                plt.xticks(ticks=[pos - lim, pos, pos + lim], labels=[-lim, 0, +lim])
-                plt.xlabel(f"Distance from loop anchor")
-                plt.ylabel("Intrinsic Cyclizability")
-                plt.title(
-                    f"C0 around chromosome {self._chrm.number} loop {col} anchor at {pos}bp. Found with res {loop[COL_RES]}"
-                )
-
-                path = FileSave.figure(
-                    f"{PathObtain.figure_dir()}/loops/{self._chrm.id}/individual_anchor_{col}_{pos}.png"
-                )
+                path = self._plot_c0_around_indiv_ancr(pos, lim)
                 paths.append(path)
 
         return paths
+
+    def _plot_c0_around_indiv_ancr(self, pos: int, lim: int):
+        self._chrm.plot_moving_avg(pos - lim, pos + lim)
+        plt.ylim(-0.7, 0.7)
+        plt.xticks(ticks=[pos - lim, pos, pos + lim], labels=[-lim, 0, +lim])
+        plt.xlabel(f"Distance from loop anchor")
+        plt.ylabel("Intrinsic Cyclizability")
+        plt.title(
+            f"C0 around chromosome {self._chrm.number} loop {col} anchor at {pos}bp. Found with res {loop[COL_RES]}"
+        )
+
+        return FileSave.figure(
+            f"{PathObtain.figure_dir()}/loops/{self._chrm.id}/individual_anchor_{col}_{pos}.png"
+        )
 
     def line_plot_mean_c0(self) -> list[Path]:
         """

@@ -1,10 +1,26 @@
-import unittest
 import subprocess
 
+import pandas as pd
+
 from util.constants import CHRV_TOTAL_BP
-from conformation.loops import Loops, PlotLoops
+from conformation.loops import Loops, PlotLoops, LoopAnchors, COL_START
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
+
+
+class TestLoopAnchors:
+    def test_init(self, chrm_vl_mean7: Chromosome):
+        ancrs = LoopAnchors(chrm_vl_mean7)
+        assert len(ancrs) > 0
+
+    def test_rm_close_ancrs(self, chrm_vl_mean7: Chromosome):
+        ancrs = LoopAnchors(chrm_vl_mean7, lim=5)
+        assert ancrs._rm_close_ancrs(pd.Series([3, 12, 14, 18, 27, 30])).tolist() == [
+            3,
+            12,
+            18,
+            27,
+        ]
 
 
 class TestLoops:
@@ -92,12 +108,10 @@ class TestPlotLoops:
         path = ploops.plot_c0_around_anchor(500)
         assert path.is_file()
 
-    def test_plot_c0_around_individual_anchors(self):
-        ploops = PlotLoops(Chromosome("VL"))
-        paths = ploops.plot_c0_around_individual_anchors()
-        for path in paths:
-            assert path.is_file()
-
+    def test_plot_c0_around_indiv_ancr(self, chrm_vl_mean7: Chromosome):
+        ploops = PlotLoops(chrm_vl_mean7)
+        assert ploops.plot_c0_around_indiv_ancr(ploops._loops[5][COL_START]).is_file()
+        
     def test_plot_scatter_mean_c0_vs_length(self):
         path = PlotLoops(Chromosome("VL")).plot_scatter_mean_c0_vs_length()
         assert path.is_file()
