@@ -15,6 +15,7 @@ class FigSubDir:
     BOUNDARIES = "boundaries"
     NDRS = "ndrs"
     CHROMOSOME = "chromosome"
+    MOTIFS = "motifs"
 
 
 YeastChrNumList = (

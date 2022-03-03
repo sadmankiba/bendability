@@ -1,5 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
+
 from matplotlib import colors
 import pandas as pd
 import numpy as np
@@ -7,10 +8,11 @@ from nptyping import NDArray
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from statsmodels.stats.weightstats import ztest
+import cv2
 
 from chromosome.regions import Regions
 from util.util import FileSave, PathObtain
-from util.constants import CHRV_TOTAL_BP, CHRV_TOTAL_BP_ORIGINAL, GDataSubDir
+from util.constants import CHRV_TOTAL_BP, CHRV_TOTAL_BP_ORIGINAL, GDataSubDir, FigSubDir
 
 
 N_MOTIFS = 256
@@ -37,14 +39,14 @@ class MotifsM35:
             ]
 
         return scores
-    
+
     def enrichment(self, regions: Regions, subdir: str) -> Path:
         enr = self._running_score[:, regions.cover_mask]
         fig, axes = plt.subplots(8, sharey=True)
-        fig.suptitle('Motif enrichments')
+        fig.suptitle("Motif enrichments")
         for i in range(8):
-            axes[i].boxplot(enr[i*32:(i+1)*32].T, showfliers=True)
-        
+            axes[i].boxplot(enr[i * 32 : (i + 1) * 32].T, showfliers=True)
+
         return FileSave.figure_in_figdir(f"{subdir}/motif_m35/enrichment_{regions}.png")
 
     def enrichment_compare(self, rega: Regions, regb: Regions, subdir: str):
@@ -52,8 +54,50 @@ class MotifsM35:
         enrb = self._running_score[:, regb.cover_mask]
         z = [ztest(enra[i], enrb[i]) for i in range(N_MOTIFS)]
         df = pd.DataFrame(z, columns=["ztest_val", "p_val"])
-        FileSave.tsv_gdatadir(df, f"{subdir}/motif_m35/enrichment_comp_{rega}_{regb}.tsv")
+        FileSave.tsv_gdatadir(
+            df, f"{subdir}/motif_m35/enrichment_comp_{rega}_{regb}.tsv"
+        )
 
+
+class PlotMotifs:
+    @classmethod
+    def integrate_logos(cls):
+        dir = f"{PathObtain.figure_dir()}/{FigSubDir.MOTIFS}/model35_parameters_parameter_274_merged_motif"
+        imrows = []
+        for i in range(16):
+            row = []
+            for j in range(16):
+                logo = cv2.imread(f"{dir}/{i*16 + j}.png")
+                logo = cls._add_score(logo)
+                row.append(logo)
+            imrows.append(cv2.hconcat(row))
+
+        img = cv2.vconcat(imrows)
+        cv2.imwrite(f"{dir}/integrated_score.png", img)
+
+    @classmethod
+    def _add_score(cls, img: np.ndarray):
+        new_img = np.ascontiguousarray(
+            np.vstack([np.full((30, img.shape[1], 3), fill_value=255), img]),
+            dtype=np.uint8,
+        )
+
+        pos = (10, 2)
+        font_scale = 1
+        font_color = (0, 0, 0)
+        thickness = 1
+        linetype = 2
+        cv2.putText(
+            new_img,
+            "Hello 1234",
+            pos,
+            cv2.FONT_HERSHEY_SIMPLEX,
+            font_scale,
+            font_color,
+            thickness,
+            linetype,
+        )
+        return new_img
 
 
 MOTIF_ID = "motif_id"
