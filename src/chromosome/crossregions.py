@@ -34,6 +34,7 @@ from conformation.domains import (
     BndFParm,
     BndSel,
 )
+from conformation.loops import LoopAnchors, LoopInsides
 from .regions import LEN, MEAN_C0, Regions
 from util.util import Attr, PathObtain, PlotUtil, FileSave
 from util.custom_types import PosOneIdx, KMerSeq
@@ -89,6 +90,14 @@ class SubRegions:
 
         return Attr.calc_attr(self, "_ndrs", _ndrs)
 
+    @property 
+    def lpancrs(self):
+        return LoopAnchors(self.chrm, lim=250)
+    
+    @property 
+    def lpinsds(self):
+        return LoopInsides(self.lpancrs)
+
     @property
     def bsel(self) -> BndSel:
         return self._bsel
@@ -141,6 +150,8 @@ class Distrib(Enum):
     BNDRS_NP = auto()
     PRMTRS_B = auto()
     PRMTRS_NB = auto()
+    LPANCRS = auto()
+    LPINSDS = auto()
 
 
 class LabeledDistribs:
@@ -181,6 +192,10 @@ class LabeledDistribs:
                 return self._sr.prmtrs_with_bndrs()[MEAN_C0], "prmtrs b"
             if d == Distrib.PRMTRS_NB:
                 return self._sr.prmtrs_wo_bndrs()[MEAN_C0], "prmtrs nb"
+            if d == Distrib.LPANCRS:
+                return self._sr.lpancrs[MEAN_C0], "lp ancrs"
+            if d == Distrib.LPINSDS:
+                return self._sr.lpinsds[MEAN_C0], "lp insds"
 
         return list(map(_dl, ds))
 
@@ -228,7 +243,10 @@ class DistribPlot:
             "title": "Mean C0 distrib of comb of prmtrs and bndrs",
             "fname": f"bndrs_prmtrs_{sr.bndrs}_{sr.prmtrs}_{self._chrm.id}.png",
         }
-        grp = grp_bndrs_nucs
+        return self.box_mean_c0(grp_bndrs_nucs)
+    
+    @classmethod
+    def box_mean_c0(cls, grp: dict):
         PlotUtil.show_grid(which="both")
         distribs = [d for d, _ in grp["dls"]]
         labels = [l for _, l in grp["dls"]]

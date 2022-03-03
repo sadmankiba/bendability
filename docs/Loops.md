@@ -6,11 +6,23 @@
 - From these short sequences, we measure average bendability of long regions such as within loops or not within loops. 
 - Considering all chromosomes, sequences in loop = 80%, in non-loop = 20%. [?]
 
-We list the experiments below:
+LP1 = res 500, lim 250
 
-## Comparison of C0 of sequences within loops and non-loops 
+## C2. Comparison of C0 of regions in loop anchors and in loop insides 
 
-### Exp 1. Mean C0 comparison in each chromosome
+### Exp C2.1. Distrib C0 comparison in chrm V 
+#### Research Question 
+- Are loop anchors more bendable? 
+
+#### Procedure 
+LP1. [C3][F3]
+
+#### Observation 
+- Loop anchors indeed show more bendability than loop insides.  
+
+## C1. Comparison of C0 of sequences within loops and non-loops (obsolete)
+
+### Exp C1.1. Mean C0 comparison in each chromosome
 #### Research Question
 - Are loops more rigid or more bendable? 
 
@@ -20,7 +32,7 @@ We list the experiments below:
 #### Observation
 - Out of 16 chromosomes, In 14 (87.5 %), loop regions are less bendable than non-loop regions.
 
-### Exp 2. Histogram of mean C0 of all loops and non-loops in all chromosomes
+### Exp C1.2. Histogram of mean C0 of all loops and non-loops in all chromosomes
 #### Research Question 
 - Does non-loop show more bendability? 
 
@@ -38,7 +50,9 @@ We list the experiments below:
 ## Code References 
 [C1] `conformation.meanloops.MultiChrmMeanLoopsCollector.plot_scatter_loop_nuc_linker_mean()`
 [C2] `conformation.coverloops.PlotMCCoverLoops.plot_histogram_c0()`
+[C3] `chromosome.crossregions.DistribPlot.box_mean_c0`
 
 ## Figure References 
 [F1] ![Mean c0 all chrm](../figures/mcloops/nuc_linker_mean_md_30_mx_None_without_vl.png)
 [F2] ![Double hist](../figures/mcloops/hist_c0_bins_40_all_pred.png)
+[F3] ![Loop anchor c0](../figures/crossregions/c0_box/loop_anc_lim_250_s_mean7_m_None_VL.png)

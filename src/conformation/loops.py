@@ -67,7 +67,7 @@ class LoopAnchors(Regions):
         super().__init__(chrm, regions)
 
     def __str__(self):
-        return f"loop_anc_lim_{self.param_str()}"
+        return f"loop_anc_{self.param_str()}"
 
     def _get_regions(self) -> RegionsInternal:
         loops = LoopReader(self.chrm).read_loops()
