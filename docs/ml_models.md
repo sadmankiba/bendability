@@ -36,6 +36,8 @@ Correlation of K-mer counts and hel sep with C0 was measured in different librar
 | TL/all |RL/all  | 2    | Y  |  1 |HGB_reg,lr=0.01,dep=32,leaf=5,iter=500| 152  | 1-50 | 0.33,-0.8  | 0.61,0.35   | |
 | TL/all |CHRV/all| 2    | Y  |  1 |HGB_reg,lr=0.01,dep=64,l2_reg=1,leaf=1,iter=500| 152  | 1-50 | 0.33,-0.8  | 0.61,0.35   | |
 | TL/all |CHRV/all| 2    | Y  |  1 |HGB_reg,lr=0.1,dep=64,l2_reg=1,leaf=1,iter=500| 152  | 1-50 | 0.3,-9.4  | 0.76,0.55   | |
+| TL/all |RL/all  | 2    | Y  |  1 |XGB_reg      | 152  | 1-50 | 0.17,-24  | 0.75,0.55   | |
+| TL/all |RL/all  | 2    | Y  |  1 |XGB_reg,dep=32| 152  | 1-50 | 0.2,-1  | 1.00,1.00   | |
 
 #### With Correlation Feature selector (r > 0.05). 
 

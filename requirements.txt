@@ -3,6 +3,7 @@ tensorflow
 keras
 imbalanced-learn
 Boruta==0.3
+xgboost
 regex
 biopython
 scikit-image

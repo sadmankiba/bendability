@@ -19,6 +19,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import pearsonr
+from xgboost import XGBRegressor
 import numpy as np
 import tensorflow as tf
 from util.util import FileSave, PathObtain
@@ -60,6 +61,7 @@ class SKModels:
         ),
         ("LinSVR", make_pipeline(StandardScaler(), LinearSVR(C=5, max_iter=10000))),
         ("SVR_C_10", SVR(C=10)),
+        ("XGBoost", XGBRegressor(verbosity=1, max_depth=32)),
         ("Lasso", LassoCV()),
         ("NN_reg", MLPRegressor()),
     ]
