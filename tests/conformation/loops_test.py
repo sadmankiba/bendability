@@ -1,17 +1,20 @@
 import subprocess
 
 import pandas as pd
+import pytest
 
 from util.constants import CHRV_TOTAL_BP
-from conformation.loops import Loops, PlotLoops, LoopAnchors, COL_START
+from conformation.loops import Loops, PlotLoops, LoopAnchors, COL_START, LoopInsides
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
 
+@pytest.fixture
+def ancrs_vl(chrm_vl_mean7: Chromosome):
+    return LoopAnchors(chrm_vl_mean7, lim=250)
 
 class TestLoopAnchors:
-    def test_init(self, chrm_vl_mean7: Chromosome):
-        ancrs = LoopAnchors(chrm_vl_mean7)
-        assert len(ancrs) > 0
+    def test_init(self, ancrs_vl: LoopAnchors):
+        assert len(ancrs_vl) > 0
 
     def test_rm_close_ancrs(self, chrm_vl_mean7: Chromosome):
         ancrs = LoopAnchors(chrm_vl_mean7, lim=5)
@@ -22,6 +25,15 @@ class TestLoopAnchors:
             27,
         ]
 
+class TestLoopInsides:
+    def test_loop_insides(self, ancrs_vl):
+        insds_vl = LoopInsides(ancrs_vl)
+        assert insds_vl.total_bp + ancrs_vl.total_bp == insds_vl.chrm.total_bp
+        assert (
+            ancrs_vl.mean_c0 * ancrs_vl.total_bp + insds_vl.mean_c0 * insds_vl.total_bp
+        ) / (ancrs_vl.total_bp + insds_vl.total_bp) == pytest.approx(
+            ancrs_vl.chrm.mean_c0, abs=1e-3
+        )
 
 class TestLoops:
     def test_len(self):

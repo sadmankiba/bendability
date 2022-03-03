@@ -104,7 +104,7 @@ class LoopAnchors(Regions):
 
 class LoopInsides(Regions):
     def __init__(
-        self, chrm: Chromosome, ancrs: LoopAnchors, regions: RegionsInternal = None
+        self, ancrs: LoopAnchors, regions: RegionsInternal = None
     ) -> None:
         self._ancrs = ancrs
         super().__init__(ancrs.chrm, regions)
@@ -113,7 +113,12 @@ class LoopInsides(Regions):
         return f"loop_insds_{self._ancrs.param_str()}"
 
     def _get_regions(self) -> RegionsInternal:
-        return super()._get_regions()
+        return self._ancrs.complement()
+    
+    def _new(self, regions: RegionsInternal) -> LoopInsides:
+        return LoopInsides(
+            ancrs=self._ancrs, regions=regions
+        )
 
 
 class Loops:

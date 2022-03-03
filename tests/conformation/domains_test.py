@@ -91,6 +91,7 @@ class TestDomainsF:
         ) / (bndrsf_vl.total_bp + domf_vl.total_bp) == pytest.approx(
             bndrsf_vl.chrm.mean_c0, abs=1e-3
         )
+        
 @pytest.mark.skip(reason="Updating domains")
 class TestBoundariesDomainsHEQuery:
     def test_num_greater_than_dmns(self):

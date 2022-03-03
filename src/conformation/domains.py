@@ -204,14 +204,7 @@ class DomainsF(Regions):
         return f"domains_{self._bndrs}"
         
     def _get_regions(self) -> pd.DataFrame[START:int, END:int]:
-        df = pd.DataFrame(
-            {
-                START: np.concatenate([[1,], self._bndrs[END] + 1]),
-                END: np.concatenate([self._bndrs[START] - 1, [self.chrm.total_bp,]]),
-            }
-        )
-        return df.loc[df[START] <= df[END]]
-
+        return self._bndrs.complement()
     
     def _new(self, regions: RegionsInternal) -> BoundariesF:
         return DomainsF(
