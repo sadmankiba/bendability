@@ -195,9 +195,12 @@ Param - ?
 **Procedure** 
 Combining all boundaries in a chromosome.
 BH2. BF2. Line plot mean of boundaries in chromosome V. [C1] [F1] [F17]
+BF2. Box distrib at distance. [F18] [C16] 
 
 **Observations**
-1. In BF2, yes, boundaries are increasingly more bendable towards center. At center, a significant rise in bendability.
+1. In BF2 line plot, yes, boundaries are increasingly more bendable towards center. At center, a significant rise in bendability.
+In BF2 box, boundaries rise at middle and seems to drop upto -1000nt and +1000nt. 
+
 2. Promoter boundaries: 
   - In most chrms, periodic rigidity and bendability is seen at about one nucleosomal distance. Rigid region is not highly rigid, not exactly at boundary mid. 
   - In big chromosomes (e.g. IV), the dip is not much observable. Because of misalignment of boundaries.
@@ -316,6 +319,7 @@ C0: Some
 [C13] `chromosome.crossregions.DistribPlot.box_mean_c0_bndrs`
 [C14] `chromosome.crossregions.ScatterC0Plot.scatter`
 [C15] `chromosome.crossregions.DistribPlot.prob_distrib_mean_c0_bndrs`
+[C16] `chromosome.crossregions.DistribC0DistPlot.bndrs`
 
 
 ## Figure References
@@ -353,3 +357,5 @@ C0: Some
 ![bndry ndrs c0](../figures/ndrs/c0_scatter_chrm_VL_ndr_40_bndrs_res_200_lim_100_perc_0.5_fanc.png)
 [F17]
 ![c0 mean bndry fanc](../figures/boundaries/VL_res_200_lim_100_perc_0.5_fanc/c0_mean_bndrs_VL_pltlim_250.png)
+[F18]
+![c0 box distrib dist bndrs](../figures/boundaries/VL_res_200_lim_100_perc_0.5_fanc/c0_box_distrib_pltlim_2500_dist_500.png)

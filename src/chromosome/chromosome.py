@@ -13,7 +13,7 @@ from nptyping import NDArray
 from models.prediction import Prediction
 from util.reader import DNASequenceReader, SEQ_NUM_COL, SEQ_COL
 from util.constants import CHRVL, SEQ_LEN, ChrIdList
-from util.custom_types import ChrId, PosOneIdx, YeastChrNum, PositiveInt
+from util.custom_types import ChrId, PosOneIdx, YeastChrNum, PositiveInt, C0
 from util.util import Attr, DataCache, FileSave, PathObtain, PlotUtil
 
 
@@ -522,6 +522,20 @@ class MultiChrm:
 class ChrmOperator:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
+
+    def c0_rgns(
+        self,
+        starts: np.ndarray | list[PosOneIdx] | pd.Series,
+        ends: np.ndarray | list[PosOneIdx] | pd.Series,
+    ) -> NDArray[(Any, Any), C0]:
+        """
+        Find c0 at each bp of regions. regions are equal len.
+        """
+        result = np.array(
+            list(map(lambda s, e: self.c0(s, e), np.array(starts), np.array(ends)))
+        )
+        assert result.shape == (len(starts), ends[0] - starts[0] + 1)
+        return result
 
     def c0(
         self, start: float | PosOneIdx, end: float | PosOneIdx

@@ -4,6 +4,7 @@ import pytest
 
 from chromosome.chromosome import Chromosome
 from chromosome.crossregions import (
+    DistribC0DistPlot,
     DistribPlot,
     LineC0Plot,
     PlotPrmtrsBndrs,
@@ -39,6 +40,10 @@ class TestDistribPlot:
 
     def test_prob_distrib_len(self, crplt_vl: DistribPlot):
         assert crplt_vl.prob_distrib_linkers_len_in_prmtrs().is_file()
+
+class TestDistribC0DistPlot: 
+    def test_bndrs(self):
+        assert DistribC0DistPlot(Chromosome("VL")).bndrs().is_file()
 
 
 @pytest.fixture

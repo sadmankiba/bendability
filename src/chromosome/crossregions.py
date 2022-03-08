@@ -13,7 +13,7 @@ import numpy as np
 from cairosvg import svg2png
 from nptyping import NDArray
 
-from chromosome.chromosome import PlotChrm
+from chromosome.chromosome import PlotChrm, ChrmOperator
 from chromosome.dinc import Dinc
 from chromosome.genes import Genes
 from motif.motifs import MotifsM30
@@ -90,11 +90,11 @@ class SubRegions:
 
         return Attr.calc_attr(self, "_ndrs", _ndrs)
 
-    @property 
+    @property
     def lpancrs(self):
         return LoopAnchors(self.chrm, lim=250)
-    
-    @property 
+
+    @property
     def lpinsds(self):
         return LoopInsides(self.lpancrs)
 
@@ -244,7 +244,7 @@ class DistribPlot:
             "fname": f"bndrs_prmtrs_{sr.bndrs}_{sr.prmtrs}_{self._chrm.id}.png",
         }
         return self.box_mean_c0(grp_bndrs_nucs)
-    
+
     @classmethod
     def box_mean_c0(cls, grp: dict):
         PlotUtil.show_grid(which="both")
@@ -513,6 +513,38 @@ class DistribPlot:
         )
 
 
+class DistribC0DistPlot:
+    def __init__(self, chrm: Chromosome) -> None:
+        self._chrm = chrm
+
+    def bndrs(self, pltlim=500, dist=200):
+        sr = SubRegions(self._chrm)
+        sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+
+        starts = np.array(range(-pltlim, pltlim, dist))
+        box_starts = np.array(sr.bndrs[MIDDLE])[:, np.newaxis] + starts[np.newaxis, :]
+        assert box_starts.shape == (len(sr.bndrs), math.ceil(2 * pltlim / dist))
+        box_ends = box_starts + dist - 1
+        pos_boxs = starts + int(dist / 2)
+        c0s = []
+        for s_boxs, e_boxs in zip(box_starts.T, box_ends.T):
+            c0s.append(ChrmOperator(sr.chrm).c0_rgns(s_boxs, e_boxs).flatten())
+
+        plt.boxplot(c0s, showfliers=False)
+        plt.ylim(-0.5, 0.1)
+        # plt.xticks(
+        #     ticks=pos_boxs,
+        # )
+        plt.ylabel("C0 distrib")
+        plt.title(
+            f"C0 box distrib at distances among boundaries in chromosome {self._chrm.id}"
+        )
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.BOUNDARIES}/{self._chrm.id}_{str(sr.bndrs)}/"
+            f"c0_box_distrib_pltlim_{pltlim}_dist_{dist}.png"
+        )
+
+
 class ScatterPlot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
@@ -585,10 +617,14 @@ class LineC0Plot:
         sr = SubRegions(self._chrm)
         bsel_hexp = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
         bsel_fanc = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
-        sr.bsel = bsel_fanc 
+        sr.bsel = bsel_fanc
         mc0_bndrs = self._chrm.mean_c0_around_bps(sr.bndrs[MIDDLE], pltlim, pltlim)
-        mc0_pbndrs = self._chrm.mean_c0_around_bps(sr.prmtr_bndrs()[MIDDLE], pltlim, pltlim)
-        mc0_npbndrs = self._chrm.mean_c0_around_bps(sr.non_prmtr_bndrs()[MIDDLE], pltlim, pltlim)
+        mc0_pbndrs = self._chrm.mean_c0_around_bps(
+            sr.prmtr_bndrs()[MIDDLE], pltlim, pltlim
+        )
+        mc0_npbndrs = self._chrm.mean_c0_around_bps(
+            sr.non_prmtr_bndrs()[MIDDLE], pltlim, pltlim
+        )
 
         PlotUtil.clearfig()
         x = np.arange(2 * pltlim + 1) - pltlim
@@ -600,9 +636,7 @@ class LineC0Plot:
         PlotUtil.show_grid()
         plt.xlabel("Distance from boundary middle(bp)")
         plt.ylabel("C0")
-        plt.title(
-            f"C0 mean around boundaries in chromosome {self._chrm.id}"
-        )
+        plt.title(f"C0 mean around boundaries in chromosome {self._chrm.id}")
 
         return FileSave.figure_in_figdir(
             f"{FigSubDir.BOUNDARIES}/{self._chrm.id}_{str(sr.bndrs)}/"
