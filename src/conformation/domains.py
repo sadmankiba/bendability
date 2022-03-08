@@ -240,36 +240,6 @@ class PlotBoundariesHE:
         self._bndrs = BoundariesHE(chrm, res=200, score_perc=0.5)
         self._figsubdir = FigSubDir.BOUNDARIES
 
-    def line_c0_around(self, pltlim=250):
-        bndrs_mid = self._bndrs[MIDDLE]
-        pbndrs_mid = self._bndrs.prmtr_bndrs()[MIDDLE]
-        npbndrs_mid = self._bndrs.non_prmtr_bndrs()[MIDDLE]
-
-        mc0_bndrs = self._chrm.mean_c0_around_bps(bndrs_mid, pltlim, pltlim)
-        mc0_pbndrs = self._chrm.mean_c0_around_bps(pbndrs_mid, pltlim, pltlim)
-        mc0_npbndrs = self._chrm.mean_c0_around_bps(npbndrs_mid, pltlim, pltlim)
-
-        PlotUtil.clearfig()
-
-        x = np.arange(2 * pltlim + 1) - pltlim
-        plt.plot(x, mc0_bndrs, color="tab:green", label="all")
-        plt.plot(x, mc0_pbndrs, color="tab:orange", label="promoter")
-        plt.plot(x, mc0_npbndrs, color="tab:blue", label="non-promoter")
-
-        PlotChrm(self._chrm).plot_avg()
-
-        plt.legend()
-        PlotUtil.show_grid()
-        plt.xlabel("Distance from boundary middle(bp)")
-        plt.ylabel("C0")
-        plt.title(
-            f"Mean {self._chrm.c0_type} C0 around boundaries in chromosome {self._chrm.number}"
-        )
-
-        return FileSave.figure_in_figdir(
-            f"{self._figsubdir}/mean_c0_bndrs_{self._chrm.id}_plt_{pltlim}.png"
-        )
-
     def line_c0_around_indiv(self) -> None:
         for bndry in self._bndrs.prmtr_bndrs():
             self._line_c0_around_indiv(bndry, "prmtr")

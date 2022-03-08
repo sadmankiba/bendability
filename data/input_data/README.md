@@ -18,3 +18,8 @@ Reference genome sequence of S. Cerevisiae downloaded from [Saccharomyces Genome
 5. In `gene/`,
 Yeast gene locations and UTRs from [YeastMine](https://yeastmine.yeastgenome.org/yeastmine/begin.do) in Saccharomyces Genome Database. 
 
+## Modifications
+
+Changed headers in each bendability dataset to separate `Sequence #` from `Sequence` by tab.
+
+

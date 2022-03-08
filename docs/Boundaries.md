@@ -185,13 +185,20 @@ Param - ?
 - Check in other chromosomes. 
 - Check by changing boundary params.
 
-### Exp 3.1. Line plot mean C0 combining all boundaries in a chromosome 
+### Exp 3.1. C0 upto some distance from boundaries in a chromosome. Line plot mean. Box plot distrib.
+
+**Research Question** 
+1. Do boundaries become increasingly bendable towards center? 
+2. Any difference between promoter and non-promoter boundaries? 
+3. Any other observable pattern?
 
 **Procedure** 
-BH2. Line plot mean of boundaries in each chromosome. [C1] [F1]
+Combining all boundaries in a chromosome.
+BH2. BF2. Line plot mean of boundaries in chromosome V. [C1] [F1] [F17]
 
 **Observations**
-- Promoter boundaries: 
+1. In BF2, yes, boundaries are increasingly more bendable towards center. At center, a significant rise in bendability.
+2. Promoter boundaries: 
   - In most chrms, periodic rigidity and bendability is seen at about one nucleosomal distance. Rigid region is not highly rigid, not exactly at boundary mid. 
   - In big chromosomes (e.g. IV), the dip is not much observable. Because of misalignment of boundaries.
 
@@ -199,7 +206,9 @@ BH2. Line plot mean of boundaries in each chromosome. [C1] [F1]
   - Usual fluctuation for nucleosomes.
   - Surprisingly, in all chrms, one/two clearly visible rigid region exists.
 
-- Takeaway: No pattern. Probably because boundaries were not aligned.
+Takeaway: No pattern. Probably because boundaries were not aligned.
+
+3. No.
 
 ### Exp 3.2. Comparison of mean C0 of TADs and boundaries 
 
@@ -293,7 +302,7 @@ Method B
 C0: Some 
 
 ## Code References
-[C1] `conformation.domains.PlotBoundariesHE.line_c0_around()`
+[C1] `chromosome.crossregions.LineC0Plot.line_c0_mean_bndrs`
 [C2] `conformation.domains.MCBoundariesHECollector.plot_scatter_mean_c0()`
 [C3] `conformation.domains.PlotBoundariesHE.prob_distrib()`
 [C4] `chromosome.crossregions.DistribPlot.num_prmtrs_bndrs_ndrs`
@@ -342,3 +351,5 @@ C0: Some
 ![bndry nucs mean c0](../figures/crossregions/c0_box/bndrs_nucs_res_200_lim_100_perc_0.25_fanc.png)
 [F16]
 ![bndry ndrs c0](../figures/ndrs/c0_scatter_chrm_VL_ndr_40_bndrs_res_200_lim_100_perc_0.5_fanc.png)
+[F17]
+![c0 mean bndry fanc](../figures/boundaries/VL_res_200_lim_100_perc_0.5_fanc/c0_mean_bndrs_VL_pltlim_250.png)

@@ -108,9 +108,6 @@ def plotbndrs_vl(chrm_vl):
 
 
 class TestPlotBoundariesHE:
-    def test_line_c0_around(self, plotbndrs_vl: PlotBoundariesHE):
-        assert plotbndrs_vl.line_c0_around().is_file()
-
     def test_plot_scatter_mean_c0_each_bndry(self, plotbndrs_vl: PlotBoundariesHE):
         figpath = plotbndrs_vl.scatter_mean_c0_at_indiv()
         assert figpath.is_file()

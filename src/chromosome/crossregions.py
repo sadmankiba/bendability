@@ -154,7 +154,7 @@ class Distrib(Enum):
     LPINSDS = auto()
 
 
-class LabeledDistribs:
+class LabeledMC0Distribs:
     def __init__(self, sr: SubRegions):
         self._sr = sr
 
@@ -209,7 +209,7 @@ class DistribPlot:
         bsel_hexp = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
         bsel_fanc = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
         sr.bsel = bsel_hexp
-        ld = LabeledDistribs(sr)
+        ld = LabeledMC0Distribs(sr)
         grp_bndrs_nucs = {
             "dls": ld.dl(
                 [
@@ -267,7 +267,7 @@ class DistribPlot:
         bsel_hexp = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
         bsel_fanc = BndSel(BoundariesType.FANC, BndFParm.SHR_25)
         sr.bsel = bsel_hexp
-        ld = LabeledDistribs(sr)
+        ld = LabeledMC0Distribs(sr)
         grp_bndrs_nucs = {
             "dls": ld.dl(
                 [
@@ -580,6 +580,34 @@ class ScatterPlot:
 class LineC0Plot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
+
+    def line_c0_mean_bndrs(self, pltlim=100):
+        sr = SubRegions(self._chrm)
+        bsel_hexp = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
+        bsel_fanc = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+        sr.bsel = bsel_fanc 
+        mc0_bndrs = self._chrm.mean_c0_around_bps(sr.bndrs[MIDDLE], pltlim, pltlim)
+        mc0_pbndrs = self._chrm.mean_c0_around_bps(sr.prmtr_bndrs()[MIDDLE], pltlim, pltlim)
+        mc0_npbndrs = self._chrm.mean_c0_around_bps(sr.non_prmtr_bndrs()[MIDDLE], pltlim, pltlim)
+
+        PlotUtil.clearfig()
+        x = np.arange(2 * pltlim + 1) - pltlim
+        plt.plot(x, mc0_bndrs, color="tab:green", label="all")
+        plt.plot(x, mc0_pbndrs, color="tab:orange", label="promoter")
+        plt.plot(x, mc0_npbndrs, color="tab:blue", label="non-promoter")
+        PlotChrm(self._chrm).plot_avg()
+        plt.legend()
+        PlotUtil.show_grid()
+        plt.xlabel("Distance from boundary middle(bp)")
+        plt.ylabel("C0")
+        plt.title(
+            f"C0 mean around boundaries in chromosome {self._chrm.id}"
+        )
+
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.BOUNDARIES}/{self._chrm.id}_{str(sr.bndrs)}/"
+            f"c0_mean_bndrs_{self._chrm.id}_pltlim_{pltlim}.png"
+        )
 
     def line_c0_bndrs_indiv_toppings(self, btype: BoundariesType) -> None:
         bparm = BndParm.HIRS_WD if btype == BoundariesType.HEXP else BndFParm.WD_25
