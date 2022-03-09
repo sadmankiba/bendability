@@ -8,9 +8,11 @@ from conformation.loops import Loops, PlotLoops, LoopAnchors, COL_START, LoopIns
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
 
+
 @pytest.fixture
 def ancrs_vl(chrm_vl_mean7: Chromosome):
     return LoopAnchors(chrm_vl_mean7, lim=250)
+
 
 class TestLoopAnchors:
     def test_init(self, ancrs_vl: LoopAnchors):
@@ -25,6 +27,7 @@ class TestLoopAnchors:
             27,
         ]
 
+
 class TestLoopInsides:
     def test_loop_insides(self, ancrs_vl):
         insds_vl = LoopInsides(ancrs_vl)
@@ -34,6 +37,7 @@ class TestLoopInsides:
         ) / (ancrs_vl.total_bp + insds_vl.total_bp) == pytest.approx(
             ancrs_vl.chrm.mean_c0, abs=1e-3
         )
+
 
 class TestLoops:
     def test_len(self):
@@ -123,7 +127,7 @@ class TestPlotLoops:
     def test_plot_c0_around_indiv_ancr(self, chrm_vl_mean7: Chromosome):
         ploops = PlotLoops(chrm_vl_mean7)
         assert ploops.plot_c0_around_indiv_ancr(ploops._loops[5][COL_START]).is_file()
-        
+
     def test_plot_scatter_mean_c0_vs_length(self):
         path = PlotLoops(Chromosome("VL")).plot_scatter_mean_c0_vs_length()
         assert path.is_file()

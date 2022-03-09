@@ -72,7 +72,7 @@ class PlotMotifs:
         for i in range(16):
             row = []
             for j in range(16):
-                n, z, p = tuple(score_df.loc[i*16 + j])
+                n, z, p = tuple(score_df.loc[i * 16 + j])
                 logo = cv2.imread(f"{dir}/{int(n)}.png")
                 z, p = round(z, 2), round(p, 2)
                 logo = cls._add_score(logo, z, p)
@@ -90,7 +90,7 @@ class PlotMotifs:
             np.vstack([np.full((30, img.shape[1], 3), fill_value=255), img]),
             dtype=np.uint8,
         )
-        
+
         pos = (10, 28)
         font_scale = 1.1
         font_color = (0, 0, 0)

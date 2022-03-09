@@ -25,6 +25,7 @@ logging.basicConfig(level=logging.INFO)
 
 PRECISION_FLOAT_DF_TSV = 3
 
+
 def rev_comp(seq: DNASeq | Iterable[DNASeq]) -> DNASeq | list[DNASeq]:
     rep = {"A": "T", "T": "A", "G": "C", "C": "G"}
     rep = dict((bre.escape(k), v) for k, v in rep.items())

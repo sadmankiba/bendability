@@ -41,7 +41,8 @@ class TestDistribPlot:
     def test_prob_distrib_len(self, crplt_vl: DistribPlot):
         assert crplt_vl.prob_distrib_linkers_len_in_prmtrs().is_file()
 
-class TestDistribC0DistPlot: 
+
+class TestDistribC0DistPlot:
     def test_bndrs(self):
         assert DistribC0DistPlot(Chromosome("VL")).bndrs().is_file()
 
@@ -62,7 +63,7 @@ class TestScatterPlot:
 class TestLineC0Plot:
     def test_mean_bndrs(self, lnplt_vl: LineC0Plot):
         lnplt_vl.line_c0_mean_bndrs().is_file()
-        
+
     def test_line_c0_bndry_indiv_toppings(
         self, lnplt_vl: LineC0Plot, bndrs_hirs_vl: BoundariesHE
     ):

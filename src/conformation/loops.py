@@ -29,7 +29,7 @@ class LoopReader:
     def __init__(self, chrm: Chromosome):
         self._loop_file = f"{PathObtain.data_dir()}/input_data/loops/merged_loops_res_500_chr{chrm.number}.bedpe"
 
-    def read_loops(self) -> pd.DataFrame[START:int, END:int, "res":int, "len":int]:
+    def read_loops(self) -> pd.DataFrame[START:int, END:int, COL_RES:int, COL_LEN:int]:
         """
         Reads loop positions from .bedpe file
 
@@ -83,14 +83,14 @@ class LoopAnchors(Regions):
 
     def _rm_close_ancrs(self, ancrs: pd.Series) -> pd.Series:
         ancrs = ancrs.sort_values(ignore_index=True).copy()
-        
+
         i = 1
         while i < len(ancrs):
             if ancrs[i] - ancrs[i - 1] <= self._lim:
                 ancrs.pop(i)
                 ancrs = ancrs.reset_index(drop=True)
                 i -= 1
-            
+
             i += 1
 
         return ancrs
@@ -103,9 +103,7 @@ class LoopAnchors(Regions):
 
 
 class LoopInsides(Regions):
-    def __init__(
-        self, ancrs: LoopAnchors, regions: RegionsInternal = None
-    ) -> None:
+    def __init__(self, ancrs: LoopAnchors, regions: RegionsInternal = None) -> None:
         self._ancrs = ancrs
         super().__init__(ancrs.chrm, regions)
 
@@ -114,11 +112,9 @@ class LoopInsides(Regions):
 
     def _get_regions(self) -> RegionsInternal:
         return self._ancrs.complement()
-    
+
     def _new(self, regions: RegionsInternal) -> LoopInsides:
-        return LoopInsides(
-            ancrs=self._ancrs, regions=regions
-        )
+        return LoopInsides(ancrs=self._ancrs, regions=regions)
 
 
 class Loops:
@@ -383,19 +379,19 @@ class PlotLoops:
         for _, loop in self._loops:
             for col in [COL_START, COL_END]:
                 pos = loop[col]
-                path = self._plot_c0_around_indiv_ancr(pos, lim)
+                path = self._plot_c0_around_indiv_ancr(pos, lim, col)
                 paths.append(path)
 
         return paths
 
-    def _plot_c0_around_indiv_ancr(self, pos: int, lim: int):
+    def _plot_c0_around_indiv_ancr(self, pos: int, lim: int, col: str):
         self._chrm.plot_moving_avg(pos - lim, pos + lim)
         plt.ylim(-0.7, 0.7)
         plt.xticks(ticks=[pos - lim, pos, pos + lim], labels=[-lim, 0, +lim])
         plt.xlabel(f"Distance from loop anchor")
         plt.ylabel("Intrinsic Cyclizability")
         plt.title(
-            f"C0 around chromosome {self._chrm.number} loop {col} anchor at {pos}bp. Found with res {loop[COL_RES]}"
+            f"C0 around chromosome {self._chrm.number} loop {col} anchor at {pos}bp."
         )
 
         return FileSave.figure(

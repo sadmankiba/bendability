@@ -195,6 +195,7 @@ class BoundariesF(Boundaries):
             regions=rgns,
         )
 
+
 class DomainsF(Regions):
     def __init__(self, bndrs: BoundariesF, regions: RegionsInternal = None):
         self._bndrs = bndrs
@@ -202,14 +203,12 @@ class DomainsF(Regions):
 
     def __str__(self):
         return f"domains_{self._bndrs}"
-        
+
     def _get_regions(self) -> pd.DataFrame[START:int, END:int]:
         return self._bndrs.complement()
-    
+
     def _new(self, regions: RegionsInternal) -> BoundariesF:
-        return DomainsF(
-            bndrs=self._bndrs, regions=regions
-        )
+        return DomainsF(bndrs=self._bndrs, regions=regions)
 
 
 class BoundariesType(Enum):

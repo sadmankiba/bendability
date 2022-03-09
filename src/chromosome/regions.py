@@ -106,15 +106,29 @@ class Regions:
 
     def complement(self) -> RegionsInternal:
         if self._uniform_len():
-            rgns = self 
-        else: 
+            rgns = self
+        else:
             rgns = self.cover_regions()
 
         rgns_df = rgns._regions.sort_values(by=START)
         df = pd.DataFrame(
             {
-                START: np.concatenate([[ONE_INDEX_START,], rgns_df[END] + 1]),
-                END: np.concatenate([rgns_df[START] - 1, [self.chrm.total_bp,]]),
+                START: np.concatenate(
+                    [
+                        [
+                            ONE_INDEX_START,
+                        ],
+                        rgns_df[END] + 1,
+                    ]
+                ),
+                END: np.concatenate(
+                    [
+                        rgns_df[START] - 1,
+                        [
+                            self.chrm.total_bp,
+                        ],
+                    ]
+                ),
             }
         )
         return df.loc[df[START] <= df[END]]
@@ -268,6 +282,7 @@ class Regions:
 
     def _uniform_len(self) -> bool:
         return len(pd.unique(self[LEN])) == 1
+
 
 class PlotRegions:
     def __init__(self, chrm: Chromosome) -> None:

@@ -82,7 +82,8 @@ class TestBoundariesF:
         assert (ebndrsf[END] - bndrsf_vl[END]).tolist() == [50] * len(ebndrsf)
         assert (ebndrsf[LEN] - bndrsf_vl[LEN]).tolist() == [100] * len(ebndrsf)
 
-class TestDomainsF: 
+
+class TestDomainsF:
     def test_domains(self, bndrsf_vl: BoundariesF):
         domf_vl = DomainsF(bndrsf_vl)
         assert domf_vl.total_bp + bndrsf_vl.total_bp == domf_vl.chrm.total_bp
@@ -91,7 +92,8 @@ class TestDomainsF:
         ) / (bndrsf_vl.total_bp + domf_vl.total_bp) == pytest.approx(
             bndrsf_vl.chrm.mean_c0, abs=1e-3
         )
-        
+
+
 @pytest.mark.skip(reason="Updating domains")
 class TestBoundariesDomainsHEQuery:
     def test_num_greater_than_dmns(self):

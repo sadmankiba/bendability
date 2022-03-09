@@ -7,9 +7,11 @@ from util.reader import DNASequenceReader
 from util.constants import YeastChrNumList, FigSubDir
 from util.util import roman_to_num
 
-@pytest.fixture 
+
+@pytest.fixture
 def motifsm35():
     return MotifsM35()
+
 
 class TestMotifsM35:
     def test_motif40_score(self, motifsm35: MotifsM35):
@@ -18,11 +20,12 @@ class TestMotifsM35:
         match_pos = seq.find(motif_40[1:])
         max_score_pos = np.where(motifsm35._running_score[40] > 14)[0][0]
         assert max_score_pos - LEN_MOTIF / 2 + 1 == match_pos
-    
+
     def test_enrichment(self, motifsm35: MotifsM35, rgns_simp_vl: Regions):
         assert motifsm35.enrichment(rgns_simp_vl, FigSubDir.TEST).is_file()
 
-class TestPlotMotifs: 
+
+class TestPlotMotifs:
     def test_integrate_logos(self):
         assert PlotMotifs.integrate_logos().is_file()
 

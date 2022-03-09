@@ -34,4 +34,3 @@ class KMer:
             return len(re.findall(kmer, seq, overlapped=True))
         elif isinstance(seq, Iterable):
             return list(map(lambda c: cls.count(kmer, c), seq))
-
