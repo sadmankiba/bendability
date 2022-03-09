@@ -60,6 +60,9 @@ class TestScatterPlot:
 
 
 class TestLineC0Plot:
+    def test_mean_bndrs(self, lnplt_vl: LineC0Plot):
+        lnplt_vl.line_c0_mean_bndrs().is_file()
+        
     def test_line_c0_bndry_indiv_toppings(
         self, lnplt_vl: LineC0Plot, bndrs_hirs_vl: BoundariesHE
     ):

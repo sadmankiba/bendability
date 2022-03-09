@@ -198,7 +198,9 @@ BH2. BF2. Line plot mean of boundaries in chromosome V. [C1] [F1] [F17]
 BF2. Box distrib at distance. [F18] [C16] 
 
 **Observations**
-1. In BF2 line plot, yes, boundaries are increasingly more bendable towards center. At center, a significant rise in bendability.
+1. ** In BF2 line plot, yes, boundaries are increasingly more bendable towards center. At center, a significant rise in bendability. 
+  - More precisely, if we take -200 to +200 there's a significant upward hill in 0 to +100 compared to rest.
+  - If we take -2000 to +2000 line c0 mean and smoothen it out, there's a clear rise towards middle. [] 
 In BF2 box, boundaries rise at middle and seems to drop upto -1000nt and +1000nt. 
 
 2. Promoter boundaries: 

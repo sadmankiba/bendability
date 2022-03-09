@@ -3,6 +3,7 @@ import random
 import math
 from pathlib import Path
 from enum import Enum, auto
+from collections import namedtuple
 from typing import Any, Callable, Iterator, Literal
 
 import matplotlib.pyplot as plt
@@ -11,6 +12,7 @@ import matplotlib.ticker as plticker
 import pandas as pd
 import numpy as np
 from cairosvg import svg2png
+from scipy.ndimage import gaussian_filter1d
 from nptyping import NDArray
 
 from chromosome.chromosome import PlotChrm, ChrmOperator
@@ -18,7 +20,6 @@ from chromosome.dinc import Dinc
 from chromosome.genes import Genes
 from motif.motifs import MotifsM30
 from util.constants import FigSubDir, ONE_INDEX_START
-
 from chromosome.dinc import KMer
 from .chromosome import Chromosome
 from chromosome.regions import END, MIDDLE, START
@@ -614,25 +615,38 @@ class LineC0Plot:
         self._chrm = chrm
 
     def line_c0_mean_bndrs(self, pltlim=100):
+        show_legend = False
+        smooth = False
         sr = SubRegions(self._chrm)
-        bsel_hexp = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
-        bsel_fanc = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
-        sr.bsel = bsel_fanc
-        mc0_bndrs = self._chrm.mean_c0_around_bps(sr.bndrs[MIDDLE], pltlim, pltlim)
-        mc0_pbndrs = self._chrm.mean_c0_around_bps(
-            sr.prmtr_bndrs()[MIDDLE], pltlim, pltlim
+        sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+        C0MeanArr = namedtuple("C0MeanArr", ["val", "label"])
+        c0m_bndrs = C0MeanArr(
+            self._chrm.mean_c0_around_bps(sr.bndrs[MIDDLE], pltlim, pltlim), "all"
         )
-        mc0_npbndrs = self._chrm.mean_c0_around_bps(
-            sr.non_prmtr_bndrs()[MIDDLE], pltlim, pltlim
+        c0m_bndrs_p = C0MeanArr(
+            self._chrm.mean_c0_around_bps(sr.prmtr_bndrs()[MIDDLE], pltlim, pltlim),
+            "bndrs_p",
         )
+        c0m_bndrs_np = C0MeanArr(
+            self._chrm.mean_c0_around_bps(sr.non_prmtr_bndrs()[MIDDLE], pltlim, pltlim),
+            "bndrs_np",
+        )
+
+        c0ms = [c0m_bndrs]
 
         PlotUtil.clearfig()
         x = np.arange(2 * pltlim + 1) - pltlim
-        plt.plot(x, mc0_bndrs, color="tab:green", label="all")
-        plt.plot(x, mc0_pbndrs, color="tab:orange", label="promoter")
-        plt.plot(x, mc0_npbndrs, color="tab:blue", label="non-promoter")
+        
+        if smooth:
+            plt.plot(x, c0m_bndrs.val, color="tab:gray", alpha=0.5)
+            plt.plot(x, gaussian_filter1d(c0m_bndrs.val, 40), color="black")
+        else: 
+            for cm in c0ms:
+                plt.plot(x, cm.val, label=cm.label)
+        
         PlotChrm(self._chrm).plot_avg()
-        plt.legend()
+        if show_legend:
+            plt.legend()
         PlotUtil.show_grid()
         plt.xlabel("Distance from boundary middle(bp)")
         plt.ylabel("C0")
@@ -640,7 +654,7 @@ class LineC0Plot:
 
         return FileSave.figure_in_figdir(
             f"{FigSubDir.BOUNDARIES}/{self._chrm.id}_{str(sr.bndrs)}/"
-            f"c0_mean_bndrs_{self._chrm.id}_pltlim_{pltlim}.png"
+            f"c0_mean_bndrs_{self._chrm}_pltlim_{pltlim}.png"
         )
 
     def line_c0_bndrs_indiv_toppings(self, btype: BoundariesType) -> None:
