@@ -11,7 +11,7 @@ from util.util import (
     PlotUtil,
     get_possible_seq,
     cut_sequence,
-    reverse_compliment_of,
+    rev_comp,
     append_reverse_compliment,
     FileSave,
     PathObtain,
@@ -25,7 +25,7 @@ class TestUtil(unittest.TestCase):
         pass
 
     def test_reverse_compliment_of(self):
-        res = reverse_compliment_of("ATGCTAAC")
+        res = rev_comp("ATGCTAAC")
         assert res == "GTTAGCAT"
 
     def test_append_reverse_compliment(self):

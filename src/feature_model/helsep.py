@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from nptyping import NDArray
 
-from chromosome.dinc import Dinc
+from util.kmer import KMer
 from util.util import FileSave, PathObtain, get_possible_seq, gen_random_sequences, Attr
 from util.reader import SEQ_COL, C0_COL
 from util.custom_types import DNASeq, DiNc
@@ -21,7 +21,6 @@ SEQ_COL = "Sequence"
 
 
 class DincUtil:
-    # TODO: Merge DincUtil with Dinc?
     @classmethod
     def pairs_all(cls) -> list[tuple[DiNc, DiNc]]:
         """
@@ -139,7 +138,7 @@ class HelicalSeparationCounter:
         """
         Find unnormalized p(i) for i = 1-48 for all dinucleotide pairs
         """
-        pos_dinc = Dinc.find_pos(seq, get_possible_seq(2))
+        pos_dinc = KMer.find_pos(seq, get_possible_seq(2))
 
         dinc_dists: list[np.ndarray] = map(
             lambda p: self._find_pair_dist(pos_dinc[p[0]], pos_dinc[p[1]]),

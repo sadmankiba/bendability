@@ -6,7 +6,7 @@ from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
 
 from .dinucleotide import mono_to_dinucleotide, dinucleotide_one_hot_encode
-from util.util import reverse_compliment_of
+from util.util import rev_comp
 from util.custom_types import DNASeq
 
 
@@ -28,7 +28,7 @@ class Preprocess:
 
     def _get_sequences_target(self) -> SeqTarget:
         all_seqs = self._df["Sequence"].tolist()
-        rc_seqs = [reverse_compliment_of(seq) for seq in all_seqs]
+        rc_seqs = [rev_comp(seq) for seq in all_seqs]
         target = self._df["C0"].to_numpy() if "C0" in self._df else None
 
         return {"all_seqs": all_seqs, "target": target, "rc_seqs": rc_seqs}

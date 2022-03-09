@@ -68,6 +68,11 @@ class TestChromosome:
             seq[60000:60100]
             == DNASequenceReader._read_yeast_genome_file(5)[60000:60100]
         )
+    
+    def test_seqf(self, chrm_vl: Chromosome):
+        assert chrm_vl.seqf(100, 105) == "CTACTC"
+        assert chrm_vl.seqf([100, 200], [105, 205]) == ["CTACTC", "AATTTC"]
+
 
     def test_mean_c0_around_bps(self, chrm_i: Chromosome):
         mean = chrm_i.mean_c0_around_bps([5000, 10000, 12000], 60, 40)

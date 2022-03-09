@@ -16,11 +16,10 @@ from scipy.ndimage import gaussian_filter1d
 from nptyping import NDArray
 
 from chromosome.chromosome import PlotChrm, ChrmOperator
-from chromosome.dinc import Dinc
+from util.kmer import KMer
 from chromosome.genes import Genes
 from motif.motifs import MotifsM30
 from util.constants import FigSubDir, ONE_INDEX_START
-from chromosome.dinc import KMer
 from .chromosome import Chromosome
 from chromosome.regions import END, MIDDLE, START
 from .genes import Promoters, STRAND
@@ -585,10 +584,12 @@ class ScatterPlot:
 
         fig = plt.figure()
         ax1 = fig.add_subplot(111)
-        km = KMer(self._chrm)
+
         ax1.scatter(
             sr.non_bndry_ndrs()[LEN],
-            km.count_w_rc(kmer, sr.non_bndry_ndrs()[START], sr.non_bndry_ndrs()[END])
+            KMer.count_w_rc(
+                kmer, sr.chrm.seqf(sr.non_bndry_ndrs()[START], sr.non_bndry_ndrs()[END])
+            )
             / sr.non_bndry_ndrs()[LEN],
             c="b",
             marker="s",
@@ -596,7 +597,9 @@ class ScatterPlot:
         )
         ax1.scatter(
             sr.bndry_ndrs()[LEN],
-            km.count_w_rc(kmer, sr.bndry_ndrs()[START], sr.bndry_ndrs()[END])
+            KMer.count_w_rc(
+                kmer, sr.chrm.seqf(sr.bndry_ndrs()[START], sr.bndry_ndrs()[END])
+            )
             / sr.bndry_ndrs()[LEN],
             c="r",
             marker="o",
@@ -636,14 +639,14 @@ class LineC0Plot:
 
         PlotUtil.clearfig()
         x = np.arange(2 * pltlim + 1) - pltlim
-        
+
         if smooth:
             plt.plot(x, c0m_bndrs.val, color="tab:gray", alpha=0.5)
             plt.plot(x, gaussian_filter1d(c0m_bndrs.val, 40), color="black")
-        else: 
+        else:
             for cm in c0ms:
                 plt.plot(x, cm.val, label=cm.label)
-        
+
         PlotChrm(self._chrm).plot_avg()
         if show_legend:
             plt.legend()
@@ -814,9 +817,9 @@ class PlotPrmtrsBndrs:
     def dinc_explain_scatter(self) -> Path:
         sr = SubRegions(Chromosome("VL"))
         mc0 = sr.prmtrs[MEAN_C0]
-        dinc = Dinc(sr.chrm)
-        ta = self._total_dinc(sr.prmtrs, dinc.ta_count_multisegment)
-        cg = self._total_dinc(sr.prmtrs, dinc.cg_count_multisegment)
+
+        ta = sum(KMer.count("TA", sr.chrm.seqf(sr.prmtrs[START], sr.prmtrs[END])))
+        cg = sum(KMer.count("CG", sr.chrm.seqf(sr.prmtrs[START], sr.prmtrs[END])))
         fig, axs = plt.subplots(2)
         fig.suptitle("Scatter plot of mean C0 vs TpA and CpG content in promoters")
         axs[0].scatter(mc0, ta)
@@ -832,7 +835,6 @@ class PlotPrmtrsBndrs:
     def dinc_explain_box(self) -> Path:
         subr = SubRegions(Chromosome("VL"))
         subr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
-        dinc = Dinc(Chromosome("VL"))
         pmwb = subr.prmtrs_with_bndrs()
         pmob = subr.prmtrs_wo_bndrs()
         labels = ["Prmtrs w b", "Prmtrs wo b"]
@@ -846,15 +848,14 @@ class PlotPrmtrsBndrs:
             ylabel="Mean C0",
             pltobj=axs[0],
         )
-        for dinc, cnt_fnc, axes in zip(
-            ["TpA", "CpG"],
-            [dinc.ta_count_multisegment, dinc.cg_count_multisegment],
+        for dinc, axes in zip(
+            ["TA", "CG"],
             axs[1:],
         ):
             PlotUtil.box_many(
                 [
-                    self._total_dinc(pmwb, cnt_fnc),
-                    self._total_dinc(pmob, cnt_fnc),
+                    sum(KMer.count(dinc, subr.chrm.seqf(pmwb[START], pmwb[END]))),
+                    sum(KMer.count(dinc, subr.chrm.seqf(pmob[START], pmob[END]))),
                 ],
                 labels=labels,
                 ylabel=f"{dinc} content",
@@ -864,9 +865,6 @@ class PlotPrmtrsBndrs:
         return FileSave.figure_in_figdir(
             f"{FigSubDir.CROSSREGIONS}/dinc_explain_VL.png"
         )
-
-    def _total_dinc(self, rgns: Regions, cnt_fnc: Callable) -> NDArray[(Any,), float]:
-        return np.array(cnt_fnc(rgns[START], rgns[END]))
 
     def _mean_dinc(self, rgns: Regions, cnt_fnc: Callable) -> NDArray[(Any,), float]:
         return self._total_dinc(rgns, cnt_fnc) / rgns[LEN].to_numpy()

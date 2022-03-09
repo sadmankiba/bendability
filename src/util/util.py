@@ -25,17 +25,15 @@ logging.basicConfig(level=logging.INFO)
 
 PRECISION_FLOAT_DF_TSV = 3
 
-# TODO: Rename rev_comp
-def reverse_compliment_of(seq: DNASeq) -> DNASeq:
-    # Define replacements
+def rev_comp(seq: DNASeq | Iterable[DNASeq]) -> DNASeq | list[DNASeq]:
     rep = {"A": "T", "T": "A", "G": "C", "C": "G"}
-
-    # Create regex pattern
     rep = dict((bre.escape(k), v) for k, v in rep.items())
     pattern = bre.compile("|".join(rep.keys()))
 
-    # Replace and return reverse sequence
-    return (pattern.sub(lambda m: rep[bre.escape(m.group(0))], seq))[::-1]
+    if isinstance(seq, DNASeq):
+        return (pattern.sub(lambda m: rep[bre.escape(m.group(0))], seq))[::-1]
+    else:
+        return list(map(lambda s: rev_comp(s), seq))
 
 
 def append_reverse_compliment(df: pd.DataFrame) -> pd.DataFrame:
@@ -43,7 +41,7 @@ def append_reverse_compliment(df: pd.DataFrame) -> pd.DataFrame:
     Appends reverse compliment sequences to a dataframe
     """
     rdf = df.copy()
-    rdf["Sequence"] = df["Sequence"].apply(lambda seq: reverse_compliment_of(seq))
+    rdf["Sequence"] = df["Sequence"].apply(lambda seq: rev_comp(seq))
     return pd.concat([df, rdf], ignore_index=True)
 
 
