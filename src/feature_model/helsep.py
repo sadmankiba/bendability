@@ -2,7 +2,7 @@ from __future__ import annotations
 import itertools as it
 from pathlib import Path
 from enum import Enum
-from typing import Any
+from typing import Any, Iterable
 
 import pandas as pd
 import numpy as np
@@ -140,9 +140,9 @@ class HelicalSeparationCounter:
         """
         pos_dinc = dict()
         for dinc in get_possible_seq(2):
-            pos_dinc[dinc] = KMer.find_pos(seq, dinc)
+            pos_dinc[dinc] = KMer.find_pos(dinc, seq)
 
-        dinc_dists: list[np.ndarray] = map(
+        dinc_dists: list[list[int]] = map(
             lambda p: self._find_pair_dist(pos_dinc[p[0]], pos_dinc[p[1]]),
             self._dinc_pairs,
         )
@@ -159,7 +159,7 @@ class HelicalSeparationCounter:
         )
 
     @classmethod
-    def _find_pair_dist(cls, pos_one: list[int], pos_two: list[int]) -> list[int]:
+    def _find_pair_dist(cls, pos_one: Iterable[int], pos_two: Iterable[int]) -> list[int]:
         """
         Find absolute distances from positions
 
