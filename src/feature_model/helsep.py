@@ -40,8 +40,11 @@ class DincUtil:
         return Attr.calc_attr(cls, "_dinc_pairs", _pairs)
 
     @classmethod
-    def pair_str(cls, dinc_pair: tuple[DiNc, DiNc]) -> str:
-        return dinc_pair[0] + "-" + dinc_pair[1]
+    def pair_str(cls, dinca: DiNc, dincb: DiNc) -> str:
+        if dinca <= dincb:
+            return dinca + "-" + dincb
+
+        return cls.pair_str(dincb, dinca)
 
 
 class HSAggr(Enum):
@@ -92,7 +95,13 @@ class HelSep:
 
         dinc_df = pd.DataFrame(
             at_hel_dist - at_half_hel_dist,
-            columns=list(map(DincUtil.pair_str, self._dinc_pairs)),
+            columns=list(
+                map(
+                    DincUtil.pair_str,
+                    [p[0] for p in self._dinc_pairs],
+                    [p[1] for p in self._dinc_pairs],
+                )
+            ),
         )
         dinc_df[SEQ_COL] = seq_list
         return dinc_df
@@ -198,8 +207,8 @@ class HelSepPlot:
         for i in range(NUM_DINC_PAIRS):
             plt.close()
             plt.clf()
-            pair_str = DincUtil.pair_str(DincUtil.pairs_all()[i])
-            # pair_str = DincUtil.pairs_all()[i][0] + "-" + DincUtil.pairs_all()[i][1]
+            pair_str = DincUtil.pair_str(*DincUtil.pairs_all()[i])
+
             plt.plot(
                 np.arange(NUM_DISTANCES) + 1,
                 most1000_dist[i],

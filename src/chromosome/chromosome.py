@@ -287,10 +287,16 @@ class Chromosome:
         end: PosOneIdx | Iterable[PosOneIdx],
     ) -> str | list[str]:
         assert type(start) == type(end)
-        if type(start) == PosOneIdx:
-            return self.seq[start - 1 : end]
+        if type(start) == PosOneIdx or type(start) == float:
+            return self.seq[int(start) - 1 : int(end)]
         elif isinstance(start, Iterable):
-            return list(map(lambda s, e: self.seq[s - 1 : e], start, end))
+            return list(
+                map(
+                    lambda s, e: self.seq[s - 1 : e],
+                    np.array(start).astype(int),
+                    np.array(end).astype(int),
+                )
+            )
 
     def _get_chrm_df(self) -> pd.DataFrame[SEQ_NUM_COL:int, SEQ_COL:str, C0:float]:
         def _chrm_df():

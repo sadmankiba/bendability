@@ -19,7 +19,7 @@ from chromosome.chromosome import PlotChrm, ChrmOperator
 from util.kmer import KMer
 from chromosome.genes import Genes
 from motif.motifs import MotifsM30
-from util.constants import FigSubDir, ONE_INDEX_START
+from util.constants import SEQ_LEN, FigSubDir, ONE_INDEX_START
 from .chromosome import Chromosome
 from chromosome.regions import END, MIDDLE, START
 from .genes import Promoters, STRAND
@@ -36,6 +36,7 @@ from conformation.domains import (
 )
 from conformation.loops import LoopAnchors, LoopInsides
 from .regions import LEN, MEAN_C0, Regions
+from feature_model.helsep import DincUtil, HelSep, SEQ_COL
 from util.util import Attr, PathObtain, PlotUtil, FileSave
 from util.custom_types import PosOneIdx, KMerSeq
 
@@ -802,15 +803,72 @@ class LineC0Plot:
             [amp, amp / 2, -amp / 2, -amp] * math.ceil((end - start) / 4 / 4),
         )
 
+RIGID_PAIRS = [
+    ("GC", "TT"),
+    ("AA", "GC"),
+    ("GC", "TA"),
+    ("AT", "GC"),
+    ("AA", "CG"),
+    ("AA", "CC"),
+    ("GG", "TT"),
+    ("CG", "TT"),
+    ("TT", "CC"),
+    ("TA", "CC"),
+]
+
+FLEXIBLE_PAIRS = [
+    ("CC", "CC"),
+    ("GC", "CG"),
+    ("GC", "CC"),
+    ("TA", "TT"),
+    ("AT", "TT"),
+    ("AA", "TA"),
+    ("AA", "AA"),
+    ("AA", "TT"),
+    ("TT", "TT"),
+    ("GC", "GC"),
+]
 
 class LinePlot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
-    
+
     def helsep_mean_bndrs(self, pltlim=100):
+        rigid = False
+
         sr = SubRegions(self._chrm)
         sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
-        
+        hs = HelSep()
+        harr = np.empty((len(sr.bndrs), 2 * pltlim + 1))
+        for i, b in enumerate(sr.bndrs):
+            dfh = hs.helical_sep_of(
+                list(
+                    map(
+                        lambda p: sr.chrm.seqf(
+                            p - SEQ_LEN / 2,
+                            p + SEQ_LEN / 2 - 1,
+                        ),
+                        range(
+                            getattr(b, MIDDLE) - pltlim, getattr(b, MIDDLE) + pltlim + 1
+                        ),
+                    )
+                )
+            )
+            pairs = RIGID_PAIRS if rigid else FLEXIBLE_PAIRS
+            cols = [DincUtil.pair_str(*p) for p in pairs]
+            harr[i] = np.sum(dfh[cols].to_numpy(), axis=1)
+
+        harr = harr.mean(axis=0)
+        x = np.arange(2 * pltlim + 1) - pltlim
+        pt = "rigid" if rigid else "flexible"
+        PlotUtil.show_grid()
+        plt.plot(x, harr)
+        plt.xlabel("Position from boundary mid")
+        plt.ylabel(f"Helsep {pt} content")
+        plt.title(f"Helsep {pt} content in bndrs")
+        return FileSave.figure_in_figdir(
+            f"{sr.bndrs.fig_subdir()}/helsep_{pt}_content_pltlim_{pltlim}.png"
+        )
 
     def dinc_mean_bndrs(self, pltlim=100):
         rc = False

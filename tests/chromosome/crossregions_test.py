@@ -93,6 +93,9 @@ class TestLineC0Plot:
 class TestLinePlot:
     def test_dinc_content_bndrs(self, chrm_vl_mean7: Chromosome):
         assert LinePlot(chrm_vl_mean7).dinc_mean_bndrs().is_file()
+    
+    def test_helsep_mean_bndrs(self, chrm_vl_mean7: Chromosome):
+        assert LinePlot(chrm_vl_mean7).helsep_mean_bndrs().is_file()
 
 
 class TestPlotPrmtrsBndrs:
