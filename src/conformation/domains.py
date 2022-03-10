@@ -43,6 +43,9 @@ class BndParm:
 class Boundaries(Regions):
     def __init__(self, chrm: Chromosome, regions: RegionsInternal):
         super().__init__(chrm, regions)
+    
+    def fig_subdir(self):
+        return f"{FigSubDir.BOUNDARIES}/{self.chrm.id}_{str(self)}"
 
 
 class BoundariesHE(Boundaries):
