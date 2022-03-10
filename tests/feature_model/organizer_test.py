@@ -81,8 +81,8 @@ class TestDataOrganizer:
 
         organizer = DataOrganizer(libs, None, None, options)
         train_kmer, test_kmer = organizer._get_kmer_count()
-        assert len(train_kmer.columns) == 3 + 4 ** 2 + 4 ** 3
-        assert len(test_kmer.columns) == 3 + 4 ** 2 + 4 ** 3
+        assert len(train_kmer.columns) == 3 + 4**2 + 4**3
+        assert len(test_kmer.columns) == 3 + 4**2 + 4**3
 
         assert len(train_kmer) == TL_LEN
         assert len(test_kmer) == RL_LEN
