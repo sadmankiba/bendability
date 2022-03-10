@@ -803,6 +803,7 @@ class LineC0Plot:
             [amp, amp / 2, -amp / 2, -amp] * math.ceil((end - start) / 4 / 4),
         )
 
+
 RIGID_PAIRS = [
     ("GC", "TT"),
     ("AA", "GC"),
@@ -828,6 +829,7 @@ FLEXIBLE_PAIRS = [
     ("TT", "TT"),
     ("GC", "GC"),
 ]
+
 
 class LinePlot:
     def __init__(self, chrm: Chromosome) -> None:

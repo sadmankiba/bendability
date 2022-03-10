@@ -7,7 +7,7 @@ class TestKMer:
         seq = "ATGCTATAGCCA"
         assert KMer.find_pos_w_rc("TA", seq).tolist() == [4, 5, 6, 7]
         assert KMer.find_pos_w_rc("TG", seq).tolist() == [1, 11]
-    
+
     def test_find_pos(self):
         seq = "ATGCTATAGCCA"
         assert KMer.find_pos("TA", seq).tolist() == [4, 6]
