@@ -12,6 +12,7 @@ seaborn
 logomaker
 plotnine
 statsmodels
+opencv-python
 pytest
 pytest-testmon
 pytest-github-actions-annotate-failures
