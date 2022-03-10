@@ -145,7 +145,7 @@ class Occurence:
             seq_occur_map.items(), key=lambda x: x[1][0], reverse=True
         )
         arr = np.array([pair[1] for pair in sorted_occur])
-        assert arr.shape == (4 ** 2, N_BINS)
+        assert arr.shape == (4**2, N_BINS)
 
         # seaborn.heatmap(arr, linewidth=0.5)
         plt.imshow(arr, cmap="jet", aspect="auto")
@@ -164,7 +164,7 @@ class Occurence:
             norm_seq_occur_map.items(), key=lambda x: x[1][0], reverse=True
         )
         arr = np.array([pair[1] for pair in norm_sorted_occur])
-        assert arr.shape == (4 ** 2, N_BINS)
+        assert arr.shape == (4**2, N_BINS)
 
         plt.close()
         plt.clf()
