@@ -138,7 +138,9 @@ class HelicalSeparationCounter:
         """
         Find unnormalized p(i) for i = 1-48 for all dinucleotide pairs
         """
-        pos_dinc = KMer.find_pos(seq, get_possible_seq(2))
+        pos_dinc = dict()
+        for dinc in get_possible_seq(2):
+            pos_dinc[dinc] = KMer.find_pos(seq, dinc)
 
         dinc_dists: list[np.ndarray] = map(
             lambda p: self._find_pair_dist(pos_dinc[p[0]], pos_dinc[p[1]]),

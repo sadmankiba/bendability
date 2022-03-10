@@ -11,16 +11,8 @@ from util.custom_types import DNASeq, KMerSeq
 
 class KMer:
     @classmethod
-    def find_pos(cls, seq: DNASeq, kmers: Iterable[str]) -> dict[str, list[int]]:
-        return dict(
-            map(
-                lambda kmer: (
-                    kmer,
-                    [m.start() for m in re.finditer(kmer, seq, overlapped=True)],
-                ),
-                kmers,
-            )
-        )
+    def find_pos(cls, seq: DNASeq, kmer: str) -> list[int]:
+        return [m.start() for m in re.finditer(kmer, seq, overlapped=True)]
 
     @classmethod
     def count_w_rc(cls, kmer: str, seqs: list[str]) -> NDArray[(Any,), int]:
