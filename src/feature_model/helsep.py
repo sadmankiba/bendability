@@ -49,7 +49,7 @@ class HSAggr(Enum):
     SUM = "sum"
 
 
-class HelicalSeparationCounter:
+class HelSep:
     """
     Helper class for counting helical separation
 
@@ -159,7 +159,9 @@ class HelicalSeparationCounter:
         )
 
     @classmethod
-    def _find_pair_dist(cls, pos_one: Iterable[int], pos_two: Iterable[int]) -> list[int]:
+    def _find_pair_dist(
+        cls, pos_one: Iterable[int], pos_two: Iterable[int]
+    ) -> list[int]:
         """
         Find absolute distances from positions
 
@@ -178,7 +180,7 @@ class HelSepPlot:
         """
         Plots avg. normalized distance of sequences with most and least 1000 C0 values
         """
-        hs = HelicalSeparationCounter()
+        hs = HelSep()
 
         least_1000 = df.sort_values(C0_COL).iloc[:1000]
         most_1000 = df.sort_values(C0_COL).iloc[-1000:]

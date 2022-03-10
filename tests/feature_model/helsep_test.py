@@ -1,4 +1,4 @@
-from feature_model.helsep import HelicalSeparationCounter
+from feature_model.helsep import HelSep
 
 import pandas as pd
 import numpy as np
@@ -14,7 +14,7 @@ class TestHelicalSeparationCounter(unittest.TestCase):
         # TT -> [3, 13]
         # GC -> [5, 9, 18, 36, 42, 44]
         # Absolute diff -> [2, 6, 15, 33, 39, 41, 8, 4, 5, 23, 29, 31]
-        helsep = HelicalSeparationCounter()
+        helsep = HelSep()
         all_dist = helsep._pair_dinc_dist_in(seq)
         pair_idx = helsep._dinc_pairs.index(("GC", "TT"))
         p_expected = np.bincount(
@@ -24,7 +24,7 @@ class TestHelicalSeparationCounter(unittest.TestCase):
         self.assertListEqual(all_dist[pair_idx].tolist(), p_expected.tolist())
 
     def test_calculate_expected_p(self):
-        df = HelicalSeparationCounter().calculate_expected_p()
+        df = HelSep().calculate_expected_p()
         self.assertEqual(df.shape, (136, 49))
 
     def test_helical_sep_of(self):
@@ -37,7 +37,7 @@ class TestHelicalSeparationCounter(unittest.TestCase):
         # half-helical = max((1/n,1/n,1/n)) + max((0/n,1/n,0/n)) + max(0/n,0/n,0/n)
         # hs = h -hh
 
-        helsep = HelicalSeparationCounter()
+        helsep = HelSep()
         expected_dist = helsep.calculate_expected_p().values
         pair_idx = helsep._dinc_pairs.index(("GC", "TT"))
 

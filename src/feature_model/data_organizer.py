@@ -14,7 +14,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import RandomOverSampler
 
-from .helsep import HSAggr, HelicalSeparationCounter
+from .helsep import HSAggr, HelSep
 from .occurence import Occurence
 from .shape import run_dna_shape_r_wrapper
 from .feat_selector import FeatureSelector
@@ -525,7 +525,7 @@ class DataOrganizer:
             helsep_df_all = None
             CHUNK_SIZE = 10000
             for idx in range(0, len(cut_dfs[lib.name]), CHUNK_SIZE):
-                helsep_df = HelicalSeparationCounter().helical_sep_of(
+                helsep_df = HelSep().helical_sep_of(
                     cut_dfs[lib.name][SEQ_COL][idx : idx + CHUNK_SIZE].tolist(),
                     self._options["hsaggr"],
                 )
