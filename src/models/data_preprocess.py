@@ -7,6 +7,7 @@ import pandas as pd
 
 from .dinucleotide import mono_to_dinucleotide, dinucleotide_one_hot_encode
 from util.util import rev_comp
+from util.reader import SEQ_COL, SEQ_NUM_COL, C0_COL
 from util.custom_types import DNASeq
 
 
@@ -23,13 +24,13 @@ class OheResult(TypedDict):
 
 
 class Preprocess:
-    def __init__(self, df: pd.DataFrame):
+    def __init__(self, df: pd.DataFrame[SEQ_NUM_COL:int, SEQ_COL:str, C0_COL:float]):
         self._df = df
 
     def _get_sequences_target(self) -> SeqTarget:
-        all_seqs = self._df["Sequence"].tolist()
+        all_seqs = self._df[SEQ_COL].tolist()
         rc_seqs = [rev_comp(seq) for seq in all_seqs]
-        target = self._df["C0"].to_numpy() if "C0" in self._df else None
+        target = self._df[C0_COL].to_numpy() if C0_COL in self._df else None
 
         return {"all_seqs": all_seqs, "target": target, "rc_seqs": rc_seqs}
 

@@ -1,13 +1,14 @@
 from numpy.testing._private.utils import assert_almost_equal
-from models.prediction import Prediction
-from util.constants import RL, CNL
-from util.reader import DNASequenceReader
-from util.util import PathObtain
+from pathlib import Path
 
 import keras
 import numpy as np
 
-from pathlib import Path
+from models.prediction import Prediction, C0_PREDICT
+from util.constants import RL, CNL
+from util.reader import DNASequenceReader
+from util.util import PathObtain
+
 
 # TODO : Unit tests should finish fast
 
@@ -20,14 +21,14 @@ class TestPrediction:
     def test_predict(self):
         df = DNASequenceReader().get_processed_data()[CNL].iloc[:100]
         result_df = Prediction().predict(df)
-        assert "c0_predict" in set(result_df.columns)
+        assert C0_PREDICT in set(result_df.columns)
 
     def test_predict_model6(self):
         df = DNASequenceReader().get_processed_data()[CNL].iloc[:10]
         result_df = Prediction(6).predict(df)
 
         assert_almost_equal(
-            np.round(result_df["c0_predict"], 3).tolist(),
+            np.round(result_df[C0_PREDICT], 3).tolist(),
             [0.122, -0.274, 0.606, 0.355, 0.106, -0.411, -0.993, -0.728, -0.461, 0.295],
             decimal=3,
         )
@@ -37,7 +38,7 @@ class TestPrediction:
         result_df = Prediction(30).predict(df)
 
         assert_almost_equal(
-            np.round(result_df["c0_predict"], 3).tolist(),
+            np.round(result_df[C0_PREDICT], 3).tolist(),
             [
                 -0.013,
                 -0.465,
@@ -54,19 +55,12 @@ class TestPrediction:
         )
 
     def test_predict_lib(self):
-        Prediction().predict_lib(RL)
-        assert Path(
-            f"{PathObtain.data_dir()}/generated_data/predictions/{RL}_pred_m_6.tsv"
-        ).is_file()
+        df = Prediction().predict_lib(RL, 100)
+        assert len(df) == 101
 
     def test_predict_metrics_lib(self):
-        Prediction().predict_metrics_lib(RL)
-        assert Path(
-            f"{PathObtain.data_dir()}/generated_data/prediction_metrics/pred_m_6.tsv"
-        ).is_file()
+        Prediction().predict_metrics_lib(RL, 100)
+        assert True
 
     def test_predict_metrics_lib_m30(self):
-        Prediction(model=30).predict_metrics_lib(RL)
-        assert Path(
-            f"{PathObtain.data_dir()}/generated_data/prediction_metrics/pred_m_30.tsv"
-        ).is_file()
+        Prediction(model=30).predict_metrics_lib(RL, 100)

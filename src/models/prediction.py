@@ -1,5 +1,6 @@
 from __future__ import annotations
 import inspect
+from pathlib import Path
 from typing import Union
 
 import keras
@@ -11,7 +12,7 @@ from .cnnmodel import CNNModel6, CNNModel30
 from .data_preprocess import Preprocess
 from .parameters import get_parameters
 from util.custom_types import LIBRARY_NAMES
-from util.reader import DNASequenceReader, SEQ_COL, SEQ_NUM_COL
+from util.reader import DNASequenceReader, SEQ_COL, SEQ_NUM_COL, C0_COL
 from util.util import FileSave, PathObtain
 
 C0_PREDICT = "c0_predict"
@@ -28,7 +29,61 @@ class Prediction:
 
     def __str__(self):
         return str(self._model_no)
+    
+    def predict_metrics_lib(self, lib: LIBRARY_NAMES, n:int=None) -> None | Path:
+        pred_df = self.predict_lib(lib)
+        if n is not None: 
+            pred_df = pred_df.loc[:n]
+        y = pred_df[C0_COL].to_numpy()
+        y_pred = self.predict(pred_df)[C0_PREDICT].to_numpy()
 
+        metrics_df = pd.DataFrame(
+            {
+                "library": [lib],
+                "r2_score": [r2_score(y, y_pred)],
+                "pearsons_corr": [pearsonr(y, y_pred)[0]],
+                "spearmans_corr": [spearmanr(y, y_pred)[0]],
+            }
+        )
+        if n is None:
+            return FileSave.append_tsv(
+                metrics_df,
+                f"{PathObtain.data_dir()}/generated_data/prediction_metrics/pred_m_{self._model_no}.tsv",
+            )
+
+    def predict_lib(self, lib: LIBRARY_NAMES, n:int=None) -> pd.DataFrame:
+        test_df = DNASequenceReader().get_processed_data()[lib]
+        if n is not None: 
+            test_df = test_df.loc[:n]
+        predict_df = self.predict(test_df)
+        if n is None:
+            FileSave.tsv(
+                predict_df,
+                f"{PathObtain.data_dir()}/generated_data/predictions/{lib}_pred_m_{self._model_no}.tsv",
+            )
+        return predict_df
+
+    def predict(
+        self, df: pd.DataFrame[SEQ_NUM_COL:int, SEQ_COL:str, C0_COL:float]
+    ) -> pd.DataFrame[SEQ_NUM_COL:int, SEQ_COL:str, C0_PREDICT:float]:
+        prep = Preprocess(df)
+        data = prep.one_hot_encode()
+
+        y_pred = self._model.predict(
+            {"forward": data["forward"], "reverse": data["reverse"]}
+        ).flatten()
+        return df.assign(c0_predict=y_pred)
+    
+    def _load_model(self) -> keras.Model:
+        nn_model, parameter_file, weight_file = self._select_model()
+        params = get_parameters(parameter_file)
+        dim_num = (-1, 50, 4)
+
+        nn: CNNModel6 = nn_model(dim_num=dim_num, **params)
+        model = nn.create_model()
+        model.load_weights(weight_file)
+        return model
+    
     def _select_model(self) -> tuple[CNNModel6, str, str]:
         parent_dir = PathObtain.parent_dir(inspect.currentframe())
 
@@ -44,51 +99,3 @@ class Prediction:
                 f"{parent_dir}/parameter_model30.txt",
                 f"{parent_dir}/model_weights/w30.h5",
             )
-
-    def _load_model(self) -> keras.Model:
-        nn_model, parameter_file, weight_file = self._select_model()
-        params = get_parameters(parameter_file)
-        dim_num = (-1, 50, 4)
-
-        nn: CNNModel6 = nn_model(dim_num=dim_num, **params)
-        model = nn.create_model()
-        model.load_weights(weight_file)
-        return model
-
-    def predict(
-        self, df: pd.DataFrame
-    ) -> pd.DataFrame[SEQ_NUM_COL:int, SEQ_COL:str, C0_PREDICT:float]:
-        prep = Preprocess(df)
-        data = prep.one_hot_encode()
-
-        y_pred = self._model.predict(
-            {"forward": data["forward"], "reverse": data["reverse"]}
-        ).flatten()
-        return df.assign(c0_predict=y_pred)
-
-    def predict_lib(self, lib: LIBRARY_NAMES) -> pd.DataFrame:
-        predict_df = self.predict(DNASequenceReader().get_processed_data()[lib])
-        FileSave.tsv(
-            predict_df,
-            f"{PathObtain.data_dir()}/generated_data/predictions/{lib}_pred_m_{self._model_no}.tsv",
-        )
-        return predict_df
-
-    def predict_metrics_lib(self, lib: LIBRARY_NAMES) -> None:
-        pred_df = self.predict_lib(lib)
-        y = pred_df["C0"].to_numpy()
-        y_pred = self.predict(pred_df)["c0_predict"].to_numpy()
-        assert y_pred.shape == y.shape
-
-        metrics_df = pd.DataFrame(
-            {
-                "library": [lib],
-                "r2_score": [r2_score(y, y_pred)],
-                "pearsons_corr": [pearsonr(y, y_pred)[0]],
-                "spearmans_corr": [spearmanr(y, y_pred)[0]],
-            }
-        )
-        FileSave.append_tsv(
-            metrics_df,
-            f"{PathObtain.data_dir()}/generated_data/prediction_metrics/pred_m_{self._model_no}.tsv",
-        )

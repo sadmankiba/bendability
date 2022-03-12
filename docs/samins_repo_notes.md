@@ -10,6 +10,17 @@ pip3 install tensorflow_addons
 pip3 install tf-slim
 ```
 
+## Model Performance
+
+**Model 35, parameter 8, weights 274**
+
+| Test lib | Pearson | Spearman | R2   | 
+|----------|---------|----------|------|
+| RL       |  0.88   |   0.87   | 0.76 |
+| ChrVL    | 0.75    | 0.74     | 0.56 |    
+| TL       | 0.87    | 0.86     | 0.75 |
+
+
 ## Model Architecture 
 
 **Model 35, parameter 8** 
