@@ -54,6 +54,27 @@ class TestPrediction:
             decimal=3,
         )
 
+    def test_predict_model35(self):
+        df = DNASequenceReader().get_processed_data()[CNL].iloc[:10]
+        result_df = Prediction(35).predict(df)
+        
+        assert_almost_equal(
+            np.round(result_df[C0_PREDICT], 3).tolist(),
+            [
+                -0.080,
+                -0.239,
+                0.531,
+                0.443,
+                0.066,
+                -0.498,
+                -1.154,
+                -0.448,
+                -0.256,
+                0.261,
+            ],
+            decimal=3,
+        )
+
     def test_predict_lib(self):
         df = Prediction().predict_lib(RL, 100)
         assert len(df) == 101

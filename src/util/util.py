@@ -6,6 +6,7 @@ import re as bre  # built-in re
 from pathlib import Path
 import logging
 import inspect
+import sys
 from types import FrameType
 from typing import Literal, Union, Any, Callable, Iterable
 
@@ -493,6 +494,10 @@ class PlotUtil:
 
 
 class NumpyTool:
+    @classmethod 
+    def set_precision(cls, i: int):
+        np.set_printoptions(threshold=sys.maxsize, precision=i, suppress=True)
+
     @classmethod
     def match_pattern(
         self, container: NDArray[(Any,)], pattern: NDArray[(Any,)] | list

@@ -234,7 +234,7 @@ def coeff_determination(y_true, y_pred):
 def spearman_fn(y_true, y_pred):
     return tf.py_function(spearmanr, [tf.cast(y_pred, tf.float32),
                                         tf.cast(y_true, tf.float32)], Tout=tf.float32)
-                                        
+
 def coeff_determination_loss(y_true, y_pred):
     return 1 - coeff_determination(y_true, y_pred)
 
@@ -256,8 +256,11 @@ def get_loss(loss_name: str):
 
 # TODO: Use Gradio
 
-# Model 6 and 30 should be a specialized version of a general model
-class CNNModel6:
+class CNNModel:
+    def create_model(self) -> keras.Model:
+        pass 
+
+class CNNModel6(CNNModel):
     def __init__(
         self,
         dim_num,
