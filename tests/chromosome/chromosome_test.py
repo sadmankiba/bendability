@@ -66,7 +66,7 @@ class TestChromosome:
         assert len(seq) == CHRV_TOTAL_BP
         assert (
             seq[60000:60100]
-            == DNASequenceReader._read_yeast_genome_file(5)[60000:60100]
+            == DNASequenceReader.read_yeast_genome_file(5)[60000:60100]
         )
 
     def test_seqf(self, chrm_vl: Chromosome):

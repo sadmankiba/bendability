@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 
 from util.constants import CHRV_TOTAL_BP
-from conformation.loops import Loops, PlotLoops, LoopAnchors, COL_START, LoopInsides
+from conformation.loops import LoopReader, Loops, PlotLoops, LoopAnchors, COL_START, LoopInsides
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
 
@@ -38,7 +38,16 @@ class TestLoopInsides:
             ancrs_vl.chrm.mean_c0, abs=1e-3
         )
 
+class TestLoopReader:
+    def test_read_loops(self):
+        lpr = LoopReader(Chromosome("VL", None))
+        df = lpr.read_loops()
+        assert set(df.columns) == set(["start", "end", "res", "len"])
 
+        # Count number of lines in bedpe file
+        s = subprocess.check_output(["wc", "-l", lpr._loop_file])
+        assert len(df) == int(s.split()[0]) - 2
+    
 class TestLoops:
     def test_len(self):
         loops = Loops(Chromosome("VL", None))
@@ -47,15 +56,6 @@ class TestLoops:
     def test_getitem(self):
         loops = Loops(Chromosome("VL", None))
         assert loops[10].tolist() == loops._loop_df.iloc[10].tolist()
-
-    def test_read_loops(self):
-        loop = Loops(Chromosome("VL", None))
-        df = loop._read_loops()
-        assert set(df.columns) == set(["start", "end", "res", "len"])
-
-        # Count number of lines in bedpe file
-        s = subprocess.check_output(["wc", "-l", loop._loop_file])
-        assert len(df) == int(s.split()[0]) - 2
 
     def test_add_mean_c0_val(self):
         """Assert mean C0 is: linker < full < nuc"""
