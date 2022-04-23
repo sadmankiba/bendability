@@ -168,19 +168,19 @@ class LabeledMC0Distribs:
             if d == Distrib.BNDRS_E_N50:
                 return self._sr.bndrs.extended(-50)[MEAN_C0], "bndrs l 50"
             if d == Distrib.NUCS:
-                return self._sr.nucs[MEAN_C0], "nucs"
+                return self._sr.nucs[MEAN_C0], "Nucleosomes"
             if d == Distrib.NUCS_B:
-                return self._sr.bndry_nucs()[MEAN_C0], "nucs b"
+                return self._sr.bndry_nucs()[MEAN_C0], "Nucleosomes\nin boundaries"
             if d == Distrib.NUCS_NB:
-                return self._sr.non_bndry_nucs()[MEAN_C0], "nucs nb"
+                return self._sr.non_bndry_nucs()[MEAN_C0], "Nucleosomes\nin domains"
             if d == Distrib.LNKRS:
                 return self._sr.lnkrs[MEAN_C0], "lnkrs"
             if d == Distrib.NDRS:
-                return self._sr.ndrs[MEAN_C0], "ndrs 40"
+                return self._sr.ndrs[MEAN_C0], "NDRs"
             if d == Distrib.NDRS_B:
-                return self._sr.bndry_ndrs()[MEAN_C0], "ndrs b"
+                return self._sr.bndry_ndrs()[MEAN_C0], "NDRs in boundaries"
             if d == Distrib.NDRS_NB:
-                return self._sr.non_bndry_ndrs()[MEAN_C0], "ndrs nb"
+                return self._sr.non_bndry_ndrs()[MEAN_C0], "NDRs in domains"
             if d == Distrib.PRMTRS:
                 return self._sr.prmtrs[MEAN_C0], "prmtrs"
             if d == Distrib.GENES:
@@ -206,28 +206,29 @@ class DistribPlot:
         self._chrm = chrm
 
     def box_mean_c0_bndrs(self) -> Path:
+        typ = "box"
         sr = SubRegions(self._chrm)
         bsel_hexp = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
         bsel_fanc = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
-        sr.bsel = bsel_hexp
+        sr.bsel = bsel_fanc
         ld = LabeledMC0Distribs(sr)
         grp_bndrs_nucs = {
             "dls": ld.dl(
                 [
-                    Distrib.BNDRS,
-                    Distrib.BNDRS_E_100,
-                    Distrib.BNDRS_E_N50,
-                    Distrib.NUCS,
-                    Distrib.NUCS_B,
-                    Distrib.NUCS_NB,
-                    Distrib.LNKRS,
+                    # Distrib.BNDRS,
+                    # Distrib.BNDRS_E_100,
+                    # Distrib.BNDRS_E_N50,
+                    # Distrib.NUCS,
+                    # Distrib.NUCS_B,
+                    # Distrib.NUCS_NB,
+                    # Distrib.LNKRS,
                     Distrib.NDRS,
                     Distrib.NDRS_B,
                     Distrib.NDRS_NB,
                 ]
             ),
-            "title": "Mean C0 distrib of bndrs and nucs",
-            "fname": f"bndrs_nucs_{sr.bndrs}.png",
+            "title": "", # "Mean C0 distribution of boundaries, nucleosomes and NDRS",
+            "fname": f"bndrs_nucs_{sr.bndrs}_{typ}_chrm_{sr.chrm}.png",
         }
         grp_bndrs_prmtrs = {
             "dls": ld.dl(
@@ -244,23 +245,33 @@ class DistribPlot:
             "title": "Mean C0 distrib of comb of prmtrs and bndrs",
             "fname": f"bndrs_prmtrs_{sr.bndrs}_{sr.prmtrs}_{self._chrm.id}.png",
         }
-        return self.box_mean_c0(grp_bndrs_nucs)
+        return self.box_mean_c0(grp_bndrs_nucs, typ)
 
     @classmethod
-    def box_mean_c0(cls, grp: dict):
-        PlotUtil.show_grid(which="both")
+    def box_mean_c0(cls, grp: dict, typ: Literal["box"] | Literal["violin"]="box"):
+        limy = False
+        PlotUtil.font_size(14)
+        PlotUtil.show_grid()
         distribs = [d for d, _ in grp["dls"]]
         labels = [l for _, l in grp["dls"]]
 
-        plt.boxplot(distribs, showfliers=False)
-        plt.ylim(-0.5, 0.1)
+        fig, ax = plt.subplots()
+        if typ == "box":
+            plt.boxplot(distribs, showfliers=True, widths=0.5)
+        elif typ == "violin":
+            ax.violinplot(distribs, showmedians=True, showextrema=True)
+        
+        if limy:
+            plt.ylim(-0.5, 0.1)
         plt.xticks(
             ticks=range(1, len(labels) + 1),
             labels=labels,
+            wrap=True
         )
         plt.ylabel("Mean C0")
+        plt.title(grp["title"])
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.CROSSREGIONS}/c0_box/{grp['fname']}"
+            f"{FigSubDir.CROSSREGIONS}/c0_box/{grp['fname']}", sizew=7, sizeh=6
         )
 
     def prob_distrib_mean_c0_bndrs(self):
@@ -553,7 +564,7 @@ class ScatterPlot:
     def scatter_c0(self) -> Path:
         PlotUtil.clearfig()
         sr = SubRegions(self._chrm)
-        sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_25)
+        sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
 
         fig = plt.figure()
         ax1 = fig.add_subplot(111)
@@ -803,6 +814,15 @@ class LineC0Plot:
             [amp, amp / 2, -amp / 2, -amp] * math.ceil((end - start) / 4 / 4),
         )
 
+
+class SegmentLineC0Plot:
+    def __init__(self, chrm: Chromosome) -> None:
+        self._chrm = chrm
+    
+    def sl_ndrs(self):
+        sr = SubRegions(self._chrm)
+        sr.linkers
+    pass
 
 RIGID_PAIRS = [
     ("GC", "TT"),

@@ -7,6 +7,9 @@ from typing import Union
 import tensorflow as tf 
 import keras
 import pandas as pd
+import numpy as np
+import logomaker as lm
+import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score
 from scipy.stats import pearsonr, spearmanr
 from plotnine import ggplot, aes, xlim, ylim, stat_bin_2d
@@ -71,15 +74,17 @@ class Prediction:
     ) -> pd.DataFrame[SEQ_NUM_COL:int, SEQ_COL:str, C0_PREDICT:float]:
         prep = Preprocess(df)
         data = prep.one_hot_encode()
-        y = df[C0_COL].to_numpy()
+        
         y_pred = self._model.predict(
             {"forward": data["forward"], "reverse": data["reverse"]}
         ).flatten()
         
-        if print_metrics:
-            print("r2 score:", r2_score(y, y_pred))
-            print("Pearson's correlation:", pearsonr(y, y_pred)[0])
-            print("Spearman's correlation: ", spearmanr(y, y_pred)[0])
+        if C0_COL in df.columns:
+            y = df[C0_COL].to_numpy()
+            if print_metrics:
+                print("r2 score:", r2_score(y, y_pred))
+                print("Pearson's correlation:", pearsonr(y, y_pred)[0])
+                print("Spearman's correlation: ", spearmanr(y, y_pred)[0])
         
         if plot_scatter:
             self._plot_scatter(df)

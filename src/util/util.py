@@ -13,6 +13,7 @@ from typing import Literal, Union, Any, Callable, Iterable
 
 import pandas as pd
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.axes import Axes
@@ -241,16 +242,15 @@ class PathObtain:
 
 class FileSave:
     @classmethod
-    def figure_in_figdir(cls, path_str: str | Path, **kwargs) -> Path:
-        return cls.figure(Path(f"{PathObtain.figure_dir()}/{path_str}"), **kwargs)
+    def figure_in_figdir(cls, path_str: str | Path, sizew=12, sizeh=6, **kwargs) -> Path:
+        return cls.figure(Path(f"{PathObtain.figure_dir()}/{path_str}"), sizew, sizeh, **kwargs)
 
     @classmethod
-    def figure(cls, path_str: str | Path, **kwargs) -> Path:
+    def figure(cls, path_str: str | Path, sizew, sizeh, **kwargs) -> Path:
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
-
-        plt.gcf().set_size_inches(12, 6)
+        plt.gcf().set_size_inches(sizew, sizeh)
         plt.savefig(path, dpi=200, **kwargs)
 
         logging.info(f"Figure saved at: {path}")
@@ -329,8 +329,12 @@ class DataCache:
 
 
 class PlotUtil:
+    @classmethod 
+    def font_size(cls, size: int):
+        mpl.rcParams.update({'font.size': size})
+
     @classmethod
-    def prob_distrib(self, var: Iterable, label=None):
+    def prob_distrib(cls, var: Iterable, label=None):
         def _old():
             sns.distplot(var, hist=False, kde=True, label=label)
 
@@ -340,7 +344,7 @@ class PlotUtil:
         _old()
 
     @classmethod
-    def distrib_cuml(self, var: Iterable, label=None):
+    def distrib_cuml(cls, var: Iterable, label=None):
         sns.displot(var, kind="ecdf", label=label)
 
     @classmethod

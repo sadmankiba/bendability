@@ -33,6 +33,16 @@ class TestDistribPlot:
     def test_box_mean_c0_bndrs(self, crplt_vl: DistribPlot):
         assert crplt_vl.box_mean_c0_bndrs().is_file()
 
+    def test_box_mean_c0_raw(self, crplt_vl: DistribPlot):
+        assert crplt_vl.box_mean_c0(
+            {
+                "dls": [([2, 3, 6], "a"), ([7, 3, 8], "b")],
+                "title": "test",
+                "fname": "test.png",
+            }, 
+            "violin"
+        )
+
     def test_prob_distrib_mean_c0_bndrs(self, crplt_vl: DistribPlot):
         assert crplt_vl.prob_distrib_mean_c0_bndrs().is_file()
 
