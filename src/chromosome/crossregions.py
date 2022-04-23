@@ -833,7 +833,7 @@ class SegmentLineC0Plot:
             ax[i][1].plot(lnksdc0[i])
 
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.CROSSREGIONS}/linkers/lnkrs_c0_segm_bndrs_dmns_chrV.png"
+            f"{FigSubDir.CROSSREGIONS}/linkers/lnkrs_c0_segm_bndrs_dmns_{self._chrm}.png"
         )
 
 

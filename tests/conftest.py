@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 
-from chromosome.chromosome import Chromosome
+from chromosome.chromosome import Chromosome, C0Spread
 from conformation.domains import BoundariesHE, BndParm
 from chromosome.regions import Regions, START, END
 
@@ -15,6 +15,9 @@ def chrm_vl():
 def chrm_vl_mean7():
     return Chromosome("VL", spread_str="mean7")
 
+@pytest.fixture
+def chrm_vl_mcvr():
+    return Chromosome("VL", spread_str=C0Spread.mcvr)
 
 @pytest.fixture
 def chrm_i():

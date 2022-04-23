@@ -101,8 +101,8 @@ class TestLineC0Plot:
         ]
 
 class TestSegmentLineC0Plot:
-    def test_sl_lnkrs(self, chrm_vl_mean7):
-        sl = SegmentLineC0Plot(chrm_vl_mean7)
+    def test_sl_lnkrs(self, chrm_vl_mcvr):
+        sl = SegmentLineC0Plot(chrm_vl_mcvr)
         assert sl.sl_lnkrs().is_file()
 
 class TestLinePlot:

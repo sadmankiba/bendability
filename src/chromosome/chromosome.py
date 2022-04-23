@@ -3,6 +3,7 @@ import math
 from pathlib import Path
 import time
 from typing import Iterable, Literal, Union, Any
+from enum import Enum, auto
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,9 +17,12 @@ from util.constants import CHRVL, SEQ_LEN, ChrIdList
 from util.custom_types import ChrId, PosOneIdx, YeastChrNum, PositiveInt, C0
 from util.util import Attr, DataCache, FileSave, PathObtain, PlotUtil
 
-
-SpreadType = Literal["mean7", "mean_cover", "weighted", "single"]
-
+class C0Spread:
+    mean7 = "mean7"
+    mcvr = "mcvr"
+    wt = "wt"
+    sng = "sng"
+    
 # TODO: Tell story top-down following newspaper metaphor
 
 # TODO: Rename Spread to ChrmSpread
@@ -179,16 +183,14 @@ class Spread:
 
         return spread
 
-    def c0_spread(self, spread_str: SpreadType) -> np.ndarray:
-        if spread_str == "mean7":
-            return self._mean_of_7()
-        elif spread_str == "mean_cover":
-            return self._mean_of_covering_seq()
-        elif spread_str == "weighted":
-            return self._weighted_covering_seq()
-        elif spread_str == "single":
-            return self._from_single_seq()
-
+    def c0_spread(self, sprd: C0Spread) -> np.ndarray:
+        d = {
+            C0Spread.mean7: self._mean_of_7,
+            C0Spread.mcvr: self._mean_of_covering_seq,
+            C0Spread.wt: self._weighted_covering_seq,
+            C0Spread.sng: self._from_single_seq,
+        } 
+        return d[sprd]()
 
 class ChrmCalc:
     @classmethod
@@ -225,7 +227,7 @@ class Chromosome:
         self,
         id: Union[YeastChrNum, Literal["VL"]],
         prediction: Prediction | None = None,
-        spread_str: SpreadType = "mean7",
+        spread_str: C0Spread = "mean7",
     ):
         """
         Create a Chromosome object
@@ -249,7 +251,7 @@ class Chromosome:
         self._seq = None
 
     def __str__(self):
-        return f"s_{self.spread_str}_m_{self.predict_model_no()}_{self.id}"
+        return f"chrm_s_{self.spread_str}_m_{self.predict_model_no()}_{self.id}"
 
     @property
     def mean_c0(self):
@@ -393,12 +395,12 @@ class Chromosome:
 
     # TODO: Make spread, predict model no -> property
     def c0_spread(self) -> np.ndarray:
-        if not hasattr(self, "_c0_spread"):
-            self._c0_spread = Spread(
+        def _c0():
+            return Spread(
                 self._df["C0"].values, self.id, self.predict_model_no()
             ).c0_spread(self.spread_str)
-
-        return self._c0_spread
+        
+        return Attr.calc_attr(self, "_c0_spread", _c0)
 
     def predict_model_no(self) -> int:
         return self._prediction._model_no if self.id != "VL" else None
