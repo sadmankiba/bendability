@@ -212,7 +212,7 @@ class Linkers(Regions):
         return df
 
     def ndrs(self, len: int = 80) -> Linkers:
-        return self.len_at_least(len)
+        return self.len_in(mn=len)
 
 
 class PlotLinkers:

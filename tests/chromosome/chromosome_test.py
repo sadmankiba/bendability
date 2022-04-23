@@ -2,6 +2,7 @@ import unittest
 import time
 
 import numpy as np
+import pytest
 
 from chromosome.chromosome import Chromosome, ChrmCalc, Spread
 from util.reader import DNASequenceReader
@@ -41,6 +42,7 @@ class TestSpread:
         spread = Spread(chrm_vl._df["C0"].to_numpy(), chrm_vl.id)
         spread_c0 = spread._mean_of_covering_seq()
         assert spread_c0.shape == (CHRV_TOTAL_BP,)
+        assert spread_c0[48:51] == pytest.approx([-0.11, -0.1641, -0.1777], abs=1e-4) 
 
         samples = spread_c0[np.random.randint(0, CHRVL_LEN - 1, 100)]
         assert np.all(samples < 2.5)

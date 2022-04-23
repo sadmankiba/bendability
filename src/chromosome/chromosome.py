@@ -103,29 +103,22 @@ class Spread:
 
     def _mean_of_covering_seq(self) -> np.ndarray:
         """Determine C0 at each bp by average of covering 50-bp sequences around"""
-        # TODO: HOF to wrap check and save data?
-        saved_data = Path(
-            f"{PathObtain.data_dir()}/generated_data/spread/spread_c0_balanced_{self.id}_m_{self._model_no}.tsv"
-        )
-        if saved_data.is_file():
-            return pd.read_csv(saved_data, sep="\t")["c0_balanced"].to_numpy()
 
-        def balanced_c0_at(pos) -> float:
+        def _balanced_c0_at(pos) -> float:
             seq_indices = self._covering_sequences_at(pos) - 1
             return self._seq_c0_res7[seq_indices].mean()
 
-        t = time.time()
-        res = np.array(list(map(balanced_c0_at, np.arange(self.total_bp) + 1)))
-        print("Calculation of spread c0 balanced:", time.time() - t, "seconds.")
+        def _c0_of_cover() -> pd.DataFrame:
+            t = time.time()
+            res = np.array(list(map(_balanced_c0_at, np.arange(self.total_bp) + 1)))
+            print("Calculation of spread c0 balanced:", time.time() - t, "seconds.")
+            return pd.DataFrame(
+                {"position": np.arange(self.total_bp) + 1, "c0_balanced": res}
+            )
 
-        # Save data
-        if not saved_data.parents[0].is_dir():
-            saved_data.parents[0].mkdir(parents=True, exist_ok=True)
-        pd.DataFrame(
-            {"position": np.arange(self.total_bp) + 1, "c0_balanced": res}
-        ).to_csv(saved_data, sep="\t", index=False)
-
-        return res
+        return DataCache.calc_df_tsv(
+            f"spread/spread_c0_balanced_{self.id}_m_{self._model_no}.tsv", _c0_of_cover
+        )["c0_balanced"].to_numpy()
 
     def _weighted_covering_seq(self) -> np.ndarray:
         """Determine C0 at each bp by weighted average of covering 50-bp sequences around"""

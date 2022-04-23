@@ -10,7 +10,7 @@ from nptyping import NDArray
 
 from chromosome.chromosome import ChrmOperator, Chromosome, PlotChrm
 from util.util import Attr, FileSave, NumpyTool, PlotUtil
-from util.constants import ONE_INDEX_START
+from util.constants import ONE_INDEX_START, MAX_TOTAL_BP
 from util.custom_types import PosOneIdx, NonNegativeInt, PositiveInt
 
 RegionsInternal = pd.DataFrame
@@ -103,6 +103,11 @@ class Regions:
             )
 
         return Attr.calc_attr(self, "_cvrmask", calc_cvrmask)
+
+    def c0(self) -> list[NDArray[(Any,), float]]:
+        return [
+            ChrmOperator(self.chrm).c0(s, e) for s, e in zip(self[START], self[END])
+        ]
 
     def complement(self) -> RegionsInternal:
         if self._uniform_len():
@@ -232,8 +237,8 @@ class Regions:
             )
         )
 
-    def len_at_least(self, len: int) -> Regions:
-        return self._new(self._regions.query(f"{LEN} >= {len}"))
+    def len_in(self, mn: int = 0, mx: int = MAX_TOTAL_BP) -> Regions:
+        return self._new(self._regions.query(f"{mn} <= {LEN} <= {mx}"))
 
     def save_regions(self, fname: str = None) -> Path:
         return FileSave.tsv_gdatadir(

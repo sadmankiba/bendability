@@ -10,6 +10,7 @@ from chromosome.crossregions import (
     LinePlot,
     PlotPrmtrsBndrs,
     ScatterPlot,
+    SegmentLineC0Plot
 )
 from chromosome.genes import Promoters
 from conformation.domains import BoundariesHE, BoundariesType
@@ -99,6 +100,10 @@ class TestLineC0Plot:
             (21, 0.04),
         ]
 
+class TestSegmentLineC0Plot:
+    def test_sl_lnkrs(self, chrm_vl_mean7):
+        sl = SegmentLineC0Plot(chrm_vl_mean7)
+        assert sl.sl_lnkrs().is_file()
 
 class TestLinePlot:
     def test_dinc_content_bndrs(self, chrm_vl_mean7: Chromosome):

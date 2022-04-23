@@ -318,7 +318,7 @@ class DataCache:
         np.save(Path(f"{PathObtain.gen_data_dir()}/{subpath}"), arr)
 
     @classmethod
-    def calc_df_tsv(self, subpath: str | Path, cb: Callable):
+    def calc_df_tsv(self, subpath: str | Path, cb: Callable[list, pd.DataFrame]):
         savepath = Path(f"{PathObtain.gen_data_dir()}/{subpath}")
         if savepath.is_file():
             return pd.read_csv(savepath, sep="\t")

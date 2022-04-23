@@ -13,17 +13,14 @@ import pandas as pd
 import numpy as np
 from cairosvg import svg2png
 from scipy.ndimage import gaussian_filter1d
+from skimage.transform import resize
 from nptyping import NDArray
 
-from chromosome.chromosome import PlotChrm, ChrmOperator
-from util.kmer import KMer
-from chromosome.genes import Genes
+from chromosome.chromosome import PlotChrm, ChrmOperator, Chromosome
+from chromosome.genes import Genes, Promoters, STRAND
+from chromosome.regions import END, MIDDLE, START, LEN, MEAN_C0, Regions
+from chromosome.nucleosomes import Linkers, Nucleosomes
 from motif.motifs import MotifsM30
-from util.constants import SEQ_LEN, FigSubDir, ONE_INDEX_START
-from .chromosome import Chromosome
-from chromosome.regions import END, MIDDLE, START
-from .genes import Promoters, STRAND
-from .nucleosomes import Linkers, Nucleosomes
 from conformation.domains import (
     BndParmT,
     BoundariesHE,
@@ -35,10 +32,11 @@ from conformation.domains import (
     BndSel,
 )
 from conformation.loops import LoopAnchors, LoopInsides
-from .regions import LEN, MEAN_C0, Regions
 from feature_model.helsep import DincUtil, HelSep, SEQ_COL
 from util.util import Attr, PathObtain, PlotUtil, FileSave
 from util.custom_types import PosOneIdx, KMerSeq
+from util.kmer import KMer
+from util.constants import SEQ_LEN, FigSubDir, ONE_INDEX_START
 
 
 class SubRegions:
@@ -227,7 +225,7 @@ class DistribPlot:
                     Distrib.NDRS_NB,
                 ]
             ),
-            "title": "", # "Mean C0 distribution of boundaries, nucleosomes and NDRS",
+            "title": "",  # "Mean C0 distribution of boundaries, nucleosomes and NDRS",
             "fname": f"bndrs_nucs_{sr.bndrs}_{typ}_chrm_{sr.chrm}.png",
         }
         grp_bndrs_prmtrs = {
@@ -248,7 +246,7 @@ class DistribPlot:
         return self.box_mean_c0(grp_bndrs_nucs, typ)
 
     @classmethod
-    def box_mean_c0(cls, grp: dict, typ: Literal["box"] | Literal["violin"]="box"):
+    def box_mean_c0(cls, grp: dict, typ: Literal["box"] | Literal["violin"] = "box"):
         limy = False
         PlotUtil.font_size(14)
         PlotUtil.show_grid()
@@ -260,14 +258,10 @@ class DistribPlot:
             plt.boxplot(distribs, showfliers=True, widths=0.5)
         elif typ == "violin":
             ax.violinplot(distribs, showmedians=True, showextrema=True)
-        
+
         if limy:
             plt.ylim(-0.5, 0.1)
-        plt.xticks(
-            ticks=range(1, len(labels) + 1),
-            labels=labels,
-            wrap=True
-        )
+        plt.xticks(ticks=range(1, len(labels) + 1), labels=labels, wrap=True)
         plt.ylabel("Mean C0")
         plt.title(grp["title"])
         return FileSave.figure_in_figdir(
@@ -818,11 +812,30 @@ class LineC0Plot:
 class SegmentLineC0Plot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
-    
-    def sl_ndrs(self):
+
+    def sl_lnkrs(self):
         sr = SubRegions(self._chrm)
-        sr.linkers
-    pass
+        sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+        lnks = [sr.lnkrs.len_in(mn=l, mx=l + 20 - 1) for l in (11, 31, 51, 71)]
+        lnksb = [lnk.mid_contained_in(sr.bndrs) for lnk in lnks]
+        lnksd = [lnk - lnkb for lnk, lnkb in zip(lnks, lnksb)]
+        lnksbc0 = [
+            np.array([resize(c0_arr, (101,)) for c0_arr in lnkb.c0()]).mean(axis=0)
+            for lnkb in lnksb
+        ]
+        lnksdc0 = [
+            np.array([resize(c0_arr, (101,)) for c0_arr in lnkd.c0()]).mean(axis=0)
+            for lnkd in lnksd
+        ]
+        fig, ax = plt.subplots(4, 2)
+        for i in range(4):
+            ax[i][0].plot(lnksbc0[i])
+            ax[i][1].plot(lnksdc0[i])
+
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.CROSSREGIONS}/linkers/lnkrs_c0_segm_bndrs_dmns_chrV.png"
+        )
+
 
 RIGID_PAIRS = [
     ("GC", "TT"),
