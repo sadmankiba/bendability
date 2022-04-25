@@ -11,6 +11,7 @@ from nptyping import NDArray
 
 from chromosome.chromosome import Chromosome, MultiChrm, PlotChrm
 from chromosome.genes import Promoters
+from chromosome.nucleosomes import Linkers
 from chromosome.regions import Regions, RegionsInternal, START, END, MEAN_C0, MIDDLE
 from models.prediction import Prediction
 from util.util import FileSave, PlotUtil, PathObtain, Attr
@@ -46,6 +47,32 @@ class Boundaries(Regions):
 
     def fig_subdir(self):
         return f"{FigSubDir.BOUNDARIES}/{self.chrm.id}_{str(self)}"
+    
+    def nearest_loc(self, locs: Iterable[PosOneIdx]) -> NDArray:
+        locs = sorted(locs)
+        return np.array(
+            [self._nearest_loc(getattr(bndry, MIDDLE), locs) for bndry in self]
+        )
+
+    def nearest_locs_distnc(self, locs: Iterable[PosOneIdx]) -> NDArray[(Any,), float]:
+        locs = sorted(locs)
+        distncs = []
+        for bndry in self:
+            mid = getattr(bndry, MIDDLE)
+            distncs.append(abs(mid - self._nearest_loc(mid, locs)))
+
+        return np.array(distncs)
+
+    def _nearest_loc(self, frm: PosOneIdx, locs: Iterable[PosOneIdx]):
+        min_dst = self.chrm.total_bp
+        for loc in locs:
+            dst = loc - frm
+            if abs(dst) > abs(min_dst):
+                break
+            if abs(dst) < abs(min_dst):
+                min_dst = dst
+
+        return frm + min_dst
 
 
 class BoundariesHE(Boundaries):
@@ -103,21 +130,6 @@ class BoundariesHE(Boundaries):
             score_perc=self.score_perc,
             regions=rgns,
         )
-
-    def nearest_locs_distnc(self, locs: Iterable[PosOneIdx]) -> NDArray[(Any,), float]:
-        locs = sorted(locs)
-        distncs = []
-        for bndry in self:
-            min_dst = self.chrm.total_bp
-            for loc in locs:
-                dst = loc - getattr(bndry, MIDDLE)
-                if abs(dst) > abs(min_dst):
-                    break
-                if abs(dst) < abs(min_dst):
-                    min_dst = dst
-            distncs.append(min_dst)
-
-        return np.array(distncs)
 
     def prmtr_bndrs(self) -> BoundariesHE:
         prmtrs = Promoters(self.chrm)
@@ -215,9 +227,41 @@ class DomainsF(Regions):
         return DomainsF(bndrs=self._bndrs, regions=regions)
 
 
+class BoundariesFN(Boundaries):
+    def __init__(
+        self,
+        chrm: Chromosome,
+        lim: int = 100,
+        top_perc: ZeroToOne = 1.0,
+        regions: RegionsInternal = None,
+    ):
+        self._res = 200
+        self._lim = lim
+        self._top_perc = top_perc
+        self._bndrsf = BoundariesF(chrm, lim, top_perc, regions)
+        super().__init__(chrm, regions)
+    
+    def __str__(self):
+        return f"bfn_{str(self._bndrsf)}"
+
+    def _get_regions(self):
+        ndrs = Linkers(self.chrm).ndrs(20)
+        new_mids = self._bndrsf.nearest_loc(ndrs[MIDDLE])
+        df = pd.DataFrame({SCORE: self._bndrsf[SCORE]})
+        df = df.loc[df[MIDDLE] != None]
+        df[START], df[END] = new_mids - self._lim, new_mids + self._lim
+        return df
+    
+    def _new(self, regions: RegionsInternal) -> BoundariesFN:
+        return BoundariesFN(
+            chrm=self.chrm, lim=self._lim, top_perc=self._top_perc, regions=regions
+        )
+
+
 class BoundariesType(Enum):
     HEXP = auto()
     FANC = auto()
+    FANCN = auto()
 
 
 @dataclass
@@ -231,10 +275,12 @@ class BoundariesFactory:
         self._chrm = chrm
 
     def get_bndrs(self, bsel: BndSel) -> Boundaries:
-        if bsel.typ == BoundariesType.HEXP:
-            return BoundariesHE(self._chrm, **bsel.parm)
-        elif bsel.typ == BoundariesType.FANC:
-            return BoundariesF(self._chrm, **bsel.parm)
+        d = {
+            BoundariesType.HEXP: BoundariesHE(self._chrm, **bsel.parm),
+            BoundariesType.FANC: BoundariesF(self._chrm, **bsel.parm),
+            BoundariesType.FANCN: BoundariesFN(self._chrm, **bsel.parm)
+        }
+        return d[bsel]
 
 
 class PlotBoundariesHE:

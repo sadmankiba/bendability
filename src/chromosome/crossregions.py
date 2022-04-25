@@ -628,7 +628,7 @@ class LineC0Plot:
         show_legend = False
         smooth = False
         sr = SubRegions(self._chrm)
-        sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+        sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50)
         C0MeanArr = namedtuple("C0MeanArr", ["val", "label"])
         c0m_bndrs = C0MeanArr(
             self._chrm.mean_c0_around_bps(sr.bndrs[MIDDLE], pltlim, pltlim), "all"
