@@ -13,8 +13,9 @@ class ModelParams6and30(TypedDict, total=False):
     loss_func: str
     optimizer: str
 
+
 class ModelParams35(TypedDict, total=False):
-    filters_0: int 
+    filters_0: int
     filters_1: int
     kernel_size_0: int
     kernel_size_1: int
@@ -30,12 +31,12 @@ class ModelParams35(TypedDict, total=False):
 class ParamsReader:
     def __init__(self, model_no: int) -> None:
         self._model_no = model_no
-    
+
     # TODO: Use .ini for parameters
     def get_parameters(self, file_name: str) -> ModelParams6and30 | ModelParams35:
-        if self._model_no == 6 or self._model_no == 30: 
+        if self._model_no == 6 or self._model_no == 30:
             dict = ModelParams6and30()
-        elif self._model_no == 35: 
+        elif self._model_no == 35:
             dict = ModelParams35()
 
         with open(file_name) as f:
@@ -47,13 +48,13 @@ class ParamsReader:
         if self._model_no == 6 or self._model_no == 30:
             dict["filters"] = int(dict["filters"])
             dict["kernel_size"] = int(dict["kernel_size"])
-        elif self._model_no == 35: 
+        elif self._model_no == 35:
             dict["filters_0"] = int(dict["filters_0"])
             dict["filters_1"] = int(dict["filters_1"])
             dict["kernel_size_0"] = int(dict["kernel_size_0"])
             dict["kernel_size_1"] = int(dict["kernel_size_1"])
             dict["alpha"] = float(dict["alpha"])
-        
+
         dict["epochs"] = int(dict["epochs"])
         dict["batch_size"] = int(dict["batch_size"])
 

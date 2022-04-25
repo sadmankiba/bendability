@@ -15,9 +15,11 @@ def chrm_vl():
 def chrm_vl_mean7():
     return Chromosome("VL", spread_str="mean7")
 
+
 @pytest.fixture
 def chrm_vl_mcvr():
     return Chromosome("VL", spread_str=C0Spread.mcvr)
+
 
 @pytest.fixture
 def chrm_i():

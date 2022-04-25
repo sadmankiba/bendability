@@ -10,7 +10,7 @@ from chromosome.crossregions import (
     LinePlot,
     PlotPrmtrsBndrs,
     ScatterPlot,
-    SegmentLineC0Plot
+    SegmentLineC0Plot,
 )
 from chromosome.genes import Promoters
 from conformation.domains import BoundariesHE, BoundariesType
@@ -40,8 +40,8 @@ class TestDistribPlot:
                 "dls": [([2, 3, 6], "a"), ([7, 3, 8], "b")],
                 "title": "test",
                 "fname": "test.png",
-            }, 
-            "violin"
+            },
+            "violin",
         )
 
     def test_prob_distrib_mean_c0_bndrs(self, crplt_vl: DistribPlot):
@@ -100,10 +100,12 @@ class TestLineC0Plot:
             (21, 0.04),
         ]
 
+
 class TestSegmentLineC0Plot:
     def test_sl_lnkrs(self, chrm_vl_mcvr):
         sl = SegmentLineC0Plot(chrm_vl_mcvr)
         assert sl.sl_lnkrs().is_file()
+
 
 class TestLinePlot:
     def test_dinc_content_bndrs(self, chrm_vl_mean7: Chromosome):

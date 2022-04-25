@@ -242,8 +242,12 @@ class PathObtain:
 
 class FileSave:
     @classmethod
-    def figure_in_figdir(cls, path_str: str | Path, sizew=12, sizeh=6, **kwargs) -> Path:
-        return cls.figure(Path(f"{PathObtain.figure_dir()}/{path_str}"), sizew, sizeh, **kwargs)
+    def figure_in_figdir(
+        cls, path_str: str | Path, sizew=12, sizeh=6, **kwargs
+    ) -> Path:
+        return cls.figure(
+            Path(f"{PathObtain.figure_dir()}/{path_str}"), sizew, sizeh, **kwargs
+        )
 
     @classmethod
     def figure(cls, path_str: str | Path, sizew, sizeh, **kwargs) -> Path:
@@ -329,9 +333,9 @@ class DataCache:
 
 
 class PlotUtil:
-    @classmethod 
+    @classmethod
     def font_size(cls, size: int):
-        mpl.rcParams.update({'font.size': size})
+        mpl.rcParams.update({"font.size": size})
 
     @classmethod
     def prob_distrib(cls, var: Iterable, label=None):
@@ -498,7 +502,7 @@ class PlotUtil:
 
 
 class NumpyTool:
-    @classmethod 
+    @classmethod
     def set_precision(cls, i: int):
         np.set_printoptions(threshold=sys.maxsize, precision=i, suppress=True)
 

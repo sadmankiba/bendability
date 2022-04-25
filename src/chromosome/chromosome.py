@@ -17,12 +17,14 @@ from util.constants import CHRVL, SEQ_LEN, ChrIdList
 from util.custom_types import ChrId, PosOneIdx, YeastChrNum, PositiveInt, C0
 from util.util import Attr, DataCache, FileSave, PathObtain, PlotUtil
 
+
 class C0Spread:
     mean7 = "mean7"
     mcvr = "mcvr"
     wt = "wt"
     sng = "sng"
-    
+
+
 # TODO: Tell story top-down following newspaper metaphor
 
 # TODO: Rename Spread to ChrmSpread
@@ -189,8 +191,9 @@ class Spread:
             C0Spread.mcvr: self._mean_of_covering_seq,
             C0Spread.wt: self._weighted_covering_seq,
             C0Spread.sng: self._from_single_seq,
-        } 
+        }
         return d[sprd]()
+
 
 class ChrmCalc:
     @classmethod
@@ -399,7 +402,7 @@ class Chromosome:
             return Spread(
                 self._df["C0"].values, self.id, self.predict_model_no()
             ).c0_spread(self.spread_str)
-        
+
         return Attr.calc_attr(self, "_c0_spread", _c0)
 
     def predict_model_no(self) -> int:

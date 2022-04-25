@@ -4,7 +4,7 @@ import time
 from pathlib import Path
 from typing import Union
 
-import tensorflow as tf 
+import tensorflow as tf
 import keras
 import pandas as pd
 import numpy as np
@@ -70,27 +70,30 @@ class Prediction:
         return predict_df
 
     def predict(
-        self, df: pd.DataFrame[SEQ_NUM_COL:int, SEQ_COL:str, C0_COL:float], print_metrics=False, plot_scatter=False
+        self,
+        df: pd.DataFrame[SEQ_NUM_COL:int, SEQ_COL:str, C0_COL:float],
+        print_metrics=False,
+        plot_scatter=False,
     ) -> pd.DataFrame[SEQ_NUM_COL:int, SEQ_COL:str, C0_PREDICT:float]:
         prep = Preprocess(df)
         data = prep.one_hot_encode()
-        
+
         y_pred = self._model.predict(
             {"forward": data["forward"], "reverse": data["reverse"]}, verbose=1
         ).flatten()
-        
+
         if C0_COL in df.columns:
             y = df[C0_COL].to_numpy()
             if print_metrics:
                 print("r2 score:", r2_score(y, y_pred))
                 print("Pearson's correlation:", pearsonr(y, y_pred)[0])
                 print("Spearman's correlation: ", spearmanr(y, y_pred)[0])
-        
+
         if plot_scatter:
             self._plot_scatter(df)
 
         return df.assign(c0_predict=y_pred)
-    
+
     def check_performance(self, df: pd.DataFrame) -> None:
         """
         Check model performance on a sequence library and return predicted values.
@@ -117,7 +120,7 @@ class Prediction:
         dim_num = (-1, 50, 4)
 
         if self._model_no == 35:
-            nn = NNModel(hyperparameters=params) 
+            nn = NNModel(hyperparameters=params)
         elif self._model_no == 6 or self._model_no == 30:
             nn = NNModel(dim_num=dim_num, **params)
         model = nn.create_model()
@@ -157,6 +160,7 @@ class Prediction:
 
         with open(f"{PathObtain.figure_dir()}/scatter.png", "w") as f:
             print(p, file=f)
+
 
 def save_kernel_weights_logos(model):
     with open("kernel_weights/6", "w") as f:
@@ -233,4 +237,3 @@ def save_kernel_weights_logos(model):
                 plt.savefig(
                     "logos/l6/logo" + str(layer_num) + "_" + str(i) + ".png", dpi=50
                 )
-

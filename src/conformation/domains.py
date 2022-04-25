@@ -47,7 +47,7 @@ class Boundaries(Regions):
 
     def fig_subdir(self):
         return f"{FigSubDir.BOUNDARIES}/{self.chrm.id}_{str(self)}"
-    
+
     def nearest_loc(self, locs: Iterable[PosOneIdx]) -> NDArray:
         locs = sorted(locs)
         return np.array(
@@ -240,7 +240,7 @@ class BoundariesFN(Boundaries):
         self._top_perc = top_perc
         self._bndrsf = BoundariesF(chrm, lim, top_perc, regions)
         super().__init__(chrm, regions)
-    
+
     def __str__(self):
         return f"bfn_{str(self._bndrsf)}"
 
@@ -250,7 +250,7 @@ class BoundariesFN(Boundaries):
         df = pd.DataFrame({SCORE: self._bndrsf[SCORE], MIDDLE: new_mids})
         df[START], df[END] = new_mids - self._lim, new_mids + self._lim
         return df
-    
+
     def _new(self, regions: RegionsInternal) -> BoundariesFN:
         return BoundariesFN(
             chrm=self.chrm, lim=self._lim, top_perc=self._top_perc, regions=regions
@@ -273,14 +273,14 @@ class BoundariesFactory:
     def __init__(self, chrm: Chromosome):
         self._chrm = chrm
 
-    def get_bndrs(self, bsel: BndSel) -> Boundaries:        
+    def get_bndrs(self, bsel: BndSel) -> Boundaries:
         if bsel.typ == BoundariesType.HEXP:
             B = BoundariesHE
         elif bsel.typ == BoundariesType.FANC:
             B = BoundariesF
         elif bsel.typ == BoundariesType.FANCN:
             B = BoundariesFN
-        
+
         return B(self._chrm, **(bsel.parm))
 
 

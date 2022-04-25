@@ -57,7 +57,7 @@ class TestPrediction:
     def test_predict_model35(self):
         df = DNASequenceReader().get_processed_data()[CNL].iloc[:10]
         result_df = Prediction(35).predict(df)
-        
+
         assert_almost_equal(
             np.round(result_df[C0_PREDICT], 3).tolist(),
             [

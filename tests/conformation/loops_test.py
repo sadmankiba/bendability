@@ -4,7 +4,14 @@ import pandas as pd
 import pytest
 
 from util.constants import CHRV_TOTAL_BP
-from conformation.loops import LoopReader, Loops, PlotLoops, LoopAnchors, COL_START, LoopInsides
+from conformation.loops import (
+    LoopReader,
+    Loops,
+    PlotLoops,
+    LoopAnchors,
+    COL_START,
+    LoopInsides,
+)
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
 
@@ -38,6 +45,7 @@ class TestLoopInsides:
             ancrs_vl.chrm.mean_c0, abs=1e-3
         )
 
+
 class TestLoopReader:
     def test_read_loops(self):
         lpr = LoopReader(Chromosome("VL", None))
@@ -47,7 +55,8 @@ class TestLoopReader:
         # Count number of lines in bedpe file
         s = subprocess.check_output(["wc", "-l", lpr._loop_file])
         assert len(df) == int(s.split()[0]) - 2
-    
+
+
 class TestLoops:
     def test_len(self):
         loops = Loops(Chromosome("VL", None))

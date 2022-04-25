@@ -12,7 +12,7 @@ from tensorflow.keras.layers import (
     ReLU,
     Maximum,
     Dropout,
-    Lambda
+    Lambda,
 )
 from tensorflow.keras import backend as K
 from tensorflow.keras import regularizers, optimizers
@@ -226,39 +226,49 @@ class Loss:
     def coeff_determination_loss(self, y_true, y_pred):
         return 1 - Metrics.coeff_determination(y_true, y_pred)
 
+
 def coeff_determination(y_true, y_pred):
-    SS_res = K.sum(K.square(y_true-y_pred))
+    SS_res = K.sum(K.square(y_true - y_pred))
     SS_tot = K.sum(K.square(y_true - K.mean(y_true)))
-    return (1 - SS_res/(SS_tot + K.epsilon()))
+    return 1 - SS_res / (SS_tot + K.epsilon())
+
 
 def spearman_fn(y_true, y_pred):
-    return tf.py_function(spearmanr, [tf.cast(y_pred, tf.float32),
-                                        tf.cast(y_true, tf.float32)], Tout=tf.float32)
+    return tf.py_function(
+        spearmanr,
+        [tf.cast(y_pred, tf.float32), tf.cast(y_true, tf.float32)],
+        Tout=tf.float32,
+    )
+
 
 def coeff_determination_loss(y_true, y_pred):
     return 1 - coeff_determination(y_true, y_pred)
 
+
 def get_loss(loss_name: str):
-    if loss_name == 'mse':
-        return 'mean_squared_error'
-    elif loss_name == 'coeff_determination':
+    if loss_name == "mse":
+        return "mean_squared_error"
+    elif loss_name == "coeff_determination":
         return coeff_determination_loss
-    elif loss_name == 'huber':
+    elif loss_name == "huber":
         return tf.keras.losses.Huber(delta=1)
-    elif loss_name == 'mae':
+    elif loss_name == "mae":
         return tf.keras.losses.MeanAbsoluteError()
-    elif loss_name == 'rank_mse':
-        return 'rank_mse'
-    elif loss_name == 'poisson':
+    elif loss_name == "rank_mse":
+        return "rank_mse"
+    elif loss_name == "poisson":
         return tf.keras.losses.Poisson()
     else:
-        raise NameError('Unrecognized Loss Function')
+        raise NameError("Unrecognized Loss Function")
+
 
 # TODO: Use Gradio
 
+
 class CNNModel:
     def create_model(self) -> keras.Model:
-        pass 
+        pass
+
 
 class CNNModel6(CNNModel):
     def __init__(

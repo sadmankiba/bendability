@@ -633,11 +633,15 @@ class LineC0Plot:
             self._chrm.mean_c0_around_bps(self._sr.bndrs[MIDDLE], pltlim, pltlim), "all"
         )
         c0m_bndrs_p = C0MeanArr(
-            self._chrm.mean_c0_around_bps(self._sr.prmtr_bndrs()[MIDDLE], pltlim, pltlim),
+            self._chrm.mean_c0_around_bps(
+                self._sr.prmtr_bndrs()[MIDDLE], pltlim, pltlim
+            ),
             "bndrs_p",
         )
         c0m_bndrs_np = C0MeanArr(
-            self._chrm.mean_c0_around_bps(self._sr.non_prmtr_bndrs()[MIDDLE], pltlim, pltlim),
+            self._chrm.mean_c0_around_bps(
+                self._sr.non_prmtr_bndrs()[MIDDLE], pltlim, pltlim
+            ),
             "bndrs_np",
         )
 
@@ -823,7 +827,7 @@ class SegmentLineC0Plot:
     def sl_lnkrs(self):
         sr = SubRegions(self._chrm)
         sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
-        lnks = [sr.lnkrs.len_in(mn=l, mx=l + 20 - 1) for l in (11, 31, 51, 71)]
+        lnks = [sr.lnkrs.len_in(mn=st, mx=st + 20 - 1) for st in (11, 31, 51, 71)]
         lnksb = [lnk.mid_contained_in(sr.bndrs) for lnk in lnks]
         lnksd = [lnk - lnkb for lnk, lnkb in zip(lnks, lnksb)]
         lnksbc0 = [
