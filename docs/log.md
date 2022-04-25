@@ -3,7 +3,8 @@
 ## Daily Log
 | Date | Work | 
 |------|------|
-| 23/04| TODO: Show NDR line C0 in boundaries and domains with partitions. |
+| 25/04| Check line C0 at boundaries |
+| 23/04| Show NDR line C0 in boundaries and domains with partitions. |
 | 01/03| Sorted motifs by enrichment and de-enrichment in boundaries | 
 | 27/02| Among ML models, best prediction by liner model with l2 regularization, Ridge | 
 | 8/02 | Bndry NDR more bendable. Contributing Kmer distrib in bndry not clear. Helsep refactored. |
@@ -13,6 +14,10 @@
 ## Weekly Log
 
 **Apr 23 - Apr 27**
+Results 
+- NDR line inconsistent in small 2 ranges (11-30, 31-50) in boundaries and domains. 
+- NDR line seemed rigid in big 2 ranges (51-70, 71-90). This is also less consistent. 
+
 TO-DO
 - Clarify bendability at NDRs. 
 - Clarify why is our found motifs better?

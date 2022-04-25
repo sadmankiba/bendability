@@ -76,7 +76,7 @@ class Prediction:
         data = prep.one_hot_encode()
         
         y_pred = self._model.predict(
-            {"forward": data["forward"], "reverse": data["reverse"]}
+            {"forward": data["forward"], "reverse": data["reverse"]}, verbose=1
         ).flatten()
         
         if C0_COL in df.columns:

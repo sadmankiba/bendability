@@ -669,7 +669,7 @@ class LineC0Plot:
     def line_c0_bndrs_indiv_toppings(self, btype: BoundariesType) -> None:
         bparm = BndParm.HIRS_WD if btype == BoundariesType.HEXP else BndFParm.WD_25
         sr = SubRegions(self._chrm)
-        sr.bsel = BndSel(btype, bparm)
+        sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
         for bndrs, pstr in zip(
             [sr.prmtr_bndrs(), sr.non_prmtr_bndrs()], ["prmtr", "nonprmtr"]
         ):
@@ -679,13 +679,13 @@ class LineC0Plot:
     def _line_c0_bndry_indiv_toppings(
         self, bndry: pd.Series, bstr: str, pstr: str
     ) -> Path:
-        self.line_c0_toppings(getattr(bndry, START), getattr(bndry, END), save=False)
+        self.line_c0_toppings(getattr(bndry, START) - 100, getattr(bndry, END) + 100, save=False)
         plt.title(
             f"C0 around {pstr} boundary at {getattr(bndry, MIDDLE)} bp of chrm {self._chrm.id}"
         )
         return FileSave.figure_in_figdir(
             f"{FigSubDir.BOUNDARIES}/{self._chrm.id}_{bstr}/"
-            f"bndry_{pstr}_{getattr(bndry, START)}_{getattr(bndry, END)}_score_"
+            f"bndry_{pstr}_{getattr(bndry, START)}_{getattr(bndry, END)}_{self._chrm}_score_"
             f"{round(getattr(bndry, SCORE), 2)}.png"
         )
 
@@ -741,10 +741,9 @@ class LineC0Plot:
                 plt.gca().add_patch(ellipse)
 
         def _bndrs(mids: pd.Series, scr: pd.Series, clr: str) -> None:
-            strngth = 1 - scr
-            wb = 150
+            wb = 50
             hb = 0.1
-            for m, s in zip(mids, strngth):
+            for m, s in zip(mids, scr):
                 points = [
                     [m - wb * s, gnd + hb * s],
                     [m, gnd],
@@ -776,10 +775,12 @@ class LineC0Plot:
         PlotUtil.show_grid(which="both")
         pltchrm = PlotChrm(self._chrm)
         pltchrm.line_c0(start, end)
-        dyads = Nucleosomes(self._chrm)[MIDDLE]
-        genes = Genes(self._chrm)
-        bndrs = BoundariesHE(self._chrm, res=200, score_perc=0.5)
-        lng_lnkers = Linkers(self._chrm).ndrs(40)
+        sr = SubRegions(self._chrm)
+        sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+        dyads = sr.nucs[MIDDLE]
+        genes = sr.genes
+        bndrs = sr.bndrs
+        lng_lnkers = sr.ndrs
 
         colors = ["tab:orange", "tab:brown", "tab:purple", "tab:green"]
         labels = ["nuc", "bndrs", "tss", "lng lnk"]
