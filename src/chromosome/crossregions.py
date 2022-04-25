@@ -622,6 +622,7 @@ class ScatterPlot:
 class LineC0Plot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
+        self._sr = SubRegions(self._chrm)
 
     def line_c0_mean_bndrs(self, pltlim=100):
         show_legend = False
@@ -668,10 +669,9 @@ class LineC0Plot:
 
     def line_c0_bndrs_indiv_toppings(self, btype: BoundariesType) -> None:
         bparm = BndParm.HIRS_WD if btype == BoundariesType.HEXP else BndFParm.WD_25
-        sr = SubRegions(self._chrm)
-        sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+        self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
         for bndrs, pstr in zip(
-            [sr.prmtr_bndrs(), sr.non_prmtr_bndrs()], ["prmtr", "nonprmtr"]
+            [self._sr.prmtr_bndrs(), self._sr.non_prmtr_bndrs()], ["prmtr", "nonprmtr"]
         ):
             for bndry in bndrs:
                 self._line_c0_bndry_indiv_toppings(bndry, str(bndrs), pstr)
@@ -679,7 +679,9 @@ class LineC0Plot:
     def _line_c0_bndry_indiv_toppings(
         self, bndry: pd.Series, bstr: str, pstr: str
     ) -> Path:
-        self.line_c0_toppings(getattr(bndry, START) - 100, getattr(bndry, END) + 100, save=False)
+        self.line_c0_toppings(
+            getattr(bndry, START) - 100, getattr(bndry, END) + 100, save=False
+        )
         plt.title(
             f"C0 around {pstr} boundary at {getattr(bndry, MIDDLE)} bp of chrm {self._chrm.id}"
         )
@@ -701,6 +703,17 @@ class LineC0Plot:
         return FileSave.figure_in_figdir(
             f"{FigSubDir.PROMOTERS}/{self._chrm.id}/"
             f"{fr}_{getattr(prmtr, START)}_{getattr(prmtr, END)}.png"
+        )
+
+    def line_c0_lpancs_indiv_toppings(self) -> None:
+        for lpanc in self._sr.lpancrs:
+            self._line_c0_lpancs_indiv_toppings(lpanc, str(self._sr.lpancrs))
+
+    def _line_c0_lpancs_indiv_toppings(self, lpanc: pd.Series, lpstr: str) -> Path:
+        self.line_c0_toppings(getattr(lpanc, START), getattr(lpanc, END), save=False)
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.LOOP_ANCHORS}/{self._chrm}_{lpstr}/"
+            f"{getattr(lpanc, START)}_{getattr(lpanc, END)}.png"
         )
 
     def line_c0_toppings(
@@ -775,12 +788,10 @@ class LineC0Plot:
         PlotUtil.show_grid(which="both")
         pltchrm = PlotChrm(self._chrm)
         pltchrm.line_c0(start, end)
-        sr = SubRegions(self._chrm)
-        sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
-        dyads = sr.nucs[MIDDLE]
-        genes = sr.genes
-        bndrs = sr.bndrs
-        lng_lnkers = sr.ndrs
+        dyads = self._sr.nucs[MIDDLE]
+        genes = self._sr.genes
+        bndrs = self._sr.bndrs
+        lng_lnkers = self._sr.ndrs
 
         colors = ["tab:orange", "tab:brown", "tab:purple", "tab:green"]
         labels = ["nuc", "bndrs", "tss", "lng lnk"]

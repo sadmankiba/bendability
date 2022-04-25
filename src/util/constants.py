@@ -16,6 +16,7 @@ class FigSubDir:
     NDRS = "ndrs"
     CHROMOSOME = "chromosome"
     MOTIFS = "motifs"
+    LOOP_ANCHORS = "loop_anchors"
 
 
 YeastChrNumList = (
