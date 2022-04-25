@@ -181,7 +181,7 @@ class BoundariesF(Boundaries):
         super().__init__(chrm, regions)
 
     def __str__(self):
-        return f"res_{self._res}_lim_{self._lim}_perc_{self._top_perc}_fanc"
+        return f"bf_res_{self._res}_lim_{self._lim}_perc_{self._top_perc}_fanc"
 
     def _get_regions(self):
         df = pd.read_csv(
@@ -247,8 +247,7 @@ class BoundariesFN(Boundaries):
     def _get_regions(self):
         ndrs = Linkers(self.chrm).ndrs(20)
         new_mids = self._bndrsf.nearest_loc(ndrs[MIDDLE])
-        df = pd.DataFrame({SCORE: self._bndrsf[SCORE]})
-        df = df.loc[df[MIDDLE] != None]
+        df = pd.DataFrame({SCORE: self._bndrsf[SCORE], MIDDLE: new_mids})
         df[START], df[END] = new_mids - self._lim, new_mids + self._lim
         return df
     
@@ -264,7 +263,7 @@ class BoundariesType(Enum):
     FANCN = auto()
 
 
-@dataclass
+@dataclass(frozen=True)
 class BndSel:
     typ: BoundariesType
     parm: BndParmT | BndFParmT
@@ -274,13 +273,15 @@ class BoundariesFactory:
     def __init__(self, chrm: Chromosome):
         self._chrm = chrm
 
-    def get_bndrs(self, bsel: BndSel) -> Boundaries:
-        d = {
-            BoundariesType.HEXP: BoundariesHE(self._chrm, **bsel.parm),
-            BoundariesType.FANC: BoundariesF(self._chrm, **bsel.parm),
-            BoundariesType.FANCN: BoundariesFN(self._chrm, **bsel.parm)
-        }
-        return d[bsel]
+    def get_bndrs(self, bsel: BndSel) -> Boundaries:        
+        if bsel.typ == BoundariesType.HEXP:
+            B = BoundariesHE
+        elif bsel.typ == BoundariesType.FANC:
+            B = BoundariesF
+        elif bsel.typ == BoundariesType.FANCN:
+            B = BoundariesFN
+        
+        return B(self._chrm, **(bsel.parm))
 
 
 class PlotBoundariesHE:

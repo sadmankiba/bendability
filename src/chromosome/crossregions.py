@@ -624,21 +624,20 @@ class LineC0Plot:
         self._chrm = chrm
         self._sr = SubRegions(self._chrm)
 
-    def line_c0_mean_bndrs(self, pltlim=100):
+    def line_c0_mean_bndrs(self, pltlim=100) -> Path:
         show_legend = False
         smooth = False
-        sr = SubRegions(self._chrm)
-        sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50)
+        self._sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50)
         C0MeanArr = namedtuple("C0MeanArr", ["val", "label"])
         c0m_bndrs = C0MeanArr(
-            self._chrm.mean_c0_around_bps(sr.bndrs[MIDDLE], pltlim, pltlim), "all"
+            self._chrm.mean_c0_around_bps(self._sr.bndrs[MIDDLE], pltlim, pltlim), "all"
         )
         c0m_bndrs_p = C0MeanArr(
-            self._chrm.mean_c0_around_bps(sr.prmtr_bndrs()[MIDDLE], pltlim, pltlim),
+            self._chrm.mean_c0_around_bps(self._sr.prmtr_bndrs()[MIDDLE], pltlim, pltlim),
             "bndrs_p",
         )
         c0m_bndrs_np = C0MeanArr(
-            self._chrm.mean_c0_around_bps(sr.non_prmtr_bndrs()[MIDDLE], pltlim, pltlim),
+            self._chrm.mean_c0_around_bps(self._sr.non_prmtr_bndrs()[MIDDLE], pltlim, pltlim),
             "bndrs_np",
         )
 
@@ -663,13 +662,12 @@ class LineC0Plot:
         plt.title(f"C0 mean around boundaries in chromosome {self._chrm.id}")
 
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.BOUNDARIES}/{self._chrm.id}_{str(sr.bndrs)}/"
-            f"c0_mean_bndrs_{self._chrm}_pltlim_{pltlim}.png"
+            f"{FigSubDir.BOUNDARIES}/{self._chrm}_{str(self._sr.bndrs)}/"
+            f"c0_line_mean_pltlim_{pltlim}.png"
         )
 
-    def line_c0_bndrs_indiv_toppings(self, btype: BoundariesType) -> None:
-        bparm = BndParm.HIRS_WD if btype == BoundariesType.HEXP else BndFParm.WD_25
-        self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+    def line_c0_bndrs_indiv_toppings(self) -> None:
+        self._sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50)
         for bndrs, pstr in zip(
             [self._sr.prmtr_bndrs(), self._sr.non_prmtr_bndrs()], ["prmtr", "nonprmtr"]
         ):
@@ -686,8 +684,8 @@ class LineC0Plot:
             f"C0 around {pstr} boundary at {getattr(bndry, MIDDLE)} bp of chrm {self._chrm.id}"
         )
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.BOUNDARIES}/{self._chrm.id}_{bstr}/"
-            f"bndry_{pstr}_{getattr(bndry, START)}_{getattr(bndry, END)}_{self._chrm}_score_"
+            f"{FigSubDir.BOUNDARIES}/{self._chrm}_{bstr}/"
+            f"bndry_{pstr}_{getattr(bndry, START)}_{getattr(bndry, END)}_score_"
             f"{round(getattr(bndry, SCORE), 2)}.png"
         )
 
@@ -789,17 +787,14 @@ class LineC0Plot:
         pltchrm = PlotChrm(self._chrm)
         pltchrm.line_c0(start, end)
         dyads = self._sr.nucs[MIDDLE]
-        genes = self._sr.genes
-        bndrs = self._sr.bndrs
-        lng_lnkers = self._sr.ndrs
 
         colors = ["tab:orange", "tab:brown", "tab:purple", "tab:green"]
         labels = ["nuc", "bndrs", "tss", "lng lnk"]
         _nuc_ellipse(_within(dyads), colors[0])
-        _bndrs(_within(bndrs[MIDDLE]), bndrs[SCORE], colors[1])
-        _tss(_within(genes.frwrd_genes()[START]), True, colors[2])
-        _tss(_within(genes.rvrs_genes()[END]), False, colors[2])
-        _lng_linkrs(_end_within(lng_lnkers), colors[3])
+        _bndrs(_within(self._sr.bndrs[MIDDLE]), self._sr.bndrs[SCORE], colors[1])
+        _tss(_within(self._sr.genes.frwrd_genes()[START]), True, colors[2])
+        _tss(_within(self._sr.genes.rvrs_genes()[END]), False, colors[2])
+        _lng_linkrs(_end_within(self._sr.ndrs), colors[3])
         _text()
 
         PlotUtil.legend_custom(colors, labels)

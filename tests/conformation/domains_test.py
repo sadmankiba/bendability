@@ -4,6 +4,7 @@ import pandas as pd
 
 from conformation.domains import (
     BndParm,
+    BoundariesFN,
     BoundariesHE,
     PlotBoundariesHE,
     MCBoundariesHEAggregator,
@@ -94,6 +95,11 @@ class TestDomainsF:
         )
 
 
+class TestBoundariesFN:
+    def test_init(self, chrm_vl_mcvr: Chromosome):
+        bndrsf = BoundariesF(chrm_vl_mcvr, **BndFParm.SHR_50)
+        bndrsfn = BoundariesFN(chrm_vl_mcvr, **BndFParm.SHR_50)
+        assert len(bndrsfn) == len(bndrsf)
 @pytest.mark.skip(reason="Updating domains")
 class TestBoundariesDomainsHEQuery:
     def test_num_greater_than_dmns(self):
