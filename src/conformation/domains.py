@@ -223,7 +223,7 @@ class DomainsF(Regions):
     def _get_regions(self) -> pd.DataFrame[START:int, END:int]:
         return self._bndrs.complement()
 
-    def _new(self, regions: RegionsInternal) -> BoundariesF:
+    def _new(self, regions: RegionsInternal) -> DomainsF:
         return DomainsF(bndrs=self._bndrs, regions=regions)
 
 
@@ -256,6 +256,19 @@ class BoundariesFN(Boundaries):
             chrm=self.chrm, lim=self._lim, top_perc=self._top_perc, regions=regions
         )
 
+class DomainsFN(Regions):
+    def __init__(self, bndrs: BoundariesFN, regions: RegionsInternal = None):
+        self._bndrs = bndrs
+        super().__init__(bndrs.chrm, regions)
+
+    def __str__(self):
+        return f"dmnsfn_{self._bndrs}"
+
+    def _get_regions(self) -> pd.DataFrame[START:int, END:int]:
+        return self._bndrs.complement()
+
+    def _new(self, regions: RegionsInternal) -> DomainsFN:
+        return DomainsFN(bndrs=self._bndrs, regions=regions)
 
 class BoundariesType(Enum):
     HEXP = auto()

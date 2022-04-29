@@ -47,7 +47,7 @@ class MotifsM35:
         for i in range(8):
             axes[i].boxplot(enr[i * 32 : (i + 1) * 32].T, showfliers=True)
 
-        return FileSave.figure_in_figdir(f"{subdir}/motif_m35/enrichment_{regions}.png")
+        return FileSave.figure_in_figdir(f"{subdir}/motif_m35/enrichment_{regions}_{regions.chrm}.png")
 
     def enrichment_compare(self, rega: Regions, regb: Regions, subdir: str):
         enra = self._running_score[:, rega.cover_mask]
@@ -55,7 +55,7 @@ class MotifsM35:
         z = [ztest(enra[i], enrb[i]) for i in range(N_MOTIFS)]
         df = pd.DataFrame(z, columns=["ztest_val", "p_val"])
         FileSave.tsv_gdatadir(
-            df, f"{subdir}/motif_m35/enrichment_comp_{rega}_{regb}.tsv"
+            df, f"{subdir}/motif_m35/enrichment_comp_{rega}_{regb}_{rega.chrm}.tsv"
         )
 
 

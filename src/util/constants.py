@@ -5,6 +5,7 @@ class GDataSubDir:
     ML_MODEL = "ml_model"
     MOTIF = "motif"
     BOUNDARIES = "boundaries"
+    NUCLEOSOMES = "nucleosomes"
 
 
 class FigSubDir:

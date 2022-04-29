@@ -3,7 +3,7 @@
 ## Daily Log
 | Date | Work | 
 |------|------|
-| 25/04| Check line C0 at boundaries |
+| 25/04| Check line C0 at boundaries. Align nearest NDR mids as boundary mids. |
 | 23/04| Show NDR line C0 in boundaries and domains with partitions. |
 | 01/03| Sorted motifs by enrichment and de-enrichment in boundaries | 
 | 27/02| Among ML models, best prediction by liner model with l2 regularization, Ridge | 

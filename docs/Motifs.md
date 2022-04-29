@@ -19,6 +19,53 @@ Motif M35.
 - Box plot: Distrib of scores of all motifs in regions. [C3][F3, F4]
 - Z-test: Z-test of distribution of scores in boundaries and domains. [C4] [D1]
 #### Observation
+BoundariesFN
+Z-test
+top 20 de-enriched
+50    -8.707
+133   -8.444
+119   -8.373
+168   -8.362
+117   -7.786
+223   -7.728
+51    -7.663
+183   -7.644
+243   -7.571
+44    -7.527
+221   -7.488
+150   -7.398
+201   -7.302
+142   -7.169
+204   -7.152
+26    -7.139
+8     -7.092
+128   -6.959
+169   -6.929
+38    -6.907
+
+top 20 enriched
+224    5.023
+218    4.907
+19     4.461
+37     4.369
+55     4.288
+67     4.285
+235    4.278
+162    4.271
+47     4.078
+233    4.076
+127    4.029
+103    3.956
+59     3.673
+252    3.668
+80     3.518
+118    3.420
+245    3.414
+48     3.376
+167    3.364
+174    3.348
+
+BoundariesF
 - Box plot: no observable difference in score distribution between boundaries and whole chromosome. 
 - Z-test: 
 Top 20 de-enriched motifs in boundaries: 
