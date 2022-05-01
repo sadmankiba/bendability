@@ -8,6 +8,7 @@ from chromosome.crossregions import (
     DistribPlot,
     LineC0Plot,
     LinePlot,
+    MCLineC0Plot,
     PlotPrmtrsBndrs,
     ScatterPlot,
     SegmentLineC0Plot,
@@ -100,7 +101,9 @@ class TestLineC0Plot:
             (21, 0.04),
         ]
 
-
+class TestMCLineC0Plot:
+    def test_line_c0(self):
+        assert MCLineC0Plot().line_c0_mean_bndrs().is_file()
 class TestSegmentLineC0Plot:
     def test_sl_lnkrs(self, chrm_vl_mcvr):
         sl = SegmentLineC0Plot(chrm_vl_mcvr)

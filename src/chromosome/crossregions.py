@@ -16,13 +16,15 @@ from scipy.ndimage import gaussian_filter1d
 from skimage.transform import resize
 from nptyping import NDArray
 
-from chromosome.chromosome import PlotChrm, ChrmOperator, Chromosome
+from chromosome.chromosome import C0Spread, PlotChrm, ChrmOperator, Chromosome
 from chromosome.genes import Genes, Promoters, STRAND
 from chromosome.regions import END, MIDDLE, START, LEN, MEAN_C0, Regions
 from chromosome.nucleosomes import Linkers, Nucleosomes
+from models.prediction import Prediction
 from motif.motifs import MotifsM30
 from conformation.domains import (
     BndParmT,
+    Boundaries,
     BoundariesHE,
     SCORE,
     BndParm,
@@ -36,7 +38,13 @@ from feature_model.helsep import DincUtil, HelSep, SEQ_COL
 from util.util import Attr, PathObtain, PlotUtil, FileSave
 from util.custom_types import PosOneIdx, KMerSeq
 from util.kmer import KMer
-from util.constants import SEQ_LEN, FigSubDir, ONE_INDEX_START
+from util.constants import (
+    SEQ_LEN,
+    FigSubDir,
+    ONE_INDEX_START,
+    GDataSubDir,
+    YeastChrNumList,
+)
 
 
 class SubRegions:
@@ -48,7 +56,7 @@ class SubRegions:
         self.min_ndr_len = 40
 
     @property
-    def bndrs(self) -> BoundariesHE:
+    def bndrs(self) -> Boundaries:
         def _bndrs():
             return BoundariesFactory(self.chrm).get_bndrs(self.bsel)
 
@@ -202,6 +210,7 @@ class LabeledMC0Distribs:
 class DistribPlot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
+        self._sr = SubRegions(chrm)
 
     def box_mean_c0_bndrs(self) -> Path:
         typ = "box"
@@ -407,10 +416,12 @@ class DistribPlot:
     def prob_distrib_bndrs_nearest_ndr_distnc(
         self, min_lnker_len: list[int] = [80, 60, 40, 30]
     ) -> Path:
-        bndrs = BoundariesHE(self._chrm)
-        lnkrs = Linkers(self._chrm)
+        self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+
         for llen in min_lnker_len:
-            distns = bndrs.nearest_locs_distnc(lnkrs.ndrs(llen)[MIDDLE])
+            distns = self._sr.bndrs.nearest_locs_distnc(
+                self._sr.lnkrs.ndrs(llen)[MIDDLE]
+            )
             PlotUtil.prob_distrib(distns, label=str(llen))
 
         plt.legend()
@@ -419,11 +430,11 @@ class DistribPlot:
         plt.xlabel("Distance")
         plt.ylabel("Prob distrib")
         plt.title(
-            f"Prob distrib of distance from boundary res={bndrs.res} bp "
+            f"Prob distrib of distance from boundary res={self._sr.bndrs.res} bp "
             f"middle to nearest NDR >= x bp"
         )
         return FileSave.figure_in_figdir(
-            f"boundaries/distnc_ndr_prob_distrib_res_{bndrs.res}_{self._chrm.number}.png"
+            f"boundaries/distnc_ndr_prob_distrib_res_{self._sr.bndrs.res}_{self._chrm.number}.png"
         )
 
     def num_prmtrs_bndrs_ndrs(self, frml: int, btype: BoundariesType) -> Path:
@@ -627,7 +638,7 @@ class LineC0Plot:
     def line_c0_mean_bndrs(self, pltlim=100) -> Path:
         show_legend = False
         smooth = False
-        self._sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50)
+        self._sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50_LNK_0)
         C0MeanArr = namedtuple("C0MeanArr", ["val", "label"])
         c0m_bndrs = C0MeanArr(
             self._chrm.mean_c0_around_bps(self._sr.bndrs[MIDDLE], pltlim, pltlim), "all"
@@ -665,6 +676,11 @@ class LineC0Plot:
         plt.ylabel("C0")
         plt.title(f"C0 mean around boundaries in chromosome {self._chrm.id}")
 
+        FileSave.nptxt(
+            c0m_bndrs.val,
+            f"{PathObtain.gen_data_dir()}/{GDataSubDir.BOUNDARIES}/"
+            f"{self._chrm}_{self._sr.bndrs}/chrm{self._chrm.id}_c0_line_mean_pltlim_{pltlim}.txt",
+        )
         return FileSave.figure_in_figdir(
             f"{FigSubDir.BOUNDARIES}/{self._chrm}_{str(self._sr.bndrs)}/"
             f"c0_line_mean_pltlim_{pltlim}.png"
@@ -817,6 +833,43 @@ class LineC0Plot:
         return zip(
             range(start, end, 4),
             [amp, amp / 2, -amp / 2, -amp] * math.ceil((end - start) / 4 / 4),
+        )
+
+
+class MCLineC0Plot:
+    def line_c0_mean_bndrs(self, pltlim=100):
+        mcbndrs_c0 = []
+        pred = Prediction(35)
+        for c in YeastChrNumList:
+            chrm = Chromosome(c, prediction=pred, spread_str=C0Spread.mcvr)
+            sr = SubRegions(chrm)
+            sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50_LNK_0)
+            # mcbndrs_c0 += sr.bndrs.c0()
+            mcbndrs_c0.append(
+                ChrmOperator(chrm).c0_rgns(
+                    (sr.bndrs[MIDDLE] - pltlim).tolist(), (sr.bndrs[MIDDLE] + pltlim).tolist()
+                )
+            )
+        
+        mc0 = np.vstack(mcbndrs_c0).mean(axis=0)
+
+        FileSave.nptxt(
+            mc0,
+            f"{PathObtain.gen_data_dir()}/{GDataSubDir.BOUNDARIES}/"
+            f"chrmall_{sr.bndrs}/chrmall_c0_line_mean_pltlim_{pltlim}.txt",
+        )
+
+        x = np.arange(2 * pltlim + 1) - pltlim
+        plt.plot(x, mc0)
+        PlotUtil.show_grid()
+        plt.xlabel("bp in boundaries")
+        plt.ylabel("C0")
+        plt.title(f"C0 mean around boundaries")
+
+        
+
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.BOUNDARIES}/c0_line_mean_allchrm_pltlim_{pltlim}.png"
         )
 
 

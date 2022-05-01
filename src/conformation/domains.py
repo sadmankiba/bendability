@@ -16,7 +16,7 @@ from chromosome.regions import Regions, RegionsInternal, START, END, MEAN_C0, MI
 from models.prediction import Prediction
 from util.util import FileSave, PlotUtil, PathObtain, Attr
 from util.custom_types import ChrId, PositiveInt, PosOneIdx, ZeroToOne
-from util.constants import ChrIdList, FigSubDir
+from util.constants import ChrIdList, FigSubDir, GDataSubDir
 
 
 SCORE = "score"
@@ -158,6 +158,7 @@ class DomainsHE(Regions):
 class BndFParmT(TypedDict, total=False):
     lim: int
     top_perc: float
+    min_lnk: int
 
 
 class BndFParm:
@@ -165,6 +166,9 @@ class BndFParm:
     WD_25 = BndFParmT(lim=250, top_perc=0.25)
     SHR_50 = BndFParmT(lim=100, top_perc=0.50)
     WD_50 = BndFParmT(lim=250, top_perc=0.50)
+    SHR_50_LNK_0 = BndFParmT(lim=100, top_perc=0.50, min_lnk=0)
+    SHR_50_LNK_10 = BndFParmT(lim=100, top_perc=0.50, min_lnk=10)
+    SHR_50_LNK_20 = BndFParmT(lim=100, top_perc=0.50, min_lnk=20)
 
 
 class BoundariesF(Boundaries):
@@ -232,28 +236,49 @@ class BoundariesFN(Boundaries):
         self,
         chrm: Chromosome,
         lim: int = 100,
+        min_lnk: int = 10,
         top_perc: ZeroToOne = 1.0,
         regions: RegionsInternal = None,
     ):
         self._res = 200
         self._lim = lim
+        self._min_lnk = min_lnk
         self._top_perc = top_perc
         self._bndrsf = BoundariesF(chrm, lim, top_perc, regions)
         super().__init__(chrm, regions)
 
     def __str__(self):
-        return f"bfn_{str(self._bndrsf)}"
+        return f"bfn_lnk_{self._min_lnk}_{str(self._bndrsf)}"
 
     def _get_regions(self):
-        ndrs = Linkers(self.chrm).ndrs(20)
+        ndrs = Linkers(self.chrm).ndrs(self._min_lnk)
         new_mids = self._bndrsf.nearest_loc(ndrs[MIDDLE])
         df = pd.DataFrame({SCORE: self._bndrsf[SCORE], MIDDLE: new_mids})
-        df[START], df[END] = new_mids - self._lim, new_mids + self._lim
+        df[START], df[END] = new_mids - self._lim + 1, new_mids + self._lim
         return df
 
     def _new(self, regions: RegionsInternal) -> BoundariesFN:
         return BoundariesFN(
-            chrm=self.chrm, lim=self._lim, top_perc=self._top_perc, regions=regions
+            chrm=self.chrm,
+            lim=self._lim,
+            min_lnk=self._min_lnk,
+            top_perc=self._top_perc,
+            regions=regions,
+        )
+
+    def _extended(self, rgns: RegionsInternal) -> BoundariesF:
+        return BoundariesFN(
+            chrm=self.chrm,
+            lim=(rgns.iloc[0][END] - rgns.iloc[0][START] + 1) // 2,
+            min_lnk=self._min_lnk,
+            top_perc=self._top_perc,
+            regions=rgns,
+        )
+
+    def save_regions(self, fname: str = None) -> Path:
+        return FileSave.tsv_gdatadir(
+            self._regions[[START, END, SCORE]].sort_values(START),
+            f"{GDataSubDir.BOUNDARIES}/{self.chrm.number}_res_200_w_5000_fancn.tsv",
         )
 
 class DomainsFN(Regions):
@@ -269,6 +294,7 @@ class DomainsFN(Regions):
 
     def _new(self, regions: RegionsInternal) -> DomainsFN:
         return DomainsFN(bndrs=self._bndrs, regions=regions)
+
 
 class BoundariesType(Enum):
     HEXP = auto()

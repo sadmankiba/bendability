@@ -23,7 +23,7 @@ class MotifsM35:
     def __init__(self) -> None:
         self._running_score = self._read_running_score()
 
-    def _read_running_score(self) -> NDArray[(N_MOTIFS, CHRV_TOTAL_BP)]:
+    def _read_running_score(self) -> NDArray[(N_MOTIFS, CHRV_TOTAL_BP)]: 
         def _score_file(i: int):
             return (
                 f"{PathObtain.gen_data_dir()}/{GDataSubDir.MOTIF}/"

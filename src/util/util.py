@@ -288,6 +288,15 @@ class FileSave:
 
         logging.info(f".npy file saved at: {path}")
         return path
+    
+    @classmethod
+    def nptxt(cls, arr: np.ndarray, path_str: str | Path) -> Path:
+        path = Path(path_str)
+        cls.make_parent_dirs(path)
+        np.savetxt(path, arr)
+
+        logging.info(f"np txt file saved at: {path}")
+        return path
 
     @classmethod
     def make_parent_dirs(cls, path_str: Union[str, Path]) -> None:
