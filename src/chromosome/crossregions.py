@@ -32,6 +32,7 @@ from conformation.domains import (
     BoundariesFactory,
     BndFParm,
     BndSel,
+    DomainsFN,
 )
 from conformation.loops import LoopAnchors, LoopInsides
 from feature_model.helsep import DincUtil, HelSep, SEQ_COL
@@ -276,6 +277,17 @@ class DistribPlot:
         return FileSave.figure_in_figdir(
             f"{FigSubDir.CROSSREGIONS}/c0_box/{grp['fname']}", sizew=7, sizeh=6
         )
+
+    def box_bnd_dmn_lnklen(self):
+        sr = SubRegions(self._chrm)
+        sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50_LNK_0) 
+        dmns = DomainsFN(sr.bndrs)
+        bl = sr.lnkrs.mid_contained_in(sr.bndrs)
+        dl = sr.lnkrs.mid_contained_in(dmns)
+        assert len(bl) + len(dl) == len(sr.lnkrs) 
+        
+        plt.boxplot([dl[LEN], bl[LEN]], showfliers=True, widths=0.5)
+        return FileSave.figure_in_figdir(f"{FigSubDir.BOUNDARIES}/lnklen_box_bnd_dmn_{sr.bndrs}.png")
 
     def prob_distrib_mean_c0_bndrs(self):
         sr = SubRegions(self._chrm)

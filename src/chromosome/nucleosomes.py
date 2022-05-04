@@ -30,12 +30,15 @@ class Nucleosomes(Regions):
         self._centers: np.ndarray = NucsReader.read(chrm.number)
         self._filter_at_least_depth(NUC_HALF, chrm.total_bp)
         super().__init__(chrm, regions)
+    
+    def __str__(self):
+        return f"nucs_w{NUC_WIDTH}"
 
     def _get_regions(self) -> RegionsInternal:
         return pd.DataFrame(
             {
-                START: self._centers - int(NUC_WIDTH / 2),
-                END: self._centers + int(NUC_WIDTH / 2),
+                START: self._centers - NUC_WIDTH // 2,
+                END: self._centers + NUC_WIDTH // 2,
                 MIDDLE: self._centers,
             }
         )
@@ -197,10 +200,14 @@ class Nucleosomes(Regions):
 
 class Linkers(Regions):
     def __init__(self, chrm: Chromosome, regions: RegionsInternal = None) -> None:
+        self._nucs = Nucleosomes(chrm)
         super().__init__(chrm, regions)
+    
+    def __str__(self):
+        return f"lnks_{self._nucs}"
 
     def _get_regions(self) -> RegionsInternal:
-        nucs = Nucleosomes(self.chrm).cover_regions()
+        nucs = self._nucs.cover_regions()
 
         df = pd.DataFrame(
             {

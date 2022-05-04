@@ -61,7 +61,7 @@ class MotifsM35:
         z = [(i,) + ztest(enra[i], enrb[i]) for i in range(N_MOTIFS)]
         df = pd.DataFrame(z, columns=["motif_no", "ztest_val", "p_val"])
         df["ztest_val"] = -df["ztest_val"]
-        
+
         fn = f"enrichment_comp_{rega}_{regb}_{rega.chrm}_v{self._V}"
         FileSave.tsv_gdatadir(
             df,
@@ -77,15 +77,18 @@ class PlotMotifs:
     @classmethod
     def integrate_logos(cls) -> Path:
         ztest_str = {
-            1: "res_200_lim_100_perc_0.5_fanc_domains_res_200_lim_100_perc_0.5_fanc",
-            2: "bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_dmnsfn_bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_chrm_s_mcvr_m_None_VL_v2",
+            1: (GDataSubDir.BOUNDARIES, "res_200_lim_100_perc_0.5_fanc_domains_res_200_lim_100_perc_0.5_fanc"),
+            2: (GDataSubDir.BOUNDARIES, "bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_dmnsfn_bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_chrm_s_mcvr_m_None_VL_v2"),
+            3: (GDataSubDir.BOUNDARIES, "bfn_lnk_0_bf_res_200_lim_50_perc_0.5_fanc_dmnsfn_bfn_lnk_0_bf_res_200_lim_50_perc_0.5_fanc_chrm_s_mcvr_m_None_VL_v2"),
+            4: (GDataSubDir.NUCLEOSOMES, "lnks_nucs_w147_nucs_w147_chrm_s_mcvr_m_None_VL_v2")
         }
-        sel = 2
+        sel = 3
         dir = f"{PathObtain.figure_dir()}/{FigSubDir.MOTIFS}"
         imrows = []
 
         score_df = pd.read_csv(
-            f"{PathObtain.gen_data_dir()}/boundaries/motif_m35/enrichment_comp_{ztest_str[sel]}.tsv",
+            f"{PathObtain.gen_data_dir()}/{ztest_str[sel][0]}/motif_m35/"
+            f"enrichment_comp_{ztest_str[sel][1]}.tsv",
             sep="\t",
         )
         score_df = score_df.sort_values(by="ztest_val", ignore_index=True)
@@ -102,7 +105,7 @@ class PlotMotifs:
             imrows.append(cv2.hconcat(row))
 
         img = cv2.vconcat(imrows)
-        impath = Path(f"{dir}/integrated_z_score_{ztest_str[sel]}.png")
+        impath = Path(f"{dir}/integrated_z_score_{ztest_str[sel][1]}.png")
         cv2.imwrite(str(impath), img)
         return impath
 

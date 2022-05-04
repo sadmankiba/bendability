@@ -12,11 +12,14 @@ dmns = DomainsFN(bnds)
 nucs = Nucleosomes(chrm)
 lnks = Linkers(chrm)
 
+bnds_l50 = bnds.extended(-50)
+dmns_l50 = DomainsFN(bnds_l50)
+
 class Experiments:
     @classmethod
     def bnd_dmn_V_z_test(self):
         m = MotifsM35()
-        m.enrichment_compare(bnds, dmns, GDataSubDir.BOUNDARIES)
+        m.enrichment_compare(bnds_l50, dmns_l50, GDataSubDir.BOUNDARIES)
     
     @classmethod 
     def nuc_lnk_V_z_test(self):
@@ -25,4 +28,9 @@ class Experiments:
     
     @classmethod
     def bnd_dmn_kmer_score(self):
-        KMerMotifs.score(bnds, dmns, GDataSubDir.BOUNDARIES)
+        KMerMotifs.score(bnds_l50, dmns_l50, GDataSubDir.BOUNDARIES)
+    
+    @classmethod
+    def lnk_nuc_kmer_score(self):
+        KMerMotifs.score(lnks, nucs, GDataSubDir.BOUNDARIES)
+    
