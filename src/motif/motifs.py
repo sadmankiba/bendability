@@ -13,6 +13,7 @@ import cv2
 from chromosome.regions import Regions
 from util.util import FileSave, PathObtain
 from util.constants import CHRV_TOTAL_BP, CHRV_TOTAL_BP_ORIGINAL, GDataSubDir, FigSubDir
+from util.kmer import KMer
 
 
 N_MOTIFS = 256
@@ -59,6 +60,7 @@ class MotifsM35:
         enrb = self._running_score[:, regb.cover_mask]
         z = [(i,) + ztest(enra[i], enrb[i]) for i in range(N_MOTIFS)]
         df = pd.DataFrame(z, columns=["motif_no", "ztest_val", "p_val"])
+        df["ztest_val"] = -df["ztest_val"]
         
         fn = f"enrichment_comp_{rega}_{regb}_{rega.chrm}_v{self._V}"
         FileSave.tsv_gdatadir(
@@ -76,12 +78,12 @@ class PlotMotifs:
     def integrate_logos(cls) -> Path:
         ztest_str = {
             1: "res_200_lim_100_perc_0.5_fanc_domains_res_200_lim_100_perc_0.5_fanc",
-            2: "bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_dmnsfn_bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_chrm_s_mcvr_m_None_VL_v2"
+            2: "bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_dmnsfn_bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_chrm_s_mcvr_m_None_VL_v2",
         }
         sel = 2
         dir = f"{PathObtain.figure_dir()}/{FigSubDir.MOTIFS}"
         imrows = []
-        
+
         score_df = pd.read_csv(
             f"{PathObtain.gen_data_dir()}/boundaries/motif_m35/enrichment_comp_{ztest_str[sel]}.tsv",
             sep="\t",
@@ -91,7 +93,9 @@ class PlotMotifs:
             row = []
             for j in range(16):
                 n, z, p = tuple(score_df.loc[i * 16 + j])
-                logo = cv2.imread(f"{dir}//model35_parameters_parameter_274_merged_motif/{int(n)}.png")
+                logo = cv2.imread(
+                    f"{dir}//model35_parameters_parameter_274_merged_motif/{int(n)}.png"
+                )
                 z, p = round(z, 2), round(p, 2)
                 logo = cls._add_score(logo, z, p)
                 row.append(logo)
@@ -125,6 +129,31 @@ class PlotMotifs:
             linetype,
         )
         return new_img
+
+
+class KMerMotifs:
+    @classmethod
+    def score(cls, rega: Regions, regb: Regions, subdir: str):
+        asq = np.array(list(rega.chrm.seq))[rega.cover_mask]
+        bsq = np.array(list(regb.chrm.seq))[regb.cover_mask]
+
+        def _c(kmer: str):
+            ac = KMer.count(kmer, "".join(asq.tolist())) / len(asq)
+            bc = KMer.count(kmer, "".join(bsq.tolist())) / len(bsq)
+            return kmer, ac, bc
+
+        n = 4
+        df = pd.DataFrame(
+            list(map(lambda s: _c(s), KMer.all(n))), columns=["kmer", "a_cnt", "b_cnt"]
+        )
+        df["diff"] = df["a_cnt"] - df["b_cnt"]
+
+        fn = f"kmer{n}_motif_{rega}_{regb}_{rega.chrm}"
+        FileSave.tsv_gdatadir(df, f"{subdir}/{fn}.tsv")
+        FileSave.tsv_gdatadir(
+            df.sort_values("diff"),
+            f"{subdir}/sorted_{fn}.tsv",
+        )
 
 
 MOTIF_ID = "motif_id"

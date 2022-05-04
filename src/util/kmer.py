@@ -5,11 +5,15 @@ import regex as re
 import numpy as np
 from nptyping import NDArray
 
-from util.util import rev_comp
+from util.util import rev_comp, get_possible_seq
 from util.custom_types import DNASeq, KMerSeq
 
 
 class KMer:
+    @classmethod 
+    def all(cls, n: int) -> list[str]:
+        return get_possible_seq(n)
+        
     @classmethod
     def find_pos_w_rc(cls, kmer: KMerSeq, seq: DNASeq) -> NDArray[(Any,), int]:
         return np.sort(

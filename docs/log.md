@@ -3,6 +3,7 @@
 ## Daily Log
 | Date | Work | 
 |------|------| 
+| 4/05 | TODO: Verify motif enrichment in boundaries with k-mer line and box plot |
 | 1/05 | Plot MC line c0 boundary. Use updated motif enrichment score. |
 | 25/04| Check line C0 at boundaries. Align nearest NDR mids as boundary mids. |
 | 23/04| Show NDR line C0 in boundaries and domains with partitions. |
