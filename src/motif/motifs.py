@@ -21,13 +21,16 @@ LEN_MOTIF = 8
 
 class MotifsM35:
     def __init__(self) -> None:
+        self._V = 2
         self._running_score = self._read_running_score()
 
-    def _read_running_score(self) -> NDArray[(N_MOTIFS, CHRV_TOTAL_BP)]: 
+    def _read_running_score(self) -> NDArray[(N_MOTIFS, CHRV_TOTAL_BP)]:
+        mdirs = {1: "model35_parameters_parameter_274_alt", 2: "motif_matching_score"}
+
         def _score_file(i: int):
             return (
                 f"{PathObtain.gen_data_dir()}/{GDataSubDir.MOTIF}/"
-                f"model35_parameters_parameter_274_alt/motif_{i}"
+                f"{mdirs[self._V]}/motif_{i}"
             )
 
         scores = np.empty((N_MOTIFS, CHRV_TOTAL_BP))
@@ -47,25 +50,40 @@ class MotifsM35:
         for i in range(8):
             axes[i].boxplot(enr[i * 32 : (i + 1) * 32].T, showfliers=True)
 
-        return FileSave.figure_in_figdir(f"{subdir}/motif_m35/enrichment_{regions}_{regions.chrm}.png")
+        return FileSave.figure_in_figdir(
+            f"{subdir}/motif_m35/enrichment_{regions}_{regions.chrm}_v{self._V}.png"
+        )
 
     def enrichment_compare(self, rega: Regions, regb: Regions, subdir: str):
         enra = self._running_score[:, rega.cover_mask]
         enrb = self._running_score[:, regb.cover_mask]
-        z = [ztest(enra[i], enrb[i]) for i in range(N_MOTIFS)]
-        df = pd.DataFrame(z, columns=["ztest_val", "p_val"])
+        z = [(i,) + ztest(enra[i], enrb[i]) for i in range(N_MOTIFS)]
+        df = pd.DataFrame(z, columns=["motif_no", "ztest_val", "p_val"])
+        
+        fn = f"enrichment_comp_{rega}_{regb}_{rega.chrm}_v{self._V}"
         FileSave.tsv_gdatadir(
-            df, f"{subdir}/motif_m35/enrichment_comp_{rega}_{regb}_{rega.chrm}.tsv"
+            df,
+            f"{subdir}/motif_m35/{fn}.tsv",
+        )
+        FileSave.tsv_gdatadir(
+            df.sort_values("ztest_val"),
+            f"{subdir}/motif_m35/sorted_{fn}.tsv",
         )
 
 
 class PlotMotifs:
     @classmethod
     def integrate_logos(cls) -> Path:
-        dir = f"{PathObtain.figure_dir()}/{FigSubDir.MOTIFS}/model35_parameters_parameter_274_merged_motif"
+        ztest_str = {
+            1: "res_200_lim_100_perc_0.5_fanc_domains_res_200_lim_100_perc_0.5_fanc",
+            2: "bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_dmnsfn_bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_chrm_s_mcvr_m_None_VL_v2"
+        }
+        sel = 2
+        dir = f"{PathObtain.figure_dir()}/{FigSubDir.MOTIFS}"
         imrows = []
+        
         score_df = pd.read_csv(
-            f"{PathObtain.gen_data_dir()}/boundaries/motif_m35/enrichment_comp_res_200_lim_100_perc_0.5_fanc_domains_res_200_lim_100_perc_0.5_fanc.tsv",
+            f"{PathObtain.gen_data_dir()}/boundaries/motif_m35/enrichment_comp_{ztest_str[sel]}.tsv",
             sep="\t",
         )
         score_df = score_df.sort_values(by="ztest_val", ignore_index=True)
@@ -73,14 +91,14 @@ class PlotMotifs:
             row = []
             for j in range(16):
                 n, z, p = tuple(score_df.loc[i * 16 + j])
-                logo = cv2.imread(f"{dir}/{int(n)}.png")
+                logo = cv2.imread(f"{dir}//model35_parameters_parameter_274_merged_motif/{int(n)}.png")
                 z, p = round(z, 2), round(p, 2)
                 logo = cls._add_score(logo, z, p)
                 row.append(logo)
             imrows.append(cv2.hconcat(row))
 
         img = cv2.vconcat(imrows)
-        impath = Path(f"{dir}/integrated_bndry_z_score.png")
+        impath = Path(f"{dir}/integrated_z_score_{ztest_str[sel]}.png")
         cv2.imwrite(str(impath), img)
         return impath
 
