@@ -424,12 +424,7 @@ class Chromosome:
         """
         assert neg_lim > 0 and pos_lim > 0
         result = np.array(
-            list(
-                map(
-                    lambda bp: self.c0_spread()[bp - 1 - neg_lim : bp + pos_lim],
-                    np.array(bps),
-                )
-            )
+            [self.c0_spread()[bp - 1 - neg_lim : bp + pos_lim] for bp in bps]
         ).mean(axis=0)
         assert result.shape == (neg_lim + pos_lim + 1,)
         return result
@@ -574,3 +569,7 @@ class ChrmOperator:
             cvrmask[s - 1 : e] = True
 
         return cvrmask
+    
+    def in_lim(self, arr: Iterable[PosOneIdx], l: int) -> NDArray[(Any,), PosOneIdx]:
+        bps = pd.Series(arr)
+        return bps.loc[(l < bps) & (bps <= (self._chrm.total_bp - l))].to_numpy()

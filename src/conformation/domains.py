@@ -251,8 +251,10 @@ class BoundariesFN(Boundaries):
         return f"bfn_lnk_{self._min_lnk}_{str(self._bndrsf)}"
 
     def _get_regions(self):
+        # Use DataCache
         ndrs = Linkers(self.chrm).ndrs(self._min_lnk)
         new_mids = self._bndrsf.nearest_loc(ndrs[MIDDLE])
+
         df = pd.DataFrame({SCORE: self._bndrsf[SCORE], MIDDLE: new_mids})
         df[START], df[END] = new_mids - self._lim + 1, new_mids + self._lim
         return df
@@ -280,6 +282,7 @@ class BoundariesFN(Boundaries):
             self._regions[[START, END, SCORE]].sort_values(START),
             f"{GDataSubDir.BOUNDARIES}/{self.chrm.number}_res_200_w_5000_fancn.tsv",
         )
+
 
 class DomainsFN(Regions):
     def __init__(self, bndrs: BoundariesFN, regions: RegionsInternal = None):

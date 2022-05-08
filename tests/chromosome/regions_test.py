@@ -21,6 +21,12 @@ class TestRegions:
             [3, 4],
             [9, 10],
         ]
+    
+    def test_mid_contained_in(self, rgns_simp_vl: Regions, rgns_simp_vl_2: Regions):
+        rgns = rgns_simp_vl.mid_contained_in(rgns_simp_vl_2)
+        assert len(rgns) == 2
+        assert list(rgns[START]) == [7, 9]
+        assert list(rgns[END]) == [12, 10]
 
     def test_overlaps_with_rgns(self, rgns_simp_vl: Regions, rgns_simp_vl_2: Regions):
         orgns = rgns_simp_vl.overlaps_with_rgns(rgns_simp_vl_2, 2)

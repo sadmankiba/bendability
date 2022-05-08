@@ -280,14 +280,16 @@ class DistribPlot:
 
     def box_bnd_dmn_lnklen(self):
         sr = SubRegions(self._chrm)
-        sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50_LNK_0) 
+        sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50_LNK_0)
         dmns = DomainsFN(sr.bndrs)
         bl = sr.lnkrs.mid_contained_in(sr.bndrs)
         dl = sr.lnkrs.mid_contained_in(dmns)
-        assert len(bl) + len(dl) == len(sr.lnkrs) 
-        
+        assert len(bl) + len(dl) == len(sr.lnkrs)
+
         plt.boxplot([dl[LEN], bl[LEN]], showfliers=True, widths=0.5)
-        return FileSave.figure_in_figdir(f"{FigSubDir.BOUNDARIES}/lnklen_box_bnd_dmn_{sr.bndrs}.png")
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.BOUNDARIES}/lnklen_box_bnd_dmn_{sr.bndrs}.png"
+        )
 
     def prob_distrib_mean_c0_bndrs(self):
         sr = SubRegions(self._chrm)
@@ -647,6 +649,42 @@ class LineC0Plot:
         self._chrm = chrm
         self._sr = SubRegions(self._chrm)
 
+    def line_c0_mean_lnks(self, pltlim=100) -> Path:
+        
+        self._sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50_LNK_0)
+        dmns = DomainsFN(self._sr.bndrs)
+        bl = self._sr.lnkrs.mid_contained_in(self._sr.bndrs)
+        dl = self._sr.lnkrs.mid_contained_in(dmns)
+        assert len(bl) + len(dl) == len(self._sr.lnkrs)
+
+        cop = ChrmOperator(self._chrm)
+        c0m = self._chrm.mean_c0_around_bps(
+            cop.in_lim(self._sr.lnkrs[MIDDLE], pltlim), pltlim, pltlim
+        )
+        c0m_b = self._chrm.mean_c0_around_bps(
+            cop.in_lim(bl[MIDDLE], pltlim), pltlim, pltlim
+        )
+        c0m_d = self._chrm.mean_c0_around_bps(
+            cop.in_lim(dl[MIDDLE], pltlim), pltlim, pltlim
+        )
+        PlotUtil.clearfig()
+        x = np.arange(2 * pltlim + 1) - pltlim
+        PlotChrm(self._chrm).plot_avg()
+
+        plt.plot(x, c0m, label="lnk all")
+        plt.plot(x, c0m_b, label="lnk b")
+        plt.plot(x, c0m_d, label="lnk d")
+        plt.legend()
+        PlotUtil.show_grid()
+        plt.xlabel("Distance from lnk middle(bp)")
+        plt.ylabel("C0")
+        plt.title(f"C0 mean around lnk in chromosome {self._chrm.id}")
+
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.LINKERS}/{self._chrm}_{str(self._sr.lnkrs)}/"
+            f"c0_line_mean_pltlim_{pltlim}.png"
+        )
+
     def line_c0_mean_bndrs(self, pltlim=100) -> Path:
         show_legend = False
         smooth = False
@@ -856,20 +894,21 @@ class MCLineC0Plot:
         for c in YeastChrNumList:
             chrm = Chromosome(c, prediction=pred, spread_str=C0Spread.mcvr)
             sr = SubRegions(chrm)
-            sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50_LNK_0)
+            sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
             # mcbndrs_c0 += sr.bndrs.c0()
             mcbndrs_c0.append(
                 ChrmOperator(chrm).c0_rgns(
-                    (sr.bndrs[MIDDLE] - pltlim).tolist(), (sr.bndrs[MIDDLE] + pltlim).tolist()
+                    (sr.bndrs[MIDDLE] - pltlim).tolist(),
+                    (sr.bndrs[MIDDLE] + pltlim).tolist(),
                 )
             )
-        
+
         mc0 = np.vstack(mcbndrs_c0).mean(axis=0)
 
         FileSave.nptxt(
             mc0,
             f"{PathObtain.gen_data_dir()}/{GDataSubDir.BOUNDARIES}/"
-            f"c0_line_mean_all{str(sr.chrm)[-3]}_{sr.bndrs}_pltlim_{pltlim}.txt",
+            f"c0_line_mean_all{str(sr.chrm)[:-4]}_{sr.bndrs}_pltlim_{pltlim}.txt",
         )
 
         x = np.arange(2 * pltlim + 1) - pltlim
@@ -880,7 +919,7 @@ class MCLineC0Plot:
         plt.title(f"C0 mean around boundaries")
 
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.BOUNDARIES}/c0_line_mean_all{str(sr.chrm)[-3]}_{sr.bndrs}_pltlim_{pltlim}.png"
+            f"{FigSubDir.BOUNDARIES}/c0_line_mean_all{str(sr.chrm)[:-4]}_{sr.bndrs}_pltlim_{pltlim}.png"
         )
 
 

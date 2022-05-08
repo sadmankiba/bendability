@@ -138,6 +138,9 @@ class Regions:
         )
         return df.loc[df[START] <= df[END]]
 
+    def sort(self, by: str) -> Regions:
+        return self._new(self._regions.sort_values(by=by, inplace=False))
+
     def is_in_regions(
         self, bps: Iterable[PosOneIdx]
     ) -> NDArray[[Any,], bool]:
@@ -218,15 +221,21 @@ class Regions:
         return np.array(list(map(lambda rgn: _rgn_in_containers(rgn), self)))
 
     def mid_contained_in(self, containers: Regions) -> Regions:
+        cntnrs = containers.sort(START)
+        
         def _mid_in_containers(mid: PosOneIdx) -> bool:
             inc = False
-            for cntn in containers:
+            for cntn in cntnrs:
                 if getattr(cntn, START) <= mid <= getattr(cntn, END):
                     inc = True
                     break
+                
+                if mid < getattr(cntn, START):
+                    break
 
             return inc
-
+        
+        
         cntnd = list(map(lambda rgn: _mid_in_containers(getattr(rgn, MIDDLE)), self))
         return self._new(self._regions.iloc[cntnd])
 
