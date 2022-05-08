@@ -650,7 +650,6 @@ class LineC0Plot:
         self._sr = SubRegions(self._chrm)
 
     def line_c0_mean_lnks(self, pltlim=100) -> Path:
-        
         self._sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50_LNK_0)
         dmns = DomainsFN(self._sr.bndrs)
         bl = self._sr.lnkrs.mid_contained_in(self._sr.bndrs)
@@ -886,7 +885,58 @@ class LineC0Plot:
         )
 
 
+class PaperLineC0Plot:
+    @classmethod
+    def bnd(cls):
+        chrm = Chromosome("VL", spread_str=C0Spread.mcvr)
+        cop = ChrmOperator(chrm)
+        sr = SubRegions(chrm)
+        sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50_LNK_0)
+        # 341 - 481 linker, 401 - 600 boundary
+        s, e = 303341, 303600
+        ls, le = 303341, 303481 
+        bs, be = 303401, 303600 
+        lg = -0.4
+        bg = -0.5
+        c0 = cop.c0(s, e)
+        x = np.arange(s, e + 1)
+        PlotUtil.font_size(20)
+        plt.plot(x, c0)
+        plt.xlabel("Position in bp")
+        plt.ylabel("Cyclizability")
+        
+        line = plt.Polygon([[ls, lg], [le, lg]], closed=None, fill=None, edgecolor="tab:blue", lw=3)
+        plt.gca().add_patch(line)
+        plt.text(
+            (ls + le) / 2,
+            lg,
+            "linker",
+            color="tab:blue",
+            ha="center",
+            va="top",
+        )
+
+        line = plt.Polygon([[bs, bg], [be, bg]], closed=None, fill=None, edgecolor="tab:red", lw=3)
+        plt.gca().add_patch(line)
+        plt.text(
+            (bs + be) / 2,
+            bg,
+            "boundary",
+            color="tab:red",
+            ha="center",
+            va="top",
+        )
+        
+        FileSave.figure_in_figdir(
+            f"{FigSubDir.BOUNDARIES}/{chrm}_{sr.bndrs}/bndrs_{s}_{e}.png"
+        )
+
+
 class MCLineC0Plot:
+    @classmethod
+    def line_c0_mean_lnks(cls, pltlim=100):
+        pass
+
     @classmethod
     def line_c0_mean_bndrs(cls, pltlim=100):
         mcbndrs_c0 = []
