@@ -849,7 +849,8 @@ class LineC0Plot:
 
 
 class MCLineC0Plot:
-    def line_c0_mean_bndrs(self, pltlim=100):
+    @classmethod
+    def line_c0_mean_bndrs(cls, pltlim=100):
         mcbndrs_c0 = []
         pred = Prediction(35)
         for c in YeastChrNumList:
@@ -868,7 +869,7 @@ class MCLineC0Plot:
         FileSave.nptxt(
             mc0,
             f"{PathObtain.gen_data_dir()}/{GDataSubDir.BOUNDARIES}/"
-            f"chrmall_{sr.bndrs}/chrmall_c0_line_mean_pltlim_{pltlim}.txt",
+            f"c0_line_mean_all{str(sr.chrm)[-3]}_{sr.bndrs}_pltlim_{pltlim}.txt",
         )
 
         x = np.arange(2 * pltlim + 1) - pltlim
@@ -878,10 +879,8 @@ class MCLineC0Plot:
         plt.ylabel("C0")
         plt.title(f"C0 mean around boundaries")
 
-        
-
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.BOUNDARIES}/c0_line_mean_allchrm_pltlim_{pltlim}.png"
+            f"{FigSubDir.BOUNDARIES}/c0_line_mean_all{str(sr.chrm)[-3]}_{sr.bndrs}_pltlim_{pltlim}.png"
         )
 
 

@@ -19,7 +19,7 @@ class Experiments:
     @classmethod
     def bnd_dmn_V_z_test(self):
         m = MotifsM35()
-        m.enrichment_compare(bnds_l50, dmns_l50, GDataSubDir.BOUNDARIES)
+        m.enrichment_compare(bnds, dmns, GDataSubDir.BOUNDARIES)
     
     @classmethod 
     def nuc_lnk_V_z_test(self):

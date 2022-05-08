@@ -22,23 +22,32 @@ LEN_MOTIF = 8
 
 class MotifsM35:
     def __init__(self) -> None:
-        self._V = 2
+        self._V = 3
         self._running_score = self._read_running_score()
 
     def _read_running_score(self) -> NDArray[(N_MOTIFS, CHRV_TOTAL_BP)]:
-        mdirs = {1: "model35_parameters_parameter_274_alt", 2: "motif_matching_score"}
+        mdirs = {
+            1: "model35_parameters_parameter_274_alt",
+            2: "motif_matching_score",
+            3: "motif_matching_score",
+        }
 
-        def _score_file(i: int):
-            return (
+        def _score(i: int):
+            fn = (
                 f"{PathObtain.gen_data_dir()}/{GDataSubDir.MOTIF}/"
                 f"{mdirs[self._V]}/motif_{i}"
             )
+            df = pd.read_csv(fn, header=None)
+            if self._V == 3:
+                df[0] = df[0].clip(0)
+            
+            assert len(df) == CHRV_TOTAL_BP_ORIGINAL
+            return df[0].to_numpy()
+            
 
         scores = np.empty((N_MOTIFS, CHRV_TOTAL_BP))
         for i in range(N_MOTIFS):
-            df = pd.read_csv(_score_file(i), header=None)
-            assert len(df) == CHRV_TOTAL_BP_ORIGINAL
-            scores[i] = df.to_numpy().flatten()[
+            scores[i] = _score(i)[
                 : CHRV_TOTAL_BP - CHRV_TOTAL_BP_ORIGINAL
             ]
 
@@ -76,13 +85,26 @@ class MotifsM35:
 class PlotMotifs:
     @classmethod
     def integrate_logos(cls) -> Path:
+        v = 3
         ztest_str = {
-            1: (GDataSubDir.BOUNDARIES, "res_200_lim_100_perc_0.5_fanc_domains_res_200_lim_100_perc_0.5_fanc"),
-            2: (GDataSubDir.BOUNDARIES, "bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_dmnsfn_bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_chrm_s_mcvr_m_None_VL_v2"),
-            3: (GDataSubDir.BOUNDARIES, "bfn_lnk_0_bf_res_200_lim_50_perc_0.5_fanc_dmnsfn_bfn_lnk_0_bf_res_200_lim_50_perc_0.5_fanc_chrm_s_mcvr_m_None_VL_v2"),
-            4: (GDataSubDir.NUCLEOSOMES, "lnks_nucs_w147_nucs_w147_chrm_s_mcvr_m_None_VL_v2")
+            1: (
+                GDataSubDir.BOUNDARIES,
+                "res_200_lim_100_perc_0.5_fanc_domains_res_200_lim_100_perc_0.5_fanc",
+            ),
+            2: (
+                GDataSubDir.BOUNDARIES,
+                f"bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_dmnsfn_bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_chrm_s_mcvr_m_None_VL_v{v}",
+            ),
+            3: (
+                GDataSubDir.BOUNDARIES,
+                f"bfn_lnk_0_bf_res_200_lim_50_perc_0.5_fanc_dmnsfn_bfn_lnk_0_bf_res_200_lim_50_perc_0.5_fanc_chrm_s_mcvr_m_None_VL_v{v}",
+            ),
+            4: (
+                GDataSubDir.NUCLEOSOMES,
+                f"lnks_nucs_w147_nucs_w147_chrm_s_mcvr_m_None_VL_v{v}",
+            ),
         }
-        sel = 3
+        sel = 2
         dir = f"{PathObtain.figure_dir()}/{FigSubDir.MOTIFS}"
         imrows = []
 
