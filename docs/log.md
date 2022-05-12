@@ -33,6 +33,8 @@ TO-DO
 - Write thesis. 
 ## Short Tasks TO-DO List
 ### Priority - High
+(Figure: Prob distrib of distance of linker middles from boundary middles)
+
 **Check motifs in boundaries** 
 
 Created: 8/02. Done: 100%<br>

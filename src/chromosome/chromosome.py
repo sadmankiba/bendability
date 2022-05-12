@@ -541,7 +541,7 @@ class ChrmOperator:
         result = np.array(
             list(map(lambda s, e: self.c0(s, e), np.array(starts), np.array(ends)))
         )
-        assert result.shape == (len(starts), ends[0] - starts[0] + 1)
+        assert result.shape == (len(starts), np.array(ends)[0] - np.array(starts)[0] + 1)
         return result
 
     def c0(

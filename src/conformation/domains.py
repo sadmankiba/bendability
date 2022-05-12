@@ -222,7 +222,7 @@ class DomainsF(Regions):
         super().__init__(bndrs.chrm, regions)
 
     def __str__(self):
-        return f"domains_{self._bndrs}"
+        return f"dmnsf_{self._bndrs}"
 
     def _get_regions(self) -> pd.DataFrame[START:int, END:int]:
         return self._bndrs.complement()

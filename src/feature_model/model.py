@@ -63,7 +63,7 @@ class SKModels:
         ("SVR_C_10", SVR(C=10)),
         ("XGBoost", XGBRegressor(verbosity=1, max_depth=32)),
         ("Lasso", LassoCV()),
-        ("NN_reg", MLPRegressor()),
+        ("NN_reg", MLPRegressor(hidden_layer_sizes=(10,), verbose=True)),
     ]
     clfs = [
         ("LogisticRegression_C_1", LogisticRegression(C=1)),
@@ -97,6 +97,7 @@ class Model:
         """
         Runs Scikit-learn regression models to classify C0 value with k-mer count & helical separation.
         """
+        nums = [8]
         regressors = SKModels.regressors(nums)
 
         result_cols = [

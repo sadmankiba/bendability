@@ -4,6 +4,7 @@ import math
 from pathlib import Path
 from enum import Enum, auto
 from collections import namedtuple
+from turtle import color
 from typing import Any, Callable, Iterator, Literal
 
 import matplotlib.pyplot as plt
@@ -25,6 +26,8 @@ from motif.motifs import MotifsM30
 from conformation.domains import (
     BndParmT,
     Boundaries,
+    BoundariesF,
+    BoundariesFN,
     BoundariesHE,
     SCORE,
     BndParm,
@@ -32,6 +35,7 @@ from conformation.domains import (
     BoundariesFactory,
     BndFParm,
     BndSel,
+    DomainsF,
     DomainsFN,
 )
 from conformation.loops import LoopAnchors, LoopInsides
@@ -62,6 +66,18 @@ class SubRegions:
             return BoundariesFactory(self.chrm).get_bndrs(self.bsel)
 
         return Attr.calc_attr(self, "_bndrs", _bndrs)
+
+    @property
+    def dmns(self) -> Promoters:
+        def _dmns():
+            if isinstance(self.bndrs, BoundariesFN):
+                D = DomainsFN
+            elif isinstance(self.bndrs, BoundariesF):
+                D = DomainsF
+
+            return D(self.bndrs)
+
+        return Attr.calc_attr(self, "_dmns", _dmns)
 
     @property
     def prmtrs(self) -> Promoters:
@@ -133,6 +149,12 @@ class SubRegions:
 
     def non_bndry_nucs(self) -> Nucleosomes:
         return self.nucs - self.bndry_nucs()
+
+    def lnks_in_bnds(self) -> Linkers:
+        return self.lnkrs.mid_contained_in(self.bndrs)
+
+    def lnks_in_dmns(self) -> Linkers:
+        return self.lnkrs.mid_contained_in(self.dmns)
 
     def bndry_ndrs(self) -> Linkers:
         return self.ndrs.overlaps_with_rgns(self.bndrs, self.min_ndr_len)
@@ -650,16 +672,16 @@ class LineC0Plot:
         self._sr = SubRegions(self._chrm)
 
     def line_c0_mean_lnks(self, pltlim=100) -> Path:
-        self._sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50_LNK_0)
+        self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
         dmns = DomainsFN(self._sr.bndrs)
         bl = self._sr.lnkrs.mid_contained_in(self._sr.bndrs)
         dl = self._sr.lnkrs.mid_contained_in(dmns)
         assert len(bl) + len(dl) == len(self._sr.lnkrs)
 
         cop = ChrmOperator(self._chrm)
-        c0m = self._chrm.mean_c0_around_bps(
-            cop.in_lim(self._sr.lnkrs[MIDDLE], pltlim), pltlim, pltlim
-        )
+        # c0m = self._chrm.mean_c0_around_bps(
+        #     cop.in_lim(self._sr.lnkrs[MIDDLE], pltlim), pltlim, pltlim
+        # )
         c0m_b = self._chrm.mean_c0_around_bps(
             cop.in_lim(bl[MIDDLE], pltlim), pltlim, pltlim
         )
@@ -667,17 +689,18 @@ class LineC0Plot:
             cop.in_lim(dl[MIDDLE], pltlim), pltlim, pltlim
         )
         PlotUtil.clearfig()
+        PlotUtil.font_size(20)
         x = np.arange(2 * pltlim + 1) - pltlim
-        PlotChrm(self._chrm).plot_avg()
+        # PlotChrm(self._chrm).plot_avg()
 
-        plt.plot(x, c0m, label="lnk all")
-        plt.plot(x, c0m_b, label="lnk b")
-        plt.plot(x, c0m_d, label="lnk d")
+        # plt.plot(x, c0m, label="lnk all")
+        plt.plot(x, c0m_b, label="linkers at boundaries", color="tab:blue", linewidth=2)
+        plt.plot(x, c0m_d, label="linkers in domains", color="tab:red", linewidth=2)
         plt.legend()
-        PlotUtil.show_grid()
-        plt.xlabel("Distance from lnk middle(bp)")
-        plt.ylabel("C0")
-        plt.title(f"C0 mean around lnk in chromosome {self._chrm.id}")
+        PlotUtil.vertline(0, "tab:orange")
+        # PlotUtil.show_grid()
+        plt.xlabel("Distance from linker middle (bp)")
+        plt.ylabel("Cyclizability (C0)")
 
         return FileSave.figure_in_figdir(
             f"{FigSubDir.LINKERS}/{self._chrm}_{str(self._sr.lnkrs)}/"
@@ -891,21 +914,28 @@ class PaperLineC0Plot:
         chrm = Chromosome("VL", spread_str=C0Spread.mcvr)
         cop = ChrmOperator(chrm)
         sr = SubRegions(chrm)
-        sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50_LNK_0)
+        sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
         # 341 - 481 linker, 401 - 600 boundary
-        s, e = 303341, 303600
-        ls, le = 303341, 303481 
-        bs, be = 303401, 303600 
-        lg = -0.4
-        bg = -0.5
+        # s, e =  303341, 303600
+        # ls, le = 303341, 303481
+        # bs, be = 303401, 303600
+        # lg = -0.4
+        # bg = -0.5
+        s, e = 59201, 59476
+        ls, le = 59339, 59476
+        bs, be = 59201, 59400
+        lg = -0.2
+        bg = -0.3
         c0 = cop.c0(s, e)
         x = np.arange(s, e + 1)
         PlotUtil.font_size(20)
         plt.plot(x, c0)
         plt.xlabel("Position in bp")
         plt.ylabel("Cyclizability")
-        
-        line = plt.Polygon([[ls, lg], [le, lg]], closed=None, fill=None, edgecolor="tab:blue", lw=3)
+
+        line = plt.Polygon(
+            [[ls, lg], [le, lg]], closed=None, fill=None, edgecolor="tab:blue", lw=3
+        )
         plt.gca().add_patch(line)
         plt.text(
             (ls + le) / 2,
@@ -916,7 +946,9 @@ class PaperLineC0Plot:
             va="top",
         )
 
-        line = plt.Polygon([[bs, bg], [be, bg]], closed=None, fill=None, edgecolor="tab:red", lw=3)
+        line = plt.Polygon(
+            [[bs, bg], [be, bg]], closed=None, fill=None, edgecolor="tab:red", lw=3
+        )
         plt.gca().add_patch(line)
         plt.text(
             (bs + be) / 2,
@@ -926,24 +958,65 @@ class PaperLineC0Plot:
             ha="center",
             va="top",
         )
-        
+
         FileSave.figure_in_figdir(
             f"{FigSubDir.BOUNDARIES}/{chrm}_{sr.bndrs}/bndrs_{s}_{e}.png"
         )
 
 
 class MCLineC0Plot:
+    pred = Prediction(35)
+
     @classmethod
     def line_c0_mean_lnks(cls, pltlim=100):
-        pass
+        mclnksb_c0 = []
+        mclnksd_c0 = []
+        for c in YeastChrNumList:
+            print(c)
+            sr, chrm = cls._sr(c)
+            sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+            cop = ChrmOperator(chrm)
+            lb = sr.lnks_in_bnds()
+            ld = sr.lnks_in_dmns()
+            mclnksb_c0.append(
+                cop.c0_rgns(
+                    cop.in_lim(lb[MIDDLE], pltlim) - pltlim,
+                    cop.in_lim(lb[MIDDLE], pltlim) + pltlim,
+                )
+            )
+            mclnksd_c0.append(
+                cop.c0_rgns(
+                    cop.in_lim(ld[MIDDLE], pltlim) - pltlim,
+                    cop.in_lim(ld[MIDDLE], pltlim) + pltlim,
+                )
+            )
+        
+        mc0b = np.vstack(mclnksb_c0).mean(axis=0)
+        mc0d = np.vstack(mclnksd_c0).mean(axis=0)
+
+        x = np.arange(2 * pltlim + 1) - pltlim
+        PlotUtil.font_size(20)
+        plt.plot(x, mc0b, color="tab:blue", label="Linkers at boundaries", linewidth=2)
+        plt.plot(x, mc0d, color="tab:red", label="Linkers in domains", linewidth=2)
+        PlotUtil.vertline(0, "tab:orange", linewidth=2)
+        plt.legend()
+        plt.xlabel("Distance from linker middle (bp)")
+        plt.ylabel("Cyclizability (C0)")
+
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.LINKERS}/c0_line_mean_all{str(sr.chrm)[:-4]}_{sr.bndrs}_pltlim_{pltlim}.png"
+        )
+
+    @classmethod
+    def _sr(cls, c: str):    
+        chrm = Chromosome(c, prediction=cls.pred, spread_str=C0Spread.mcvr)
+        return SubRegions(chrm), chrm
 
     @classmethod
     def line_c0_mean_bndrs(cls, pltlim=100):
         mcbndrs_c0 = []
-        pred = Prediction(35)
         for c in YeastChrNumList:
-            chrm = Chromosome(c, prediction=pred, spread_str=C0Spread.mcvr)
-            sr = SubRegions(chrm)
+            sr, chrm = cls._sr(c)
             sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
             # mcbndrs_c0 += sr.bndrs.c0()
             mcbndrs_c0.append(

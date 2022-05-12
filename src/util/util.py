@@ -382,9 +382,9 @@ class PlotUtil:
 
     @classmethod
     def vertline(
-        self, x: float, color: str = None, text: str = None, label: str = None
+        self, x: float, color: str = None, text: str = None, label: str = None, linewidth=None
     ):
-        plt.axvline(x=x, color=color, linestyle="--", label=label)
+        plt.axvline(x=x, color=color, linestyle="--", label=label, linewidth=linewidth)
         if text:
             y_lim = plt.gca().get_ylim()
             plt.text(

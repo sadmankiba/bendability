@@ -11,13 +11,17 @@ from statsmodels.stats.weightstats import ztest
 import cv2
 
 from chromosome.regions import Regions
-from util.util import FileSave, PathObtain
+from util.util import FileSave, PathObtain, PlotUtil
 from util.constants import CHRV_TOTAL_BP, CHRV_TOTAL_BP_ORIGINAL, GDataSubDir, FigSubDir
 from util.kmer import KMer
 
 
 N_MOTIFS = 256
 LEN_MOTIF = 8
+
+MOTIF_NO = "motif_no"
+ZTEST_VAL = "ztest_val"
+P_VAL = "p_val"
 
 
 class MotifsM35:
@@ -40,16 +44,13 @@ class MotifsM35:
             df = pd.read_csv(fn, header=None)
             if self._V == 3:
                 df[0] = df[0].clip(0)
-            
+
             assert len(df) == CHRV_TOTAL_BP_ORIGINAL
             return df[0].to_numpy()
-            
 
         scores = np.empty((N_MOTIFS, CHRV_TOTAL_BP))
         for i in range(N_MOTIFS):
-            scores[i] = _score(i)[
-                : CHRV_TOTAL_BP - CHRV_TOTAL_BP_ORIGINAL
-            ]
+            scores[i] = _score(i)[: CHRV_TOTAL_BP - CHRV_TOTAL_BP_ORIGINAL]
 
         return scores
 
@@ -68,8 +69,9 @@ class MotifsM35:
         enra = self._running_score[:, rega.cover_mask]
         enrb = self._running_score[:, regb.cover_mask]
         z = [(i,) + ztest(enra[i], enrb[i]) for i in range(N_MOTIFS)]
-        df = pd.DataFrame(z, columns=["motif_no", "ztest_val", "p_val"])
-        df["ztest_val"] = -df["ztest_val"]
+        df = pd.DataFrame(z, columns=[MOTIF_NO, ZTEST_VAL, P_VAL])
+        if self._V != 3:
+            df["ztest_val"] = -df["ztest_val"]
 
         fn = f"enrichment_comp_{rega}_{regb}_{rega.chrm}_v{self._V}"
         FileSave.tsv_gdatadir(
@@ -83,43 +85,72 @@ class MotifsM35:
 
 
 class PlotMotifs:
-    @classmethod
-    def integrate_logos(cls) -> Path:
-        v = 3
-        ztest_str = {
-            1: (
-                GDataSubDir.BOUNDARIES,
-                "res_200_lim_100_perc_0.5_fanc_domains_res_200_lim_100_perc_0.5_fanc",
-            ),
-            2: (
-                GDataSubDir.BOUNDARIES,
-                f"bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_dmnsfn_bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_chrm_s_mcvr_m_None_VL_v{v}",
-            ),
-            3: (
-                GDataSubDir.BOUNDARIES,
-                f"bfn_lnk_0_bf_res_200_lim_50_perc_0.5_fanc_dmnsfn_bfn_lnk_0_bf_res_200_lim_50_perc_0.5_fanc_chrm_s_mcvr_m_None_VL_v{v}",
-            ),
-            4: (
-                GDataSubDir.NUCLEOSOMES,
-                f"lnks_nucs_w147_nucs_w147_chrm_s_mcvr_m_None_VL_v{v}",
-            ),
-        }
-        sel = 2
-        dir = f"{PathObtain.figure_dir()}/{FigSubDir.MOTIFS}"
-        imrows = []
+    dir = f"{PathObtain.figure_dir()}/{FigSubDir.MOTIFS}"
+    v = 3
+    ztest_str = {
+        1: (
+            GDataSubDir.BOUNDARIES,
+            "res_200_lim_100_perc_0.5_fanc_domains_res_200_lim_100_perc_0.5_fanc",
+        ),
+        2: (
+            GDataSubDir.BOUNDARIES,
+            f"bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_dmnsfn_bfn_lnk_0_bf_res_200_lim_100_perc_0.5_fanc_chrm_s_mcvr_m_None_VL_v{v}",
+        ),
+        3: (
+            GDataSubDir.BOUNDARIES,
+            f"bfn_lnk_0_bf_res_200_lim_50_perc_0.5_fanc_dmnsfn_bfn_lnk_0_bf_res_200_lim_50_perc_0.5_fanc_chrm_s_mcvr_m_None_VL_v{v}",
+        ),
+        4: (
+            GDataSubDir.NUCLEOSOMES,
+            f"lnks_nucs_w147_nucs_w147_chrm_s_mcvr_m_None_VL_v{v}",
+        ),
+        5: (
+            GDataSubDir.BOUNDARIES,
+            f"bf_res_200_lim_100_perc_0.5_fanc_dmnsf_bf_res_200_lim_100_perc_0.5_fanc_chrm_s_mcvr_m_None_VL_v{v}",
+        ),
+    }
+    sel = 5
 
-        score_df = pd.read_csv(
-            f"{PathObtain.gen_data_dir()}/{ztest_str[sel][0]}/motif_m35/"
-            f"enrichment_comp_{ztest_str[sel][1]}.tsv",
+    @classmethod
+    def plot_z(cls) -> Path:
+        sdf = cls._score().sort_values(by="ztest_val", ignore_index=True)
+        PlotUtil.font_size(20)
+        plt.barh(range(1, 11), sdf["ztest_val"][:10], color="tab:blue")
+        plt.barh(range(13, 23), sdf[ZTEST_VAL][-10:], color="tab:blue")
+        plt.yticks(
+            range(1, 23),
+            labels=[f"motif #{n}" for n in sdf["motif_no"][:10]]
+            + ["", ""]
+            + [f"motif #{n}" for n in sdf["motif_no"][-10:]],
+        )
+        plt.gca().invert_yaxis()
+        plt.xlabel("z-score")
+        plt.tight_layout()
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.MOTIFS}/plt_z_{cls.ztest_str[cls.sel][1]}.png",
+            sizew=6,
+            sizeh=12,
+        )
+
+    @classmethod
+    def _score(cls) -> pd.DataFrame:
+        return pd.read_csv(
+            f"{PathObtain.gen_data_dir()}/{cls.ztest_str[cls.sel][0]}/motif_m35/"
+            f"enrichment_comp_{cls.ztest_str[cls.sel][1]}.tsv",
             sep="\t",
         )
-        score_df = score_df.sort_values(by="ztest_val", ignore_index=True)
+
+    @classmethod
+    def integrate_logos(cls) -> Path:
+        imrows = []
+
+        score_df = cls._score().sort_values(by="ztest_val", ignore_index=True)
         for i in range(16):
             row = []
             for j in range(16):
                 n, z, p = tuple(score_df.loc[i * 16 + j])
                 logo = cv2.imread(
-                    f"{dir}//model35_parameters_parameter_274_merged_motif/{int(n)}.png"
+                    f"{cls.dir}//model35_parameters_parameter_274_merged_motif/{int(n)}.png"
                 )
                 z, p = round(z, 2), round(p, 2)
                 logo = cls._add_score(logo, z, p)
@@ -127,7 +158,7 @@ class PlotMotifs:
             imrows.append(cv2.hconcat(row))
 
         img = cv2.vconcat(imrows)
-        impath = Path(f"{dir}/integrated_z_score_{ztest_str[sel][1]}.png")
+        impath = Path(f"{cls.dir}/integrated_z_score_{cls.ztest_str[cls.sel][1]}.png")
         cv2.imwrite(str(impath), img)
         return impath
 
