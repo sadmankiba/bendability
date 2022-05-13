@@ -4,7 +4,6 @@ import math
 from pathlib import Path
 from enum import Enum, auto
 from collections import namedtuple
-from turtle import color
 from typing import Any, Callable, Iterator, Literal
 
 import matplotlib.pyplot as plt
@@ -449,28 +448,59 @@ class DistribPlot:
         plt.xlabel("Distance")
         plt.ylabel("Percentage")
 
-    def prob_distrib_bndrs_nearest_ndr_distnc(
-        self, min_lnker_len: list[int] = [80, 60, 40, 30]
-    ) -> Path:
-        self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
-
-        for llen in min_lnker_len:
-            distns = self._sr.bndrs.nearest_locs_distnc(
+    def prob_distrib_bndrs_nearest_ndr_distnc(self, min_lnker_len: int) -> Path:
+        allchrm = True
+        llen = min_lnker_len
+        if allchrm:
+            dists = np.empty((0,))
+            pred = Prediction(35)
+            for c in YeastChrNumList:
+                print(c)
+                chrm = Chromosome(c, prediction=pred, spread_str=C0Spread.mcvr)
+                self._sr = SubRegions(chrm)
+                self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+                dists = np.append(
+                    dists,
+                    self._sr.bndrs.nearest_locs_distnc(
+                        self._sr.lnkrs.ndrs(llen)[MIDDLE]
+                    ),
+                )
+        else:
+            self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+            dists = self._sr.bndrs.nearest_locs_distnc(
                 self._sr.lnkrs.ndrs(llen)[MIDDLE]
             )
-            PlotUtil.prob_distrib(distns, label=str(llen))
 
-        plt.legend()
-        plt.xlim(-1000, 1000)
-        PlotUtil.show_grid()
-        plt.xlabel("Distance")
-        plt.ylabel("Prob distrib")
-        plt.title(
-            f"Prob distrib of distance from boundary res={self._sr.bndrs.res} bp "
-            f"middle to nearest NDR >= x bp"
+        in_bnd = round(
+            np.sum((-self._sr.bndrs.lim < dists) & (dists <= self._sr.bndrs.lim))
+            / len(dists)
+            * 100,
+            1,
         )
+        lft_bnd = round(np.sum(dists <= -self._sr.bndrs.lim) / len(dists) * 100, 1)
+        rgt_bnd = round(np.sum(self._sr.bndrs.lim < dists) / len(dists) * 100, 1)
+        PlotUtil.font_size(20)
+        PlotUtil.prob_distrib(dists, label=str(llen))
+        PlotUtil.vertline(-self._sr.bndrs.lim + 1, "k", linewidth=2)
+        PlotUtil.vertline(self._sr.bndrs.lim, "k", linewidth=2)
+        ax = plt.gca()
+        ax.set_xlim([-250, 250])
+        ylim = ax.get_ylim()
+        xlim = ax.get_xlim()
+        plt.text(0, sum(ylim) / 2, f"{in_bnd}%")
+        plt.text((xlim[0] + -self._sr.bndrs.lim) / 2, sum(ylim) / 2, f"{lft_bnd}%")
+        plt.text((xlim[1] + self._sr.bndrs.lim) / 2, sum(ylim) / 2, f"{rgt_bnd}%")
+
+        # PlotUtil.show_grid()
+        plt.xlabel("Distance from boundary middle (bp)")
+        plt.ylabel("Density")
+        # plt.title(
+        #     f"Prob distrib of distance from boundary res={self._sr.bndrs.res} bp "
+        #     f"middle to nearest NDR >= x bp"
+        # )
         return FileSave.figure_in_figdir(
-            f"boundaries/distnc_ndr_prob_distrib_res_{self._sr.bndrs.res}_{self._chrm.number}.png"
+            f"{FigSubDir.BOUNDARIES}/distnc_ndr_prob_distrib_{self._sr.bndrs}_"
+            f"{f'all{str(self._chrm)[:-4]}' if allchrm else self._chrm}.png"
         )
 
     def num_prmtrs_bndrs_ndrs(self, frml: int, btype: BoundariesType) -> Path:
@@ -990,7 +1020,7 @@ class MCLineC0Plot:
                     cop.in_lim(ld[MIDDLE], pltlim) + pltlim,
                 )
             )
-        
+
         mc0b = np.vstack(mclnksb_c0).mean(axis=0)
         mc0d = np.vstack(mclnksd_c0).mean(axis=0)
 
@@ -1008,7 +1038,7 @@ class MCLineC0Plot:
         )
 
     @classmethod
-    def _sr(cls, c: str):    
+    def _sr(cls, c: str):
         chrm = Chromosome(c, prediction=cls.pred, spread_str=C0Spread.mcvr)
         return SubRegions(chrm), chrm
 

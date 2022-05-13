@@ -56,12 +56,12 @@ class Boundaries(Regions):
 
     def nearest_locs_distnc(self, locs: Iterable[PosOneIdx]) -> NDArray[(Any,), float]:
         locs = sorted(locs)
-        distncs = []
+        dists = []
         for bndry in self:
             mid = getattr(bndry, MIDDLE)
-            distncs.append(abs(mid - self._nearest_loc(mid, locs)))
+            dists.append(mid - self._nearest_loc(mid, locs))
 
-        return np.array(distncs)
+        return np.array(dists)
 
     def _nearest_loc(self, frm: PosOneIdx, locs: Iterable[PosOneIdx]) -> PosOneIdx:
         min_dst = self.chrm.total_bp
@@ -180,12 +180,12 @@ class BoundariesF(Boundaries):
         regions: RegionsInternal = None,
     ):
         self._res = 200
-        self._lim = lim
+        self.lim = lim
         self._top_perc = top_perc
         super().__init__(chrm, regions)
 
     def __str__(self):
-        return f"bf_res_{self._res}_lim_{self._lim}_perc_{self._top_perc}_fanc"
+        return f"bf_res_{self._res}_lim_{self.lim}_perc_{self._top_perc}_fanc"
 
     def _get_regions(self):
         df = pd.read_csv(
@@ -196,15 +196,13 @@ class BoundariesF(Boundaries):
         assert END in df.columns.tolist()
         assert SCORE in df.columns.tolist()
 
-        mids = ((df[START] + df[END]) / 2).astype(int)
-        df[START], df[END] = mids - self._lim, mids + self._lim
         df = df.loc[df["chromosome"] == self.chrm.number].drop(columns=["chromosome"])
         df = df.loc[df[SCORE] >= np.quantile(df[SCORE].to_numpy(), 1 - self._top_perc)]
         return df
 
     def _new(self, regions: RegionsInternal) -> BoundariesF:
         return BoundariesF(
-            chrm=self.chrm, lim=self._lim, top_perc=self._top_perc, regions=regions
+            chrm=self.chrm, lim=self.lim, top_perc=self._top_perc, regions=regions
         )
 
     def _extended(self, rgns: RegionsInternal) -> BoundariesF:

@@ -18,6 +18,9 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.axes import Axes
 import seaborn as sns
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 from nptyping import NDArray
 
 from .custom_types import DNASeq, YeastChrNum
@@ -250,7 +253,7 @@ class FileSave:
         )
 
     @classmethod
-    def figure(cls, path_str: str | Path, sizew, sizeh, **kwargs) -> Path:
+    def figure(cls, path_str: str | Path, sizew=12, sizeh=6, **kwargs) -> Path:
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -288,7 +291,7 @@ class FileSave:
 
         logging.info(f".npy file saved at: {path}")
         return path
-    
+
     @classmethod
     def nptxt(cls, arr: np.ndarray, path_str: str | Path) -> Path:
         path = Path(path_str)
@@ -296,6 +299,19 @@ class FileSave:
         np.savetxt(path, arr)
 
         logging.info(f"np txt file saved at: {path}")
+        return path
+
+    @classmethod
+    def fasta(cls, arr: Iterable[DNASeq], path_str: str | Path) -> Path:
+        path = Path(path_str)
+        cls.make_parent_dirs(path)
+
+        srs = [SeqRecord(Seq(s), id="", description="") for s in arr]
+        with open(path, "w") as f:
+            SeqIO.write(srs, f, "fasta")
+        
+        logging.info(f"fasta file saved at: {path}")
+
         return path
 
     @classmethod
@@ -349,12 +365,12 @@ class PlotUtil:
     @classmethod
     def prob_distrib(cls, var: Iterable, label=None):
         def _old():
-            sns.distplot(var, hist=False, kde=True, label=label)
+            return sns.distplot(var, hist=False, kde=True, label=label)
 
         def _new():
-            sns.displot(var, kind="kde", label=label)
+            return sns.displot(var, kind="kde", label=label)
 
-        _old()
+        return _new()
 
     @classmethod
     def distrib_cuml(cls, var: Iterable, label=None):
@@ -382,7 +398,12 @@ class PlotUtil:
 
     @classmethod
     def vertline(
-        self, x: float, color: str = None, text: str = None, label: str = None, linewidth=None
+        self,
+        x: float,
+        color: str = None,
+        text: str = None,
+        label: str = None,
+        linewidth=None,
     ):
         plt.axvline(x=x, color=color, linestyle="--", label=label, linewidth=linewidth)
         if text:

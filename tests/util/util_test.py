@@ -17,6 +17,8 @@ from util.util import (
     PathObtain,
 )
 
+from util.constants import GDataSubDir
+
 # https://stackoverflow.com/a/31832447/7283201
 
 
@@ -73,6 +75,12 @@ class TestUtil(unittest.TestCase):
 
 
 class TestFileSave:
+    def test_fasta(self):
+        assert FileSave.fasta(
+            ["ATC", "GTAA"],
+            f"{PathObtain.gen_data_dir()}/{GDataSubDir.TEST}/test.fasta",
+        ).is_file()
+
     def test_append_tsv(self):
         sample_df = pd.DataFrame({"a": [1, 2], "b": [11, 12], "c": [21, 25]})
         path = Path("data/generated_data/test_append.tsv")
