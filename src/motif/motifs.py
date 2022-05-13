@@ -113,7 +113,7 @@ class PlotMotifs:
             f"lnks_nucs_w147_lnks_nucs_w147_chrm_s_mcvr_m_None_VL_v{v}"
         )
     }
-    sel = 6
+    sel = 5
 
     @classmethod
     def plot_z(cls) -> Path:

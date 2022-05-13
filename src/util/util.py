@@ -257,7 +257,10 @@ class FileSave:
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
-        plt.gcf().set_size_inches(sizew, sizeh)
+        
+        if sizew is not None:
+            plt.gcf().set_size_inches(sizew, sizeh)
+        
         plt.savefig(path, dpi=200, **kwargs)
 
         logging.info(f"Figure saved at: {path}")

@@ -10,6 +10,31 @@ pip3 install tensorflow_addons
 pip3 install tf-slim
 ```
 
+## Run
+
+### **Running `backprop_contribution5.py`**
+
+Copy a few rows from bendability data to `DNABendabilityModels/data/dataset_9_top.txt`. Then `python3 backprop_contribution5.py`.
+
+### **Running a model**
+Add `data/` directory in `src_bendability/`. Add bendability dataset in this dir. 
+
+
+Test model 
+
+```sh
+cd src_bendability/
+python3 test_model.py --parameter-file parameters/parameter8.txt --model model35 --model-weights model_weights/model35_parameters_parameter_274 --test-dataset ../data/dataset_9_top.txt
+```
+
+## Generating motif logos learned by model
+
+```sh
+cd src_bendability/
+mkdir logos/
+python3 generate_motif_logos.py model_weights/model35_parameters_parameter_274 parameters/parameter8.txt png
+```
+
 ## Model Performance
 
 **Model 35, parameter 8, weights 274**
@@ -55,21 +80,5 @@ Total params: 29,031
 Trainable params: 29,031
 Non-trainable params: 0
 
-## Run
-
-**Running `backprop_contribution5.py`**
-
-Copy a few rows from bendability data to `DNABendabilityModels/data/dataset_9_top.txt`. Then `python3 backprop_contribution5.py`.
-
-**Running a model**
-Add `data/` directory in `src_bendability/`. Add bendability dataset in this dir. 
 
 
-Test model 
-
-```sh
-cd src_bendability/
-python3 test_model.py --parameter-file parameters/parameter8.txt --model model35 --model-weights model_weights/model35_parameters_parameter_274 --test-dataset ../data/dataset_9_top.txt
-```
-
-## Generating motifs learned by model 

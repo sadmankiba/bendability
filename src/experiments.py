@@ -1,4 +1,3 @@
-from ast import Mod
 from conformation.domains import (
     BoundariesF,
     BoundariesFN,
@@ -69,11 +68,11 @@ class Experiments:
 
     @classmethod
     def kmer_score_bnd_dmn(self):
-        KMerMotifs.score(Objs.bndsfn_l50, Objs.dmnsfn_l50, GDataSubDir.BOUNDARIES)
+        KMerMotifs.score(Objs.bndsf, Objs.dmnsf, GDataSubDir.BOUNDARIES)
 
     @classmethod
     def kmer_score_lnk_nuc(self):
-        KMerMotifs.score(Objs.lnks, Objs.nucs, GDataSubDir.BOUNDARIES)
+        KMerMotifs.score(Objs.lnks, Objs.nucs, GDataSubDir.LINKERS)
 
     @classmethod
     def ml_nn(self):

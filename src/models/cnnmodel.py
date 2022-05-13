@@ -554,7 +554,7 @@ class CNNModel35:
 
         self.dim_num = dim_num
 
-    def create_model(self):
+    def create_model(self) -> keras.Model:
         # building model
         # To build this model with the functional API,
         # you would start by creating an input node:
