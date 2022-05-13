@@ -306,7 +306,7 @@ class FileSave:
         path = Path(path_str)
         cls.make_parent_dirs(path)
 
-        srs = [SeqRecord(Seq(s), id="", description="") for s in arr]
+        srs = [SeqRecord(Seq(s), id=str(i+1), description="") for i, s in enumerate(arr)]
         with open(path, "w") as f:
             SeqIO.write(srs, f, "fasta")
         
@@ -347,7 +347,7 @@ class DataCache:
         np.save(Path(f"{PathObtain.gen_data_dir()}/{subpath}"), arr)
 
     @classmethod
-    def calc_df_tsv(self, subpath: str | Path, cb: Callable[list, pd.DataFrame]):
+    def calc_df_tsv(self, subpath: str | Path, cb: Callable[[], pd.DataFrame]):
         savepath = Path(f"{PathObtain.gen_data_dir()}/{subpath}")
         if savepath.is_file():
             return pd.read_csv(savepath, sep="\t")

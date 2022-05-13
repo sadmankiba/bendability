@@ -108,7 +108,10 @@ class Regions:
         return [
             ChrmOperator(self.chrm).c0(s, e) for s, e in zip(self[START], self[END])
         ]
-
+    
+    def seq(self) -> list[str]:
+        return [ self.chrm.seq[s - 1: e] for s, e in zip(self[START], self[END]) ]
+    
     def complement(self) -> RegionsInternal:
         if self._uniform_len():
             rgns = self

@@ -15,12 +15,13 @@ class Objs:
     chrm = Chromosome("VL", prediction=pred, spread_str=C0Spread.mcvr)
     bndsf = BoundariesF(chrm, **BndFParm.SHR_50)
     dmnsf = DomainsF(bndsf)
-    bnds = BoundariesFN(chrm, **BndFParm.SHR_50_LNK_0)
-    dmns = DomainsFN(bnds)
+    bndsfn = BoundariesFN(chrm, **BndFParm.SHR_50_LNK_0)
+    dmns = DomainsFN(bndsfn)
     nucs = Nucleosomes(chrm)
     lnks = Linkers(chrm)
-    bnds_l50 = bnds.extended(-50)
-    dmns_l50 = DomainsFN(bnds_l50)
+    bndsfn_l50 = bndsfn.extended(-50)
+    dmnsfn_l50 = DomainsFN(bndsfn_l50)
+    
 
 class Experiments:
     @classmethod
@@ -35,7 +36,7 @@ class Experiments:
     
     @classmethod
     def bnd_dmn_kmer_score(self):
-        KMerMotifs.score(Objs.bnds_l50, Objs.dmns_l50, GDataSubDir.BOUNDARIES)
+        KMerMotifs.score(Objs.bndsfn_l50, Objs.dmnsfn_l50, GDataSubDir.BOUNDARIES)
     
     @classmethod
     def lnk_nuc_kmer_score(self):
