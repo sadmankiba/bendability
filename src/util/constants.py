@@ -7,6 +7,7 @@ class GDataSubDir:
     BOUNDARIES = "boundaries"
     NUCLEOSOMES = "nucleosomes"
     LINKERS = "linkers"
+    DOMAINS = "domains"
 
 
 class FigSubDir:

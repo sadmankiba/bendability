@@ -27,7 +27,7 @@ class Objs:
     bndsf = BoundariesF(chrm, **BndFParm.SHR_50)
     dmnsf = DomainsF(bndsf)
     bndsfn = BoundariesFN(chrm, **BndFParm.SHR_50_LNK_0)
-    dmns = DomainsFN(bndsfn)
+    dmnsfn = DomainsFN(bndsfn)
     nucs = Nucleosomes(chrm)
     lnks = Linkers(chrm)
     bndsfn_l50 = bndsfn.extended(-50)
@@ -40,8 +40,8 @@ class Experiments:
     @classmethod
     def fasta(cls):
         FileSave.fasta(
-            Objs.bndsf.seq(),
-            f"{PathObtain.gen_data_dir()}/{GDataSubDir.BOUNDARIES}/{Objs.chrm}_{Objs.bndsf}/seq.fasta",
+            Objs.dmnsf.seq(),
+            f"{PathObtain.gen_data_dir()}/{GDataSubDir.DOMAINS}/{Objs.chrm}_{Objs.dmnsf}/seq.fasta",
         )
 
     @classmethod
@@ -66,7 +66,7 @@ class Experiments:
     @classmethod 
     def kmer_score_lnk_bnd_dmn_V(self):
         KMerMotifs.score(Objs.lnks_in_bndsf, Objs.lnks_in_dmnsf, GDataSubDir.LINKERS)
-        
+
     @classmethod
     def kmer_score_bnd_dmn(self):
         KMerMotifs.score(Objs.bndsfn_l50, Objs.dmnsfn_l50, GDataSubDir.BOUNDARIES)
