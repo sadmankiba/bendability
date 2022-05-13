@@ -6,6 +6,7 @@ class GDataSubDir:
     MOTIF = "motif"
     BOUNDARIES = "boundaries"
     NUCLEOSOMES = "nucleosomes"
+    LINKERS = "linkers"
 
 
 class FigSubDir:
@@ -18,6 +19,7 @@ class FigSubDir:
     CHROMOSOME = "chromosome"
     MOTIFS = "motifs"
     LOOP_ANCHORS = "loop_anchors"
+    NUCLEOSOMES = "nucleosomes"
 
 
 YeastChrNumList = (

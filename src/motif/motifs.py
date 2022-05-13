@@ -26,7 +26,7 @@ P_VAL = "p_val"
 
 class MotifsM35:
     def __init__(self) -> None:
-        self._V = 3
+        self._V = 2
         self._running_score = self._read_running_score()
 
     def _read_running_score(self) -> NDArray[(N_MOTIFS, CHRV_TOTAL_BP)]:
@@ -86,7 +86,7 @@ class MotifsM35:
 
 class PlotMotifs:
     dir = f"{PathObtain.figure_dir()}/{FigSubDir.MOTIFS}"
-    v = 3
+    v = 2
     ztest_str = {
         1: (
             GDataSubDir.BOUNDARIES,
@@ -108,8 +108,12 @@ class PlotMotifs:
             GDataSubDir.BOUNDARIES,
             f"bf_res_200_lim_100_perc_0.5_fanc_dmnsf_bf_res_200_lim_100_perc_0.5_fanc_chrm_s_mcvr_m_None_VL_v{v}",
         ),
+        6: (
+            GDataSubDir.LINKERS,
+            f"lnks_nucs_w147_lnks_nucs_w147_chrm_s_mcvr_m_None_VL_v{v}"
+        )
     }
-    sel = 5
+    sel = 6
 
     @classmethod
     def plot_z(cls) -> Path:
@@ -150,7 +154,7 @@ class PlotMotifs:
             for j in range(16):
                 n, z, p = tuple(score_df.loc[i * 16 + j])
                 logo = cv2.imread(
-                    f"{cls.dir}//model35_parameters_parameter_274_merged_motif/{int(n)}.png"
+                    f"{cls.dir}/model35_parameters_parameter_274_merged_motif/{int(n)}.png"
                 )
                 z, p = round(z, 2), round(p, 2)
                 logo = cls._add_score(logo, z, p)
@@ -194,8 +198,8 @@ class KMerMotifs:
         bsq = np.array(list(regb.chrm.seq))[regb.cover_mask]
 
         def _c(kmer: str):
-            ac = KMer.count(kmer, "".join(asq.tolist())) / len(asq)
-            bc = KMer.count(kmer, "".join(bsq.tolist())) / len(bsq)
+            ac = KMer.count(kmer, "".join(asq)) / len(asq)
+            bc = KMer.count(kmer, "".join(bsq)) / len(bsq)
             return kmer, ac, bc
 
         n = 4

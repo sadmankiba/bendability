@@ -155,6 +155,12 @@ class SubRegions:
     def lnks_in_dmns(self) -> Linkers:
         return self.lnkrs.mid_contained_in(self.dmns)
 
+    def nucs_in_bnds(self) -> Nucleosomes:
+        return self.nucs.mid_contained_in(self.bndrs)
+
+    def nucs_in_dmns(self) -> Nucleosomes:
+        return self.nucs.mid_contained_in(self.dmns)
+
     def bndry_ndrs(self) -> Linkers:
         return self.ndrs.overlaps_with_rgns(self.bndrs, self.min_ndr_len)
 
@@ -998,43 +1004,54 @@ class MCLineC0Plot:
     pred = Prediction(35)
 
     @classmethod
-    def line_c0_mean_lnks(cls, pltlim=100):
-        mclnksb_c0 = []
-        mclnksd_c0 = []
+    def line_c0_mean_lnks_nucs(cls, pltlim=100):
+        nucs = True
+        mcb_c0 = []
+        mcd_c0 = []
         for c in YeastChrNumList:
             print(c)
             sr, chrm = cls._sr(c)
             sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
             cop = ChrmOperator(chrm)
-            lb = sr.lnks_in_bnds()
-            ld = sr.lnks_in_dmns()
-            mclnksb_c0.append(
+
+            b, d = (
+                (sr.nucs_in_bnds(), sr.nucs_in_dmns())
+                if nucs
+                else (sr.lnks_in_bnds(), sr.lnks_in_dmns())
+            )
+
+            mcb_c0.append(
                 cop.c0_rgns(
-                    cop.in_lim(lb[MIDDLE], pltlim) - pltlim,
-                    cop.in_lim(lb[MIDDLE], pltlim) + pltlim,
+                    cop.in_lim(b[MIDDLE], pltlim) - pltlim,
+                    cop.in_lim(b[MIDDLE], pltlim) + pltlim,
                 )
             )
-            mclnksd_c0.append(
+            mcd_c0.append(
                 cop.c0_rgns(
-                    cop.in_lim(ld[MIDDLE], pltlim) - pltlim,
-                    cop.in_lim(ld[MIDDLE], pltlim) + pltlim,
+                    cop.in_lim(d[MIDDLE], pltlim) - pltlim,
+                    cop.in_lim(d[MIDDLE], pltlim) + pltlim,
                 )
             )
 
-        mc0b = np.vstack(mclnksb_c0).mean(axis=0)
-        mc0d = np.vstack(mclnksd_c0).mean(axis=0)
+        mc0b = np.vstack(mcb_c0).mean(axis=0)
+        mc0d = np.vstack(mcd_c0).mean(axis=0)
 
         x = np.arange(2 * pltlim + 1) - pltlim
         PlotUtil.font_size(20)
-        plt.plot(x, mc0b, color="tab:blue", label="Linkers at boundaries", linewidth=2)
-        plt.plot(x, mc0d, color="tab:red", label="Linkers in domains", linewidth=2)
+        labels = (
+            ["Nucleosomes at boundaries", "Nucleosomes in domains"]
+            if nucs
+            else ["Linkers at boundaries", "Linkers in domains"]
+        )
+        plt.plot(x, mc0b, color="tab:blue", label=labels[0], linewidth=2)
+        plt.plot(x, mc0d, color="tab:red", label=labels[1], linewidth=2)
         PlotUtil.vertline(0, "tab:orange", linewidth=2)
         plt.legend()
-        plt.xlabel("Distance from linker middle (bp)")
+        plt.xlabel(f"Distance from {'nucleosome' if nucs else 'linker'} middle (bp)")
         plt.ylabel("Cyclizability (C0)")
 
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.LINKERS}/c0_line_mean_all{str(sr.chrm)[:-4]}_{sr.bndrs}_pltlim_{pltlim}.png"
+            f"{FigSubDir.NUCLEOSOMES if nucs else FigSubDir.LINKERS}/c0_line_mean_all{str(sr.chrm)[:-4]}_{sr.bndrs}_pltlim_{pltlim}.png"
         )
 
     @classmethod
