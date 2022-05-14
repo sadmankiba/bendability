@@ -249,3 +249,4 @@ def save_kernel_weights_logos(model):
                 plt.savefig(
                     "logos/l6/logo" + str(layer_num) + "_" + str(i) + ".png", dpi=50
                 )
+

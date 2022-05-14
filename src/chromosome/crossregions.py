@@ -67,6 +67,20 @@ class SubRegions:
         return Attr.calc_attr(self, "_bndrs", _bndrs)
 
     @property
+    def bndsf(self) -> BoundariesF:
+        def _bndsf(): 
+            return BoundariesF(self.chrm, **BndFParm.SHR_50)
+        
+        return Attr.calc_attr(self, "_bndsf", _bndsf)
+
+    @property
+    def bndsfn(self) -> BoundariesF:
+        def _bndsfn(): 
+            return BoundariesFN(self.chrm, **BndFParm.SHR_50_LNK_0)
+        
+        return Attr.calc_attr(self, "_bndsfn", _bndsfn)
+
+    @property
     def dmns(self) -> Promoters:
         def _dmns():
             if isinstance(self.bndrs, BoundariesFN):
@@ -77,6 +91,20 @@ class SubRegions:
             return D(self.bndrs)
 
         return Attr.calc_attr(self, "_dmns", _dmns)
+
+    @property
+    def dmnsf(self) -> DomainsF:
+        def _dmnsf():
+            return DomainsF(self.bndsf)
+        
+        return Attr.calc_attr(self, "_dmnsf", _dmnsf)
+
+    @property
+    def dmnsfn(self) -> DomainsFN:
+        def _dmnsfn():
+            return DomainsFN(self.bndsfn)
+        
+        return Attr.calc_attr(self, "_dmnsfn", _dmnsfn)
 
     @property
     def prmtrs(self) -> Promoters:
@@ -152,8 +180,14 @@ class SubRegions:
     def lnks_in_bnds(self) -> Linkers:
         return self.lnkrs.mid_contained_in(self.bndrs)
 
+    def lnks_in_bndsf(self) -> Linkers:
+        return self.lnkrs.mid_contained_in(self.bndsf)
+
     def lnks_in_dmns(self) -> Linkers:
         return self.lnkrs.mid_contained_in(self.dmns)
+
+    def lnks_in_dmnsf(self) -> Linkers:
+        return self.lnkrs.mid_contained_in(self.dmnsf)
 
     def nucs_in_bnds(self) -> Nucleosomes:
         return self.nucs.mid_contained_in(self.bndrs)
@@ -167,6 +201,7 @@ class SubRegions:
     def non_bndry_ndrs(self) -> Linkers:
         return self.ndrs - self.bndry_ndrs()
 
+sr_vl = SubRegions(Chromosome("VL", prediction=None, spread_str=C0Spread.mcvr))
 
 class Distrib(Enum):
     BNDRS = auto()

@@ -12,6 +12,7 @@ from feature_model.data_organizer import (
     SequenceLibrary,
     TrainTestSequenceLibraries,
 )
+from chromosome.crossregions import sr_vl
 from feature_model.feat_selector import AllFeatureSelector, FeatureSelector
 from models.prediction import Prediction
 from motif.motifs import KMerMotifs, MotifsM35
@@ -21,18 +22,16 @@ from feature_model.model import ModelCat, ModelRunner
 
 
 class Objs:
-    pred = Prediction(35)
-    chrm = Chromosome("VL", prediction=pred, spread_str=C0Spread.mcvr)
-    bndsf = BoundariesF(chrm, **BndFParm.SHR_50)
-    dmnsf = DomainsF(bndsf)
-    bndsfn = BoundariesFN(chrm, **BndFParm.SHR_50_LNK_0)
-    dmnsfn = DomainsFN(bndsfn)
-    nucs = Nucleosomes(chrm)
-    lnks = Linkers(chrm)
-    bndsfn_l50 = bndsfn.extended(-50)
-    dmnsfn_l50 = DomainsFN(bndsfn_l50)
-    lnks_in_bndsf = lnks.mid_contained_in(bndsf)
-    lnks_in_dmnsf = lnks.mid_contained_in(dmnsf)
+    bndsf = sr_vl.bndsf
+    dmnsf = sr_vl.dmnsf
+    bndsfn = sr_vl.bndsfn
+    dmnsfn = sr_vl.dmnsfn
+    nucs = sr_vl.nucs
+    lnks = sr_vl.lnkrs
+    # bndsfn_l50 = bndsfn.extended(-50)
+    # dmnsfn_l50 = DomainsFN(bndsfn_l50)
+    lnks_in_bndsf = sr_vl.lnks_in_bndsf
+    lnks_in_dmnsf = sr_vl.lnks_in_dmnsf
 
 
 class Experiments:
