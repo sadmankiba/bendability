@@ -707,16 +707,25 @@ class LineC0Plot:
         self._chrm = chrm
         self._sr = SubRegions(self._chrm)
 
-    def line_c0_mean_lnks(self, pltlim=100) -> Path:
+    def line_c0_mean_lnks_nucs(self, pltlim=100) -> Path:
+        nucs = False
         self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
-        dmns = DomainsFN(self._sr.bndrs)
-        bl = self._sr.lnkrs.mid_contained_in(self._sr.bndrs)
-        dl = self._sr.lnkrs.mid_contained_in(dmns)
-        assert len(bl) + len(dl) == len(self._sr.lnkrs)
+        if nucs:
+            rg = self._sr.nucs
+            nm = "Nucleosomes"
+            d = FigSubDir.NUCLEOSOMES
+        else:
+            rg = self._sr.lnkrs
+            nm = "Linkers"
+            d = FigSubDir.LINKERS
+
+        bl = rg.mid_contained_in(self._sr.bndrs)
+        dl = rg.mid_contained_in(self._sr.dmns)
+        assert len(bl) + len(dl) == len(rg)
 
         cop = ChrmOperator(self._chrm)
         # c0m = self._chrm.mean_c0_around_bps(
-        #     cop.in_lim(self._sr.lnkrs[MIDDLE], pltlim), pltlim, pltlim
+        #     cop.in_lim(rg[MIDDLE], pltlim), pltlim, pltlim
         # )
         c0m_b = self._chrm.mean_c0_around_bps(
             cop.in_lim(bl[MIDDLE], pltlim), pltlim, pltlim
@@ -730,17 +739,16 @@ class LineC0Plot:
         # PlotChrm(self._chrm).plot_avg()
 
         # plt.plot(x, c0m, label="lnk all")
-        plt.plot(x, c0m_b, label="linkers at boundaries", color="tab:blue", linewidth=2)
-        plt.plot(x, c0m_d, label="linkers in domains", color="tab:red", linewidth=2)
+        plt.plot(x, c0m_b, label=f"{nm} at boundaries", color="tab:blue", linewidth=2)
+        plt.plot(x, c0m_d, label=f"{nm} in domains", color="tab:red", linewidth=2)
         plt.legend()
         PlotUtil.vertline(0, "tab:orange")
         # PlotUtil.show_grid()
-        plt.xlabel("Distance from linker middle (bp)")
+        plt.xlabel(f"Distance from {str.lower(nm)} middle (bp)")
         plt.ylabel("Cyclizability (C0)")
 
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.LINKERS}/{self._chrm}_{str(self._sr.lnkrs)}/"
-            f"c0_line_mean_pltlim_{pltlim}.png"
+            f"{d}/{self._chrm}_{str(rg)}/" f"c0_line_mean_pltlim_{pltlim}.png"
         )
 
     def line_c0_mean_bndrs(self, pltlim=100) -> Path:
