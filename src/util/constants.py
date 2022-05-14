@@ -22,6 +22,7 @@ class FigSubDir:
     LOOP_ANCHORS = "loop_anchors"
     NUCLEOSOMES = "nucleosomes"
     LOGOS = "logos"
+    MODELS = "models"
 
 
 YeastChrNumList = (

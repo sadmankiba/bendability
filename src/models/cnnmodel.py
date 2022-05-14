@@ -591,11 +591,11 @@ class CNNModel35:
             padding="same",
         )
 
-        fw_out_2 = conv_2(fw_relu_1)
-        rc_out_2 = conv_2(rc_relu_1)
+        fw_out_2 = conv_2(fw_relu_1) # fw_out_2.shape = (None, 50, 2)
+        rc_out_2 = conv_2(rc_relu_1) # rc-out_2.shape = (None, 50, 2)
 
         out_2 = Maximum()([fw_out_2, rc_out_2])
-        relu_2 = ReLU()(out_2)
+        relu_2 = ReLU()(out_2) # relu_2.shape = (None, 50, 2)
 
         if self.regularizer_2 == "l1":
             reg = regularizers.l1(0.0005)
@@ -616,7 +616,7 @@ class CNNModel35:
             kernel_initializer="normal",
             kernel_regularizer=reg,
             activation="linear",
-        )
+        ) # output_conv filter shape = (50, 2)
 
         outputs = Flatten()(output_conv(relu_2))
 

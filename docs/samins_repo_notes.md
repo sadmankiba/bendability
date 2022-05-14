@@ -49,6 +49,16 @@ python3 generate_motif_logos.py model_weights/model35_parameters_parameter_274 p
 ## Model Architecture 
 
 **Model 35, parameter 8** 
+Weights
+1st layer 
+256 8*4 kernels. #Param = (8 * 4 + 1) * 256 = 8446
+
+2nd layer
+2 40*1 filters, 256 channels. #Param = (40 * 1 * 256 + 1) * 2 = 20482
+
+3rd layer 
+1 50*2 filter. #Param = (50 * 2 + 1) * 1 = 101
+
 
 | Layer (type)            |       Output Shape    |     Param #  |   Connected to   |                  
 |-------------------------|-----------------------|--------------|------------------|

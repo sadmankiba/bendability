@@ -6,6 +6,7 @@ from typing import Union
 
 import tensorflow as tf
 import keras
+from keras.utils.vis_utils import plot_model
 import pandas as pd
 import numpy as np
 import logomaker as lm
@@ -20,6 +21,7 @@ from .parameters import ParamsReader
 from util.custom_types import LIBRARY_NAMES
 from util.reader import DNASequenceReader, SEQ_COL, SEQ_NUM_COL, C0_COL
 from util.util import FileSave, PathObtain
+from util.constants import FigSubDir, GDataSubDir
 
 C0_PREDICT = "c0_predict"
 
@@ -149,6 +151,16 @@ class Prediction:
                 f"{parent_dir}/parameter_model35.txt",
                 f"{parent_dir}/model_weights/model35_parameters_parameter_274",
             )
+
+    def plot_model(self):
+        f = f"{PathObtain.figure_dir()}/{FigSubDir.MODELS}/cnn_{self._model_no}.png"
+        print(f)
+        plot_model(
+            self._model,
+            to_file=f,
+            show_shapes=True,
+            show_layer_names=True,
+        )
 
     def _plot_scatter(self, df: pd.DataFrame) -> None:
         p = (
