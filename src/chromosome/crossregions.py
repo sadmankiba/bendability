@@ -109,7 +109,7 @@ class SubRegions:
     @property
     def prmtrs(self) -> Promoters:
         def _prmtrs():
-            return Promoters(self.chrm)
+            return Promoters(self.chrm, ustr_tss=499, dstr_tss=100)
 
         return Attr.calc_attr(self, "_prmtrs", _prmtrs)
 
@@ -756,6 +756,9 @@ class LineC0Plot:
         self._chrm = chrm
         self._sr = SubRegions(self._chrm)
 
+    def line_c0_mean_prmtrs(self, pltlim=100) -> Path:
+        cop = ChrmOperator(self._chrm)
+        
     def line_c0_mean_lnks_nucs(self, pltlim=100) -> Path:
         nucs = False
         self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
