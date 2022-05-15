@@ -194,11 +194,15 @@ class Regions:
         return self._new(self._regions.iloc[cntns if with_x else ~cntns])
 
     def _contains_loc(self, locs: Iterable[PosOneIdx]) -> NDArray[(Any,), bool]:
+        locs = sorted(locs)
+
         def _rgn_contains_loc(region: RegionNT) -> bool:
             cntns = False
             for loc in locs:
                 if getattr(region, START) <= loc <= getattr(region, END):
                     cntns = True
+                    break
+                if loc > getattr(region, END):
                     break
 
             return cntns

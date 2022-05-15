@@ -422,7 +422,7 @@ class Chromosome:
         Args:
             bps: An 1D Numpy array of bp to define segment. (1-indexed)
         """
-        assert neg_lim > 0 and pos_lim > 0
+        assert neg_lim >= 0 and pos_lim >= 0
         result = np.array(
             [self.c0_spread()[bp - 1 - neg_lim : bp + pos_lim] for bp in bps]
         ).mean(axis=0)

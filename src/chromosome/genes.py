@@ -124,7 +124,7 @@ class Promoters(Regions):
         )
 
     def __str__(self) -> str:
-        return f"ustr_{self._ustr_tss}_dstr_{self._dstr_tss}"
+        return f"prmtrs_ustr_{self._ustr_tss}_dstr_{self._dstr_tss}"
 
     def _new(self, rgns: RegionsInternal) -> Promoters:
         return Promoters(self.chrm, self._ustr_tss, self._dstr_tss, rgns)

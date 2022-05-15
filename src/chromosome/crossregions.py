@@ -68,16 +68,16 @@ class SubRegions:
 
     @property
     def bndsf(self) -> BoundariesF:
-        def _bndsf(): 
+        def _bndsf():
             return BoundariesF(self.chrm, **BndFParm.SHR_50)
-        
+
         return Attr.calc_attr(self, "_bndsf", _bndsf)
 
     @property
     def bndsfn(self) -> BoundariesF:
-        def _bndsfn(): 
+        def _bndsfn():
             return BoundariesFN(self.chrm, **BndFParm.SHR_50_LNK_0)
-        
+
         return Attr.calc_attr(self, "_bndsfn", _bndsfn)
 
     @property
@@ -96,14 +96,14 @@ class SubRegions:
     def dmnsf(self) -> DomainsF:
         def _dmnsf():
             return DomainsF(self.bndsf)
-        
+
         return Attr.calc_attr(self, "_dmnsf", _dmnsf)
 
     @property
     def dmnsfn(self) -> DomainsFN:
         def _dmnsfn():
             return DomainsFN(self.bndsfn)
-        
+
         return Attr.calc_attr(self, "_dmnsfn", _dmnsfn)
 
     @property
@@ -215,7 +215,9 @@ class SubRegions:
     def non_bndry_ndrs(self) -> Linkers:
         return self.ndrs - self.bndry_ndrs()
 
+
 sr_vl = SubRegions(Chromosome("VL", prediction=None, spread_str=C0Spread.mcvr))
+
 
 class Distrib(Enum):
     BNDRS = auto()
@@ -756,9 +758,32 @@ class LineC0Plot:
         self._chrm = chrm
         self._sr = SubRegions(self._chrm)
 
-    def line_c0_mean_prmtrs(self, pltlim=100) -> Path:
-        cop = ChrmOperator(self._chrm)
-        
+    def line_c0_mean_prmtrs(self) -> Path:
+        self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+        c0m = self._chrm.mean_c0_around_bps(
+            self._sr.prmtrs[START], 0, self._sr.prmtrs[LEN][0] - 1
+        )
+        c0m_b = self._chrm.mean_c0_around_bps(
+            self._sr.prmtrs_with_bndrs()[START], 0, self._sr.prmtrs[LEN][0] - 1
+        )
+        c0m_d = self._chrm.mean_c0_around_bps(
+            self._sr.prmtrs_wo_bndrs()[START], 0, self._sr.prmtrs[LEN][0] - 1
+        )
+        PlotUtil.clearfig()
+        PlotUtil.font_size(20)
+        x = np.arange(-self._sr.prmtrs._ustr_tss, self._sr.prmtrs._dstr_tss + 1)
+        plt.plot(x, c0m_b, label=f"Promoters at boundaries", color="tab:blue", lw=2)
+        plt.plot(x, c0m_d, label=f"Promoters in domains", color="tab:red", lw=2)
+        plt.xlabel(f"Distance from TSS (bp)")
+        plt.ylabel("Cyclizability (C0)")
+        plt.legend()
+        plt.tight_layout()
+
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.PROMOTERS}/{self._chrm}_{str(self._sr.prmtrs)}/" 
+            f"c0_line_mean.png"
+        )
+
     def line_c0_mean_lnks_nucs(self, pltlim=100) -> Path:
         nucs = False
         self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)

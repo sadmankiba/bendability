@@ -34,7 +34,7 @@ class TestRegions:
         assert list(orgns[START]) == [7, 9]
         assert list(orgns[END]) == [12, 10]
 
-    def test_contains(self, chrm_vl_mean7: Chromosome):
+    def test_contains_loc(self, chrm_vl_mean7: Chromosome):
         containers = pd.DataFrame({START: [3, 7, 9], END: [4, 12, 10]})
         rgns = Regions(chrm_vl_mean7, regions=containers)
         assert rgns._contains_loc([4, 11, 21, 3]).tolist() == [True, True, False]
