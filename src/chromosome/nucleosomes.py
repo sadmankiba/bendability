@@ -30,9 +30,10 @@ class Nucleosomes(Regions):
         self._centers: np.ndarray = NucsReader.read(chrm.number)
         self._filter_at_least_depth(NUC_HALF, chrm.total_bp)
         super().__init__(chrm, regions)
+        self.str = None
     
     def __str__(self):
-        return f"nucs_w{NUC_WIDTH}"
+        return self.str or f"nucs_w{NUC_WIDTH}"
 
     def _get_regions(self) -> RegionsInternal:
         return pd.DataFrame(

@@ -193,7 +193,7 @@ class PlotMotifs:
 
 class KMerMotifs:
     @classmethod
-    def score(cls, rega: Regions, regb: Regions, subdir: str):
+    def score(cls, rega: Regions, regb: Regions, subdir: str, fn: str | None=None):
         asq = np.array(list(rega.chrm.seq))[rega.cover_mask]
         bsq = np.array(list(regb.chrm.seq))[regb.cover_mask]
 
@@ -208,7 +208,8 @@ class KMerMotifs:
         )
         df["diff"] = df["a_cnt"] - df["b_cnt"]
 
-        fn = f"kmer{n}_motif_{rega}_{regb}_{rega.chrm}"
+        if fn is None:
+            fn = f"kmer{n}_motif_{rega}_{regb}_{rega.chrm}"
         FileSave.tsv_gdatadir(df, f"{subdir}/{fn}.tsv")
         FileSave.tsv_gdatadir(
             df.sort_values("diff"),

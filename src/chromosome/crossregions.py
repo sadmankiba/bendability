@@ -190,10 +190,24 @@ class SubRegions:
         return self.lnkrs.mid_contained_in(self.dmnsf)
 
     def nucs_in_bnds(self) -> Nucleosomes:
-        return self.nucs.mid_contained_in(self.bndrs)
+        n = self.nucs.mid_contained_in(self.bndrs)
+        n.str = f"{n}_{self.bndrs}"
+        return n
+
+    def nucs_in_bndsf(self) -> Nucleosomes:
+        n = self.nucs.mid_contained_in(self.bndsf)
+        n.str = f"{n}_{self.bndsf}"
+        return n
 
     def nucs_in_dmns(self) -> Nucleosomes:
-        return self.nucs.mid_contained_in(self.dmns)
+        n = self.nucs.mid_contained_in(self.dmns)
+        n.str = f"{n}_{self.dmns}"
+        return n
+
+    def nucs_in_dmnsf(self) -> Nucleosomes:
+        n = self.nucs.mid_contained_in(self.dmnsf)
+        n.str = f"{n}_{self.dmnsf}"
+        return n
 
     def bndry_ndrs(self) -> Linkers:
         return self.ndrs.overlaps_with_rgns(self.bndrs, self.min_ndr_len)
