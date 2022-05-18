@@ -11,7 +11,7 @@ from nptyping import NDArray
 from chromosome.chromosome import ChrmOperator, Chromosome, PlotChrm
 from util.util import Attr, FileSave, NumpyTool, PlotUtil
 from util.constants import ONE_INDEX_START, MAX_TOTAL_BP
-from util.custom_types import PosOneIdx, NonNegativeInt, PositiveInt
+from util.custom_types import PosOneIdx, NonNegativeInt, PositiveInt, C0
 
 RegionsInternal = pd.DataFrame
 
@@ -104,10 +104,8 @@ class Regions:
 
         return Attr.calc_attr(self, "_cvrmask", calc_cvrmask)
 
-    def c0(self) -> list[NDArray[(Any,), float]]:
-        return [
-            ChrmOperator(self.chrm).c0(s, e) for s, e in zip(self[START], self[END])
-        ]
+    def c0(self) -> NDArray[(Any, Any), C0]:
+        return ChrmOperator(self.chrm).c0_rgns(self[START], self[END])
     
     def seq(self) -> list[str]:
         return [ self.chrm.seq[s - 1: e] for s, e in zip(self[START], self[END]) ]

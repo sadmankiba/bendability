@@ -386,8 +386,6 @@ class CNNModel6(CNNModel):
 
         model = keras.Model(inputs=[forward, reverse], outputs=outputs)
 
-        # model.summary()
-
         model.compile(
             loss=Loss().param_map[self.loss_func],
             optimizer=self.optimizer,
@@ -489,8 +487,6 @@ class CNNModel30:
 
         outputs = Flatten()(output_conv(max_24))
         model = keras.Model(inputs=[forward, reverse], outputs=outputs)
-
-        # model.summary()
 
         adam_optimizer = keras.optimizers.Adam()
         optimizer_map = {
@@ -621,8 +617,6 @@ class CNNModel35:
         outputs = Flatten()(output_conv(relu_2))
 
         model = keras.Model(inputs=[forward, reverse], outputs=outputs)
-
-        model.summary()
 
         optimizer = None
         if self.optimizer == "swa_adam":

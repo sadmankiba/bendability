@@ -1188,32 +1188,35 @@ class MCLineC0Plot:
 
     @classmethod
     def line_c0_mean_bndrs(cls, pltlim=100):
-        mcbndrs_c0 = []
+        bc0 = []
+        dc0 = []
         for c in YeastChrNumList:
             sr, chrm = cls._sr(c)
             sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
-            # mcbndrs_c0 += sr.bndrs.c0()
-            mcbndrs_c0.append(
+            bc0.append(
                 ChrmOperator(chrm).c0_rgns(
-                    (sr.bndrs[MIDDLE] - pltlim).tolist(),
+                    (sr.bndrs[MIDDLE] - pltlim + 1).tolist(),
                     (sr.bndrs[MIDDLE] + pltlim).tolist(),
                 )
             )
+            dc0.append(sr.dmns.sections(2 * pltlim).c0())
 
-        mc0 = np.vstack(mcbndrs_c0).mean(axis=0)
+        mc0b = np.vstack(bc0).mean(axis=0)
+        mc0d = np.vstack(dc0).mean(axis=0)
 
         FileSave.nptxt(
-            mc0,
+            mc0b,
             f"{PathObtain.gen_data_dir()}/{GDataSubDir.BOUNDARIES}/"
             f"c0_line_mean_all{str(sr.chrm)[:-4]}_{sr.bndrs}_pltlim_{pltlim}.txt",
         )
 
-        x = np.arange(2 * pltlim + 1) - pltlim
-        plt.plot(x, mc0)
+        x = np.arange(2 * pltlim) - pltlim + 1
+        plt.plot(x, mc0b, label="boundaries")
+        plt.plot(x, mc0d, label="domains")
         PlotUtil.show_grid()
-        plt.xlabel("bp in boundaries")
+        plt.legend()
+        plt.xlabel("distance from boundaries and domain sections middle (bp)")
         plt.ylabel("C0")
-        plt.title(f"C0 mean around boundaries")
 
         return FileSave.figure_in_figdir(
             f"{FigSubDir.BOUNDARIES}/c0_line_mean_all{str(sr.chrm)[:-4]}_{sr.bndrs}_pltlim_{pltlim}.png"
