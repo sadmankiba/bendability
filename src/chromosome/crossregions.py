@@ -777,6 +777,7 @@ class LineC0Plot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
         self._sr = SubRegions(self._chrm)
+        self._cop = ChrmOperator(self._chrm)
 
     def line_c0_mean_prmtrs(self) -> Path:
         self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
@@ -820,15 +821,14 @@ class LineC0Plot:
         dl = rg.mid_contained_in(self._sr.dmns)
         assert len(bl) + len(dl) == len(rg)
 
-        cop = ChrmOperator(self._chrm)
         # c0m = self._chrm.mean_c0_around_bps(
         #     cop.in_lim(rg[MIDDLE], pltlim), pltlim, pltlim
         # )
         c0m_b = self._chrm.mean_c0_around_bps(
-            cop.in_lim(bl[MIDDLE], pltlim), pltlim, pltlim
+            self._cop.in_lim(bl[MIDDLE], pltlim), pltlim, pltlim
         )
         c0m_d = self._chrm.mean_c0_around_bps(
-            cop.in_lim(dl[MIDDLE], pltlim), pltlim, pltlim
+            self._cop.in_lim(dl[MIDDLE], pltlim), pltlim, pltlim
         )
         PlotUtil.clearfig()
         PlotUtil.font_size(20)
@@ -849,48 +849,37 @@ class LineC0Plot:
         )
 
     def line_c0_mean_bndrs(self, pltlim=100) -> Path:
-        show_legend = False
+        dmns = True
+        show_legend = True
         smooth = False
-        self._sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50_LNK_0)
-        C0MeanArr = namedtuple("C0MeanArr", ["val", "label"])
-        c0m_bndrs = C0MeanArr(
-            self._chrm.mean_c0_around_bps(self._sr.bndrs[MIDDLE], pltlim, pltlim), "all"
-        )
-        c0m_bndrs_p = C0MeanArr(
-            self._chrm.mean_c0_around_bps(
-                self._sr.prmtr_bndrs()[MIDDLE], pltlim, pltlim
-            ),
-            "bndrs_p",
-        )
-        c0m_bndrs_np = C0MeanArr(
-            self._chrm.mean_c0_around_bps(
-                self._sr.non_prmtr_bndrs()[MIDDLE], pltlim, pltlim
-            ),
-            "bndrs_np",
-        )
-
-        c0ms = [c0m_bndrs]
+        self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+        bc0 = self._chrm.mean_c0_around_bps(self._sr.bndrs[MIDDLE], pltlim - 1, pltlim)
 
         PlotUtil.clearfig()
-        x = np.arange(2 * pltlim + 1) - pltlim
+        x = np.arange(2 * pltlim) - pltlim + 1
 
-        if smooth:
-            plt.plot(x, c0m_bndrs.val, color="tab:gray", alpha=0.5)
-            plt.plot(x, gaussian_filter1d(c0m_bndrs.val, 40), color="black")
+        if dmns:
+            scts = self._sr.dmns.sections(2 * pltlim)
+            dc0 = self._cop.c0_rgns(scts[START], scts[END]).mean(axis=0)
         else:
-            for cm in c0ms:
-                plt.plot(x, cm.val, label=cm.label)
+            PlotChrm(self._chrm).plot_avg()
 
-        PlotChrm(self._chrm).plot_avg()
+        c0s = [(bc0, "boundaries"), (dc0, "domains")]
+        if smooth:
+            plt.plot(x, bc0, color="tab:gray", alpha=0.5)
+            plt.plot(x, gaussian_filter1d(bc0, 40), color="black")
+        else:
+            for c in c0s:
+                plt.plot(x, c[0], label=c[1])
+ 
         if show_legend:
             plt.legend()
         PlotUtil.show_grid()
-        plt.xlabel("Distance from boundary middle(bp)")
+        plt.xlabel("Distance from boundary and domain sections middle(bp)")
         plt.ylabel("C0")
-        plt.title(f"C0 mean around boundaries in chromosome {self._chrm.id}")
 
         FileSave.nptxt(
-            c0m_bndrs.val,
+            bc0,
             f"{PathObtain.gen_data_dir()}/{GDataSubDir.BOUNDARIES}/"
             f"{self._chrm}_{self._sr.bndrs}/chrm{self._chrm.id}_c0_line_mean_pltlim_{pltlim}.txt",
         )

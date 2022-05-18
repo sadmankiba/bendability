@@ -94,6 +94,9 @@ class TestDomainsF:
             bndrsf_vl.chrm.mean_c0, abs=1e-3
         )
 
+    def test_sections(self, bndrsf_vl: BoundariesF):
+        dmnsf = DomainsF(bndrsf_vl)
+        assert len(dmnsf.sections(200)) > 0
 
 class TestBoundariesFN:
     def test_init(self, chrm_vl_mcvr: Chromosome):

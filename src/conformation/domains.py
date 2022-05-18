@@ -12,7 +12,15 @@ from nptyping import NDArray
 from chromosome.chromosome import Chromosome, MultiChrm, PlotChrm
 from chromosome.genes import Promoters
 from chromosome.nucleosomes import Linkers
-from chromosome.regions import Regions, RegionsInternal, START, END, MEAN_C0, MIDDLE
+from chromosome.regions import (
+    Regions,
+    RegionsInternal,
+    START,
+    END,
+    MEAN_C0,
+    MIDDLE,
+    LEN,
+)
 from models.prediction import Prediction
 from util.util import FileSave, PlotUtil, PathObtain, Attr
 from util.custom_types import ChrId, PositiveInt, PosOneIdx, ZeroToOne
@@ -228,6 +236,23 @@ class DomainsF(Regions):
 
     def _new(self, regions: RegionsInternal) -> DomainsF:
         return DomainsF(bndrs=self._bndrs, regions=regions)
+
+    def sections(self, ln: int) -> Regions:
+        rgns = self.sort(START)
+        secs = np.empty((0,))
+        sece = np.empty((0,))
+        for rgn in rgns:
+            s = np.array(
+                range(
+                    getattr(rgn, START) + (getattr(rgn, LEN) % ln) // 2,
+                    getattr(rgn, END) - ln + 2,
+                    ln,
+                )
+            )
+            secs = np.append(secs, s)
+            sece = np.append(sece, s + ln - 1)
+
+        return Regions(self.chrm, pd.DataFrame({START: secs.astype(int), END: sece.astype(int)}))
 
 
 class BoundariesFN(Boundaries):
