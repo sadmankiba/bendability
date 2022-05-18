@@ -150,12 +150,12 @@ class Regions:
         return np.array([self.cover_mask[bp - 1] for bp in bps])
 
     def cover_regions(self) -> Regions:
+        cvr = np.concatenate(([False], self.cover_mask, [False]))
         starts = (
-            NumpyTool.match_pattern(self.cover_mask, [False, True])
-            + 1
+            NumpyTool.match_pattern(cvr, [False, True])
             + ONE_INDEX_START
         )
-        ends = NumpyTool.match_pattern(self.cover_mask, [True, False]) + ONE_INDEX_START
+        ends = NumpyTool.match_pattern(cvr, [True, False])
         assert len(starts) == len(ends)
 
         rgns = Regions(self.chrm, pd.DataFrame({START: starts, END: ends}))

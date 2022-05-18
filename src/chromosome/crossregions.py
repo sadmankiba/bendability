@@ -164,6 +164,12 @@ class SubRegions:
     def prmtrs_wo_bndrs(self):
         return self.prmtrs.with_loc(self._bndrs[MIDDLE], False)
 
+    def prmtrs_in_bnds(self) -> Promoters:
+        return self.prmtrs.mid_contained_in(self.bndrs)
+    
+    def prmtrs_in_dmns(self) -> Promoters:
+        return self.prmtrs.mid_contained_in(self.dmns)
+
     def prmtr_bndrs(self):
         # TODO: Update def. in +- 100bp of promoters
         return self.bndrs.mid_contained_in(self.prmtrs)
@@ -560,6 +566,20 @@ class DistribPlot:
             f"{f'all{str(self._chrm)[:-4]}' if allchrm else self._chrm}.png"
         )
 
+    def prob_distrib_bndrs_nearest_tss_dist(self):
+        self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+        distsf = self._sr.bndrs.nearest_locs_distnc(self._sr.genes.frwrd_genes()[START])
+        distsr = self._sr.bndrs.nearest_locs_distnc(self._sr.genes.rvrs_genes()[END])
+        dists = np.append(distsf, -distsr)
+        PlotUtil.font_size(20)
+        # PlotUtil.prob_distrib(dists)
+        plt.hist(dists)
+        plt.xlabel("Distance from TSS (bp)")
+        plt.ylabel("Density")
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.GENES}/{self._chrm}_{self._sr.genes}/distnc_bndr_prob_distrib_{self._sr.bndrs}.png"
+        )
+
     def num_prmtrs_bndrs_ndrs(self, frml: int, btype: BoundariesType) -> Path:
         min_lnkr_len = 40
 
@@ -780,7 +800,7 @@ class LineC0Plot:
         plt.tight_layout()
 
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.PROMOTERS}/{self._chrm}_{str(self._sr.prmtrs)}/" 
+            f"{FigSubDir.PROMOTERS}/{self._chrm}_{str(self._sr.prmtrs)}/"
             f"c0_line_mean.png"
         )
 
@@ -1087,7 +1107,7 @@ class PaperLineC0Plot:
 
 class MCLineC0Plot:
     pred = Prediction(35)
-    
+
     @classmethod
     def line_c0_mean_prmtrs(cls):
         mcb_c0 = []
@@ -1095,10 +1115,10 @@ class MCLineC0Plot:
         for c in YeastChrNumList:
             print(c)
             sr, chrm = cls._sr(c)
-            sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+            sr.bsel = BndSel(BoundariesType.FANC, BndFParm.W2D_50)
             cop = ChrmOperator(chrm)
 
-            b, d = sr.prmtrs_with_bndrs(), sr.prmtrs_wo_bndrs()
+            b, d = sr.prmtrs_in_bnds(), sr.prmtrs_in_dmns()
 
             mcb_c0.append(cop.c0_rgns(b[START], b[END]))
             mcd_c0.append(cop.c0_rgns(d[START], d[END]))
@@ -1109,7 +1129,7 @@ class MCLineC0Plot:
         x = np.arange(-sr.prmtrs._ustr_tss, sr.prmtrs._dstr_tss + 1)
         PlotUtil.font_size(20)
         labels = ["Promoters at boundaries", "Promoters in domains"]
-            
+
         plt.plot(x, mc0b, color="tab:blue", label=labels[0], lw=2)
         plt.plot(x, mc0d, color="tab:red", label=labels[1], lw=2)
         PlotUtil.vertline(0, "tab:orange", linewidth=2)

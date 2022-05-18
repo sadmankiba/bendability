@@ -5,7 +5,6 @@ import os
 import pandas as pd
 import numpy as np
 
-from matplotlib import container
 from util.util import (
     NumpyTool,
     PlotUtil,
@@ -121,10 +120,9 @@ class TestPlotUtil:
 
 class TestNumpyTool:
     def test_match_pattern(self):
-        container = np.array([True, True, False, False, True, False, True, True])
-        pattern = np.array([False, True])
-        starts = NumpyTool.match_pattern(container, pattern)
-        assert starts.tolist() == [3, 5]
+        container = np.array([True, True, False, False, True, False, False, True, True])
+        assert NumpyTool.match_pattern(container, np.array([False, True])).tolist() == [3, 6]
+        assert NumpyTool.match_pattern(container, [True, False, False]).tolist() == [1, 4]
 
 
 if __name__ == "__main__":

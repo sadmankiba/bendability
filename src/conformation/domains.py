@@ -166,6 +166,7 @@ class BndFParm:
     WD_25 = BndFParmT(lim=250, top_perc=0.25)
     SHR_50 = BndFParmT(lim=100, top_perc=0.50)
     WD_50 = BndFParmT(lim=250, top_perc=0.50)
+    W2D_50 = BndFParmT(lim=500, top_perc=0.50)
     SHR_50_LNK_0 = BndFParmT(lim=100, top_perc=0.50, min_lnk=0)
     SHR_50_LNK_10 = BndFParmT(lim=100, top_perc=0.50, min_lnk=10)
     SHR_50_LNK_20 = BndFParmT(lim=100, top_perc=0.50, min_lnk=20)

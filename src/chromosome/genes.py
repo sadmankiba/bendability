@@ -27,6 +27,9 @@ class Genes(Regions):
     def __init__(self, chrm: Chromosome, regions: RegionsInternal = None):
         super().__init__(chrm, regions)
 
+    def __str__(self):
+        return "genes"
+        
     def _get_regions(
         self,
     ) -> RegionsInternal[

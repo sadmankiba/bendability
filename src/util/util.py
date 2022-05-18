@@ -257,10 +257,10 @@ class FileSave:
         path = Path(path_str)
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         if sizew is not None:
             plt.gcf().set_size_inches(sizew, sizeh)
-        
+
         plt.savefig(path, dpi=200, **kwargs)
 
         logging.info(f"Figure saved at: {path}")
@@ -309,10 +309,12 @@ class FileSave:
         path = Path(path_str)
         cls.make_parent_dirs(path)
 
-        srs = [SeqRecord(Seq(s), id=str(i+1), description="") for i, s in enumerate(arr)]
+        srs = [
+            SeqRecord(Seq(s), id=str(i + 1), description="") for i, s in enumerate(arr)
+        ]
         with open(path, "w") as f:
             SeqIO.write(srs, f, "fasta")
-        
+
         logging.info(f"fasta file saved at: {path}")
 
         return path
@@ -543,10 +545,16 @@ class NumpyTool:
     def match_pattern(
         self, container: NDArray[(Any,)], pattern: NDArray[(Any,)] | list
     ) -> NDArray[(Any,)]:
-        starts = [
-            i
-            for i in range(len(container) - len(pattern) + 1)
-            if all(pattern == container[i : i + len(pattern)])
-        ]
+        if len(pattern) == 2:
+            container = np.append(container, [not pattern[1]])
+            starts = np.where(
+                (container[:-1] ^ (not pattern[0])) & (container[1:] ^ (not pattern[1]))
+            )[0]
+        else:
+            starts = np.array([
+                i
+                for i in range(len(container) - len(pattern) + 1)
+                if all(pattern == container[i : i + len(pattern)])
+            ])
 
-        return np.array(starts)
+        return starts

@@ -23,6 +23,7 @@ class FigSubDir:
     NUCLEOSOMES = "nucleosomes"
     LOGOS = "logos"
     MODELS = "models"
+    GENES = "genes"
 
 
 YeastChrNumList = (

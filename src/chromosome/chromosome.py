@@ -552,6 +552,8 @@ class ChrmOperator:
     def mean_c0_regions_indiv(
         self, starts: Iterable[PosOneIdx], ends: Iterable[PosOneIdx]
     ) -> NDArray[(Any,), float]:
+        assert all(starts > 0)
+        assert all(ends >= starts)
         return np.array(
             list(
                 map(

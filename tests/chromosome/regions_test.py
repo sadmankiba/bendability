@@ -14,6 +14,17 @@ def rgns_simp_vl_2(chrm_vl_mean7):
 
 
 class TestRegions:
+    def test_cover_regions(self, chrm_vl_mcvr, rgns_simp_vl_2: Regions):
+        crgn = rgns_simp_vl_2.cover_regions()
+        assert crgn[START].tolist() == [4]
+        assert crgn[END].tolist() == [11]
+
+        regions = pd.DataFrame({START: [1, 6, 7], END: [4, 8, 14]})
+        rgn = Regions(chrm_vl_mcvr, regions)
+        crgn = rgn.cover_regions()
+        assert crgn[START].tolist() == [1, 6]
+        assert crgn[END].tolist() == [4, 14]
+
     def test_accs_iterable(self, rgns_simp_vl: Regions):
         assert rgns_simp_vl[[True, False, True]]._regions[
             [START, END]
