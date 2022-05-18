@@ -158,15 +158,15 @@ class SubRegions:
         self._bsel = _bsel
         self._bndrs = None
 
-    def prmtrs_with_bndrs(self):
+    def prmtrs_with_bndrs(self) -> Promoters:
         return self.prmtrs.with_loc(self.bndrs[MIDDLE], True)
 
-    def prmtrs_wo_bndrs(self):
+    def prmtrs_wo_bndrs(self) -> Promoters:
         return self.prmtrs.with_loc(self._bndrs[MIDDLE], False)
 
     def prmtrs_in_bnds(self) -> Promoters:
         return self.prmtrs.mid_contained_in(self.bndrs)
-    
+
     def prmtrs_in_dmns(self) -> Promoters:
         return self.prmtrs.mid_contained_in(self.dmns)
 
@@ -780,21 +780,32 @@ class LineC0Plot:
         self._cop = ChrmOperator(self._chrm)
 
     def line_c0_mean_prmtrs(self) -> Path:
+        bnd_dmn = True
         self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
-        c0m = self._chrm.mean_c0_around_bps(
-            self._sr.prmtrs[START], 0, self._sr.prmtrs[LEN][0] - 1
-        )
-        c0m_b = self._chrm.mean_c0_around_bps(
-            self._sr.prmtrs_with_bndrs()[START], 0, self._sr.prmtrs[LEN][0] - 1
-        )
-        c0m_d = self._chrm.mean_c0_around_bps(
-            self._sr.prmtrs_wo_bndrs()[START], 0, self._sr.prmtrs[LEN][0] - 1
-        )
+
         PlotUtil.clearfig()
         PlotUtil.font_size(20)
         x = np.arange(-self._sr.prmtrs._ustr_tss, self._sr.prmtrs._dstr_tss + 1)
-        plt.plot(x, c0m_b, label=f"Promoters at boundaries", color="tab:blue", lw=2)
-        plt.plot(x, c0m_d, label=f"Promoters in domains", color="tab:red", lw=2)
+
+        plt.plot(
+            x, self._sr.prmtrs.mean_c0(), label=f"Promoters", color="tab:green", lw=2
+        )
+        if bnd_dmn:
+            plt.plot(
+                x,
+                self._sr.prmtrs_with_bndrs().mean_c0(),
+                label=f"Promoters at boundaries",
+                color="tab:blue",
+                lw=2,
+            )
+            plt.plot(
+                x,
+                self._sr.prmtrs_wo_bndrs().mean_c0(),
+                label=f"Promoters in domains",
+                color="tab:red",
+                lw=2,
+            )
+
         plt.xlabel(f"Distance from TSS (bp)")
         plt.ylabel("Cyclizability (C0)")
         plt.legend()
@@ -802,7 +813,7 @@ class LineC0Plot:
 
         return FileSave.figure_in_figdir(
             f"{FigSubDir.PROMOTERS}/{self._chrm}_{str(self._sr.prmtrs)}/"
-            f"c0_line_mean.png"
+            f"c0_line_mean{f'_with_{self._sr.bndrs}' if bnd_dmn else ''}.png"
         )
 
     def line_c0_mean_lnks_nucs(self, pltlim=100) -> Path:
@@ -871,7 +882,7 @@ class LineC0Plot:
         else:
             for c in c0s:
                 plt.plot(x, c[0], label=c[1])
- 
+
         if show_legend:
             plt.legend()
         PlotUtil.show_grid()
@@ -1099,35 +1110,53 @@ class MCLineC0Plot:
 
     @classmethod
     def line_c0_mean_prmtrs(cls):
-        mcb_c0 = []
-        mcd_c0 = []
+        with_np = False
+        bnd_dmn = True
+        pc0 = []
+        npc0 = []
+        pbc0 = []
+        pdc0 = []
         for c in YeastChrNumList:
             print(c)
             sr, chrm = cls._sr(c)
-            sr.bsel = BndSel(BoundariesType.FANC, BndFParm.W2D_50)
-            cop = ChrmOperator(chrm)
+            sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_25)
+            pc0.append(
+                np.full((len(sr.prmtrs), sr.prmtrs[LEN][0]), sr.prmtrs.mean_c0())
+            )
+            if with_np:
+                nprm = Regions(sr.chrm, sr.prmtrs.complement())
+                scnp = nprm.sections(sr.prmtrs[LEN][0])
+                npc0.append(np.full((len(scnp), scnp[LEN][0]), scnp.c0().mean(axis=0)))
 
-            b, d = sr.prmtrs_in_bnds(), sr.prmtrs_in_dmns()
-
-            mcb_c0.append(cop.c0_rgns(b[START], b[END]))
-            mcd_c0.append(cop.c0_rgns(d[START], d[END]))
-
-        mc0b = np.vstack(mcb_c0).mean(axis=0)
-        mc0d = np.vstack(mcd_c0).mean(axis=0)
+            if bnd_dmn:
+                b, d = sr.prmtrs_with_bndrs(), sr.prmtrs_wo_bndrs()
+                pbc0.append(np.full((len(b), b[LEN][0]), b.mean_c0()))
+                pdc0.append(np.full((len(d), d[LEN][0]), d.mean_c0()))
 
         x = np.arange(-sr.prmtrs._ustr_tss, sr.prmtrs._dstr_tss + 1)
         PlotUtil.font_size(20)
-        labels = ["Promoters at boundaries", "Promoters in domains"]
 
-        plt.plot(x, mc0b, color="tab:blue", label=labels[0], lw=2)
-        plt.plot(x, mc0d, color="tab:red", label=labels[1], lw=2)
+        pmc0 = np.vstack(pc0).mean(axis=0)
+        plt.plot(x, pmc0, color="tab:green", label="Promoters", lw=2)
+        
+        if with_np:
+            npmc0 = np.vstack(npc0).mean(axis=0)
+            plt.plot(x, npmc0, color="tab:orange", label="Non-promoters", lw=2)
+
+        if bnd_dmn:
+            mc0b = np.vstack(pbc0).mean(axis=0)
+            mc0d = np.vstack(pdc0).mean(axis=0)
+            plt.plot(x, mc0b, color="tab:blue", label="Promoters at boundaries", lw=2)
+            plt.plot(x, mc0d, color="tab:red", label="Promoters in domains", lw=2)
+        
         PlotUtil.vertline(0, "tab:orange", linewidth=2)
         plt.legend()
         plt.xlabel(f"Distance from TSS (bp)")
         plt.ylabel("Cyclizability (C0)")
 
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.PROMOTERS}/c0_line_mean_all{str(sr.chrm)[:-4]}_{sr.prmtrs}_{sr.bndrs}.png"
+            f"{FigSubDir.PROMOTERS}/c0_line_mean_all{str(sr.chrm)[:-4]}_{sr.prmtrs}"
+            f"{f'_with_{sr.bndrs}' if bnd_dmn else '' }.png"
         )
 
     @classmethod

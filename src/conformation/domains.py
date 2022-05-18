@@ -105,7 +105,7 @@ class BoundariesHE(Boundaries):
         super().__init__(chrm, regions)
 
     def __str__(self):
-        return f"res_{self.res}_lim_{self.lim}_perc_{self.score_perc}_hexp"
+        return f"bndh_res_{self.res}_lim_{self.lim}_perc_{self.score_perc}"
 
     def _get_regions(
         self,
@@ -194,7 +194,7 @@ class BoundariesF(Boundaries):
         super().__init__(chrm, regions)
 
     def __str__(self):
-        return f"bf_res_{self._res}_lim_{self.lim}_perc_{self._top_perc}_fanc"
+        return f"bndf_res_{self._res}_lim_{self.lim}_perc_{self._top_perc}"
 
     def _get_regions(self):
         df = pd.read_csv(
@@ -236,23 +236,6 @@ class DomainsF(Regions):
 
     def _new(self, regions: RegionsInternal) -> DomainsF:
         return DomainsF(bndrs=self._bndrs, regions=regions)
-
-    def sections(self, ln: int) -> Regions:
-        rgns = self.sort(START)
-        secs = np.empty((0,))
-        sece = np.empty((0,))
-        for rgn in rgns:
-            s = np.array(
-                range(
-                    getattr(rgn, START) + (getattr(rgn, LEN) % ln) // 2,
-                    getattr(rgn, END) - ln + 2,
-                    ln,
-                )
-            )
-            secs = np.append(secs, s)
-            sece = np.append(sece, s + ln - 1)
-
-        return Regions(self.chrm, pd.DataFrame({START: secs.astype(int), END: sece.astype(int)}))
 
 
 class BoundariesFN(Boundaries):

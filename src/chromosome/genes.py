@@ -1,19 +1,19 @@
 from __future__ import annotations
 from pathlib import Path
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from nptyping import NDArray
 
-from util.constants import FigSubDir
-
-from .chromosome import Chromosome
+from .chromosome import Chromosome, ChrmOperator
 from .nucleosomes import Nucleosomes
 from .regions import PlotRegions, Regions, RegionsInternal, START, END, MEAN_C0
 from util.reader import GeneReader
 from util.util import FileSave, PlotUtil, PathObtain
-from util.constants import GDataSubDir
+from util.constants import GDataSubDir, FigSubDir
 from util.custom_types import PosOneIdx
 
 
@@ -29,7 +29,7 @@ class Genes(Regions):
 
     def __str__(self):
         return "genes"
-        
+
     def _get_regions(
         self,
     ) -> RegionsInternal[
@@ -129,8 +129,19 @@ class Promoters(Regions):
     def __str__(self) -> str:
         return f"prmtrs_ustr_{self._ustr_tss}_dstr_{self._dstr_tss}"
 
+    def frwrd(self) -> Promoters:
+        return self._new(self._regions.query(f"{STRAND} == 1"))
+
+    def rvrs(self) -> Promoters:
+        return self._new(self._regions.query(f"{STRAND} == -1"))
+
     def _new(self, rgns: RegionsInternal) -> Promoters:
         return Promoters(self.chrm, self._ustr_tss, self._dstr_tss, rgns)
+
+    def mean_c0(self) -> NDArray[(Any,)]:
+        return np.vstack((self.frwrd().c0(), np.flip(self.rvrs().c0(), axis=0))).mean(
+            axis=0
+        )
 
 
 class PlotPromoters:

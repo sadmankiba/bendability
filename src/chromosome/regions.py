@@ -35,7 +35,11 @@ class RegionNT(NamedTuple):
 class Regions:
     def __init__(self, chrm: Chromosome, regions: RegionsInternal = None) -> None:
         self.chrm = chrm
-        self._regions = regions if regions is not None else self._get_regions()
+        self._regions = (
+            regions.reset_index(drop=True)
+            if regions is not None
+            else self._get_regions().reset_index(drop=True)
+        )
         self._add_len()
         self._add_middle()
         self._add_mean_c0()
@@ -106,10 +110,10 @@ class Regions:
 
     def c0(self) -> NDArray[(Any, Any), C0]:
         return ChrmOperator(self.chrm).c0_rgns(self[START], self[END])
-    
+
     def seq(self) -> list[str]:
-        return [ self.chrm.seq[s - 1: e] for s, e in zip(self[START], self[END]) ]
-    
+        return [self.chrm.seq[s - 1 : e] for s, e in zip(self[START], self[END])]
+
     def complement(self) -> RegionsInternal:
         if self._uniform_len():
             rgns = self
@@ -149,10 +153,7 @@ class Regions:
 
     def cover_regions(self) -> Regions:
         cvr = np.concatenate(([False], self.cover_mask, [False]))
-        starts = (
-            NumpyTool.match_pattern(cvr, [False, True])
-            + ONE_INDEX_START
-        )
+        starts = NumpyTool.match_pattern(cvr, [False, True]) + ONE_INDEX_START
         ends = NumpyTool.match_pattern(cvr, [True, False])
         assert len(starts) == len(ends)
 
@@ -227,20 +228,19 @@ class Regions:
 
     def mid_contained_in(self, containers: Regions) -> Regions:
         cntnrs = containers.sort(START)
-        
+
         def _mid_in_containers(mid: PosOneIdx) -> bool:
             inc = False
             for cntn in cntnrs:
                 if getattr(cntn, START) <= mid <= getattr(cntn, END):
                     inc = True
                     break
-                
+
                 if mid < getattr(cntn, START):
                     break
 
             return inc
-        
-        
+
         cntnd = list(map(lambda rgn: _mid_in_containers(getattr(rgn, MIDDLE)), self))
         return self._new(self._regions.iloc[cntnd])
 
@@ -254,6 +254,23 @@ class Regions:
     def len_in(self, mn: int = 0, mx: int = MAX_TOTAL_BP) -> Regions:
         return self._new(self._regions.query(f"{mn} <= {LEN} <= {mx}"))
 
+    def sections(self, ln: int) -> Regions:
+        rgns = self.sort(START)
+        secs = np.empty((0,))
+        sece = np.empty((0,))
+        for rgn in rgns:
+            s = np.array(
+                range(
+                    getattr(rgn, START) + (getattr(rgn, LEN) % ln) // 2,
+                    getattr(rgn, END) - ln + 2,
+                    ln,
+                )
+            )
+            secs = np.append(secs, s)
+            sece = np.append(sece, s + ln - 1)
+
+        return Regions(self.chrm, pd.DataFrame({START: secs.astype(int), END: sece.astype(int)}))
+        
     def save_regions(self, fname: str = None) -> Path:
         return FileSave.tsv_gdatadir(
             self._regions.sort_values(START),
