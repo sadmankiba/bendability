@@ -567,17 +567,20 @@ class DistribPlot:
         )
 
     def prob_distrib_bndrs_nearest_tss_dist(self):
-        self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
-        distsf = self._sr.bndrs.nearest_locs_distnc(self._sr.genes.frwrd_genes()[START])
-        distsr = self._sr.bndrs.nearest_locs_distnc(self._sr.genes.rvrs_genes()[END])
-        dists = np.append(distsf, -distsr)
+        hist = True
+        self._sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
+        dists = self._sr.bndrs.nearest_tss_distnc(self._sr.genes) 
         PlotUtil.font_size(20)
-        # PlotUtil.prob_distrib(dists)
-        plt.hist(dists)
+        if hist:
+            bins = 20
+            plt.hist(dists, bins=bins)
+        else:
+            PlotUtil.prob_distrib(dists)
         plt.xlabel("Distance from TSS (bp)")
         plt.ylabel("Density")
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.GENES}/{self._chrm}_{self._sr.genes}/distnc_bndr_prob_distrib_{self._sr.bndrs}.png"
+            f"{FigSubDir.GENES}/{self._chrm}_{self._sr.genes}/distnc_bndr_prob_distrib_{self._sr.bndrs}"
+            f"{'_hist' if hist else '_density'}.png"
         )
 
     def num_prmtrs_bndrs_ndrs(self, frml: int, btype: BoundariesType) -> Path:

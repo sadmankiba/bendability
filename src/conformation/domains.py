@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
+from re import S
 from typing import Iterable, Literal, NamedTuple, Any, TypedDict
 
 import matplotlib.pyplot as plt
@@ -10,7 +11,7 @@ import pandas as pd
 from nptyping import NDArray
 
 from chromosome.chromosome import Chromosome, MultiChrm, PlotChrm
-from chromosome.genes import Promoters
+from chromosome.genes import STRAND, Promoters
 from chromosome.nucleosomes import Linkers
 from chromosome.regions import (
     Regions,
@@ -71,6 +72,17 @@ class Boundaries(Regions):
 
         return np.array(dists)
 
+    def nearest_tss_distnc(self, genes: Iterable[PosOneIdx]) -> NDArray[(Any, ), float]:
+        ts = sorted(genes[START])
+        dists = []
+        for bnd in self:
+            mid = getattr(bnd, MIDDLE)
+            nloc = self._nearest_loc(mid, ts)
+            s = genes[STRAND][genes[START] == nloc]
+            dists.append(int(s) * (mid - nloc))
+        
+        return np.array(dists)
+
     def _nearest_loc(self, frm: PosOneIdx, locs: Iterable[PosOneIdx]) -> PosOneIdx:
         min_dst = self.chrm.total_bp
         for loc in locs:
@@ -79,6 +91,7 @@ class Boundaries(Regions):
                 break
             if abs(dst) < abs(min_dst):
                 min_dst = dst
+                nloc = loc
 
         return frm + min_dst
 
