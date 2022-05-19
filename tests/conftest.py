@@ -37,5 +37,11 @@ def rgns_simp_vl(chrm_vl_mean7):
     return Regions(chrm_vl_mean7, regions=regions)
 
 
+@pytest.fixture
+def rgns_simp_vl_2(chrm_vl_mean7):
+    regions = pd.DataFrame({START: [4, 6, 9], END: [6, 8, 11]})
+    return Regions(chrm_vl_mean7, regions=regions)
+
+
 def pytest_assertion_pass(item, lineno: int, orig: str, expl: str):
     print(f"{item} passed. Explanation: {expl}")

@@ -52,20 +52,24 @@ class Regions:
     def __iter__(self) -> Iterable[RegionNT]:
         return self._regions.itertuples()
 
-    def __getitem__(
-        self, key: NonNegativeInt | str | Iterable[bool]
-    ) -> pd.Series | Regions:
+    def __getitem__(self, key: NonNegativeInt | str | Iterable) -> pd.Series | Regions:
         if isinstance(key, NonNegativeInt):
             return self._regions.iloc[key]
 
-        def _is_bool_array(arg):
-            return isinstance(arg, Iterable) and isinstance(list(arg)[0], bool)
+        # Probably not needed
+        # def _is_bool_array(arg):
+        #     return isinstance(arg, Iterable) and isinstance(list(arg)[0], bool)
 
-        if _is_bool_array(key):
-            return self._new(self._regions.loc[key])
+        # if _is_bool_array(key):
+        #     return self._new(self._regions.loc[key])
 
-        if key in self._regions.columns:
-            return self._regions[key]
+        if isinstance(key, str): 
+            if key in self._regions.columns:
+                return self._regions[key]
+            raise KeyError
+
+        if isinstance(key, Iterable):
+            return self._new(self._regions[key])
 
         raise KeyError
 
@@ -269,8 +273,10 @@ class Regions:
             secs = np.append(secs, s)
             sece = np.append(sece, s + ln - 1)
 
-        return Regions(self.chrm, pd.DataFrame({START: secs.astype(int), END: sece.astype(int)}))
-        
+        return Regions(
+            self.chrm, pd.DataFrame({START: secs.astype(int), END: sece.astype(int)})
+        )
+
     def save_regions(self, fname: str = None) -> Path:
         return FileSave.tsv_gdatadir(
             self._regions.sort_values(START),

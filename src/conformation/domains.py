@@ -57,11 +57,14 @@ class Boundaries(Regions):
     def fig_subdir(self):
         return f"{FigSubDir.BOUNDARIES}/{self.chrm.id}_{str(self)}"
 
+    def nearest_rgns(self, rgns: Regions) -> Regions:
+        return rgns[rgns[MIDDLE].isin(self.nearest_loc(rgns[MIDDLE]))]
+    
     def nearest_loc(self, locs: Iterable[PosOneIdx]) -> NDArray[(Any,), PosOneIdx]:
         locs = sorted(locs)
         return np.array(
             [self._nearest_loc(getattr(bndry, MIDDLE), locs) for bndry in self]
-        )
+        )    
 
     def nearest_locs_distnc(self, locs: Iterable[PosOneIdx]) -> NDArray[(Any,), float]:
         locs = sorted(locs)

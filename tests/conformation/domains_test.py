@@ -4,6 +4,7 @@ import pandas as pd
 
 from conformation.domains import (
     BndParm,
+    Boundaries,
     BoundariesFN,
     BoundariesHE,
     PlotBoundariesHE,
@@ -16,9 +17,18 @@ from conformation.domains import (
     BndFParm,
     BndSel,
 )
-from chromosome.regions import MIDDLE, START, END, LEN
+from chromosome.regions import MIDDLE, START, END, LEN, Regions
 from chromosome.chromosome import Chromosome
 from models.prediction import Prediction
+
+
+class TestBoundaries:
+    def test_nearest_rgns(self, chrm_vl_mcvr: Chromosome, rgns_simp_vl_2: Regions):
+        nr = Boundaries(
+            chrm_vl_mcvr, pd.DataFrame({START: [3, 5, 10], END: [7, 13, 14]})
+        ).nearest_rgns(rgns_simp_vl_2)
+        assert nr[START].tolist() == [4, 9]
+        assert nr[END].tolist() == [6, 11]
 
 
 @pytest.fixture
@@ -97,6 +107,7 @@ class TestDomainsF:
     def test_sections(self, bndrsf_vl: BoundariesF):
         dmnsf = DomainsF(bndrsf_vl)
         assert len(dmnsf.sections(200)) > 0
+
 
 class TestBoundariesFN:
     def test_init(self, chrm_vl_mcvr: Chromosome):

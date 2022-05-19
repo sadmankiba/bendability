@@ -7,12 +7,6 @@ from util.constants import FigSubDir, GDataSubDir
 from util.util import FileSave
 
 
-@pytest.fixture
-def rgns_simp_vl_2(chrm_vl_mean7):
-    regions = pd.DataFrame({START: [4, 6, 9], END: [6, 8, 11]})
-    return Regions(chrm_vl_mean7, regions=regions)
-
-
 class TestRegions:
     def test_cover_regions(self, chrm_vl_mcvr, rgns_simp_vl_2: Regions):
         crgn = rgns_simp_vl_2.cover_regions()
