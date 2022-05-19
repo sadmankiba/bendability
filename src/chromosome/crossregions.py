@@ -109,7 +109,7 @@ class SubRegions:
     @property
     def prmtrs(self) -> Promoters:
         def _prmtrs():
-            return Promoters(self.chrm, ustr_tss=499, dstr_tss=100)
+            return Promoters(self.chrm, ustr_tss=499, dstr_tss=200)
 
         return Attr.calc_attr(self, "_prmtrs", _prmtrs)
 
@@ -170,12 +170,12 @@ class SubRegions:
     def prmtrs_in_dmns(self) -> Promoters:
         return self.prmtrs.mid_contained_in(self.dmns)
 
-    def prmtr_bndrs(self):
+    def bnds_in_prms(self):
         # TODO: Update def. in +- 100bp of promoters
         return self.bndrs.mid_contained_in(self.prmtrs)
 
-    def non_prmtr_bndrs(self):
-        return self.bndrs - self.prmtr_bndrs()
+    def bnds_in_nprms(self):
+        return self.bndrs - self.bnds_in_prms()
 
     def bndry_nucs(self) -> Nucleosomes:
         return self.nucs.overlaps_with_rgns(self.bndrs, 50)
@@ -277,9 +277,9 @@ class LabeledMC0Distribs:
             if d == Distrib.GENES:
                 return self._sr.genes[MEAN_C0], "genes"
             if d == Distrib.BNDRS_P:
-                return self._sr.prmtr_bndrs()[MEAN_C0], "bndrs p"
+                return self._sr.bnds_in_prms()[MEAN_C0], "bndrs p"
             if d == Distrib.BNDRS_NP:
-                return self._sr.non_prmtr_bndrs()[MEAN_C0], "bndrs np"
+                return self._sr.bnds_in_nprms()[MEAN_C0], "bndrs np"
             if d == Distrib.PRMTRS_B:
                 return self._sr.prmtrs_with_bndrs()[MEAN_C0], "prmtrs b"
             if d == Distrib.PRMTRS_NB:
@@ -783,16 +783,23 @@ class LineC0Plot:
         self._cop = ChrmOperator(self._chrm)
 
     def line_c0_mean_prmtrs(self) -> Path:
-        bnd_dmn = True
+        with_np = True
+        bnd_dmn = False
         self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
 
         PlotUtil.clearfig()
         PlotUtil.font_size(20)
         x = np.arange(-self._sr.prmtrs._ustr_tss, self._sr.prmtrs._dstr_tss + 1)
-
+        
         plt.plot(
-            x, self._sr.prmtrs.mean_c0(), label=f"Promoters", color="tab:green", lw=2
+            x, self._sr.prmtrs.mean_c0(), label="Promoters", color="tab:green", lw=2
         )
+
+        if with_np:
+            nprm = Regions(self._sr.chrm, self._sr.prmtrs.complement())
+            scnp = nprm.sections(self._sr.prmtrs[LEN][0])
+            plt.plot(x, scnp.c0().mean(axis=0), label="Non-promoters", color="tab:orange", lw=2)
+
         if bnd_dmn:
             plt.plot(
                 x,
@@ -905,7 +912,7 @@ class LineC0Plot:
     def line_c0_bndrs_indiv_toppings(self) -> None:
         self._sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50)
         for bndrs, pstr in zip(
-            [self._sr.prmtr_bndrs(), self._sr.non_prmtr_bndrs()], ["prmtr", "nonprmtr"]
+            [self._sr.bnds_in_prms(), self._sr.bnds_in_nprms()], ["prmtr", "nonprmtr"]
         ):
             for bndry in bndrs:
                 self._line_c0_bndry_indiv_toppings(bndry, str(bndrs), pstr)

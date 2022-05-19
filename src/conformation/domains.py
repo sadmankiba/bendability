@@ -91,7 +91,6 @@ class Boundaries(Regions):
                 break
             if abs(dst) < abs(min_dst):
                 min_dst = dst
-                nloc = loc
 
         return frm + min_dst
 

@@ -81,7 +81,7 @@ class TestLineC0Plot:
         self, lnplt_vl: LineC0Plot, bndrs_hirs_vl: BoundariesHE
     ):
         assert lnplt_vl._line_c0_bndry_indiv_toppings(
-            bndrs_hirs_vl.prmtr_bndrs()[5], str(bndrs_hirs_vl), "prmtr"
+            bndrs_hirs_vl.bnds_in_prms()[5], str(bndrs_hirs_vl), "prmtr"
         ).is_file()
 
     def test_line_c0_prmtr_indiv_toppings(

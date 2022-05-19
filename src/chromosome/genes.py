@@ -139,7 +139,7 @@ class Promoters(Regions):
         return Promoters(self.chrm, self._ustr_tss, self._dstr_tss, rgns)
 
     def mean_c0(self) -> NDArray[(Any,)]:
-        return np.vstack((self.frwrd().c0(), np.flip(self.rvrs().c0(), axis=0))).mean(
+        return np.vstack((self.frwrd().c0(), np.flip(self.rvrs().c0(), axis=1))).mean(
             axis=0
         )
 
