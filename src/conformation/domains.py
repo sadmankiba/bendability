@@ -165,17 +165,18 @@ class BoundariesHE(Boundaries):
 
 
 class DomainsHE(Regions):
-    def __init__(self, chrm: Chromosome, regions: RegionsInternal = None):
-        super().__init__(chrm, regions)
+    def __init__(self, bndh: BoundariesHE, regions: RegionsInternal = None):
+        self._bnd = bndh
+        super().__init__(bndh.chrm, regions)
+    
+    def __str__(self):
+        return f"dmnsh_{self._bnd}"
 
     def _get_regions(self) -> pd.DataFrame[START:int, END:int]:
-        bndrs = BoundariesHE(self.chrm)
-        return pd.DataFrame(
-            {
-                START: bndrs[END].tolist()[:-1],
-                END: bndrs[START].tolist()[1:],
-            }
-        )
+        return self._bnd.complement()
+    
+    def _new(self, regions: RegionsInternal) -> DomainsHE:
+        return DomainsHE(bndh=self._bnd, regions=regions)
 
 
 class BndFParmT(TypedDict, total=False):

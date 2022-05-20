@@ -36,6 +36,7 @@ from conformation.domains import (
     BndSel,
     DomainsF,
     DomainsFN,
+    DomainsHE,
 )
 from conformation.loops import LoopAnchors, LoopInsides
 from feature_model.helsep import DincUtil, HelSep, SEQ_COL
@@ -83,10 +84,12 @@ class SubRegions:
     @property
     def dmns(self) -> Promoters:
         def _dmns():
-            if isinstance(self.bndrs, BoundariesFN):
-                D = DomainsFN
+            if isinstance(self.bndrs, BoundariesHE):
+                D = DomainsHE
             elif isinstance(self.bndrs, BoundariesF):
                 D = DomainsF
+            elif isinstance(self.bndrs, BoundariesFN):
+                D = DomainsFN
 
             return D(self.bndrs)
 
@@ -569,7 +572,7 @@ class DistribPlot:
     def prob_distrib_bndrs_nearest_tss_dist(self):
         hist = True
         self._sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
-        dists = self._sr.bndrs.nearest_tss_distnc(self._sr.genes) 
+        dists = self._sr.bndrs.nearest_tss_distnc(self._sr.genes)
         PlotUtil.font_size(20)
         if hist:
             bins = 20
@@ -790,7 +793,7 @@ class LineC0Plot:
         PlotUtil.clearfig()
         PlotUtil.font_size(20)
         x = np.arange(-self._sr.prmtrs._ustr_tss, self._sr.prmtrs._dstr_tss + 1)
-        
+
         plt.plot(
             x, self._sr.prmtrs.mean_c0(), label="Promoters", color="tab:green", lw=2
         )
@@ -798,7 +801,13 @@ class LineC0Plot:
         if with_np:
             nprm = Regions(self._sr.chrm, self._sr.prmtrs.complement())
             scnp = nprm.sections(self._sr.prmtrs[LEN][0])
-            plt.plot(x, scnp.c0().mean(axis=0), label="Non-promoters", color="tab:orange", lw=2)
+            plt.plot(
+                x,
+                scnp.c0().mean(axis=0),
+                label="Non-promoters",
+                color="tab:orange",
+                lw=2,
+            )
 
         if bnd_dmn:
             plt.plot(
@@ -873,11 +882,14 @@ class LineC0Plot:
         dmns = True
         show_legend = True
         smooth = False
-        self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
-        bc0 = self._chrm.mean_c0_around_bps(self._sr.bndrs[MIDDLE], pltlim - 1, pltlim)
+        self._sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
+        bc0 = self._cop.c0_rgns(
+            self._sr.bndrs[MIDDLE] - pltlim + 1,
+            self._sr.bndrs[MIDDLE] + pltlim,
+        ).mean(axis=0)
 
         PlotUtil.clearfig()
-        x = np.arange(2 * pltlim) - pltlim + 1
+        PlotUtil.font_size(20)
 
         if dmns:
             scts = self._sr.dmns.sections(2 * pltlim)
@@ -885,6 +897,7 @@ class LineC0Plot:
         else:
             PlotChrm(self._chrm).plot_avg()
 
+        x = np.arange(2 * pltlim) - pltlim + 1
         c0s = [(bc0, "boundaries"), (dc0, "domains")]
         if smooth:
             plt.plot(x, bc0, color="tab:gray", alpha=0.5)
@@ -895,9 +908,10 @@ class LineC0Plot:
 
         if show_legend:
             plt.legend()
-        PlotUtil.show_grid()
-        plt.xlabel("Distance from boundary and domain sections middle(bp)")
-        plt.ylabel("C0")
+        
+        plt.xlabel("Distance from boundary and domain sections middle (bp)")
+        plt.ylabel("Mean Cyclizability")
+        plt.tight_layout()
 
         FileSave.nptxt(
             bc0,
@@ -905,7 +919,7 @@ class LineC0Plot:
             f"{self._chrm}_{self._sr.bndrs}/chrm{self._chrm.id}_c0_line_mean_pltlim_{pltlim}.txt",
         )
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.BOUNDARIES}/{self._chrm}_{str(self._sr.bndrs)}/"
+            f"{FigSubDir.BOUNDARIES}/{self._chrm}_{self._sr.bndrs}/"
             f"c0_line_mean_pltlim_{pltlim}.png"
         )
 
@@ -1120,6 +1134,7 @@ class MCLineC0Plot:
 
     @classmethod
     def line_c0_mean_prmtrs(cls):
+        with_p = False
         with_np = False
         bnd_dmn = True
         pc0 = []
@@ -1130,9 +1145,10 @@ class MCLineC0Plot:
             print(c)
             sr, chrm = cls._sr(c)
             sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_25)
-            pc0.append(
-                np.full((len(sr.prmtrs), sr.prmtrs[LEN][0]), sr.prmtrs.mean_c0())
-            )
+            if with_p:
+                pc0.append(
+                    np.full((len(sr.prmtrs), sr.prmtrs[LEN][0]), sr.prmtrs.mean_c0())
+                )
             if with_np:
                 nprm = Regions(sr.chrm, sr.prmtrs.complement())
                 scnp = nprm.sections(sr.prmtrs[LEN][0])
@@ -1146,9 +1162,10 @@ class MCLineC0Plot:
         x = np.arange(-sr.prmtrs._ustr_tss, sr.prmtrs._dstr_tss + 1)
         PlotUtil.font_size(20)
 
-        pmc0 = np.vstack(pc0).mean(axis=0)
-        plt.plot(x, pmc0, color="tab:green", label="Promoters", lw=2)
-        
+        if with_p:
+            pmc0 = np.vstack(pc0).mean(axis=0)
+            plt.plot(x, pmc0, color="tab:green", label="Promoters", lw=2)
+
         if with_np:
             npmc0 = np.vstack(npc0).mean(axis=0)
             plt.plot(x, npmc0, color="tab:orange", label="Non-promoters", lw=2)
@@ -1158,7 +1175,7 @@ class MCLineC0Plot:
             mc0d = np.vstack(pdc0).mean(axis=0)
             plt.plot(x, mc0b, color="tab:blue", label="Promoters at boundaries", lw=2)
             plt.plot(x, mc0d, color="tab:red", label="Promoters in domains", lw=2)
-        
+
         PlotUtil.vertline(0, "tab:orange", linewidth=2)
         plt.legend()
         plt.xlabel(f"Distance from TSS (bp)")
@@ -1177,7 +1194,7 @@ class MCLineC0Plot:
         for c in YeastChrNumList:
             print(c)
             sr, chrm = cls._sr(c)
-            sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+            sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
             cop = ChrmOperator(chrm)
 
             b, d = (
@@ -1231,7 +1248,7 @@ class MCLineC0Plot:
         dc0 = []
         for c in YeastChrNumList:
             sr, chrm = cls._sr(c)
-            sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+            sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
             bc0.append(
                 ChrmOperator(chrm).c0_rgns(
                     (sr.bndrs[MIDDLE] - pltlim + 1).tolist(),
@@ -1249,13 +1266,14 @@ class MCLineC0Plot:
             f"c0_line_mean_all{str(sr.chrm)[:-4]}_{sr.bndrs}_pltlim_{pltlim}.txt",
         )
 
+        PlotUtil.font_size(20)
         x = np.arange(2 * pltlim) - pltlim + 1
         plt.plot(x, mc0b, label="boundaries")
         plt.plot(x, mc0d, label="domains")
-        PlotUtil.show_grid()
         plt.legend()
-        plt.xlabel("distance from boundaries and domain sections middle (bp)")
-        plt.ylabel("C0")
+        plt.xlabel("Distance from boundary and domain sections middle (bp)")
+        plt.ylabel("Mean Cyclizability")
+        plt.tight_layout()
 
         return FileSave.figure_in_figdir(
             f"{FigSubDir.BOUNDARIES}/c0_line_mean_all{str(sr.chrm)[:-4]}_{sr.bndrs}_pltlim_{pltlim}.png"

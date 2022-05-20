@@ -1,6 +1,9 @@
 from conformation.domains import (
+    BndParm,
+    BndSel,
     BoundariesF,
     BoundariesFN,
+    BoundariesType,
     DomainsF,
     DomainsFN,
     BndFParm,
@@ -28,8 +31,8 @@ class Objs:
 class Experiments:
     @classmethod
     def fasta(cls):
-        rg = sr_vl.nucs_in_dmnsf()
-        d = GDataSubDir.NUCLEOSOMES
+        sr_vl.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_WD)
+        rg, d = sr_vl.dmns, GDataSubDir.DOMAINS
         FileSave.fasta(
             rg.seq(),
             f"{PathObtain.gen_data_dir()}/{d}/{sr_vl.chrm}_{rg}/seq.fasta",

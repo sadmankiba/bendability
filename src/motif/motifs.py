@@ -26,7 +26,7 @@ P_VAL = "p_val"
 
 class MotifsM35:
     def __init__(self) -> None:
-        self._V = 2
+        self._V = 3
         self._running_score = self._read_running_score()
 
     def _read_running_score(self) -> NDArray[(N_MOTIFS, CHRV_TOTAL_BP)]:
@@ -86,11 +86,11 @@ class MotifsM35:
 
 class PlotMotifs:
     dir = f"{PathObtain.figure_dir()}/{FigSubDir.MOTIFS}"
-    v = 2
+    v = 3
     ztest_str = {
         1: (
             GDataSubDir.BOUNDARIES,
-            "res_200_lim_100_perc_0.5_fanc_domains_res_200_lim_100_perc_0.5_fanc",
+            f"bndh_res_200_lim_100_perc_0.5_dmnsh_bndh_res_200_lim_100_perc_0.5_chrm_s_mcvr_m_None_VL_v{v}",
         ),
         2: (
             GDataSubDir.BOUNDARIES,
@@ -113,7 +113,7 @@ class PlotMotifs:
             f"lnks_nucs_w147_lnks_nucs_w147_chrm_s_mcvr_m_None_VL_v{v}"
         )
     }
-    sel = 5
+    sel = 1
 
     @classmethod
     def plot_z(cls) -> Path:
