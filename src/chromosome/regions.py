@@ -152,7 +152,7 @@ class Regions:
 
     def is_in_regions(
         self, bps: Iterable[PosOneIdx]
-    ) -> NDArray[[Any,], bool]:
+    ) -> NDArray[(Any,), bool]:
         return np.array([self.cover_mask[bp - 1] for bp in bps])
 
     def cover_regions(self) -> Regions:

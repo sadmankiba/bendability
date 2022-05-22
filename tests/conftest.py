@@ -28,7 +28,7 @@ def chrm_i():
 
 @pytest.fixture
 def bndrs_hirs_vl(chrm_vl_mean7: Chromosome):
-    return BoundariesHE(chrm_vl_mean7, **BndParm.HIRS_WD)
+    return BoundariesHE(chrm_vl_mean7, **BndParm.HIRS_WD_50)
 
 
 @pytest.fixture

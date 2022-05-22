@@ -57,7 +57,7 @@ class SubRegions:
         self.chrm = chrm
         self._prmtrs = None
         self._bndrs = None
-        self.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
+        self.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_50)
         self.min_ndr_len = 40
 
     @property
@@ -303,7 +303,7 @@ class DistribPlot:
     def box_mean_c0_bndrs(self) -> Path:
         typ = "box"
         sr = SubRegions(self._chrm)
-        bsel_hexp = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
+        bsel_hexp = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_50)
         bsel_fanc = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
         sr.bsel = bsel_fanc
         ld = LabeledMC0Distribs(sr)
@@ -380,7 +380,7 @@ class DistribPlot:
 
     def prob_distrib_mean_c0_bndrs(self):
         sr = SubRegions(self._chrm)
-        bsel_hexp = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
+        bsel_hexp = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_50)
         bsel_fanc = BndSel(BoundariesType.FANC, BndFParm.SHR_25)
         sr.bsel = bsel_hexp
         ld = LabeledMC0Distribs(sr)
@@ -571,7 +571,7 @@ class DistribPlot:
 
     def prob_distrib_bndrs_nearest_tss_dist(self):
         hist = True
-        self._sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
+        self._sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_50)
         dists = self._sr.bndrs.nearest_tss_distnc(self._sr.genes)
         PlotUtil.font_size(20)
         if hist:
@@ -601,7 +601,7 @@ class DistribPlot:
         prmtrs_wo_ndr = prmtrs - prmtrs_with_ndr
 
         if btype == BoundariesType.HEXP:
-            bparm = BndParm.HIRS_SHR
+            bparm = BndParm.HIRS_SHR_50
         elif btype == BoundariesType.FANC:
             bparm = BndFParm.SHR_25
 
@@ -878,11 +878,11 @@ class LineC0Plot:
             f"{d}/{self._chrm}_{str(rg)}/" f"c0_line_mean_pltlim_{pltlim}.png"
         )
 
-    def line_c0_mean_bndrs(self, pltlim=100) -> Path:
+    def line_c0_mean_bndrs_dmns(self, pltlim=100) -> Path:
         dmns = True
         show_legend = True
         smooth = False
-        self._sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
+        self._sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_25)
         bc0 = self._cop.c0_rgns(
             self._sr.bndrs[MIDDLE] - pltlim + 1,
             self._sr.bndrs[MIDDLE] + pltlim,
@@ -908,7 +908,7 @@ class LineC0Plot:
 
         if show_legend:
             plt.legend()
-        
+
         plt.xlabel("Distance from boundary and domain sections middle (bp)")
         plt.ylabel("Mean Cyclizability")
         plt.tight_layout()
@@ -922,6 +922,31 @@ class LineC0Plot:
             f"{FigSubDir.BOUNDARIES}/{self._chrm}_{self._sr.bndrs}/"
             f"c0_line_mean_pltlim_{pltlim}.png"
         )
+
+    def line_c0_bndrs_q(self, pltlim=100):
+        self._sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_100)
+        bqs = self._sr.bndrs.quartiles()
+        bqc0 = [
+            self._cop.c0_rgns(
+                bq[MIDDLE] - pltlim + 1,
+                bq[MIDDLE] + pltlim,
+            ).mean(axis=0)
+            for bq in bqs
+        ]
+        x = np.arange(2 * pltlim) - pltlim + 1
+        for y, l in zip(bqc0, ["Q1", "Q2", "Q3", "Q4"]):
+            plt.plot(x, y, label=l)
+        
+        plt.legend()
+        plt.xlabel("Distance from boundary and domain sections middle (bp)")
+        plt.ylabel("Mean Cyclizability")
+        plt.tight_layout()
+
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.BOUNDARIES}/{self._chrm}_{self._sr.bndrs}/"
+            f"c0_line_mean_q_pltlim_{pltlim}.png"
+        )
+
 
     def line_c0_bndrs_indiv_toppings(self) -> None:
         self._sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50)
@@ -1194,7 +1219,7 @@ class MCLineC0Plot:
         for c in YeastChrNumList:
             print(c)
             sr, chrm = cls._sr(c)
-            sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
+            sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_50)
             cop = ChrmOperator(chrm)
 
             b, d = (
@@ -1248,7 +1273,7 @@ class MCLineC0Plot:
         dc0 = []
         for c in YeastChrNumList:
             sr, chrm = cls._sr(c)
-            sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
+            sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_100)
             bc0.append(
                 ChrmOperator(chrm).c0_rgns(
                     (sr.bndrs[MIDDLE] - pltlim + 1).tolist(),
@@ -1279,6 +1304,39 @@ class MCLineC0Plot:
             f"{FigSubDir.BOUNDARIES}/c0_line_mean_all{str(sr.chrm)[:-4]}_{sr.bndrs}_pltlim_{pltlim}.png"
         )
 
+    @classmethod
+    def line_c0_bndrs_q(cls, pltlim=100):
+        mcbqc0 = [[], [], [], []]
+        for c in YeastChrNumList:
+            print(c)
+            sr, chrm = cls._sr(c)
+            sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_100)
+            bqs = sr.bndrs.quartiles()
+            bqc0 = [
+                ChrmOperator(chrm).c0_rgns(
+                    bq[MIDDLE] - pltlim + 1,
+                    bq[MIDDLE] + pltlim,
+                )
+                for bq in bqs
+            ]
+            for i in range(4):
+                mcbqc0[i].append(bqc0[i])
+        
+        x = np.arange(2 * pltlim) - pltlim + 1
+        for i in range(4):
+            mcbqc0[i] = np.vstack(mcbqc0[i]).mean(axis=0)
+
+        for y, l in zip(mcbqc0, ["Q1", "Q2", "Q3", "Q4"]):
+            plt.plot(x, y, label=l)
+        
+        plt.legend()
+        plt.xlabel("Distance from boundary and domain sections middle (bp)")
+        plt.ylabel("Mean Cyclizability")
+        plt.tight_layout()
+
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.BOUNDARIES}/c0_line_mean_q_all{str(sr.chrm)[:-4]}_{sr.bndrs}_pltlim_{pltlim}.png"
+        )
 
 class SegmentLineC0Plot:
     def __init__(self, chrm: Chromosome) -> None:
@@ -1429,7 +1487,7 @@ class PlotPrmtrsBndrs:
 
     def dinc_explain_box(self) -> Path:
         subr = SubRegions(Chromosome("VL"))
-        subr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR)
+        subr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_50)
         pmwb = subr.prmtrs_with_bndrs()
         pmob = subr.prmtrs_wo_bndrs()
         labels = ["Prmtrs w b", "Prmtrs wo b"]

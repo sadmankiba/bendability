@@ -46,8 +46,12 @@ class BndParmT(TypedDict, total=False):
 
 
 class BndParm:
-    HIRS_WD = BndParmT(res=200, lim=250, score_perc=0.5)
-    HIRS_SHR = BndParmT(res=200, lim=100, score_perc=0.5)
+    HIRS_WD_50 = BndParmT(res=200, lim=250, score_perc=0.5)
+    HIRS_WD_100 = BndParmT(res=200, lim=250, score_perc=1.0)
+    HIRS_WD_25 = BndParmT(res=200, lim=250, score_perc=0.25)
+    HIRS_SHR_50 = BndParmT(res=200, lim=100, score_perc=0.5)
+    HIRS_SHR_100 = BndParmT(res=200, lim=100, score_perc=1.0)
+    HIRS_SHR_25 = BndParmT(res=200, lim=100, score_perc=0.25)
 
 
 class Boundaries(Regions):
@@ -59,12 +63,12 @@ class Boundaries(Regions):
 
     def nearest_rgns(self, rgns: Regions) -> Regions:
         return rgns[rgns[MIDDLE].isin(self.nearest_loc(rgns[MIDDLE]))]
-    
+
     def nearest_loc(self, locs: Iterable[PosOneIdx]) -> NDArray[(Any,), PosOneIdx]:
         locs = sorted(locs)
         return np.array(
             [self._nearest_loc(getattr(bndry, MIDDLE), locs) for bndry in self]
-        )    
+        )
 
     def nearest_locs_distnc(self, locs: Iterable[PosOneIdx]) -> NDArray[(Any,), float]:
         locs = sorted(locs)
@@ -75,7 +79,7 @@ class Boundaries(Regions):
 
         return np.array(dists)
 
-    def nearest_tss_distnc(self, genes: Iterable[PosOneIdx]) -> NDArray[(Any, ), float]:
+    def nearest_tss_distnc(self, genes: Iterable[PosOneIdx]) -> NDArray[(Any,), float]:
         ts = sorted(genes[START])
         dists = []
         for bnd in self:
@@ -83,7 +87,7 @@ class Boundaries(Regions):
             nloc = self._nearest_loc(mid, ts)
             s = genes[STRAND][genes[START] == nloc]
             dists.append(int(s) * (mid - nloc))
-        
+
         return np.array(dists)
 
     def _nearest_loc(self, frm: PosOneIdx, locs: Iterable[PosOneIdx]) -> PosOneIdx:
@@ -96,6 +100,10 @@ class Boundaries(Regions):
                 min_dst = dst
 
         return frm + min_dst
+
+    def quartiles(self) -> tuple[Boundaries]:
+        gr = self._regions.groupby(pd.qcut(self[SCORE], 4, labels=False))
+        return (self._new(gr.get_group(i)) for i in range(4))
 
 
 class BoundariesHE(Boundaries):
@@ -168,13 +176,13 @@ class DomainsHE(Regions):
     def __init__(self, bndh: BoundariesHE, regions: RegionsInternal = None):
         self._bnd = bndh
         super().__init__(bndh.chrm, regions)
-    
+
     def __str__(self):
         return f"dmnsh_{self._bnd}"
 
     def _get_regions(self) -> pd.DataFrame[START:int, END:int]:
         return self._bnd.complement()
-    
+
     def _new(self, regions: RegionsInternal) -> DomainsHE:
         return DomainsHE(bndh=self._bnd, regions=regions)
 

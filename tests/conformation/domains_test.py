@@ -38,7 +38,7 @@ def bndrs_vl(chrm_vl_mean7):
 
 class TestBoundariesHE:
     def test_hires_strong(self, chrm_vl_mean7):
-        bndrs = BoundariesHE(chrm_vl_mean7, **BndParm.HIRS_WD)
+        bndrs = BoundariesHE(chrm_vl_mean7, **BndParm.HIRS_WD_50)
         assert len(bndrs) > 0
 
     def test_nearest_locs_distnc(self, bndrs_vl: BoundariesHE):

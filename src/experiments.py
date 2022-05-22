@@ -28,10 +28,12 @@ class Objs:
     # bndsfn_l50 = bndsfn.extended(-50)
     # dmnsfn_l50 = DomainsFN(bndsfn_l50)
     pass
+
+
 class Experiments:
     @classmethod
     def fasta(cls):
-        sr_vl.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_WD)
+        sr_vl.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_WD_50)
         rg, d = sr_vl.dmns, GDataSubDir.DOMAINS
         FileSave.fasta(
             rg.seq(),
@@ -42,9 +44,7 @@ class Experiments:
     def lnk_bnd_dmn_V_z_test(self):
         m = MotifsM35()
         m.enrichment_compare(
-            sr_vl.lnks_in_bndsf(),
-            sr_vl.lnks_in_dmnsf(),
-            GDataSubDir.LINKERS
+            sr_vl.lnks_in_bndsf(), sr_vl.lnks_in_dmnsf(), GDataSubDir.LINKERS
         )
 
     @classmethod
@@ -57,13 +57,17 @@ class Experiments:
         m = MotifsM35()
         m.enrichment_compare(sr_vl.lnkrs, sr_vl.nucs, GDataSubDir.NUCLEOSOMES)
 
-    @classmethod 
+    @classmethod
     def kmer_score_lnks_bnd_dmn_V(self):
-        KMerMotifs.score(sr_vl.lnks_in_bndsf(), sr_vl.lnks_in_dmnsf(), GDataSubDir.LINKERS)
-    
-    @classmethod 
+        KMerMotifs.score(
+            sr_vl.lnks_in_bndsf(), sr_vl.lnks_in_dmnsf(), GDataSubDir.LINKERS
+        )
+
+    @classmethod
     def kmer_score_nucs_bnd_dmn_V(self):
-        KMerMotifs.score(sr_vl.nucs_in_bndsf(), sr_vl.nucs_in_dmnsf(), GDataSubDir.NUCLEOSOMES)
+        KMerMotifs.score(
+            sr_vl.nucs_in_bndsf(), sr_vl.nucs_in_dmnsf(), GDataSubDir.NUCLEOSOMES
+        )
 
     @classmethod
     def kmer_score_bnd_dmn(self):
