@@ -33,7 +33,7 @@ def bndrs_hirs_vl(chrm_vl_mean7: Chromosome):
 
 @pytest.fixture
 def rgns_simp_vl(chrm_vl_mean7):
-    regions = pd.DataFrame({START: [3, 7, 9], END: [4, 12, 10]})
+    regions = pd.DataFrame({START: [7, 3, 9], END: [12, 4, 10]})
     return Regions(chrm_vl_mean7, regions=regions)
 
 

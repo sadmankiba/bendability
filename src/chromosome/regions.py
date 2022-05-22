@@ -233,24 +233,27 @@ class Regions:
     def mid_contained_in(self, containers: Regions) -> Regions:
         cntnrs = containers.sort(START)
 
-        def _alg1() -> list[bool]:
-            mids = self[MIDDLE].sort_values(ignore_index=True)
+        def _alg1() -> RegionsInternal:
+            rgns = self.sort(MIDDLE)
             cntnd = []
             ci = 0
-            for mid in mids:
+            for rgn in rgns:
                 while ci < len(cntnrs):
                     cntn = cntnrs[ci]
-                    if getattr(cntn, START) <= mid <= getattr(cntn, END):
-                        cntnd.append(True)
+                    if (
+                        getattr(cntn, START)
+                        <= getattr(rgn, MIDDLE)
+                        <= getattr(cntn, END)
+                    ):
+                        cntnd.append(rgn)
                         break
-                    if mid < getattr(cntn, START):
-                        cntnd.append(False)
+                    if getattr(rgn, MIDDLE) < getattr(cntn, START):
                         break
                     ci += 1
 
-            return cntnd
+            return pd.DataFrame(cntnd)
 
-        def _alg2() -> list[bool]:
+        def _alg2() -> RegionsInternal:
             def _mid_in_containers(mid: PosOneIdx) -> bool:
                 inc = False
                 for cntn in cntnrs:
@@ -263,10 +266,10 @@ class Regions:
 
                 return inc
 
-            return [_mid_in_containers(getattr(rgn, MIDDLE)) for rgn in self]
+            cntnd = [_mid_in_containers(getattr(rgn, MIDDLE)) for rgn in self]
+            return self._regions.iloc[cntnd]
 
-        cntnd = _alg2()
-        return self._new(self._regions.iloc[cntnd])
+        return self._new(_alg1())
 
     def extended(self, ebp: int) -> Regions:
         return self._extended(
