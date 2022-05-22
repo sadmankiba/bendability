@@ -110,8 +110,8 @@ class PlotMotifs:
         ),
         6: (
             GDataSubDir.LINKERS,
-            f"lnks_nucs_w147_lnks_nucs_w147_chrm_s_mcvr_m_None_VL_v{v}"
-        )
+            f"lnks_nucs_w147_lnks_nucs_w147_chrm_s_mcvr_m_None_VL_v{v}",
+        ),
     }
     sel = 1
 
@@ -146,6 +146,8 @@ class PlotMotifs:
 
     @classmethod
     def integrate_logos(cls) -> Path:
+        w_dist = False
+        logof = cls.logof_w_dist if w_dist else cls.logof_wo_dist
         imrows = []
 
         score_df = cls._score().sort_values(by="ztest_val", ignore_index=True)
@@ -153,21 +155,28 @@ class PlotMotifs:
             row = []
             for j in range(16):
                 n, z, p = tuple(score_df.loc[i * 16 + j])
-                logo = cv2.imread(
-                    f"{cls.dir}/model35_parameters_parameter_274_merged_motif/{int(n)}.png"
-                )
+                logo = cv2.imread(logof(int(n)))
                 z, p = round(z, 2), round(p, 2)
-                logo = cls._add_score(logo, z, p)
+                if not w_dist:
+                    w = int(logo.shape[1] * 0.15)
+                    h = int(logo.shape[0] * 0.15)
+                    logo = cv2.resize(logo, (w, h))
+                    logo = cls._add_score(logo, z, p, n)
+                else:
+                    logo = cls._add_score(logo, z, p)
                 row.append(logo)
             imrows.append(cv2.hconcat(row))
 
         img = cv2.vconcat(imrows)
-        impath = Path(f"{cls.dir}/integrated_z_score_{cls.ztest_str[cls.sel][1]}.png")
+        impath = Path(
+            f"{cls.dir}/integrated_z_score_{cls.ztest_str[cls.sel][1]}"
+            f"_{'w_dist' if w_dist else 'wo_dist'}.png"
+        )
         cv2.imwrite(str(impath), img)
         return impath
 
     @classmethod
-    def _add_score(cls, img: np.ndarray, z: float, p: float):
+    def _add_score(cls, img: np.ndarray, z: float, p: float, n: int=None):
         new_img = np.ascontiguousarray(
             np.vstack([np.full((30, img.shape[1], 3), fill_value=255), img]),
             dtype=np.uint8,
@@ -180,7 +189,7 @@ class PlotMotifs:
         linetype = 2
         cv2.putText(
             new_img,
-            f"z={z}, p={p}",
+            f"z={z}, p={p}{f', n={n}' if n is not None else ''}",
             pos,
             cv2.FONT_HERSHEY_PLAIN,
             font_scale,
@@ -190,10 +199,18 @@ class PlotMotifs:
         )
         return new_img
 
+    @classmethod
+    def logof_w_dist(cls, n: int) -> str:
+        return f"{cls.dir}/model35_parameters_parameter_274_merged_motif/{int(n)}.png"
+
+    @classmethod
+    def logof_wo_dist(cls, n: int) -> str:
+        return f"{PathObtain.figure_dir()}/{FigSubDir.LOGOS}/logo_{n}.png"
+
 
 class KMerMotifs:
     @classmethod
-    def score(cls, rega: Regions, regb: Regions, subdir: str, fn: str | None=None):
+    def score(cls, rega: Regions, regb: Regions, subdir: str, fn: str | None = None):
         asq = np.array(list(rega.chrm.seq))[rega.cover_mask]
         bsq = np.array(list(regb.chrm.seq))[regb.cover_mask]
 
