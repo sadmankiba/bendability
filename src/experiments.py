@@ -1,3 +1,5 @@
+import pandas as pd
+from chromosome.regions import LEN
 from conformation.domains import (
     BndParm,
     BndSel,
@@ -15,12 +17,12 @@ from feature_model.data_organizer import (
     SequenceLibrary,
     TrainTestSequenceLibraries,
 )
-from chromosome.crossregions import sr_vl
+from chromosome.crossregions import SubRegions, sr_vl
 from feature_model.feat_selector import AllFeatureSelector, FeatureSelector
 from models.prediction import Prediction
 from motif.motifs import KMerMotifs, MotifsM35
 from util.util import FileSave, PathObtain
-from util.constants import RL, RL_LEN, TL, TL_LEN, GDataSubDir
+from util.constants import RL, RL_LEN, TL, TL_LEN, GDataSubDir, YeastChrNumList
 from feature_model.model import ModelCat, ModelRunner
 
 
@@ -31,6 +33,20 @@ class Objs:
 
 
 class Experiments:
+    @classmethod
+    def chrm_stat(cls):
+        t = []
+        pred = Prediction(35)
+        for c in YeastChrNumList:
+            print(c)
+            chrm = Chromosome(c, pred, C0Spread.mcvr)
+            sr = SubRegions(chrm)
+            sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_100)
+            nl = sr.bndrs.nearest_rgns(sr.lnkrs)
+            t.append(nl[LEN].median())
+        
+        FileSave.tsv_gdatadir(pd.DataFrame({"t": t}), f"{GDataSubDir.TEST}/chrm.tsv")
+        
     @classmethod
     def fasta(cls):
         sr_vl.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_WD_50)

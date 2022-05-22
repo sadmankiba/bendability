@@ -63,7 +63,7 @@ class Regions:
         # if _is_bool_array(key):
         #     return self._new(self._regions.loc[key])
 
-        if isinstance(key, str): 
+        if isinstance(key, str):
             if key in self._regions.columns:
                 return self._regions[key]
             raise KeyError
@@ -148,11 +148,11 @@ class Regions:
         return df.loc[df[START] <= df[END]]
 
     def sort(self, by: str) -> Regions:
-        return self._new(self._regions.sort_values(by=by, inplace=False))
+        return self._new(
+            self._regions.sort_values(by=by, inplace=False, ignore_index=True)
+        )
 
-    def is_in_regions(
-        self, bps: Iterable[PosOneIdx]
-    ) -> NDArray[(Any,), bool]:
+    def is_in_regions(self, bps: Iterable[PosOneIdx]) -> NDArray[(Any,), bool]:
         return np.array([self.cover_mask[bp - 1] for bp in bps])
 
     def cover_regions(self) -> Regions:
@@ -233,19 +233,39 @@ class Regions:
     def mid_contained_in(self, containers: Regions) -> Regions:
         cntnrs = containers.sort(START)
 
-        def _mid_in_containers(mid: PosOneIdx) -> bool:
-            inc = False
-            for cntn in cntnrs:
-                if getattr(cntn, START) <= mid <= getattr(cntn, END):
-                    inc = True
-                    break
+        def _alg1() -> list[bool]:
+            mids = self[MIDDLE].sort_values(ignore_index=True)
+            cntnd = []
+            ci = 0
+            for mid in mids:
+                while ci < len(cntnrs):
+                    cntn = cntnrs[ci]
+                    if getattr(cntn, START) <= mid <= getattr(cntn, END):
+                        cntnd.append(True)
+                        break
+                    if mid < getattr(cntn, START):
+                        cntnd.append(False)
+                        break
+                    ci += 1
 
-                if mid < getattr(cntn, START):
-                    break
+            return cntnd
 
-            return inc
+        def _alg2() -> list[bool]:
+            def _mid_in_containers(mid: PosOneIdx) -> bool:
+                inc = False
+                for cntn in cntnrs:
+                    if getattr(cntn, START) <= mid <= getattr(cntn, END):
+                        inc = True
+                        break
 
-        cntnd = list(map(lambda rgn: _mid_in_containers(getattr(rgn, MIDDLE)), self))
+                    if mid < getattr(cntn, START):
+                        break
+
+                return inc
+
+            return [_mid_in_containers(getattr(rgn, MIDDLE)) for rgn in self]
+
+        cntnd = _alg2()
         return self._new(self._regions.iloc[cntnd])
 
     def extended(self, ebp: int) -> Regions:

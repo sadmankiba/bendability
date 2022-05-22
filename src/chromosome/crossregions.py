@@ -112,7 +112,7 @@ class SubRegions:
     @property
     def prmtrs(self) -> Promoters:
         def _prmtrs():
-            return Promoters(self.chrm, ustr_tss=499, dstr_tss=200)
+            return Promoters(self.chrm, ustr_tss=499, dstr_tss=100)
 
         return Attr.calc_attr(self, "_prmtrs", _prmtrs)
 
@@ -367,15 +367,21 @@ class DistribPlot:
 
     def box_bnd_dmn_lnklen(self):
         sr = SubRegions(self._chrm)
-        sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50_LNK_0)
-        dmns = DomainsFN(sr.bndrs)
+        sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_100)
         bl = sr.lnkrs.mid_contained_in(sr.bndrs)
-        dl = sr.lnkrs.mid_contained_in(dmns)
+        bqs = sr.bndrs.quartiles()
+        blqs = [sr.lnkrs.mid_contained_in(bq) for bq in bqs]
+        dl = sr.lnkrs.mid_contained_in(sr.dmns)
+        assert sum([len(blq) for blq in blqs]) == len(bl)
         assert len(bl) + len(dl) == len(sr.lnkrs)
-
-        plt.boxplot([dl[LEN], bl[LEN]], showfliers=True, widths=0.5)
+        PlotUtil.font_size(20)
+        plt.boxplot([blq[LEN] for blq in blqs] + [dl[LEN]], showfliers=False)
+        # plt.boxplot([bl[LEN], dl[LEN]], showfliers=True, widths=0.5)
+        plt.xticks(range(1, 6), ["Q1", "Q2", "Q3", "Q4", "Domains"])
+        plt.ylabel("Linker length (bp)")
+        plt.tight_layout()
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.BOUNDARIES}/lnklen_box_bnd_dmn_{sr.bndrs}.png"
+            f"{FigSubDir.BOUNDARIES}/{self._chrm}_{sr.bndrs}/lnklen_box_bnd_dmn.png"
         )
 
     def prob_distrib_mean_c0_bndrs(self):
@@ -678,7 +684,32 @@ class DistribPlot:
             f"linkers/prob_distr_len_prmtrs_{self._chrm.number}.png"
         )
 
+class MCDistribPlot:
+    @classmethod
+    def box_bnd_dmn_lnklen(cls):
+        pred = Prediction(35)
+        mcblqs = [[], [], [], []]
+        mcdl = []
+        for c in YeastChrNumList:
+            print(c)
+            chrm = Chromosome(c, prediction=pred, spread_str=C0Spread.mcvr)
+            sr = SubRegions(chrm)
+            sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_100)
+            bqs = sr.bndrs.quartiles()
+            blqs = [sr.lnkrs.mid_contained_in(bq) for bq in bqs]
+            dl = sr.lnkrs.mid_contained_in(sr.dmns)
+            for i in range(4):
+                mcblqs[i] += blqs[i][LEN].to_list()
+            mcdl += dl[LEN].to_list()
 
+        PlotUtil.font_size(20)
+        plt.boxplot(mcblqs + [mcdl], showfliers=False, widths=0.5)
+        plt.xticks(range(1, 6), ["Q1", "Q2", "Q3", "Q4", "Domains"])
+        plt.ylabel("Linker length (bp)")
+        plt.tight_layout()
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.BOUNDARIES}/lnklen_box_bnd_dmn_all{str(sr.chrm)[:-4]}_{sr.bndrs}.png"
+        )
 class DistribC0DistPlot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
@@ -786,17 +817,19 @@ class LineC0Plot:
         self._cop = ChrmOperator(self._chrm)
 
     def line_c0_mean_prmtrs(self) -> Path:
-        with_np = True
-        bnd_dmn = False
-        self._sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
+        with_p = False
+        with_np = False
+        bnd_dmn = True
+        self._sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_100)
 
         PlotUtil.clearfig()
         PlotUtil.font_size(20)
         x = np.arange(-self._sr.prmtrs._ustr_tss, self._sr.prmtrs._dstr_tss + 1)
 
-        plt.plot(
-            x, self._sr.prmtrs.mean_c0(), label="Promoters", color="tab:green", lw=2
-        )
+        if with_p:
+            plt.plot(
+                x, self._sr.prmtrs.mean_c0(), label="Promoters", color="tab:green", lw=2
+            )
 
         if with_np:
             nprm = Regions(self._sr.chrm, self._sr.prmtrs.complement())
@@ -936,7 +969,7 @@ class LineC0Plot:
         x = np.arange(2 * pltlim) - pltlim + 1
         for y, l in zip(bqc0, ["Q1", "Q2", "Q3", "Q4"]):
             plt.plot(x, y, label=l)
-        
+
         plt.legend()
         plt.xlabel("Distance from boundary and domain sections middle (bp)")
         plt.ylabel("Mean Cyclizability")
@@ -1169,7 +1202,7 @@ class MCLineC0Plot:
         for c in YeastChrNumList:
             print(c)
             sr, chrm = cls._sr(c)
-            sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_25)
+            sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_100)
             if with_p:
                 pc0.append(
                     np.full((len(sr.prmtrs), sr.prmtrs[LEN][0]), sr.prmtrs.mean_c0())
@@ -1321,14 +1354,14 @@ class MCLineC0Plot:
             ]
             for i in range(4):
                 mcbqc0[i].append(bqc0[i])
-        
+
         x = np.arange(2 * pltlim) - pltlim + 1
         for i in range(4):
             mcbqc0[i] = np.vstack(mcbqc0[i]).mean(axis=0)
 
         for y, l in zip(mcbqc0, ["Q1", "Q2", "Q3", "Q4"]):
             plt.plot(x, y, label=l)
-        
+
         plt.legend()
         plt.xlabel("Distance from boundary and domain sections middle (bp)")
         plt.ylabel("Mean Cyclizability")
