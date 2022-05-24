@@ -687,6 +687,7 @@ class DistribPlot:
 class MCDistribPlot:
     @classmethod
     def box_bnd_dmn_lnklen(cls):
+        near = True
         pred = Prediction(35)
         mcblqs = [[], [], [], []]
         mcdl = []
@@ -696,10 +697,16 @@ class MCDistribPlot:
             sr = SubRegions(chrm)
             sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_100)
             bqs = sr.bndrs.quartiles()
-            blqs = [sr.lnkrs.mid_contained_in(bq) for bq in bqs]
-            dl = sr.lnkrs.mid_contained_in(sr.dmns)
+            if near:
+                blqs = [bq.nearest_rgns(sr.lnkrs) for bq in bqs]
+                dl = sr.lnkrs - blqs[0] - blqs[1] - blqs[2] - blqs[3]
+            else:
+                blqs = [sr.lnkrs.mid_contained_in(bq) for bq in bqs]
+                dl = sr.lnkrs.mid_contained_in(sr.dmns)
+            
             for i in range(4):
                 mcblqs[i] += blqs[i][LEN].to_list()
+            
             mcdl += dl[LEN].to_list()
 
         PlotUtil.font_size(20)
@@ -708,7 +715,8 @@ class MCDistribPlot:
         plt.ylabel("Linker length (bp)")
         plt.tight_layout()
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.BOUNDARIES}/lnklen_box_bnd_dmn_all{str(sr.chrm)[:-4]}_{sr.bndrs}.png"
+            f"{FigSubDir.BOUNDARIES}/lnklen_box_bnd_dmn_all{str(sr.chrm)[:-4]}_{sr.bndrs}"
+            f"{'_near' if near else ''}.png"
         )
 class DistribC0DistPlot:
     def __init__(self, chrm: Chromosome) -> None:
@@ -1359,7 +1367,8 @@ class MCLineC0Plot:
         for i in range(4):
             mcbqc0[i] = np.vstack(mcbqc0[i]).mean(axis=0)
 
-        for y, l in zip(mcbqc0, ["Q1", "Q2", "Q3", "Q4"]):
+        PlotUtil.font_size(20)
+        for y, l in zip(mcbqc0, ["Q1 (strong)", "Q2", "Q3", "Q4 (weak)"]):
             plt.plot(x, y, label=l)
 
         plt.legend()

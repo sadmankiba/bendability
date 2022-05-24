@@ -233,27 +233,30 @@ class Regions:
     def mid_contained_in(self, containers: Regions) -> Regions:
         cntnrs = containers.sort(START)
 
-        def _alg1() -> RegionsInternal:
+        def _alg1() -> Regions:
             rgns = self.sort(MIDDLE)
+            mids = rgns[MIDDLE]
             cntnd = []
             ci = 0
-            for rgn in rgns:
+            for mid in mids:
                 while ci < len(cntnrs):
                     cntn = cntnrs[ci]
                     if (
                         getattr(cntn, START)
-                        <= getattr(rgn, MIDDLE)
+                        <= mid
                         <= getattr(cntn, END)
                     ):
-                        cntnd.append(rgn)
+                        cntnd.append(True)
                         break
-                    if getattr(rgn, MIDDLE) < getattr(cntn, START):
+                    if mid < getattr(cntn, START):
+                        cntnd.append(False)
                         break
                     ci += 1
+            
+            cntnd += [False] * (len(rgns) - len(cntnd))
+            return rgns[cntnd]
 
-            return pd.DataFrame(cntnd)
-
-        def _alg2() -> RegionsInternal:
+        def _alg2() -> Regions:
             def _mid_in_containers(mid: PosOneIdx) -> bool:
                 inc = False
                 for cntn in cntnrs:
@@ -267,9 +270,9 @@ class Regions:
                 return inc
 
             cntnd = [_mid_in_containers(getattr(rgn, MIDDLE)) for rgn in self]
-            return self._regions.iloc[cntnd]
+            return self[cntnd]
 
-        return self._new(_alg1())
+        return _alg1()
 
     def extended(self, ebp: int) -> Regions:
         return self._extended(
