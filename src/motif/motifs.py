@@ -1,5 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
+from typing import Any, Iterable
 
 from matplotlib import colors
 import pandas as pd
@@ -10,7 +11,8 @@ import matplotlib.pyplot as plt
 from statsmodels.stats.weightstats import ztest
 import cv2
 
-from chromosome.regions import Regions
+from chromosome.regions import END, START, Regions
+from util.custom_types import PosOneIdx
 from util.util import FileSave, PathObtain, PlotUtil
 from util.constants import CHRV_TOTAL_BP, CHRV_TOTAL_BP_ORIGINAL, GDataSubDir, FigSubDir
 from util.kmer import KMer
@@ -27,9 +29,11 @@ P_VAL = "p_val"
 class MotifsM35:
     def __init__(self) -> None:
         self._V = 3
-        self._running_score = self._read_running_score()
+        self._score = self._read_score()
 
-    def _read_running_score(self) -> NDArray[(N_MOTIFS, CHRV_TOTAL_BP)]:
+    def _read_score(self) -> NDArray[(N_MOTIFS, CHRV_TOTAL_BP)]:
+        """Running score"""
+
         mdirs = {
             1: "model35_parameters_parameter_274_alt",
             2: "motif_matching_score",
@@ -54,8 +58,8 @@ class MotifsM35:
 
         return scores
 
-    def enrichment(self, regions: Regions, subdir: str) -> Path:
-        enr = self._running_score[:, regions.cover_mask]
+    def enr_box(self, regions: Regions, subdir: str) -> Path:
+        enr = self._score[:, regions.cover_mask]
         fig, axes = plt.subplots(8, sharey=True)
         fig.suptitle("Motif enrichments")
         for i in range(8):
@@ -65,9 +69,21 @@ class MotifsM35:
             f"{subdir}/motif_m35/enrichment_{regions}_{regions.chrm}_v{self._V}.png"
         )
 
+    def enr_line(self, rgns: Regions, subdir: str) -> Path:
+        fig, axes = plt.subplots(16, 16, sharex='all', sharey='all')
+        for m in range(N_MOTIFS):
+            enrr = self.enr_rgns(m, rgns[START], rgns[END]).mean(axis=0)
+            axes[m // 16, m % 16].plot(range(1, rgns[END][0] - rgns[START][0] + 2), enrr)
+        
+        # plt.xlabel("Position (bp)")
+        # plt.ylabel("Enrichment")
+        return FileSave.figure_in_figdir(
+            f"{subdir}/{rgns.chrm}_{rgns}/line_enr_v{self._V}_m35.png", 24, 24
+        )
+
     def enrichment_compare(self, rega: Regions, regb: Regions, subdir: str):
-        enra = self._running_score[:, rega.cover_mask]
-        enrb = self._running_score[:, regb.cover_mask]
+        enra = self._score[:, rega.cover_mask]
+        enrb = self._score[:, regb.cover_mask]
         z = [(i,) + ztest(enra[i], enrb[i]) for i in range(N_MOTIFS)]
         df = pd.DataFrame(z, columns=[MOTIF_NO, ZTEST_VAL, P_VAL])
         if self._V != 3:
@@ -82,6 +98,29 @@ class MotifsM35:
             df.sort_values("ztest_val"),
             f"{subdir}/motif_m35/sorted_{fn}.tsv",
         )
+
+    def enr_rgns(
+        self,
+        m : int,
+        starts: Iterable[PosOneIdx],
+        ends: Iterable[PosOneIdx],
+    ) -> NDArray[(Any, Any), float]:
+        """
+        Find enr at each region. regions are equal len.
+        """
+        result = np.array(
+            [self.enr(m, s, e) for s, e in zip(np.array(starts), np.array(ends))]
+        )
+        assert result.shape == (
+            len(starts),
+            np.array(ends)[0] - np.array(starts)[0] + 1,
+        )
+        return result
+
+    def enr(
+        self, m: int, start: float | PosOneIdx, end: float | PosOneIdx
+    ) -> NDArray[(Any,), float]:
+        return self._score[m, int(start - 1) : int(end)]
 
 
 class PlotMotifs:
@@ -176,7 +215,7 @@ class PlotMotifs:
         return impath
 
     @classmethod
-    def _add_score(cls, img: np.ndarray, z: float, p: float, n: int=None):
+    def _add_score(cls, img: np.ndarray, z: float, p: float, n: int = None):
         new_img = np.ascontiguousarray(
             np.vstack([np.full((30, img.shape[1], 3), fill_value=255), img]),
             dtype=np.uint8,

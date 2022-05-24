@@ -539,9 +539,12 @@ class ChrmOperator:
         Find c0 at each bp of regions. regions are equal len.
         """
         result = np.array(
-            list(map(lambda s, e: self.c0(s, e), np.array(starts), np.array(ends)))
+            [self.c0(s, e) for s, e in zip(np.array(starts), np.array(ends))]
         )
-        assert result.shape == (len(starts), np.array(ends)[0] - np.array(starts)[0] + 1)
+        assert result.shape == (
+            len(starts),
+            np.array(ends)[0] - np.array(starts)[0] + 1,
+        )
         return result
 
     def c0(
@@ -571,7 +574,7 @@ class ChrmOperator:
             cvrmask[s - 1 : e] = True
 
         return cvrmask
-    
+
     def in_lim(self, arr: Iterable[PosOneIdx], l: int) -> NDArray[(Any,), PosOneIdx]:
         bps = pd.Series(arr)
         return bps.loc[(l < bps) & (bps <= (self._chrm.total_bp - l))].to_numpy()
