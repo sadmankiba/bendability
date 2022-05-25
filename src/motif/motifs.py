@@ -28,7 +28,7 @@ P_VAL = "p_val"
 
 class MotifsM35:
     def __init__(self) -> None:
-        self._V = 3
+        self._V = 4
         self._score = self._read_score()
 
     def _read_score(self) -> NDArray[(N_MOTIFS, CHRV_TOTAL_BP)]:
@@ -52,11 +52,16 @@ class MotifsM35:
             assert len(df) == CHRV_TOTAL_BP_ORIGINAL
             return df[0].to_numpy()
 
-        scores = np.empty((N_MOTIFS, CHRV_TOTAL_BP))
-        for i in range(N_MOTIFS):
-            scores[i] = _score(i)[: CHRV_TOTAL_BP - CHRV_TOTAL_BP_ORIGINAL]
+        if self._V == 4:
+            return np.load(
+                f"{PathObtain.gen_data_dir()}/{GDataSubDir.MOTIF}/match_score_35_cl_V/score.npy"
+            )
+        else:
+            scores = np.empty((N_MOTIFS, CHRV_TOTAL_BP))
+            for i in range(N_MOTIFS):
+                scores[i] = _score(i)[: CHRV_TOTAL_BP - CHRV_TOTAL_BP_ORIGINAL]
 
-        return scores
+            return scores
 
     def enr_box(self, regions: Regions, subdir: str) -> Path:
         enr = self._score[:, regions.cover_mask]
@@ -70,11 +75,13 @@ class MotifsM35:
         )
 
     def enr_line(self, rgns: Regions, subdir: str) -> Path:
-        fig, axes = plt.subplots(16, 16, sharex='all', sharey='all')
+        fig, axes = plt.subplots(16, 16, sharex="all", sharey="all")
         for m in range(N_MOTIFS):
             enrr = self.enr_rgns(m, rgns[START], rgns[END]).mean(axis=0)
-            axes[m // 16, m % 16].plot(range(1, rgns[END][0] - rgns[START][0] + 2), enrr)
-        
+            axes[m // 16, m % 16].plot(
+                range(1, rgns[END][0] - rgns[START][0] + 2), enrr
+            )
+
         # plt.xlabel("Position (bp)")
         # plt.ylabel("Enrichment")
         return FileSave.figure_in_figdir(
@@ -101,7 +108,7 @@ class MotifsM35:
 
     def enr_rgns(
         self,
-        m : int,
+        m: int,
         starts: Iterable[PosOneIdx],
         ends: Iterable[PosOneIdx],
     ) -> NDArray[(Any, Any), float]:

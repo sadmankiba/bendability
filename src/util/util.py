@@ -299,7 +299,7 @@ class FileSave:
     def nptxt(cls, arr: np.ndarray, path_str: str | Path) -> Path:
         path = Path(path_str)
         cls.make_parent_dirs(path)
-        np.savetxt(path, arr)
+        np.savetxt(path, arr, "%.5f")
 
         logging.info(f"np txt file saved at: {path}")
         return path

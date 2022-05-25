@@ -92,7 +92,6 @@ class DNASequenceReader:
         assert chrmnum >= 1 and chrmnum <= 16
 
         seq = cls.read_yeast_genome_file(chrmnum)
-        print(len(seq))
 
         # Split into 50-bp sequences
         num_50bp_seqs = math.ceil((len(seq) - SEQ_LEN + 1) / 7)

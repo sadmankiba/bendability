@@ -4,75 +4,87 @@ from nptyping import NDArray
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from chromosome.chromosome import C0Spread, Chromosome
+from chromosome.chromosome import C0Spread, ChrmCalc, Chromosome
 
 from models.prediction import Prediction
 from models.data_preprocess import Preprocess
 from util.constants import CHRVL, GDataSubDir
+from util.custom_types import YeastChrNum
 from util.reader import DNASequenceReader
 from util.util import FileSave, PathObtain
 
 
-def enr_chrm_2():
-    clip = True
-    model = Prediction(35)._model
+class Enr:
+    def __init__(self) -> None:
+        self.model_no = 35
+        self.model = Prediction(self.model_no)._model
 
-    mid_layer_num = 2
-    mid_layer_fw_output_model = Model(
-        inputs=model.input, outputs=model.layers[mid_layer_num].get_output_at(0)
-    )
-    mid_layer_rc_output_model = Model(
-        inputs=model.input, outputs=model.layers[mid_layer_num].get_output_at(1)
-    )
+    def enr_chrm_save(self, cnum: YeastChrNum):
+        clip = True
 
-    df = DNASequenceReader().get_processed_data()[CHRVL]
-    prep = Preprocess(df)
-    data = prep.one_hot_encode()
-
-    X1 = data["forward"]
-    X2 = data["reverse"]
-    Y = data["target"]
-
-    batch_size = 1000
-    num_batches = int((X1.shape[0] + batch_size - 1) / batch_size)
-
-    chrom_len = 576871
-    motif_num = 256
-    matching_score = np.zeros((chrom_len, motif_num))
-    overlap = np.zeros(chrom_len)
-    pos = 0
-
-    for batch_num in range(num_batches):
-        x1 = X1[batch_num * batch_size : (batch_num + 1) * batch_size]
-        x2 = X2[batch_num * batch_size : (batch_num + 1) * batch_size]
-
-        out: NDArray[(Any, 50, 256), float] = mid_layer_fw_output_model.predict(
-            {"forward": x1, "reverse": x2}
+        mid_layer_num = 2
+        mid_layer_fw_output_model = Model(
+            inputs=self.model.input,
+            outputs=self.model.layers[mid_layer_num].get_output_at(0),
         )
-        print(f"batch {batch_num+1}/{num_batches}")
-
-        for i in range(out.shape[0]):
-            matching_score[pos : pos + 50] += out[i]
-            overlap[pos : pos + 50] += 1
-            pos += 7
-
-    matching_score = matching_score.T
-    matching_score /= overlap
-
-    if clip: 
-        matching_score = matching_score.clip(0)
-
-    matching_score = matching_score.round(5)
-
-    for mi in range(motif_num):
-        FileSave.nptxt(
-            matching_score[mi],
-            f"{PathObtain.gen_data_dir()}/{GDataSubDir.MOTIF}/match_score"
-            f"{'_cl' if clip else ''}_V/motif_{mi}",
+        mid_layer_rc_output_model = Model(
+            inputs=self.model.input,
+            outputs=self.model.layers[mid_layer_num].get_output_at(1),
         )
 
+        # df = DNASequenceReader().get_processed_data()[CHRVL]
+        df = DNASequenceReader().read_yeast_genome(cnum)
+        prep = Preprocess(df)
+        data = prep.one_hot_encode()
 
-def enr_chrm(alt=True):
+        X1 = data["forward"]
+        X2 = data["reverse"]
+
+        batch_size = 1000
+        num_batches = int((X1.shape[0] + batch_size - 1) / batch_size)
+
+        chrom_len = ChrmCalc.total_bp(len(df))
+        motif_num = 256
+        matching_score = np.zeros((chrom_len, motif_num))
+        overlap = np.zeros(chrom_len)
+        pos = 0
+
+        for batch_num in range(num_batches):
+            x1 = X1[batch_num * batch_size : (batch_num + 1) * batch_size]
+            x2 = X2[batch_num * batch_size : (batch_num + 1) * batch_size]
+
+            out: NDArray[(Any, 50, 256), float] = mid_layer_fw_output_model.predict(
+                {"forward": x1, "reverse": x2}
+            )
+            print(f"batch {batch_num+1}/{num_batches}")
+
+            for i in range(out.shape[0]):
+                matching_score[pos : pos + 50] += out[i]
+                overlap[pos : pos + 50] += 1
+                pos += 7
+
+        matching_score = matching_score.T
+        matching_score /= overlap
+
+        if clip:
+            matching_score = matching_score.clip(0)
+
+        matching_score = matching_score.round(5)
+        FileSave.npy(
+            matching_score,
+            f"{PathObtain.gen_data_dir()}/{GDataSubDir.MOTIF}/match_score_{self.model_no}"
+            f"{'_cl' if clip else ''}_{cnum}/score.npy",
+        )
+
+        # for mi in range(motif_num):
+        #     FileSave.nptxt(
+        #         matching_score[mi],
+        #         f"{PathObtain.gen_data_dir()}/{GDataSubDir.MOTIF}/match_score"
+        #         f"{'_cl' if clip else ''}_V/motif_{mi}",
+        #     )
+
+
+def enr_chrm_save_obsolete(alt=True):
     model_id = "model35_parameters_parameter_274"
     pred = Prediction(35)
     model = pred._model

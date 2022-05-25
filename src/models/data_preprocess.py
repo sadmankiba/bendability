@@ -47,11 +47,13 @@ class Preprocess:
             for s in seq_and_target["rc_seqs"]
         ]
 
+        print("OHE Done")
         return {
             "forward": np.stack(forward),
             "reverse": np.stack(reverse),
             "target": seq_and_target["target"],
         }
+        
     
     @classmethod 
     def oh_enc(cls, s: DNASeq) -> NDArray[(Any, 4), int]:
