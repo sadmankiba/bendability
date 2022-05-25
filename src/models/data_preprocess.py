@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import TypedDict, Union
+from typing import Any, TypedDict, Union
+from nptyping import NDArray
 
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
@@ -35,20 +36,14 @@ class Preprocess:
         return {"all_seqs": all_seqs, "target": target, "rc_seqs": rc_seqs}
 
     def one_hot_encode(self) -> OheResult:
-        def _seq_to_col_mat(seq):
-            return np.array(list(seq)).reshape(-1, 1)
-
-        one_hot_encoder = OneHotEncoder(categories="auto")
-        one_hot_encoder.fit(_seq_to_col_mat("ACGT"))
-
         seq_and_target = self._get_sequences_target()
 
         forward = [
-            one_hot_encoder.transform(_seq_to_col_mat(s)).toarray()
+            self.oh_enc(s)
             for s in seq_and_target["all_seqs"]
         ]
         reverse = [
-            one_hot_encoder.transform(_seq_to_col_mat(s)).toarray()
+            self.oh_enc(s)
             for s in seq_and_target["rc_seqs"]
         ]
 
@@ -57,6 +52,16 @@ class Preprocess:
             "reverse": np.stack(reverse),
             "target": seq_and_target["target"],
         }
+    
+    @classmethod 
+    def oh_enc(cls, s: DNASeq) -> NDArray[(Any, 4), int]:
+        def _seq_to_col_mat(seq):
+            return np.array(list(seq)).reshape(-1, 1)
+        
+        encoder = OneHotEncoder(categories="auto")
+        encoder.fit(_seq_to_col_mat("ACGT"))
+
+        return encoder.transform(_seq_to_col_mat(s)).toarray()    
 
     def dinucleotide_encode(self):
         # Requires fix
