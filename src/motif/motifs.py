@@ -40,7 +40,6 @@ class MotifsM35:
         self._V = 4
         self._cnum = cnum
         self._score = self._read_score()
-        
 
     def _read_score(self) -> NDArray[(N_MOTIFS, CHRV_TOTAL_BP)]:
         """Running score"""
@@ -146,28 +145,48 @@ class MCMotifsM35:
     @classmethod
     def enr_line(cls):
         pred = Prediction(35)
-        mbs = []
-        for c in YeastChrNumList:
+        nums = YeastChrNumList
+        enrr = [[] for _ in range(len(nums))]
+        lb = []
+        for i, c in enumerate(nums):
             print(c)
             chrm = Chromosome(c, pred, C0Spread.mcvr)
-            mbs.append((MotifsM35(c), BoundariesHE(chrm, **BndParm.HIRS_SHR_100)))
+            mt = MotifsM35(c)
+            bndrs = BoundariesHE(chrm, **BndParm.HIRS_WD_100)
 
-        fig, axes = plt.subplots(16, 16, sharex="all", sharey="all")
-        
+            for m in range(N_MOTIFS):
+                enrr[i].append(mt.enr_rgns(m, bndrs[START], bndrs[END]).mean(axis=0))
+
+            lb.append(len(bndrs))
+
+        enrrm = (np.array(lb)[:, np.newaxis, np.newaxis] * np.array(enrr)).mean(axis=0)
+        assert enrrm.shape == (N_MOTIFS, bndrs[END][0] - bndrs[START][0] + 1)
+
+        x = np.arange(enrrm.shape[1]) - enrrm.shape[1] // 2
+
+        PlotUtil.font_size(20)
         for m in range(N_MOTIFS):
-            print(m)
-            enrr = []
-            for mt, bndrs in mbs:
-                enrr.append(mt.enr_rgns(m, bndrs[START], bndrs[END]))
-            enrrm = np.vstack(enrr).mean(axis=0)
-            ax = axes[m // 16, m % 16]
-            ax.plot(
-                range(1, bndrs[END][0] - bndrs[START][0] + 2), enrrm
+            PlotUtil.clearfig()
+            plt.ylim(0, 1.0)
+            plt.plot(x, enrrm[m], color="k")
+            plt.xlabel("Position (bp)")
+            plt.ylabel("Matching score")
+            FileSave.figure_in_figdir(
+                f"{GDataSubDir.BOUNDARIES}/all{str(chrm)[:-len(chrm.number)-1]}_{bndrs}/line_enr_v4_m35/{m}.png",
+                8,
+                8,
             )
+
+        PlotUtil.font_size(12)
+        PlotUtil.clearfig()
+        fig, axes = plt.subplots(16, 16, sharex="all", sharey="all")
+        for m in range(N_MOTIFS):
+            ax = axes[m // 16, m % 16]
+            ax.plot(x, enrrm[m])
             ax.annotate(str(m), xy=(0.75, 0.85), xycoords="axes fraction")
 
         return FileSave.figure_in_figdir(
-            f"{GDataSubDir.BOUNDARIES}/line_enr_v4_m35_all{str(chrm)[:-4]}_{bndrs}.png",
+            f"{GDataSubDir.BOUNDARIES}/all{str(chrm)[:-len(chrm.number)-1]}_{bndrs}/line_enr_v4_m35/all.png",
             24,
             24,
         )
