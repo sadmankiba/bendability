@@ -99,13 +99,13 @@ class MotifsM35:
         z = [(i,) + ztest(enra[i], enrb[i]) for i in range(N_MOTIFS)]
         df = pd.DataFrame(z, columns=[MOTIF_NO, ZTEST_VAL, P_VAL])
         if self._V == 1 or self._V == 2:
-            df["ztest_val"] = -df["ztest_val"]
+            df[ZTEST_VAL] = -df[ZTEST_VAL]
 
         dn = f"{subdir}/{rega.chrm}_{rega}/motif_m35_v{self._V}"
         fn = f"enr_comp_{regb}"
         FileSave.tsv_gdatadir(df, f"{dn}/{fn}.tsv")
         FileSave.tsv_gdatadir(
-            df.sort_values("ztest_val"),
+            df.sort_values(ZTEST_VAL),
             f"{dn}/sorted_{fn}.tsv",
         )
 
@@ -165,35 +165,6 @@ class PlotMotifs:
     sel = 1
 
     @classmethod
-    def plot_z(cls) -> Path:
-        sdf = cls._score().sort_values(by="ztest_val", ignore_index=True)
-        PlotUtil.font_size(20)
-        plt.barh(range(1, 11), sdf["ztest_val"][:10], color="tab:blue")
-        plt.barh(range(13, 23), sdf[ZTEST_VAL][-10:], color="tab:blue")
-        plt.yticks(
-            range(1, 23),
-            labels=[f"motif #{n}" for n in sdf["motif_no"][:10]]
-            + ["", ""]
-            + [f"motif #{n}" for n in sdf["motif_no"][-10:]],
-        )
-        plt.gca().invert_yaxis()
-        plt.xlabel("z-score")
-        plt.tight_layout()
-        return FileSave.figure_in_figdir(
-            f"{FigSubDir.MOTIFS}/plt_z_{cls.ztest_str[cls.sel][1]}.png",
-            sizew=6,
-            sizeh=12,
-        )
-
-    @classmethod
-    def _score(cls) -> pd.DataFrame:
-        return pd.read_csv(
-            f"{PathObtain.gen_data_dir()}/{cls.ztest_str[cls.sel][0]}/motif_m35/"
-            f"enrichment_comp_{cls.ztest_str[cls.sel][1]}.tsv",
-            sep="\t",
-        )
-
-    @classmethod
     def integrate_logos(cls) -> Path:
         w_dist = False
         logof = cls.logof_w_dist if w_dist else cls.logof_wo_dist
@@ -223,6 +194,35 @@ class PlotMotifs:
         )
         cv2.imwrite(str(impath), img)
         return impath
+
+    @classmethod
+    def plot_z(cls) -> Path:
+        sdf = cls._score().sort_values(by="ztest_val", ignore_index=True)
+        PlotUtil.font_size(20)
+        plt.barh(range(1, 11), sdf["ztest_val"][:10], color="tab:blue")
+        plt.barh(range(13, 23), sdf[ZTEST_VAL][-10:], color="tab:blue")
+        plt.yticks(
+            range(1, 23),
+            labels=[f"motif #{n}" for n in sdf["motif_no"][:10]]
+            + ["", ""]
+            + [f"motif #{n}" for n in sdf["motif_no"][-10:]],
+        )
+        plt.gca().invert_yaxis()
+        plt.xlabel("z-score")
+        plt.tight_layout()
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.MOTIFS}/plt_z_{cls.ztest_str[cls.sel][1]}.png",
+            sizew=6,
+            sizeh=12,
+        )
+
+    @classmethod
+    def _score(cls) -> pd.DataFrame:
+        return pd.read_csv(
+            f"{PathObtain.gen_data_dir()}/{cls.ztest_str[cls.sel][0]}/motif_m35/"
+            f"enrichment_comp_{cls.ztest_str[cls.sel][1]}.tsv",
+            sep="\t",
+        )
 
     @classmethod
     def _add_score(cls, img: np.ndarray, z: float, p: float, n: int = None):

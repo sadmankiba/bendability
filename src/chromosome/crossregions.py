@@ -21,7 +21,7 @@ from chromosome.genes import Genes, Promoters, STRAND
 from chromosome.regions import END, MIDDLE, START, LEN, MEAN_C0, Regions
 from chromosome.nucleosomes import Linkers, Nucleosomes
 from models.prediction import Prediction
-from motif.motifs import N_MOTIFS, MotifsM30, MotifsM35
+from motif.motifs import MOTIF_NO, N_MOTIFS, ZTEST_VAL, MotifsM30, MotifsM35
 from conformation.domains import (
     BndParmT,
     Boundaries,
@@ -684,6 +684,7 @@ class DistribPlot:
             f"linkers/prob_distr_len_prmtrs_{self._chrm.number}.png"
         )
 
+
 class MCDistribPlot:
     @classmethod
     def box_bnd_dmn_lnklen(cls):
@@ -703,10 +704,10 @@ class MCDistribPlot:
             else:
                 blqs = [sr.lnkrs.mid_contained_in(bq) for bq in bqs]
                 dl = sr.lnkrs.mid_contained_in(sr.dmns)
-            
+
             for i in range(4):
                 mcblqs[i] += blqs[i][LEN].to_list()
-            
+
             mcdl += dl[LEN].to_list()
 
         PlotUtil.font_size(20)
@@ -718,6 +719,7 @@ class MCDistribPlot:
             f"{FigSubDir.BOUNDARIES}/lnklen_box_bnd_dmn_all{str(sr.chrm)[:-4]}_{sr.bndrs}"
             f"{'_near' if near else ''}.png"
         )
+
 
 class DistribC0DistPlot:
     def __init__(self, chrm: Chromosome) -> None:
@@ -964,7 +966,7 @@ class LineC0Plot:
             f"{FigSubDir.BOUNDARIES}/{self._chrm}_{self._sr.bndrs}/"
             f"c0_line_mean_pltlim_{pltlim}.png"
         )
-    
+
     def line_c0_mean_lpancs_ins(self, pltlim=100) -> Path:
         ac0 = self._cop.c0_rgns(
             self._sr.lpancrs[MIDDLE] - pltlim + 1,
@@ -1406,14 +1408,15 @@ class MCLineC0Plot:
             f"{FigSubDir.BOUNDARIES}/c0_line_mean_q_all{str(sr.chrm)[:-4]}_{sr.bndrs}_pltlim_{pltlim}.png"
         )
 
+
 class MCMotifsM35:
     @classmethod
     def enr_line(cls):
         r = "n"
-        if r == 'b':
+        if r == "b":
             d = GDataSubDir.BOUNDARIES
             yl = (0, 1.0)
-        elif r == 'n': 
+        elif r == "n":
             d = GDataSubDir.NUCLEOSOMES
             yl = (0, 15)
 
@@ -1427,9 +1430,9 @@ class MCMotifsM35:
             mt = MotifsM35(c)
             sr = SubRegions(chrm)
             sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_WD_100)
-            if r == 'b':
+            if r == "b":
                 rgns = sr.bndrs
-            elif r == 'n':
+            elif r == "n":
                 rgns = sr.nucs
 
             for m in range(N_MOTIFS):
@@ -1468,6 +1471,36 @@ class MCMotifsM35:
             24,
             24,
         )
+
+    @classmethod
+    def combine_z(cls):
+        pred = Prediction(35)
+        lb = []
+        z = np.zeros((N_MOTIFS,))
+        for c in YeastChrNumList:
+            chrm = Chromosome(c, pred, C0Spread.mcvr)
+            sr = SubRegions(chrm)
+            sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_WD_100)
+            sl = math.sqrt(len(sr.bndrs))
+            df = pd.read_csv(
+                f"{PathObtain.gen_data_dir()}/{GDataSubDir.BOUNDARIES}/{chrm}_{sr.bndrs}/motif_m35_v4/"
+                f"enr_comp_{sr.dmns}.tsv", sep="\t"
+            )
+            z += df[ZTEST_VAL] * sl
+            lb.append(sl)
+
+        z /= sum(lb)
+        df = pd.DataFrame({MOTIF_NO: range(N_MOTIFS), ZTEST_VAL: z})
+        dn = f"{GDataSubDir.BOUNDARIES}/all{str(chrm)[:-len(chrm.number)-1]}_{sr.bndrs}"
+        FileSave.tsv_gdatadir(
+            df,
+            f"{dn}/enr_comp_{sr.dmns}.tsv",
+        )
+        FileSave.tsv_gdatadir(
+            df.sort_values(ZTEST_VAL, ignore_index=True),
+            f"{dn}/sorted_enr_comp_{sr.dmns}.tsv",
+        )
+
 
 class SegmentLineC0Plot:
     def __init__(self, chrm: Chromosome) -> None:
