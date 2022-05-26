@@ -2,7 +2,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Iterable
 
-from matplotlib import colors
 import pandas as pd
 import numpy as np
 from nptyping import NDArray
@@ -11,10 +10,7 @@ import matplotlib.pyplot as plt
 from statsmodels.stats.weightstats import ztest
 import cv2
 
-from chromosome.chromosome import C0Spread, Chromosome
 from chromosome.regions import END, START, Regions
-from conformation.domains import BndParm, BoundariesHE
-from models.prediction import Prediction
 from util.custom_types import PosOneIdx
 from util.util import FileSave, PathObtain, PlotUtil
 from util.constants import (
@@ -22,7 +18,6 @@ from util.constants import (
     CHRV_TOTAL_BP_ORIGINAL,
     GDataSubDir,
     FigSubDir,
-    YeastChrNumList,
 )
 from util.kmer import KMer
 
@@ -103,17 +98,15 @@ class MotifsM35:
         enrb = self._score[:, regb.cover_mask]
         z = [(i,) + ztest(enra[i], enrb[i]) for i in range(N_MOTIFS)]
         df = pd.DataFrame(z, columns=[MOTIF_NO, ZTEST_VAL, P_VAL])
-        if self._V != 3:
+        if self._V == 1 or self._V == 2:
             df["ztest_val"] = -df["ztest_val"]
 
-        fn = f"enrichment_comp_{rega}_{regb}_{rega.chrm}_v{self._V}"
-        FileSave.tsv_gdatadir(
-            df,
-            f"{subdir}/motif_m35/{fn}.tsv",
-        )
+        dn = f"{subdir}/{rega.chrm}_{rega}/motif_m35_v{self._V}"
+        fn = f"enr_comp_{regb}"
+        FileSave.tsv_gdatadir(df, f"{dn}/{fn}.tsv")
         FileSave.tsv_gdatadir(
             df.sort_values("ztest_val"),
-            f"{subdir}/motif_m35/sorted_{fn}.tsv",
+            f"{dn}/sorted_{fn}.tsv",
         )
 
     def enr_rgns(
@@ -139,58 +132,6 @@ class MotifsM35:
         self, m: int, start: float | PosOneIdx, end: float | PosOneIdx
     ) -> NDArray[(Any,), float]:
         return self._score[m, int(start - 1) : int(end)]
-
-
-class MCMotifsM35:
-    @classmethod
-    def enr_line(cls):
-        pred = Prediction(35)
-        nums = YeastChrNumList
-        enrr = [[] for _ in range(len(nums))]
-        lb = []
-        for i, c in enumerate(nums):
-            print(c)
-            chrm = Chromosome(c, pred, C0Spread.mcvr)
-            mt = MotifsM35(c)
-            bndrs = BoundariesHE(chrm, **BndParm.HIRS_WD_100)
-
-            for m in range(N_MOTIFS):
-                enrr[i].append(mt.enr_rgns(m, bndrs[START], bndrs[END]).mean(axis=0))
-
-            lb.append(len(bndrs))
-
-        enrrm = (np.array(lb)[:, np.newaxis, np.newaxis] * np.array(enrr)).mean(axis=0)
-        assert enrrm.shape == (N_MOTIFS, bndrs[END][0] - bndrs[START][0] + 1)
-
-        x = np.arange(enrrm.shape[1]) - enrrm.shape[1] // 2
-
-        PlotUtil.font_size(20)
-        for m in range(N_MOTIFS):
-            PlotUtil.clearfig()
-            plt.ylim(0, 1.0)
-            plt.plot(x, enrrm[m], color="k")
-            plt.xlabel("Position (bp)")
-            plt.ylabel("Matching score")
-            FileSave.figure_in_figdir(
-                f"{GDataSubDir.BOUNDARIES}/all{str(chrm)[:-len(chrm.number)-1]}_{bndrs}/line_enr_v4_m35/{m}.png",
-                8,
-                8,
-            )
-
-        PlotUtil.font_size(12)
-        PlotUtil.clearfig()
-        fig, axes = plt.subplots(16, 16, sharex="all", sharey="all")
-        for m in range(N_MOTIFS):
-            ax = axes[m // 16, m % 16]
-            ax.plot(x, enrrm[m])
-            ax.annotate(str(m), xy=(0.75, 0.85), xycoords="axes fraction")
-
-        return FileSave.figure_in_figdir(
-            f"{GDataSubDir.BOUNDARIES}/all{str(chrm)[:-len(chrm.number)-1]}_{bndrs}/line_enr_v4_m35/all.png",
-            24,
-            24,
-        )
-
 
 class PlotMotifs:
     dir = f"{PathObtain.figure_dir()}/{FigSubDir.MOTIFS}"

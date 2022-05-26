@@ -21,7 +21,7 @@ from chromosome.genes import Genes, Promoters, STRAND
 from chromosome.regions import END, MIDDLE, START, LEN, MEAN_C0, Regions
 from chromosome.nucleosomes import Linkers, Nucleosomes
 from models.prediction import Prediction
-from motif.motifs import MotifsM30
+from motif.motifs import N_MOTIFS, MotifsM30, MotifsM35
 from conformation.domains import (
     BndParmT,
     Boundaries,
@@ -1404,6 +1404,69 @@ class MCLineC0Plot:
 
         return FileSave.figure_in_figdir(
             f"{FigSubDir.BOUNDARIES}/c0_line_mean_q_all{str(sr.chrm)[:-4]}_{sr.bndrs}_pltlim_{pltlim}.png"
+        )
+
+class MCMotifsM35:
+    @classmethod
+    def enr_line(cls):
+        r = "n"
+        if r == 'b':
+            d = GDataSubDir.BOUNDARIES
+            yl = (0, 1.0)
+        elif r == 'n': 
+            d = GDataSubDir.NUCLEOSOMES
+            yl = (0, 15)
+
+        pred = Prediction(35)
+        nums = YeastChrNumList
+        enrr = [[] for _ in range(len(nums))]
+        lb = []
+        for i, c in enumerate(nums):
+            print(c)
+            chrm = Chromosome(c, pred, C0Spread.mcvr)
+            mt = MotifsM35(c)
+            sr = SubRegions(chrm)
+            sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_WD_100)
+            if r == 'b':
+                rgns = sr.bndrs
+            elif r == 'n':
+                rgns = sr.nucs
+
+            for m in range(N_MOTIFS):
+                enrr[i].append(mt.enr_rgns(m, rgns[START], rgns[END]).mean(axis=0))
+
+            lb.append(len(rgns))
+
+        enrrm = (np.array(lb)[:, np.newaxis, np.newaxis] * np.array(enrr)).mean(axis=0)
+        assert enrrm.shape == (N_MOTIFS, rgns[END][0] - rgns[START][0] + 1)
+
+        x = np.arange(enrrm.shape[1]) - enrrm.shape[1] // 2
+
+        PlotUtil.font_size(20)
+        for m in range(N_MOTIFS):
+            PlotUtil.clearfig()
+            plt.ylim(**yl)
+            plt.plot(x, enrrm[m], color="k")
+            plt.xlabel("Position (bp)")
+            plt.ylabel("Matching score")
+            FileSave.figure_in_figdir(
+                f"{d}/all{str(chrm)[:-len(chrm.number)-1]}_{rgns}/motif_m35_v4/line_enr_{m}.png",
+                8,
+                8,
+            )
+
+        PlotUtil.font_size(12)
+        PlotUtil.clearfig()
+        fig, axes = plt.subplots(16, 16, sharex="all", sharey="all")
+        for m in range(N_MOTIFS):
+            ax = axes[m // 16, m % 16]
+            ax.plot(x, enrrm[m])
+            ax.annotate(str(m), xy=(0.75, 0.85), xycoords="axes fraction")
+
+        return FileSave.figure_in_figdir(
+            f"{d}/all{str(chrm)[:-len(chrm.number)-1]}_{rgns}/motif_m35_v4/line_enr_all.png",
+            24,
+            24,
         )
 
 class SegmentLineC0Plot:

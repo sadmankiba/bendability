@@ -64,9 +64,14 @@ class Experiments:
         )
 
     @classmethod
-    def bnd_dmn_V_z_test(self):
-        m = MotifsM35()
-        m.enrichment_compare(sr_vl.bndsf, sr_vl.dmnsf, GDataSubDir.BOUNDARIES)
+    def bnd_dmn_V_z_test_all(self):
+        pred = Prediction(35)
+        for c in YeastChrNumList:
+            chrm = Chromosome(c, pred, C0Spread.mcvr)
+            sr = SubRegions(chrm)
+            m = MotifsM35(c)
+            sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_WD_100)
+            m.enrichment_compare(sr.bndrs, sr.dmns, GDataSubDir.BOUNDARIES)
 
     @classmethod
     def nuc_lnk_V_z_test(self):
