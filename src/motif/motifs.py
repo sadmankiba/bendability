@@ -11,10 +11,19 @@ import matplotlib.pyplot as plt
 from statsmodels.stats.weightstats import ztest
 import cv2
 
+from chromosome.chromosome import C0Spread, Chromosome
 from chromosome.regions import END, START, Regions
+from conformation.domains import BndParm, BoundariesHE
+from models.prediction import Prediction
 from util.custom_types import PosOneIdx
 from util.util import FileSave, PathObtain, PlotUtil
-from util.constants import CHRV_TOTAL_BP, CHRV_TOTAL_BP_ORIGINAL, GDataSubDir, FigSubDir
+from util.constants import (
+    CHRV_TOTAL_BP,
+    CHRV_TOTAL_BP_ORIGINAL,
+    GDataSubDir,
+    FigSubDir,
+    YeastChrNumList,
+)
 from util.kmer import KMer
 
 
@@ -27,9 +36,11 @@ P_VAL = "p_val"
 
 
 class MotifsM35:
-    def __init__(self) -> None:
+    def __init__(self, cnum: str = None) -> None:
         self._V = 4
+        self._cnum = cnum
         self._score = self._read_score()
+        
 
     def _read_score(self) -> NDArray[(N_MOTIFS, CHRV_TOTAL_BP)]:
         """Running score"""
@@ -54,7 +65,7 @@ class MotifsM35:
 
         if self._V == 4:
             return np.load(
-                f"{PathObtain.gen_data_dir()}/{GDataSubDir.MOTIF}/match_score_35_cl_V/score.npy"
+                f"{PathObtain.gen_data_dir()}/{GDataSubDir.MOTIF}/match_score_35_cl_{self._cnum}/score.npy"
             )
         else:
             scores = np.empty((N_MOTIFS, CHRV_TOTAL_BP))
@@ -118,16 +129,48 @@ class MotifsM35:
         result = np.array(
             [self.enr(m, s, e) for s, e in zip(np.array(starts), np.array(ends))]
         )
-        assert result.shape == (
+        exp_shape = (
             len(starts),
             np.array(ends)[0] - np.array(starts)[0] + 1,
         )
+        assert result.shape == exp_shape, f"{result.shape} is not {exp_shape}"
         return result
 
     def enr(
         self, m: int, start: float | PosOneIdx, end: float | PosOneIdx
     ) -> NDArray[(Any,), float]:
         return self._score[m, int(start - 1) : int(end)]
+
+
+class MCMotifsM35:
+    @classmethod
+    def enr_line(cls):
+        pred = Prediction(35)
+        mbs = []
+        for c in YeastChrNumList:
+            print(c)
+            chrm = Chromosome(c, pred, C0Spread.mcvr)
+            mbs.append((MotifsM35(c), BoundariesHE(chrm, **BndParm.HIRS_SHR_100)))
+
+        fig, axes = plt.subplots(16, 16, sharex="all", sharey="all")
+        
+        for m in range(N_MOTIFS):
+            print(m)
+            enrr = []
+            for mt, bndrs in mbs:
+                enrr.append(mt.enr_rgns(m, bndrs[START], bndrs[END]))
+            enrrm = np.vstack(enrr).mean(axis=0)
+            ax = axes[m // 16, m % 16]
+            ax.plot(
+                range(1, bndrs[END][0] - bndrs[START][0] + 2), enrrm
+            )
+            ax.annotate(str(m), xy=(0.75, 0.85), xycoords="axes fraction")
+
+        return FileSave.figure_in_figdir(
+            f"{GDataSubDir.BOUNDARIES}/line_enr_v4_m35_all{str(chrm)[:-4]}_{bndrs}.png",
+            24,
+            24,
+        )
 
 
 class PlotMotifs:

@@ -718,6 +718,7 @@ class MCDistribPlot:
             f"{FigSubDir.BOUNDARIES}/lnklen_box_bnd_dmn_all{str(sr.chrm)[:-4]}_{sr.bndrs}"
             f"{'_near' if near else ''}.png"
         )
+
 class DistribC0DistPlot:
     def __init__(self, chrm: Chromosome) -> None:
         self._chrm = chrm
@@ -963,6 +964,32 @@ class LineC0Plot:
             f"{FigSubDir.BOUNDARIES}/{self._chrm}_{self._sr.bndrs}/"
             f"c0_line_mean_pltlim_{pltlim}.png"
         )
+    
+    def line_c0_mean_lpancs_ins(self, pltlim=100) -> Path:
+        ac0 = self._cop.c0_rgns(
+            self._sr.lpancrs[MIDDLE] - pltlim + 1,
+            self._sr.lpancrs[MIDDLE] + pltlim,
+        ).mean(axis=0)
+
+        PlotUtil.clearfig()
+        PlotUtil.font_size(20)
+
+        scts = self._sr.lpinsds.sections(2 * pltlim)
+        ic0 = self._cop.c0_rgns(scts[START], scts[END]).mean(axis=0)
+
+        x = np.arange(2 * pltlim) - pltlim + 1
+        plt.plot(x, ac0, label="Loop anchors")
+        plt.plot(x, ic0, label="Loop insides")
+        plt.legend()
+
+        plt.xlabel("Distance from loop anchors and insides sections middle (bp)")
+        plt.ylabel("Mean Cyclizability")
+        plt.tight_layout()
+
+        return FileSave.figure_in_figdir(
+            f"{FigSubDir.LOOP_ANCHORS}/{self._chrm}_{self._sr.lpancrs}/"
+            f"c0_line_mean_pltlim_{pltlim}.png"
+        )
 
     def line_c0_bndrs_q(self, pltlim=100):
         self._sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_100)
@@ -987,7 +1014,6 @@ class LineC0Plot:
             f"{FigSubDir.BOUNDARIES}/{self._chrm}_{self._sr.bndrs}/"
             f"c0_line_mean_q_pltlim_{pltlim}.png"
         )
-
 
     def line_c0_bndrs_indiv_toppings(self) -> None:
         self._sr.bsel = BndSel(BoundariesType.FANCN, BndFParm.SHR_50)
