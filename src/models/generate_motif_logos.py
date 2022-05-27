@@ -29,6 +29,7 @@ def gen_motif_logos():
         # rc('font', weight='bold')
         # plt.rcParams["font.weight"] = "bold"
         # plt.rcParams["axes.labelweight"] = "bold"
+        
         PlotUtil.font_size(36)
         logo = lm.Logo(df, font_name='Arial Rounded MT Bold',)
         logo.ax.set_ylim((0, 2.2))

@@ -9,6 +9,7 @@ import inspect
 import sys
 from types import FrameType
 from typing import Literal, Union, Any, Callable, Iterable
+import cv2
 
 
 import pandas as pd
@@ -265,6 +266,12 @@ class FileSave:
 
         logging.info(f"Figure saved at: {path}")
         return path
+
+    @classmethod
+    def cv2(cls, img, pth: str | Path):
+        cv2.imwrite(str(pth), img)
+        logging.info(f"Figure saved at: {pth}")
+        return pth
 
     @classmethod
     def tsv_gdatadir(cls, df: pd.DataFrame, rel_path: str | Path) -> Path:

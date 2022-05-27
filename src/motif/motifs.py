@@ -133,6 +133,7 @@ class MotifsM35:
     ) -> NDArray[(Any,), float]:
         return self._score[m, int(start - 1) : int(end)]
 
+
 class PlotMotifs:
     dir = f"{PathObtain.figure_dir()}/{FigSubDir.MOTIFS}"
     v = 3
@@ -161,8 +162,13 @@ class PlotMotifs:
             GDataSubDir.LINKERS,
             f"lnks_nucs_w147_lnks_nucs_w147_chrm_s_mcvr_m_None_VL_v{v}",
         ),
+        7: (
+            GDataSubDir.BOUNDARIES,
+            "allchrm_s_mcvr_m_35_bndh_res_200_lim_250_perc_1.0",
+            "enr_comp_dmnsh_bndh_res_200_lim_250_perc_1.0",
+        ),
     }
-    sel = 1
+    sel = 7
 
     @classmethod
     def integrate_logos(cls) -> Path:
@@ -170,7 +176,7 @@ class PlotMotifs:
         logof = cls.logof_w_dist if w_dist else cls.logof_wo_dist
         imrows = []
 
-        score_df = cls._score().sort_values(by="ztest_val", ignore_index=True)
+        score_df = cls._score().sort_values(by=ZTEST_VAL, ignore_index=True)
         for i in range(16):
             row = []
             for j in range(16):
@@ -185,21 +191,61 @@ class PlotMotifs:
                 else:
                     logo = cls._add_score(logo, z, p)
                 row.append(logo)
+
             imrows.append(cv2.hconcat(row))
 
         img = cv2.vconcat(imrows)
-        impath = Path(
-            f"{cls.dir}/integrated_z_score_{cls.ztest_str[cls.sel][1]}"
-            f"_{'w_dist' if w_dist else 'wo_dist'}.png"
-        )
-        cv2.imwrite(str(impath), img)
+        if cls.sel == 7:
+            impath = Path(
+                f"{PathObtain.figure_dir()}/{cls.ztest_str[cls.sel][0]}/"
+                f"{cls.ztest_str[cls.sel][1]}/intr_z_{'w_dist' if w_dist else 'wo_dist'}"
+                f"_{cls.ztest_str[cls.sel][2]}.png"
+            )
+
+        else:
+            impath = Path(
+                f"{cls.dir}/integrated_z_score_{cls.ztest_str[cls.sel][1]}"
+                f"_{'w_dist' if w_dist else 'wo_dist'}.png"
+            )
+        FileSave.cv2(img, impath)
         return impath
 
     @classmethod
+    def intr_logo_some(cls) -> Path:
+        if cls.sel != 7: 
+            return 
+
+        h = [50, 54, 254, 55, 85]
+        l = [111, 131, 29, 15, 77]
+
+        def _p(k):
+            lg = []
+            for n in k:
+                logo = cv2.imread(cls.logof_wo_dist(n))
+                logo = cv2.resize(
+                    logo, (int(logo.shape[1] * 0.15), int(logo.shape[0] * 0.15))
+                )
+                lg.append(logo)
+
+            img = cv2.vconcat(lg)
+            
+            impath = Path(
+                    f"{PathObtain.figure_dir()}/{cls.ztest_str[cls.sel][0]}/"
+                    f"{cls.ztest_str[cls.sel][1]}/intr_z_some_{k[0]}.png"
+            )
+            return FileSave.cv2(img, impath)
+
+        _p(h)
+        _p(l)    
+
+        
+
+
+    @classmethod
     def plot_z(cls) -> Path:
-        sdf = cls._score().sort_values(by="ztest_val", ignore_index=True)
+        sdf = cls._score().sort_values(by=ZTEST_VAL, ignore_index=True)
         PlotUtil.font_size(20)
-        plt.barh(range(1, 11), sdf["ztest_val"][:10], color="tab:blue")
+        plt.barh(range(1, 11), sdf[ZTEST_VAL][:10], color="tab:blue")
         plt.barh(range(13, 23), sdf[ZTEST_VAL][-10:], color="tab:blue")
         plt.yticks(
             range(1, 23),
@@ -217,12 +263,65 @@ class PlotMotifs:
         )
 
     @classmethod
-    def _score(cls) -> pd.DataFrame:
-        return pd.read_csv(
-            f"{PathObtain.gen_data_dir()}/{cls.ztest_str[cls.sel][0]}/motif_m35/"
-            f"enrichment_comp_{cls.ztest_str[cls.sel][1]}.tsv",
-            sep="\t",
+    def plot_z_some(cls) -> Path:
+        sdf = cls._score()
+        h = [50, 54, 254, 55, 85]
+        l = [111, 131, 29, 15, 77]
+        PlotUtil.font_size(28)
+
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+
+        plt.barh(range(1, 6), sdf[ZTEST_VAL][h], color="tab:blue")
+        plt.barh(range(8, 13), sdf[ZTEST_VAL][l[::-1]], color="tab:blue")
+        plt.yticks(
+            range(1, 13),
+            labels=[f"#{n}" for n in h] + ["", ""] + [f"#{n}" for n in l[::-1]],
         )
+        plt.gca().invert_yaxis()
+
+        # Move left y-axis, bot x-axis to centre
+        ax.spines["left"].set_position(("data", 0))
+        ax.spines["bottom"].set_position(("data", 6.5))
+
+        # Eliminate upper and right axes
+        ax.spines["right"].set_color("none")
+        ax.spines["top"].set_color("none")
+
+        # Show ticks in the left and lower axes only
+        ax.xaxis.set_ticks_position("bottom")
+        ax.yaxis.set_ticks_position("both")
+
+        plt.xlabel("z-score")
+        plt.tight_layout()
+        if cls.sel == 7:
+            p = Path(
+                f"{cls.ztest_str[cls.sel][0]}/"
+                f"{cls.ztest_str[cls.sel][1]}/plt_z_some_bar.png"
+            )
+        else:
+            p = f"{FigSubDir.MOTIFS}/plt_z_{cls.ztest_str[cls.sel][1]}.png"
+
+        return FileSave.figure_in_figdir(
+            p,
+            sizew=6,
+            sizeh=12,
+        )
+
+    @classmethod
+    def _score(cls) -> pd.DataFrame:
+        if cls.sel == 7:
+            f = (
+                f"{PathObtain.gen_data_dir()}/{cls.ztest_str[cls.sel][0]}/"
+                f"{cls.ztest_str[cls.sel][1]}/{cls.ztest_str[cls.sel][2]}.tsv"
+            )
+        else:
+            f = (
+                f"{PathObtain.gen_data_dir()}/{cls.ztest_str[cls.sel][0]}/motif_m35/"
+                f"enrichment_comp_{cls.ztest_str[cls.sel][1]}.tsv"
+            )
+
+        return pd.read_csv(f, sep="\t")
 
     @classmethod
     def _add_score(cls, img: np.ndarray, z: float, p: float, n: int = None):

@@ -21,7 +21,7 @@ from chromosome.genes import Genes, Promoters, STRAND
 from chromosome.regions import END, MIDDLE, START, LEN, MEAN_C0, Regions
 from chromosome.nucleosomes import Linkers, Nucleosomes
 from models.prediction import Prediction
-from motif.motifs import MOTIF_NO, N_MOTIFS, ZTEST_VAL, MotifsM30, MotifsM35
+from motif.motifs import MOTIF_NO, N_MOTIFS, P_VAL, ZTEST_VAL, MotifsM30, MotifsM35
 from conformation.domains import (
     BndParmT,
     Boundaries,
@@ -1412,7 +1412,11 @@ class MCLineC0Plot:
 class MCMotifsM35:
     @classmethod
     def enr_line(cls):
-        r = "n"
+        plt_some = True
+        plt_indiv = False
+        plt_all = False
+
+        r = "b"
         if r == "b":
             d = GDataSubDir.BOUNDARIES
             yl = (0, 1.0)
@@ -1445,38 +1449,65 @@ class MCMotifsM35:
 
         x = np.arange(enrrm.shape[1]) - enrrm.shape[1] // 2
 
-        PlotUtil.font_size(20)
-        for m in range(N_MOTIFS):
+        if plt_some and r == "b":
+            h = [50, 54, 254, 55, 85]
+            l = [111, 131, 29, 15, 77]
+
+            def _p(k):
+                PlotUtil.font_size(20)
+                fig, axes = plt.subplots(5, 1, sharex="all", sharey="all", constrained_layout=True)
+                plt.ylim(0, 0.75)
+                for i, m in enumerate(k):
+                    ax = axes[i]
+                    ax.plot(x, enrrm[m])
+
+                fig.supxlabel("Position (bp)")
+                fig.supylabel("Matching score")
+
+                FileSave.figure_in_figdir(
+                    f"{d}/all{str(chrm)[:-len(chrm.number)-1]}_{rgns}/motif_m35_v4/line_enr_some_{k[0]}.png",
+                    3,
+                    8,
+                )
+
+            _p(h)
+            _p(l)
+
+        if plt_indiv:
+            PlotUtil.font_size(20)
+            for m in range(N_MOTIFS):
+                PlotUtil.clearfig()
+                plt.ylim(*yl)
+                plt.plot(x, enrrm[m], color="k")
+                plt.xlabel("Position (bp)")
+                plt.ylabel("Matching score")
+                FileSave.figure_in_figdir(
+                    f"{d}/all{str(chrm)[:-len(chrm.number)-1]}_{rgns}/motif_m35_v4/line_enr_{m}.png",
+                    8,
+                    8,
+                )
+
+        if plt_all:
+            PlotUtil.font_size(12)
             PlotUtil.clearfig()
-            plt.ylim(**yl)
-            plt.plot(x, enrrm[m], color="k")
-            plt.xlabel("Position (bp)")
-            plt.ylabel("Matching score")
-            FileSave.figure_in_figdir(
-                f"{d}/all{str(chrm)[:-len(chrm.number)-1]}_{rgns}/motif_m35_v4/line_enr_{m}.png",
-                8,
-                8,
+            fig, axes = plt.subplots(16, 16, sharex="all", sharey="all")
+            for m in range(N_MOTIFS):
+                ax = axes[m // 16, m % 16]
+                ax.plot(x, enrrm[m])
+                ax.annotate(str(m), xy=(0.75, 0.85), xycoords="axes fraction")
+
+            return FileSave.figure_in_figdir(
+                f"{d}/all{str(chrm)[:-len(chrm.number)-1]}_{rgns}/motif_m35_v4/line_enr_all.png",
+                24,
+                24,
             )
-
-        PlotUtil.font_size(12)
-        PlotUtil.clearfig()
-        fig, axes = plt.subplots(16, 16, sharex="all", sharey="all")
-        for m in range(N_MOTIFS):
-            ax = axes[m // 16, m % 16]
-            ax.plot(x, enrrm[m])
-            ax.annotate(str(m), xy=(0.75, 0.85), xycoords="axes fraction")
-
-        return FileSave.figure_in_figdir(
-            f"{d}/all{str(chrm)[:-len(chrm.number)-1]}_{rgns}/motif_m35_v4/line_enr_all.png",
-            24,
-            24,
-        )
 
     @classmethod
     def combine_z(cls):
         pred = Prediction(35)
         lb = []
         z = np.zeros((N_MOTIFS,))
+        p = np.zeros((N_MOTIFS,))
         for c in YeastChrNumList:
             chrm = Chromosome(c, pred, C0Spread.mcvr)
             sr = SubRegions(chrm)
@@ -1484,13 +1515,16 @@ class MCMotifsM35:
             sl = math.sqrt(len(sr.bndrs))
             df = pd.read_csv(
                 f"{PathObtain.gen_data_dir()}/{GDataSubDir.BOUNDARIES}/{chrm}_{sr.bndrs}/motif_m35_v4/"
-                f"enr_comp_{sr.dmns}.tsv", sep="\t"
+                f"enr_comp_{sr.dmns}.tsv",
+                sep="\t",
             )
             z += df[ZTEST_VAL] * sl
+            p += df[P_VAL] * sl
             lb.append(sl)
 
         z /= sum(lb)
-        df = pd.DataFrame({MOTIF_NO: range(N_MOTIFS), ZTEST_VAL: z})
+        p /= sum(lb)
+        df = pd.DataFrame({MOTIF_NO: range(N_MOTIFS), ZTEST_VAL: z, P_VAL: p})
         dn = f"{GDataSubDir.BOUNDARIES}/all{str(chrm)[:-len(chrm.number)-1]}_{sr.bndrs}"
         FileSave.tsv_gdatadir(
             df,
