@@ -1,3 +1,5 @@
+import io
+import os
 import sys
 
 import numpy as np
@@ -5,13 +7,15 @@ import pandas as pd
 import logomaker as lm
 from matplotlib import rc
 import matplotlib.pyplot as plt
+from Bio import motifs
 
 from models.prediction import Prediction
-from util.constants import FigSubDir
+from util.constants import FigSubDir, GDataSubDir
 from util.util import FileSave, PlotUtil
 
 
 def gen_motif_logos():
+    save_fig = False
     format_ = "png"
 
     model = Prediction(35)._model
@@ -23,20 +27,38 @@ def gen_motif_logos():
     _, ic_scaled_prob = museum_layer.get_motifs()
 
     npa = np.array(ic_scaled_prob)
+    mtfs = []
     for i in range(npa.shape[0]):
-        df = pd.DataFrame(npa[i], columns=['A', 'C', 'G', 'T'])
+        df = pd.DataFrame(npa[i], columns=["A", "C", "G", "T"])
         print(df.head())
         # rc('font', weight='bold')
         # plt.rcParams["font.weight"] = "bold"
         # plt.rcParams["axes.labelweight"] = "bold"
-        
-        PlotUtil.font_size(36)
-        logo = lm.Logo(df, font_name='Arial Rounded MT Bold',)
-        logo.ax.set_ylim((0, 2.2))
-        logo.ax.set_ylabel("bits")
-        logo.ax.set_yticks([0, 2])
-        logo.ax.set_xticks(range(0, 8))
-        if format_ == 'png':
-            FileSave.figure_in_figdir(f"{FigSubDir.LOGOS}/logo_{str(i)}.png")
-        else:
-            FileSave.figure_in_figdir(f"{FigSubDir.LOGOS}/logo_{str(i)}.svg")
+        tm = "temp"
+        df.to_csv(tm, sep=" ", index=False, header=False)
+        with open(tm) as f:
+            m = motifs.read(f, "pfm-four-columns")
+            mtfs.append(m.degenerate_consensus)
+
+        os.remove(tm)
+
+        if save_fig:
+            PlotUtil.font_size(48)
+            logo = lm.Logo(
+                df,
+                font_name="Arial Rounded MT",
+            )
+            logo.ax.set_ylim((0, 2.2))
+            logo.ax.set_ylabel("bits")
+            logo.ax.set_yticks([0, 2])
+            logo.ax.set_xticks(range(0, 8))
+            if format_ == "png":
+                FileSave.figure_in_figdir(f"{FigSubDir.LOGOS}/logo_{str(i)}.png")
+            else:
+                FileSave.figure_in_figdir(f"{FigSubDir.LOGOS}/logo_{str(i)}.svg")
+
+            plt.tight_layout()
+
+    FileSave.tsv_gdatadir(
+        pd.DataFrame({"Motifs": mtfs}), f"{GDataSubDir.MOTIF}/motif_m35_consensus.tsv"
+    )
