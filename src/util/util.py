@@ -312,12 +312,19 @@ class FileSave:
         return path
 
     @classmethod
-    def fasta(cls, arr: Iterable[DNASeq], path_str: str | Path) -> Path:
+    def fasta(
+        cls, arr: Iterable[DNASeq], path_str: str | Path, cnum: str = None
+    ) -> Path:
         path = Path(path_str)
         cls.make_parent_dirs(path)
 
         srs = [
-            SeqRecord(Seq(s), id=str(i + 1), description="") for i, s in enumerate(arr)
+            SeqRecord(
+                Seq(s),
+                id=f"{f'chr{cnum} ' if cnum else ''}{str(i + 1)}",
+                description="",
+            )
+            for i, s in enumerate(arr)
         ]
         with open(path, "w") as f:
             SeqIO.write(srs, f, "fasta")
@@ -558,10 +565,12 @@ class NumpyTool:
                 (container[:-1] ^ (not pattern[0])) & (container[1:] ^ (not pattern[1]))
             )[0]
         else:
-            starts = np.array([
-                i
-                for i in range(len(container) - len(pattern) + 1)
-                if all(pattern == container[i : i + len(pattern)])
-            ])
+            starts = np.array(
+                [
+                    i
+                    for i in range(len(container) - len(pattern) + 1)
+                    if all(pattern == container[i : i + len(pattern)])
+                ]
+            )
 
         return starts

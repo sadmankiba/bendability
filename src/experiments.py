@@ -49,12 +49,17 @@ class Experiments:
         
     @classmethod
     def fasta(cls):
-        sr_vl.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_WD_50)
-        rg, d = sr_vl.dmns, GDataSubDir.DOMAINS
-        FileSave.fasta(
-            rg.seq(),
-            f"{PathObtain.gen_data_dir()}/{d}/{sr_vl.chrm}_{rg}/seq.fasta",
-        )
+        pred = Prediction(35)
+        for c in YeastChrNumList:
+            chrm = Chromosome(c, pred, C0Spread.mcvr)
+            sr = SubRegions(chrm)
+            sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_WD_100)
+            rg, d = sr.dmns, GDataSubDir.DOMAINS
+            FileSave.fasta(
+                rg.seq(),
+                f"{PathObtain.gen_data_dir()}/{d}/{sr.chrm}_{rg}/seq.fasta",
+                c
+            )
 
     @classmethod
     def lnk_bnd_dmn_V_z_test(self):

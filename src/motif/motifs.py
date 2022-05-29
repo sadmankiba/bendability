@@ -68,6 +68,13 @@ class MotifsM35:
 
             return scores
 
+    @classmethod
+    def consensus(cls, n: int) -> str:
+        ms = pd.read_csv(
+            f"{PathObtain.gen_data_dir()}/{GDataSubDir.MOTIF}/motif_m35_consensus.tsv"
+        )["Motifs"]
+        return ms[n]
+
     def enr_box(self, regions: Regions, subdir: str) -> Path:
         enr = self._score[:, regions.cover_mask]
         fig, axes = plt.subplots(8, sharey=True)
@@ -136,7 +143,7 @@ class MotifsM35:
 
 class PlotMotifs:
     dir = f"{PathObtain.figure_dir()}/{FigSubDir.MOTIFS}"
-    v = 3
+    v = 4
     ztest_str = {
         1: (
             GDataSubDir.BOUNDARIES,
@@ -212,8 +219,8 @@ class PlotMotifs:
 
     @classmethod
     def intr_logo_some(cls) -> Path:
-        if cls.sel != 7: 
-            return 
+        if cls.sel != 7:
+            return
 
         h = [50, 54, 254, 55, 85]
         l = [111, 131, 29, 15, 77]
@@ -228,18 +235,15 @@ class PlotMotifs:
                 lg.append(logo)
 
             img = cv2.vconcat(lg)
-            
+
             impath = Path(
-                    f"{PathObtain.figure_dir()}/{cls.ztest_str[cls.sel][0]}/"
-                    f"{cls.ztest_str[cls.sel][1]}/intr_z_some_{k[0]}.png"
+                f"{PathObtain.figure_dir()}/{cls.ztest_str[cls.sel][0]}/"
+                f"{cls.ztest_str[cls.sel][1]}/intr_z_some_{k[0]}.png"
             )
             return FileSave.cv2(img, impath)
 
         _p(h)
-        _p(l)    
-
-        
-
+        _p(l)
 
     @classmethod
     def plot_z(cls) -> Path:
@@ -274,11 +278,23 @@ class PlotMotifs:
 
         plt.barh(range(1, 6), sdf[ZTEST_VAL][h], color="tab:blue")
         plt.barh(range(8, 13), sdf[ZTEST_VAL][l[::-1]], color="tab:blue")
-        plt.yticks(
-            range(1, 13),
-            labels=[f"#{n}" for n in h] + ["", ""] + [f"#{n}" for n in l[::-1]],
-        )
+        # plt.yticks(
+        #     range(1, 13),
+        #     labels=[MotifsM35.consensus(n) for n in h] + ["", ""] + [f"#{n}" for n in l[::-1]],
+        # )
         plt.gca().invert_yaxis()
+        for i, n in enumerate(h):
+            ax.text(-1, i + 1, MotifsM35.consensus(n), horizontalalignment='right')
+        for i, n in enumerate(l[::-1]):
+            ax.text(1, i + 8, MotifsM35.consensus(n))
+        
+        plt.tick_params(
+            axis='y',          
+            which='both',      
+            left=False,      
+            right=False,         
+            labelleft=False
+        )
 
         # Move left y-axis, bot x-axis to centre
         ax.spines["left"].set_position(("data", 0))
@@ -304,7 +320,7 @@ class PlotMotifs:
 
         return FileSave.figure_in_figdir(
             p,
-            sizew=6,
+            sizew=7,
             sizeh=12,
         )
 
