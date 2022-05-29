@@ -397,7 +397,7 @@ class PlotUtil:
 
     @classmethod
     def horizline(self, y: float, color: str, text: str):
-        plt.axhline(y=y, color=color, linestyle="-")
+        plt.axhline(y=y, color=color, linestyle="--")
         x_lim = plt.gca().get_xlim()
         plt.text(
             x_lim[0] + (x_lim[1] - x_lim[0]) * 0.15,

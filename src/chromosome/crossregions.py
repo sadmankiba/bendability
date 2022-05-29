@@ -926,7 +926,7 @@ class LineC0Plot:
         dmns = True
         show_legend = True
         smooth = False
-        self._sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_25)
+        self._sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_100)
         bc0 = self._cop.c0_rgns(
             self._sr.bndrs[MIDDLE] - pltlim + 1,
             self._sr.bndrs[MIDDLE] + pltlim,
@@ -942,13 +942,24 @@ class LineC0Plot:
             PlotChrm(self._chrm).plot_avg()
 
         x = np.arange(2 * pltlim) - pltlim + 1
-        c0s = [(bc0, "boundaries"), (dc0, "domains")]
+        
         if smooth:
             plt.plot(x, bc0, color="tab:gray", alpha=0.5)
             plt.plot(x, gaussian_filter1d(bc0, 40), color="black")
         else:
-            for c in c0s:
-                plt.plot(x, c[0], label=c[1])
+            lw=3
+            plt.plot(x, bc0, label="Boundaries", color="darkblue", lw=lw)
+            plt.plot(x, dc0, label="Domains", color="darkorange", lw=lw)
+        
+            if pltlim == 500:
+                # PlotUtil.horizline(self._chrm.mean_c0, 'tab:green', 'avg')
+                rg = np.arange(-1, 130)
+                plt.plot(rg, bc0[rg + pltlim - 1], color="tab:red", lw=lw)
+                nt = np.arange(-pltlim + 1, -251)
+                plt.plot(nt, bc0[nt + pltlim - 1], color="black", lw=lw)
+                nt = np.arange(411, pltlim + 1)
+                plt.plot(nt, bc0[nt + pltlim - 1], color="black", lw=lw)
+
 
         if show_legend:
             plt.legend()
@@ -962,6 +973,7 @@ class LineC0Plot:
             f"{PathObtain.gen_data_dir()}/{GDataSubDir.BOUNDARIES}/"
             f"{self._chrm}_{self._sr.bndrs}/chrm{self._chrm.id}_c0_line_mean_pltlim_{pltlim}.txt",
         )
+        
         return FileSave.figure_in_figdir(
             f"{FigSubDir.BOUNDARIES}/{self._chrm}_{self._sr.bndrs}/"
             f"c0_line_mean_pltlim_{pltlim}.png"
@@ -1340,6 +1352,8 @@ class MCLineC0Plot:
     def line_c0_mean_bndrs(cls, pltlim=100):
         bc0 = []
         dc0 = []
+        l = [] 
+        mc0 = []
         for c in YeastChrNumList:
             sr, chrm = cls._sr(c)
             sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_100)
@@ -1350,20 +1364,33 @@ class MCLineC0Plot:
                 )
             )
             dc0.append(sr.dmns.sections(2 * pltlim).c0())
+            l.append(chrm.total_bp)
+            mc0.append(chrm.mean_c0)
 
         mc0b = np.vstack(bc0).mean(axis=0)
         mc0d = np.vstack(dc0).mean(axis=0)
+        mc0 = np.dot(l, mc0) / sum(l)
 
         FileSave.nptxt(
             mc0b,
             f"{PathObtain.gen_data_dir()}/{GDataSubDir.BOUNDARIES}/"
-            f"c0_line_mean_all{str(sr.chrm)[:-4]}_{sr.bndrs}_pltlim_{pltlim}.txt",
+            f"c0_line_mean_all{str(sr.chrm)[:-len(chrm.number)-1]}_{sr.bndrs}_pltlim_{pltlim}.txt",
         )
 
         PlotUtil.font_size(20)
+        lw=3
         x = np.arange(2 * pltlim) - pltlim + 1
-        plt.plot(x, mc0b, label="boundaries")
-        plt.plot(x, mc0d, label="domains")
+        plt.plot(x, mc0b, label="Boundaries", color="darkblue", lw=lw)
+        plt.plot(x, mc0d, label="Domains", color="darkorange", lw=lw)
+        if pltlim == 500:
+            # PlotUtil.horizline(mc0, 'darkgreen', 'avg')
+            rg = np.arange(-41, 80)
+            plt.plot(rg, mc0b[rg + pltlim - 1], color="red", lw=lw)
+            nt = np.arange(-pltlim + 1, -326)
+            plt.plot(nt, mc0b[nt + pltlim - 1], color="black", lw=lw)
+            nt = np.arange(370, pltlim + 1)
+            plt.plot(nt, mc0b[nt + pltlim - 1], color="black", lw=lw)
+        
         plt.legend()
         plt.xlabel("Distance from boundary and domain sections middle (bp)")
         plt.ylabel("Mean Cyclizability")
