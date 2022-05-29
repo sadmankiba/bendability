@@ -284,16 +284,14 @@ class PlotMotifs:
         # )
         plt.gca().invert_yaxis()
         for i, n in enumerate(h):
-            ax.text(-1, i + 1, MotifsM35.consensus(n), horizontalalignment='right')
+            ax.text(-1, i + 1, f"#{n}", ha="right")
         for i, n in enumerate(l[::-1]):
-            ax.text(1, i + 8, MotifsM35.consensus(n))
+            ax.text(1, i + 8, f"#{n}", ha="left")
         
+        plt.xticks(range(-5, 25, 5))
+        # plt.tick_params(axis="x", width)
         plt.tick_params(
-            axis='y',          
-            which='both',      
-            left=False,      
-            right=False,         
-            labelleft=False
+            axis="y", which="both", left=False, right=False, labelleft=False
         )
 
         # Move left y-axis, bot x-axis to centre
@@ -320,7 +318,7 @@ class PlotMotifs:
 
         return FileSave.figure_in_figdir(
             p,
-            sizew=7,
+            sizew=6,
             sizeh=12,
         )
 
