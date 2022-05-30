@@ -21,7 +21,7 @@ from chromosome.crossregions import SubRegions, sr_vl
 from feature_model.feat_selector import AllFeatureSelector, FeatureSelector
 from models.prediction import Prediction
 from motif.motifs import KMerMotifs, MotifsM35
-from util.util import FileSave, PathObtain
+from util.util import FileRead, FileSave, PathObtain
 from util.constants import RL, RL_LEN, TL, TL_LEN, GDataSubDir, YeastChrNumList
 from feature_model.model import ModelCat, ModelRunner
 
@@ -44,9 +44,9 @@ class Experiments:
             sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_100)
             nl = sr.bndrs.nearest_rgns(sr.lnkrs)
             t.append(nl[LEN].median())
-        
+
         FileSave.tsv_gdatadir(pd.DataFrame({"t": t}), f"{GDataSubDir.TEST}/chrm.tsv")
-        
+
     @classmethod
     def fasta(cls):
         pred = Prediction(35)
@@ -56,10 +56,27 @@ class Experiments:
             sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_WD_100)
             rg, d = sr.dmns, GDataSubDir.DOMAINS
             FileSave.fasta(
-                rg.seq(),
-                f"{PathObtain.gen_data_dir()}/{d}/{sr.chrm}_{rg}/seq.fasta",
-                c
+                rg.seq(), f"{PathObtain.gen_data_dir()}/{d}/{sr.chrm}_{rg}/seq.fasta", c
             )
+
+    @classmethod
+    def concat_fasta(cls):
+        pred = Prediction(35)
+        al = []
+        for c in YeastChrNumList:
+            chrm = Chromosome(c, pred, C0Spread.mcvr)
+            sr = SubRegions(chrm)
+            sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_WD_100)
+            rg, d = sr.dmns, GDataSubDir.DOMAINS
+            seqs = FileRead.fasta(
+                f"{PathObtain.gen_data_dir()}/{d}/{sr.chrm}_{rg}/seq.fasta"
+            )
+            al += [(s, c) for s in seqs]
+
+        FileSave.fasta(
+            al,
+            f"{PathObtain.gen_data_dir()}/{d}/all{str(chrm)[:-len(chrm.number)-1]}_{rg}/seq.fasta",
+        )
 
     @classmethod
     def lnk_bnd_dmn_V_z_test(self):

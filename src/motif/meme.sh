@@ -2,8 +2,8 @@
 
 GEN_DATA_DIR=/media/sakib/Windows/sakib/programming/playground/machine_learning/bendability/data/generated_data
 LIM=250
-BNDH_DIR=boundaries/chrm_s_mcvr_m_None_VL_bndh_res_200_lim_${LIM}_perc_0.5
-DMNH_DIR=domains/chrm_s_mcvr_m_None_VL_dmnsh_bndh_res_200_lim_${LIM}_perc_0.5
+BNDH_DIR=boundaries/allchrm_s_mcvr_m_35_bndh_res_200_lim_${LIM}_perc_1.0
+DMNH_DIR=domains/allchrm_s_mcvr_m_35_dmnsh_bndh_res_200_lim_${LIM}_perc_1.0
 BNDF_DIR=boundaries/chrm_s_mcvr_m_None_VL_bf_res_200_lim_100_perc_0.5_fanc
 DMNF_DIR=domains/chrm_s_mcvr_m_None_VL_dmnsf_bf_res_200_lim_100_perc_0.5_fanc
 NUC_BND_DIR=nucleosomes/chrm_s_mcvr_m_None_VL_nucs_w147_bf_res_200_lim_100_perc_0.5_fanc
@@ -21,7 +21,7 @@ CNTR=${BND_SEQ_DIR}
 MINW=8
 MAXW=8
 
-PATIENCE=8
+PATIENCE=10
 THRESH=0.2
 
 streme_cntr() {

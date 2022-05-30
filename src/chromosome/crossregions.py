@@ -692,6 +692,7 @@ class MCDistribPlot:
         pred = Prediction(35)
         mcblqs = [[], [], [], []]
         mcdl = []
+
         for c in YeastChrNumList:
             print(c)
             chrm = Chromosome(c, prediction=pred, spread_str=C0Spread.mcvr)
@@ -711,12 +712,20 @@ class MCDistribPlot:
             mcdl += dl[LEN].to_list()
 
         PlotUtil.font_size(20)
-        plt.boxplot(mcblqs + [mcdl], showfliers=False, widths=0.5)
+        plt.boxplot(
+            mcblqs + [mcdl],
+            showfliers=False,
+            widths=0.5,
+            boxprops={"linewidth": 3},
+            medianprops={"linewidth": 3},
+            whiskerprops={"linewidth": 3},
+            capprops={"linewidth": 3},
+        )
         plt.xticks(range(1, 6), ["Q1", "Q2", "Q3", "Q4", "Domains"])
         plt.ylabel("Linker length (bp)")
         plt.tight_layout()
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.BOUNDARIES}/lnklen_box_bnd_dmn_all{str(sr.chrm)[:-4]}_{sr.bndrs}"
+            f"{FigSubDir.BOUNDARIES}/lnklen_box_bnd_dmn_all{str(sr.chrm)[:-len(chrm.number)-1]}_{sr.bndrs}"
             f"{'_near' if near else ''}.png"
         )
 
@@ -942,24 +951,23 @@ class LineC0Plot:
             PlotChrm(self._chrm).plot_avg()
 
         x = np.arange(2 * pltlim) - pltlim + 1
-        
+
         if smooth:
             plt.plot(x, bc0, color="tab:gray", alpha=0.5)
             plt.plot(x, gaussian_filter1d(bc0, 40), color="black")
         else:
-            lw=3
+            lw = 3
             plt.plot(x, bc0, label="Boundaries", color="darkblue", lw=lw)
             plt.plot(x, dc0, label="Domains", color="darkorange", lw=lw)
-        
+
             if pltlim == 500:
                 # PlotUtil.horizline(self._chrm.mean_c0, 'tab:green', 'avg')
                 rg = np.arange(-1, 130)
                 plt.plot(rg, bc0[rg + pltlim - 1], color="tab:red", lw=lw)
-                nt = np.arange(-pltlim + 1, -251)
-                plt.plot(nt, bc0[nt + pltlim - 1], color="black", lw=lw)
-                nt = np.arange(411, pltlim + 1)
-                plt.plot(nt, bc0[nt + pltlim - 1], color="black", lw=lw)
-
+                # nt = np.arange(-pltlim + 1, -251)
+                # plt.plot(nt, bc0[nt + pltlim - 1], color="black", lw=lw)
+                # nt = np.arange(411, pltlim + 1)
+                # plt.plot(nt, bc0[nt + pltlim - 1], color="black", lw=lw)
 
         if show_legend:
             plt.legend()
@@ -973,7 +981,7 @@ class LineC0Plot:
             f"{PathObtain.gen_data_dir()}/{GDataSubDir.BOUNDARIES}/"
             f"{self._chrm}_{self._sr.bndrs}/chrm{self._chrm.id}_c0_line_mean_pltlim_{pltlim}.txt",
         )
-        
+
         return FileSave.figure_in_figdir(
             f"{FigSubDir.BOUNDARIES}/{self._chrm}_{self._sr.bndrs}/"
             f"c0_line_mean_pltlim_{pltlim}.png"
@@ -1352,9 +1360,10 @@ class MCLineC0Plot:
     def line_c0_mean_bndrs(cls, pltlim=100):
         bc0 = []
         dc0 = []
-        l = [] 
+        l = []
         mc0 = []
         for c in YeastChrNumList:
+            print(c)
             sr, chrm = cls._sr(c)
             sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_100)
             bc0.append(
@@ -1378,7 +1387,7 @@ class MCLineC0Plot:
         )
 
         PlotUtil.font_size(20)
-        lw=3
+        lw = 3
         x = np.arange(2 * pltlim) - pltlim + 1
         plt.plot(x, mc0b, label="Boundaries", color="darkblue", lw=lw)
         plt.plot(x, mc0d, label="Domains", color="darkorange", lw=lw)
@@ -1386,18 +1395,42 @@ class MCLineC0Plot:
             # PlotUtil.horizline(mc0, 'darkgreen', 'avg')
             rg = np.arange(-41, 80)
             plt.plot(rg, mc0b[rg + pltlim - 1], color="red", lw=lw)
-            nt = np.arange(-pltlim + 1, -326)
-            plt.plot(nt, mc0b[nt + pltlim - 1], color="black", lw=lw)
-            nt = np.arange(370, pltlim + 1)
-            plt.plot(nt, mc0b[nt + pltlim - 1], color="black", lw=lw)
-        
+            aargs = {
+                "width": 0.001,
+                "head_width": 0.004,
+                "head_length": 0.01,
+                "lw": lw-1,
+                "length_includes_head": True,
+                "shape": "full",
+                "color": "red"
+            }
+            plt.arrow(
+                -41,
+                -0.198,
+                120,
+                0,
+                **aargs
+            )
+            plt.arrow(
+                79,
+                -0.198,
+                -120,
+                0,
+                **aargs
+            )
+            plt.text(20, -0.196, "120bp", ha="center", color="red")
+            # nt = np.arange(-pltlim + 1, -326)
+            # plt.plot(nt, mc0b[nt + pltlim - 1], color="black", lw=lw)
+            # nt = np.arange(370, pltlim + 1)
+            # plt.plot(nt, mc0b[nt + pltlim - 1], color="black", lw=lw)
+
         plt.legend()
         plt.xlabel("Distance from boundary and domain sections middle (bp)")
         plt.ylabel("Mean Cyclizability")
         plt.tight_layout()
 
         return FileSave.figure_in_figdir(
-            f"{FigSubDir.BOUNDARIES}/c0_line_mean_all{str(sr.chrm)[:-4]}_{sr.bndrs}_pltlim_{pltlim}.png"
+            f"{FigSubDir.BOUNDARIES}/c0_line_mean_all{str(sr.chrm)[:-len(sr.chrm.number)-1]}_{sr.bndrs}_pltlim_{pltlim}.png"
         )
 
     @classmethod
@@ -1482,7 +1515,9 @@ class MCMotifsM35:
 
             def _p(k):
                 PlotUtil.font_size(20)
-                fig, axes = plt.subplots(5, 1, sharex="all", sharey="all", constrained_layout=True)
+                fig, axes = plt.subplots(
+                    5, 1, sharex="all", sharey="all", constrained_layout=True
+                )
                 plt.ylim(0, 0.75)
                 for i, m in enumerate(k):
                     ax = axes[i]

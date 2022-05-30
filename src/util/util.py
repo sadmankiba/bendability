@@ -244,6 +244,13 @@ class PathObtain:
         return Path(inspect.getabsfile(currentframe)).parent
 
 
+class FileRead:
+    @classmethod 
+    def fasta(cls, path: Path | str) -> list[DNASeq]:
+        f = open(path)
+        seqs = SeqIO.parse(f, "fasta")
+        return [s.seq for s in seqs]
+
 class FileSave:
     @classmethod
     def figure_in_figdir(
@@ -313,19 +320,29 @@ class FileSave:
 
     @classmethod
     def fasta(
-        cls, arr: Iterable[DNASeq], path_str: str | Path, cnum: str = None
+        cls, arr: Iterable[DNASeq] | Iterable[tuple[DNASeq, str]], path_str: str | Path, cnum: str = None
     ) -> Path:
         path = Path(path_str)
         cls.make_parent_dirs(path)
 
-        srs = [
-            SeqRecord(
-                Seq(s),
-                id=f"{f'chr{cnum} ' if cnum else ''}{str(i + 1)}",
-                description="",
-            )
-            for i, s in enumerate(arr)
-        ]
+        if isinstance(arr[0], tuple):
+            srs = [
+                SeqRecord(
+                    Seq(item[0]),
+                    id=f"chr{item[1]} {str(i + 1)}",
+                    description="",
+                )
+                for i, item in enumerate(arr)
+            ] 
+        else: 
+            srs = [
+                SeqRecord(
+                    Seq(s),
+                    id=f"{f'chr{cnum} ' if cnum else ''}{str(i + 1)}",
+                    description="",
+                )
+                for i, s in enumerate(arr)
+            ]
         with open(path, "w") as f:
             SeqIO.write(srs, f, "fasta")
 
