@@ -281,8 +281,8 @@ class FileSave:
         return pth
 
     @classmethod
-    def tsv_gdatadir(cls, df: pd.DataFrame, rel_path: str | Path) -> Path:
-        return cls.tsv(df, Path(f"{PathObtain.gen_data_dir()}/{rel_path}"))
+    def tsv_gdatadir(cls, df: pd.DataFrame, rel_path: str | Path, precision: int = PRECISION_FLOAT_DF_TSV) -> Path:
+        return cls.tsv(df, Path(f"{PathObtain.gen_data_dir()}/{rel_path}"), precision=precision)
 
     @classmethod
     def tsv(
@@ -293,9 +293,10 @@ class FileSave:
         precision: int = PRECISION_FLOAT_DF_TSV,
     ) -> Path:
         """Save a dataframe in tsv format"""
+        ff = f"%.{precision}f" if precision >=0 else None
         path = Path(path_str)
         cls.make_parent_dirs(path)
-        df.to_csv(path, sep="\t", index=index, float_format=f"%.{precision}f")
+        df.to_csv(path, sep="\t", index=index, float_format=ff)
 
         logging.info(f"TSV file saved at: {path}")
         return path

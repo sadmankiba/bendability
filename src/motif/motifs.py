@@ -110,10 +110,11 @@ class MotifsM35:
 
         dn = f"{subdir}/{rega.chrm}_{rega}/motif_m35_v{self._V}"
         fn = f"enr_comp_{regb}"
-        FileSave.tsv_gdatadir(df, f"{dn}/{fn}.tsv")
+        FileSave.tsv_gdatadir(df, f"{dn}/{fn}.tsv", precision=-1)
         FileSave.tsv_gdatadir(
             df.sort_values(ZTEST_VAL),
             f"{dn}/sorted_{fn}.tsv",
+            precision=-1
         )
 
     def enr_rgns(
@@ -174,8 +175,13 @@ class PlotMotifs:
             "allchrm_s_mcvr_m_35_bndh_res_200_lim_250_perc_1.0",
             "enr_comp_dmnsh_bndh_res_200_lim_250_perc_1.0",
         ),
+        8: (
+            GDataSubDir.NUCLEOSOMES,
+            "allchrm_s_mcvr_m_35_nucs_w147",
+            "enr_comp_lnks_nucs_w147"
+        )
     }
-    sel = 7
+    sel = 8
 
     @classmethod
     def integrate_logos(cls) -> Path:
@@ -202,7 +208,7 @@ class PlotMotifs:
             imrows.append(cv2.hconcat(row))
 
         img = cv2.vconcat(imrows)
-        if cls.sel == 7:
+        if cls.sel == 7 or cls.sel == 8:
             impath = Path(
                 f"{PathObtain.figure_dir()}/{cls.ztest_str[cls.sel][0]}/"
                 f"{cls.ztest_str[cls.sel][1]}/intr_z_{'w_dist' if w_dist else 'wo_dist'}"
@@ -324,7 +330,7 @@ class PlotMotifs:
 
     @classmethod
     def _score(cls) -> pd.DataFrame:
-        if cls.sel == 7:
+        if cls.sel == 7 or cls.sel == 8:
             f = (
                 f"{PathObtain.gen_data_dir()}/{cls.ztest_str[cls.sel][0]}/"
                 f"{cls.ztest_str[cls.sel][1]}/{cls.ztest_str[cls.sel][2]}.tsv"

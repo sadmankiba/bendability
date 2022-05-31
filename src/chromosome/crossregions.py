@@ -1472,11 +1472,11 @@ class MCLineC0Plot:
 class MCMotifsM35:
     @classmethod
     def enr_line(cls):
-        plt_some = True
-        plt_indiv = False
-        plt_all = False
+        plt_some = False
+        plt_indiv = True
+        plt_all = True
 
-        r = "b"
+        r = "n"
         if r == "b":
             d = GDataSubDir.BOUNDARIES
             yl = (0, 1.0)
@@ -1574,10 +1574,11 @@ class MCMotifsM35:
             chrm = Chromosome(c, pred, C0Spread.mcvr)
             sr = SubRegions(chrm)
             sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_WD_100)
-            sl = math.sqrt(len(sr.bndrs))
+            rega, regb, d = sr.nucs, sr.lnkrs, GDataSubDir.NUCLEOSOMES
+            sl = math.sqrt(len(rega))
             df = pd.read_csv(
-                f"{PathObtain.gen_data_dir()}/{GDataSubDir.BOUNDARIES}/{chrm}_{sr.bndrs}/motif_m35_v4/"
-                f"enr_comp_{sr.dmns}.tsv",
+                f"{PathObtain.gen_data_dir()}/{d}/{chrm}_{rega}/motif_m35_v4/"
+                f"enr_comp_{regb}.tsv",
                 sep="\t",
             )
             z += df[ZTEST_VAL] * sl
@@ -1587,14 +1588,16 @@ class MCMotifsM35:
         z /= sum(lb)
         p /= sum(lb)
         df = pd.DataFrame({MOTIF_NO: range(N_MOTIFS), ZTEST_VAL: z, P_VAL: p})
-        dn = f"{GDataSubDir.BOUNDARIES}/all{str(chrm)[:-len(chrm.number)-1]}_{sr.bndrs}"
+        dn = f"{d}/all{str(chrm)[:-len(chrm.number)-1]}_{rega}"
         FileSave.tsv_gdatadir(
             df,
-            f"{dn}/enr_comp_{sr.dmns}.tsv",
+            f"{dn}/enr_comp_{regb}.tsv",
+            precision=-1
         )
         FileSave.tsv_gdatadir(
             df.sort_values(ZTEST_VAL, ignore_index=True),
-            f"{dn}/sorted_enr_comp_{sr.dmns}.tsv",
+            f"{dn}/sorted_enr_comp_{regb}.tsv",
+            precision=-1
         )
 
 

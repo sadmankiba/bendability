@@ -96,9 +96,13 @@ class Experiments:
             m.enrichment_compare(sr.bndrs, sr.dmns, GDataSubDir.BOUNDARIES)
 
     @classmethod
-    def nuc_lnk_V_z_test(self):
-        m = MotifsM35()
-        m.enrichment_compare(sr_vl.lnkrs, sr_vl.nucs, GDataSubDir.NUCLEOSOMES)
+    def nuc_lnk_V_z_test_all(self):
+        pred = Prediction(35)
+        for c in YeastChrNumList:
+            chrm = Chromosome(c, pred, C0Spread.mcvr)
+            sr = SubRegions(chrm)
+            m = MotifsM35(c)
+            m.enrichment_compare(sr.nucs, sr.lnkrs, GDataSubDir.NUCLEOSOMES)
 
     @classmethod
     def kmer_score_lnks_bnd_dmn_V(self):

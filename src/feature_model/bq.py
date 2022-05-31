@@ -25,7 +25,7 @@ def find_bq(df: pd.DataFrame, unit_len: int, df_str: str):
         A dictionary mapping neucleotide sequences to bendability quotient
     """
     N_BINS = 12
-    bq_file = Path(f"data/generated_data/bq/{df_str}_bq_{unit_len}.tsv")
+    bq_file = Path(f"{PathObtain.gen_data_dir()}/bq/{df_str}_bq_{unit_len}.tsv")
 
     # If bq value is already stored, return it
     if bq_file.is_file():
