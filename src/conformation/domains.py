@@ -59,7 +59,7 @@ class Boundaries(Regions):
         super().__init__(chrm, regions)
 
     def fig_subdir(self):
-        return f"{FigSubDir.BOUNDARIES}/{self.chrm.id}_{str(self)}"
+        return f"{FigSubDir.BOUNDARIES}/{self.chrm}_{self}"
 
     def nearest_rgns(self, rgns: Regions) -> Regions:
         return rgns[rgns[MIDDLE].isin(self.nearest_loc(rgns[MIDDLE]))]

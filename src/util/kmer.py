@@ -10,10 +10,10 @@ from util.custom_types import DNASeq, KMerSeq
 
 
 class KMer:
-    @classmethod 
+    @classmethod
     def all(cls, n: int) -> list[str]:
         return get_possible_seq(n)
-        
+
     @classmethod
     def find_pos_w_rc(cls, kmer: KMerSeq, seq: DNASeq) -> NDArray[(Any,), int]:
         return np.sort(
@@ -27,7 +27,12 @@ class KMer:
 
     @classmethod
     def find_pos(cls, kmer: str, seq: DNASeq) -> NDArray[(Any,), int]:
-        return np.array([m.start() for m in re.finditer(kmer, seq, overlapped=True)])
+        return np.array(
+            [
+                m.start() + (len(kmer) - 1) // 2
+                for m in re.finditer(kmer, seq, overlapped=True)
+            ]
+        ).astype(int)
 
     @classmethod
     def count_w_rc(cls, kmer: str, seqs: list[str]) -> NDArray[(Any,), int]:

@@ -1697,25 +1697,26 @@ class LinePlot:
             f"{sr.bndrs.fig_subdir()}/helsep_{pt}_content_pltlim_{pltlim}.png"
         )
 
-    def dinc_mean_bndrs(self, pltlim=100):
-        rc = False
+    def kmer_mean_bndrs(self, kmer: str, plim=100):
+        rc = True
         sr = SubRegions(self._chrm)
-        sr.bsel = BndSel(BoundariesType.FANC, BndFParm.SHR_50)
-        seqs = sr.chrm.seqf(sr.bndrs[MIDDLE] - pltlim, sr.bndrs[MIDDLE] + pltlim)
+        sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_100)
+        rgns = sr.bndrs
+        seqs = sr.chrm.seqf(rgns[MIDDLE] - plim, sr.bndrs[MIDDLE] + plim)
         arr = np.zeros((len(seqs), len(seqs[0])))
-        dinc = "CG"
         pos_func = KMer.find_pos_w_rc if rc else KMer.find_pos
         for i, seq in enumerate(seqs):
-            arr[i, pos_func(dinc, seq)] = 1
+            arr[i, pos_func(kmer, seq)] = 1
 
         arr = arr.mean(axis=0)
-        x = np.arange(2 * pltlim + 1) - pltlim
+        x = np.arange(2 * plim + 1) - plim
+        PlotUtil.clearfig()
         plt.plot(x, arr)
         plt.xlabel("Position from boundary mid")
         plt.ylabel("Content")
-        plt.title(f"{dinc} content in bndrs")
+        plt.title(f"{kmer} content in bndrs")
         return FileSave.figure_in_figdir(
-            f"{sr.bndrs.fig_subdir()}/{dinc}_content_pltlim_{pltlim}_rc_{rc}.png"
+            f"{sr.bndrs.fig_subdir()}/kmer/{kmer}_content_plim_{plim}{'_rc' if rc else ''}.png"
         )
 
 
