@@ -197,13 +197,7 @@ class Spread:
 
 class ChrmCalc:
     @classmethod
-    def moving_avg(self, arr: NDArray[(Any,)], k: int) -> str:
-        """
-        Calculate moving average of k data points
-
-        Returns:
-            A 1D numpy array
-        """
+    def moving_avg(self, arr: NDArray[(Any,)], k: int) -> NDArray[(Any,)]:
         assert len(arr.shape) == 1
 
         # Find first MA
@@ -213,6 +207,7 @@ class ChrmCalc:
         for i in range(arr.size - k):
             ma = np.append(ma, ma[-1] + (arr[i + k] - arr[i]) / k)
 
+        assert len(ma) == len(arr) - k + 1
         return ma
 
     @classmethod

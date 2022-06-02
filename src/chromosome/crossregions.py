@@ -16,7 +16,7 @@ from scipy.ndimage import gaussian_filter1d
 from skimage.transform import resize
 from nptyping import NDArray
 
-from chromosome.chromosome import C0Spread, PlotChrm, ChrmOperator, Chromosome
+from chromosome.chromosome import C0Spread, ChrmCalc, PlotChrm, ChrmOperator, Chromosome
 from chromosome.genes import Genes, Promoters, STRAND
 from chromosome.regions import END, MIDDLE, START, LEN, MEAN_C0, Regions
 from chromosome.nucleosomes import Linkers, Nucleosomes
@@ -1399,25 +1399,13 @@ class MCLineC0Plot:
                 "width": 0.001,
                 "head_width": 0.004,
                 "head_length": 0.01,
-                "lw": lw-1,
+                "lw": lw - 1,
                 "length_includes_head": True,
                 "shape": "full",
-                "color": "red"
+                "color": "red",
             }
-            plt.arrow(
-                -41,
-                -0.198,
-                120,
-                0,
-                **aargs
-            )
-            plt.arrow(
-                79,
-                -0.198,
-                -120,
-                0,
-                **aargs
-            )
+            plt.arrow(-41, -0.198, 120, 0, **aargs)
+            plt.arrow(79, -0.198, -120, 0, **aargs)
             plt.text(20, -0.196, "120bp", ha="center", color="red")
             # nt = np.arange(-pltlim + 1, -326)
             # plt.plot(nt, mc0b[nt + pltlim - 1], color="black", lw=lw)
@@ -1589,15 +1577,11 @@ class MCMotifsM35:
         p /= sum(lb)
         df = pd.DataFrame({MOTIF_NO: range(N_MOTIFS), ZTEST_VAL: z, P_VAL: p})
         dn = f"{d}/all{str(chrm)[:-len(chrm.number)-1]}_{rega}"
-        FileSave.tsv_gdatadir(
-            df,
-            f"{dn}/enr_comp_{regb}.tsv",
-            precision=-1
-        )
+        FileSave.tsv_gdatadir(df, f"{dn}/enr_comp_{regb}.tsv", precision=-1)
         FileSave.tsv_gdatadir(
             df.sort_values(ZTEST_VAL, ignore_index=True),
             f"{dn}/sorted_enr_comp_{regb}.tsv",
-            precision=-1
+            precision=-1,
         )
 
 
@@ -1698,25 +1682,53 @@ class LinePlot:
         )
 
     def kmer_mean_tss(self, kmer: str):
+        al = True
         rc = True
-        u, d = 499, 500
-        prmtrs = Promoters(self._chrm, ustr_tss=u, dstr_tss=d)
-        rgns = prmtrs
-        seqs = self._chrm.seqf(rgns[START], rgns[END])
-        arr = np.zeros((len(seqs), len(seqs[0])))
-        pos_func = KMer.find_pos_w_rc if rc else KMer.find_pos
-        for i, seq in enumerate(seqs):
-            arr[i, pos_func(kmer, seq)] = 1
+        smt = 40
+        ma = 1
+        u, d = 599, 400
+        pred = Prediction(35)
+        if al:
+            cl = [Chromosome(c, pred, C0Spread.mcvr) for c in YeastChrNumList]
+        else:
+            cl = [self._chrm]
 
-        arr = Promoters.val_tss_align(arr, prmtrs[STRAND])
-        arr = arr.mean(axis=0)
-        x = np.arange(u + d + 1) - u
+        arrs = []
+        for ch in cl:
+            print(ch.id)
+            prmtrs = Promoters(ch, ustr_tss=u, dstr_tss=d)
+            rgns = prmtrs
+            seqs = ch.seqf(rgns[START], rgns[END])
+            arr = np.zeros((len(seqs), len(seqs[0])))
+            pos_func = KMer.find_pos_w_rc if rc else KMer.find_pos
+            for i, seq in enumerate(seqs):
+                arr[i, pos_func(kmer, seq)] = 1
+
+            arr = Promoters.val_tss_align(arr, prmtrs[STRAND])
+            arrs.append(arr)
+
+        marr = np.vstack(arrs).mean(axis=0)
+        marr = ChrmCalc.moving_avg(marr, ma)
         PlotUtil.clearfig()
-        plt.plot(x, arr)
+        PlotUtil.font_size(20)
+        x = np.arange(u + d + 1) - u
+        x = x[ma // 2 : -((ma - 1) // 2)]
+        if smt > 0:
+            plt.plot(x, marr, color="lightskyblue", alpha=0.5, lw=3, ls='-')
+            plt.plot(x, gaussian_filter1d(marr, smt), color="tab:blue", lw=3)
+        else:
+            plt.plot(x, marr, color="tab:blue", lw=3)
         plt.xlabel("Position from TSS")
         plt.ylabel(f"{kmer} content")
+        plt.tight_layout()
+        dr = (
+            f"{GDataSubDir.PROMOTERS}/all{str(cl[-1])[:-len(cl[-1].number)-1]}"
+            if al
+            else rgns.fig_subdir()
+        )
         return FileSave.figure_in_figdir(
-            f"{rgns.fig_subdir()}/kmer/{kmer}_content_u_{u}_d_{d}{'_rc' if rc else ''}.png"
+            f"{dr}/kmer/{kmer}_content_u_{u}_d_{d}{'_rc' if rc else ''}"
+            f"_ma_{ma}{f'_smt_{smt}' if smt > 0 else ''}.png"
         )
 
     def kmer_mean_rgns(self, kmer: str, plim=100):
@@ -1737,6 +1749,7 @@ class LinePlot:
         plt.plot(x, arr)
         plt.xlabel("Position from mid")
         plt.ylabel(f"{kmer} content")
+
         return FileSave.figure_in_figdir(
             f"{rgns.fig_subdir()}/kmer/{kmer}_content_plim_{plim}{'_rc' if rc else ''}.png"
         )
