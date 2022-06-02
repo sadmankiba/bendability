@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -127,7 +127,10 @@ class Promoters(Regions):
         )
 
     def __str__(self) -> str:
-        return f"prmtrs_ustr_{self._ustr_tss}_dstr_{self._dstr_tss}"
+        return f"prmtrs_us_{self._ustr_tss}_ds_{self._dstr_tss}"
+
+    def fig_subdir(self):
+        return f"{FigSubDir.PROMOTERS}/{self.chrm}_{self}"
 
     def frwrd(self) -> Promoters:
         return self._new(self._regions.query(f"{STRAND} == 1"))
@@ -142,7 +145,14 @@ class Promoters(Regions):
         return np.vstack((self.frwrd().c0(), np.flip(self.rvrs().c0(), axis=1))).mean(
             axis=0
         )
-
+    
+    @classmethod
+    def val_tss_align(cls, arr: NDArray[(Any, Any), float], strand: Iterable[int]):
+        assert arr.shape[0] == len(strand)
+        bs = (strand == 1)
+        rt = np.vstack((arr[bs], np.flip(arr[~bs], axis=1)))
+        assert arr.shape == rt.shape 
+        return rt
 
 class PlotPromoters:
     def __init__(self, chrm: Chromosome) -> None:

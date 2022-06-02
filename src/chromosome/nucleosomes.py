@@ -198,6 +198,8 @@ class Nucleosomes(Regions):
 
         return in_between[::-1] if strand == -1 else in_between
 
+    def fig_subdir(self):
+        return f"{FigSubDir.NUCLEOSOMES}/{self.chrm}_{self}"
 
 class Linkers(Regions):
     def __init__(self, chrm: Chromosome, regions: RegionsInternal = None) -> None:

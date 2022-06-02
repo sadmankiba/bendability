@@ -1697,12 +1697,35 @@ class LinePlot:
             f"{sr.bndrs.fig_subdir()}/helsep_{pt}_content_pltlim_{pltlim}.png"
         )
 
-    def kmer_mean_bndrs(self, kmer: str, plim=100):
+    def kmer_mean_tss(self, kmer: str):
+        rc = True
+        u, d = 499, 500
+        prmtrs = Promoters(self._chrm, ustr_tss=u, dstr_tss=d)
+        rgns = prmtrs
+        seqs = self._chrm.seqf(rgns[START], rgns[END])
+        arr = np.zeros((len(seqs), len(seqs[0])))
+        pos_func = KMer.find_pos_w_rc if rc else KMer.find_pos
+        for i, seq in enumerate(seqs):
+            arr[i, pos_func(kmer, seq)] = 1
+
+        arr = Promoters.val_tss_align(arr, prmtrs[STRAND])
+        arr = arr.mean(axis=0)
+        x = np.arange(u + d + 1) - u
+        PlotUtil.clearfig()
+        plt.plot(x, arr)
+        plt.xlabel("Position from TSS")
+        plt.ylabel(f"{kmer} content")
+        return FileSave.figure_in_figdir(
+            f"{rgns.fig_subdir()}/kmer/{kmer}_content_u_{u}_d_{d}{'_rc' if rc else ''}.png"
+        )
+
+    def kmer_mean_rgns(self, kmer: str, plim=100):
         rc = True
         sr = SubRegions(self._chrm)
         sr.bsel = BndSel(BoundariesType.HEXP, BndParm.HIRS_SHR_100)
-        rgns = sr.bndrs
-        seqs = sr.chrm.seqf(rgns[MIDDLE] - plim, sr.bndrs[MIDDLE] + plim)
+        rgns = sr.nucs
+        mids = ChrmOperator(self._chrm).in_lim(rgns[MIDDLE], plim)
+        seqs = sr.chrm.seqf(mids - plim, mids + plim)
         arr = np.zeros((len(seqs), len(seqs[0])))
         pos_func = KMer.find_pos_w_rc if rc else KMer.find_pos
         for i, seq in enumerate(seqs):
@@ -1712,11 +1735,10 @@ class LinePlot:
         x = np.arange(2 * plim + 1) - plim
         PlotUtil.clearfig()
         plt.plot(x, arr)
-        plt.xlabel("Position from boundary mid")
-        plt.ylabel("Content")
-        plt.title(f"{kmer} content in bndrs")
+        plt.xlabel("Position from mid")
+        plt.ylabel(f"{kmer} content")
         return FileSave.figure_in_figdir(
-            f"{sr.bndrs.fig_subdir()}/kmer/{kmer}_content_plim_{plim}{'_rc' if rc else ''}.png"
+            f"{rgns.fig_subdir()}/kmer/{kmer}_content_plim_{plim}{'_rc' if rc else ''}.png"
         )
 
 
