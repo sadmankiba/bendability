@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/saadsakib/bendability/actions/workflows/tests.yaml/badge.svg)](https://github.com/saadsakib/bendability/actions/workflows/tests.yaml)
 
-This repository contains various utility tools to analyze DNA Bendability. 
+This repository contains various ML and DL tools to analyze DNA Bendability. This work has been pulished with title ["DeepBend: An Interpretable Model of DNA Bendability"](https://doi.org/10.1016/j.isci.2023.105945) in Cell iScience (2023). We provided insights from the analysis of the CNN model weights for predicting bendability.   
 
 ## Setup Repository 
 
